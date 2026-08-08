@@ -1,31 +1,52 @@
-# Mission
+# CAD Designs Mission Specification
 
 ## Project Purpose
 
-Design a complete, commercially sellable **FDM 3D-printable clothes drying rack** — a faithful replica of the X-frame stainless steel drying rack, re-engineered entirely in printable plastic parts.
+Design, model, and validate a complete, modular, 3D-printable mechanical hardware system for **Fabrica** — an open-source, automated cloth folding robot.
 
-All parts must be:
-- **Printable**: each part fits diagonally within a 175 × 175 × 175 mm FDM build plate (split into segments with joinery where needed)
-- **Assembleable**: long members use printed rectangular segments joined end-to-end via integrated male threaded cylinders and female threaded circular holes (designed to align their outer rectangular profiles when fully screwed tight); pivots and hinges use fully 3D-printable threaded pins/brackets ensuring 100% plastic assembly without non-printable metal hardware.
-- **Sellable**: the digital STL + STEP file set is the product — clean geometry, no degenerate faces, professional finish
+The `cad-designs` sub-system provides the 3D CAD models, STL/STEP export files, modular panel components, hinge mechanics, servo motor mounts, and controller enclosure needed to build the physical folding grid.
 
-## Reference Product
+All CAD assets must be:
+- **Printable**: Optimized for standard desktop FDM 3D printers (PLA/PETG) with a default **256 × 256 × 256 mm** build plate volume, clean overhangs (≤ 45°), and minimal support requirements. Parts can be dynamically scaled down to fit smaller 180 × 180 × 180 mm build beds.
+- **Modular & Assembleable**: Modular panel units (Motorized, Follower, Base, Interface) that interlock into scalable grid arrangements (standard 4×3 configuration, expandable up to 16 motorized modules) with robust 3D-printed hinges, drive linkages, and hardware interfaces.
+- **Parametric & Maintainable**: Built programmatically using parametric CAD scripts driven by a single configuration source, allowing seamless scaling, tolerance adjustment, and automated export.
 
-An X-frame collapsible laundry drying rack (79" medium variant):
-- 2 pairs of X-shaped folding legs give a stable, scissors-style base. The design must be fully foldable flat, as shown in the reference images.
-- 3 horizontal drying rods at different heights (1 main top rail, 1 secondary lower rail, 1 retractable side arm)
-- 2 locking hinges at the X-frame crossing points, specifically designed to allow the entire rack to be smoothly folded and collapsed for storage.
-- Anti-slip rubber foot caps on all 4 leg ends
-- Rod end caps (stadium profile plugs)
-- Middle stability bar connecting the two X-frames
+## Core Mechanical Modules & Components
 
-## Target Customer
+1. **Motorized Module Panel**:
+   - Active folding panel incorporating integrated mounting brackets for standard high-torque PWM servos (e.g., MG996R).
+   - Features drive shaft/horn couplers and heavy-duty hinge knuckle joints to articulate panels from 0° (flat rest) to 180° (flipped fold position).
 
-Makers and hobbyists who want a large, functional drying rack printed at home rather than shipped from overseas.
+2. **Follower Module Panel**:
+   - Passive hinged panel attached to motorized or adjacent base panels.
+   - Provides extended surface area for folding larger garments while articulating smoothly during folding cycles.
 
-## Success Criteria
+3. **Base Module Panel**:
+   - Stationary structural chassis panel forming the rigid grid foundation.
+   - Houses inter-panel connectors, wire routing channels, and table-gripping rubber foot pads.
 
-- All STL files pass manifold check (zero non-manifold edges)
-- Assembly is dimensionally accurate to within ±1 mm of the 79" variant spec
-- Every part prints without mandatory support (or with minimal, clearly documented support)
-- STEP file set provided for downstream CAD modification
+4. **Interface & Enclosure Module**:
+   - Control pad housing integrating 4 physical tactile buttons, status LED diffusers, and cable management.
+   - Protective enclosure for the microcontroller (Raspberry Pi Pico 2W), PCA9685 16-channel servo driver board, and power distribution terminals.
+
+5. **Kinematic Linkages & Hardware Interfaces**:
+   - Custom 3D-printable hinge pins, servo horn drive adapters, and panel coupler links.
+
+## Reference System Configuration
+
+Standard 4×3 Garment Folding Grid Assembly:
+- **Grid Layout**: 4 rows × 3 columns of modular panels forming a flat folding table for garments (t-shirts, towels, trousers).
+- **Actuation**: Parallel servo actuation capable of folding garments in 8–12 seconds per cycle.
+- **Enclosure & Control**: Integrated Pico 2W + PCA9685 controller housing with front-accessible physical button interface pad.
+
+## Target Audience & Use Case
+
+Makers, STEM educators, and robotics enthusiasts building an affordable ($80–$150 total BOM), open-source automated laundry folding machine using standard FDM 3D printing and off-the-shelf electronics.
+
+## Mechanical Success Criteria
+
+- **Zero Geometric Errors**: 100% of exported STL files pass manifold topology checks (zero non-manifold edges, self-intersections, or open boundaries).
+- **Interference-Free Kinematics**: All moving panel hinges and drive linkages achieve full 0° to 180° rotation without interference or binding.
+- **Visual & Analytical Validation**: 100% of parts and assembly models pass visual, clearance, and kinematic validation.
+- **Parametric Consistency**: Geometry builds cleanly across default (256 mm) and scaled (180 mm) build plate targets.
+- **Automated Delivery**: Clean STEP (AP214) and binary STL file sets generated headlessly for slicing and assembly documentation.

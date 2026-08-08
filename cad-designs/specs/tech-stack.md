@@ -1,93 +1,100 @@
-# Tech Stack
+# Tech Stack — CAD Designs
 
 ## CAD Toolchain
 
 | Layer | Tool |
 |---|---|
-| Parametric modelling | FreeCAD 1.1.0 (Python scripting API) |
-| Geometry kernel | OpenCASCADE (OCC) via `Part` workbench |
-| Headless execution | `freecadcmd` (`/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd`) |
-| GUI inspection | FreeCAD GUI (`/Applications/FreeCAD.app/Contents/MacOS/FreeCAD`) |
-| Export format — CAD | STEP (AP214) via `shape.exportStep()` |
-| Export format — print | STL (binary) via `shape.exportStl()` |
-| Parameters | `params.py` — single source of truth; all dimensions × `SCALE` |
+| Parametric Modelling | FreeCAD 1.1.0+ (Python scripting API) |
+| Geometry Kernel | OpenCASCADE (OCC) via `Part` workbench |
+| Headless Execution | `freecadcmd` (`/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd` or `freecadcmd` on PATH) |
+| GUI Inspection | FreeCAD GUI (`/Applications/FreeCAD.app/Contents/MacOS/FreeCAD`) |
+| Export Format — CAD | STEP (AP214) via `shape.exportStep()` |
+| Export Format — Print | STL (binary) / 3MF via `shape.exportStl()` |
+| Parameters | `params.py` — single source of truth; all dimensions driven by parameters & `SCALE` |
+| Visual Validation | FreeCAD MCP Server (v3) via `freecad-visual-validation` skill |
 
-## FreeCAD Python Conventions
+## FreeCAD MCP Visual Validation Toolchain (v3)
 
-- `SCALE = 1.0` is always the **first line** of `params.py`
-- All dimensions are in **millimetres** (convert inches → mm in `params.py`)
-- Primitives: `Part.makeBox`, `Part.makeHollowBox`, etc.
-- Boolean ops: `.fuse()`, `.cut()`, `.common()`; use `Part.makeCompound()` for assembling thread cutters instead of `.fuse().removeSplitter()` to avoid silent boolean failures in OpenCASCADE.
-- Fillets: always wrapped in `try/except`
-- Every `construct_*()` function deletes existing exports before writing, then returns the shape
-- Structural connections for segments rely on male threaded cylindrical pegs and female threaded holes. The thread is timed so that when fully tightened, the outer profiles (rectangular for legs, square transitions for rods) align seamlessly to form a uniform continuous member.
-- **CRITICAL Pattern for Sweeps/Threads**: Any `Part.Wire(helix).makePipeShell()` or complex extrusion must be generated at the origin (`App.Vector(0,0,0)`) wrapped in `Part.Solid()` and immediately fused to its core (`.fuse()`). Only *after* the threaded solid is finalized should it be repositioned using `.Placement` to interact with the main body. Creating sweeps off-origin results in disjoint bounding boxes and silent boolean (`.cut`) failures in OpenCASCADE.
+All part and assembly Python scripts must be visually and analytically validated using the FreeCAD MCP server tools before final approval:
 
-## FDM Print Constraints
+1. **`render_freecad_script`**: Multi-view bursts (`Isometric`, `Front`, `Top`, `Right`), custom elevation/azimuth angles, and close-up detail inspection.
+2. **`inspect_freecad_assembly`**: Exploded assembly rendering (`explode_factor`), part highlighting (`highlight_objects`), focus zooming (`focus_object`), and dimension labels (`show_dimensions`).
+3. **`section_freecad_model`**: Diagnostic cross-section cuts (`XZ`, `YZ`, `XY`), wireframe mesh topology (`wireframe`), and orientation/print-face analysis (`orientation_check`).
+4. **`check_interference`**: Precise Boolean intersection volume calculations (`overlap_volume_mm3`) between mating part pairs. `overlap_volume_mm3 > 0.001` on clearance joints indicates a design error.
 
-| Parameter | Value |
-|---|---|
-| Build plate | 175 × 175 × 175 mm (default) |
-| Default nozzle | 0.4 mm |
-| Default layer height | 0.2 mm |
-| Inter-part tolerance | 0.4 mm (sliding fit), 0.2 mm (press fit) |
-| Min wall thickness | 3.0 mm (structural), 2.0 mm (cosmetic) |
-| Overhang rule | ≤ 45° without support |
+## FreeCAD Python & Parametric Conventions
 
-Long structural members (legs, rods) exceed the build plate and **must** be segmented into max 220 mm sub-parts (derived from $175\sqrt{2}$) with integrated threaded cylindrical male/female joint mechanisms.
+- `SCALE = 1.0` is always defined in `params.py` (default for **256 × 256 × 256 mm** build plate; set `SCALE = 180.0 / 256.0` to scale down to **180 × 180 × 180 mm** build plates).
+- All dimensions are defined in **millimetres** (mm).
+- Primitives: `Part.makeBox`, `Part.makeCylinder`, `Part.makeHollowBox`, etc.
+- Boolean operations: `.fuse()`, `.cut()`, `.common()`; use `Part.makeCompound()` when assembling multiple tool shapes to avoid silent boolean failures in OpenCASCADE.
+- Fillets & Chamfers: always wrapped in `try/except` to prevent script execution failure on edge topology changes.
+- Script outputs: Every `construct_*()` function cleans existing files before exporting new shapes.
+- **CRITICAL Pattern for Sweeps/Threads**: Any `Part.Wire(helix).makePipeShell()` or complex extrusion must be generated at the origin (`App.Vector(0,0,0)`) wrapped in `Part.Solid()` and immediately fused to its core (`.fuse()`). Only *after* the feature solid is finalized should it be repositioned using `.Placement` to interact with the main body. Creating sweeps off-origin results in disjoint bounding boxes and silent boolean (`.cut`) failures in OpenCASCADE.
 
-## Fit Parameters (canonical — defined in `params.py`)
+## FDM Print Constraints & Build Volume Specs
 
-| Parameter | Value |
-|---|---|
-| `FIT_CLEARANCE` | 0.4 mm (sliding/friction fits between pegs and bores) |
-| `PEG_THREAD_RADIUS` | Computed radius inside leg allowing wall clearance |
-| `PEG_THREAD_PITCH` | 4.0 mm base thread pitch for connections |
-| `THREAD_CLEARANCE` | 0.6 mm (shrinks male thread radius for post-print rotation) |
-| `GENERAL_CLEARANCE` | 0.4 mm (clearance holes for pins/shafts) |
-| `LEG_WIDTH` | 25.0 mm |
-| `LEG_DEPTH` | 25.0 mm |
-| `PEG_LENGTH` | 25.0 mm |
-
-## Dimensions — 79" Variant (canonical model)
-
-All values converted to mm from the reference images:
-
-| Dimension | Imperial | Metric (mm) |
+| Parameter | Default Value (256mm Plate) | Scaled Value (180mm Plate via `SCALE`) |
 |---|---|---|
-| Total length (deployed) | 51.1"–79" | 1298–2007 mm |
-| Total height | 51.2" | 1300 mm |
-| Total depth (rod-to-rod) | 19.3" | 490 mm |
-| Foot spread (deployed) | 27.5" | 699 mm |
-| Folded length | 56.3" | 1430 mm |
-| Folded thickness | 4" | 102 mm |
-| Leg Cross-section width | ~1.0" | 25 mm |
-| Leg Cross-section depth | ~1.0" | 25 mm |
-| Leg wall thickness | ~0.12" | 3 mm |
+| Build plate volume | 256 × 256 × 256 mm | 180 × 180 × 180 mm (`SCALE = 180/256`) |
+| Default nozzle size | 0.4 mm | 0.4 mm |
+| Default layer height | 0.2 mm | 0.2 mm |
+| Inter-part fit clearance | 0.4 mm (sliding fit) | Scaled proportionally |
+| Press-fit clearance | 0.2 mm (servo horn couplers) | Scaled proportionally |
+| Min wall thickness (structural) | 3.0 mm | 2.1 mm |
+| Min wall thickness (cosmetic) | 2.0 mm | 1.4 mm |
+| Overhang rule | ≤ 45° without mandatory support | ≤ 45° without mandatory support |
 
-> Outer dimensions and wall are estimated from reference images; adjust in `params.py` if measured values differ.
+## Parametric Parameters (defined in `params.py`)
+
+| Parameter | Default Value | Description |
+|---|---|---|
+| `BUILD_PLATE_SIZE` | 256.0 mm | Target build volume dimension |
+| `SCALE` | 1.0 | Global parametric scaling multiplier (e.g. `180/256` for 180mm plate) |
+| `PANEL_WIDTH` | 240.0 mm | Standard width for modular panels |
+| `PANEL_HEIGHT` | 240.0 mm | Standard height for modular panels |
+| `PANEL_THICKNESS` | 12.0 mm | Structural thickness for panel bodies |
+| `FIT_CLEARANCE` | 0.4 mm | Sliding/hinge clearance between mating parts |
+| `PRESS_FIT_CLEARANCE` | 0.2 mm | Clearance for servo horn drive adapters & joiners |
+| `WALL_THICKNESS` | 3.0 mm | Standard outer wall thickness |
+| `SERVO_MOUNT_WIDTH` | 40.5 mm | MG996R servo motor body width footprint |
+| `SERVO_MOUNT_DEPTH` | 20.0 mm | MG996R servo motor body depth footprint |
+| `TEXTURE_HEIGHT` | 0.6 mm | Micro-grip diamond texture height on panel surfaces |
+| `HOLE_CHAMFER` | 0.8 mm | 45° chamfer on circular weight-reduction hole edges |
+| `ELEPHANTS_FOOT_CHAMFER` | 0.4 mm | 45° relief chamfer on bottom bed-contacting edges |
+| `CONTROL_DECK_ANGLE` | 15.0° | Ergonomic forward tilt angle for interface panel |
+| `TPU_BUMPER_DEPTH` | 1.5 mm | Recessed pocket depth for silent flip TPU shock dampers |
+| `RETICLE_DEBOSS_DEPTH` | 0.4 mm | Deboss depth for garment collar & shoulder centering guide lines |
+| `DC_JACK_DIAMETER` | 11.5 mm | Mounting cutout diameter for external DC power supply jack |
+| `FOOT_PAD_DIA` | 20.1 mm | Sockets for press-fitting anti-slip silicone/rubber feet |
+| `FOOT_PAD_DEPTH` | 2.0 mm | Recessed depth for tabletop anti-slip rubber pads |
+| `JOINER_DETENT` | 0.3 mm | Flex detent bump on dovetail joiners for click-lock retention |
+| `WIRE_PORT_FILLET` | 1.5 mm | Smooth radius fillet on internal cable pass-through ports |
 
 ## File & Folder Structure
 
 ```
-clothes-drying-rack/
-├── specs/                           ← project constitution (this folder)
-├── params.py                        ← all dimensions + SCALE + paths 
-├── part_01_leg_segment.py           ← rectangular hollow segment, integrated threaded peg one side
-├── part_02_xframe_hinge_bottom.py   ← bottom hinge bracket (female threads)
-├── part_03_xframe_hinge_top.py      ← top hinge bracket (clearance bore)
-├── part_04_xframe_hinge_pin.py      ← locking pivot pin (male threads)
-├── part_05_top_l_bracket.py         ← universal modular T-bracket (3 female sockets) for inline or top connections
-├── part_06_drying_rod.py            ← universal stadium-profile rod segment
-├── part_07_threaded_adapter_pin.py  ← male-to-male pin for female-to-female joints
-├── part_08_foot_cap.py
-├── part_09_rod_end_cap.py
-├── assembly.py
-├── export_all.py
-├── run.sh
+cad-designs/
+├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md)
+├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
+├── parts/
+│   ├── part_01_base_module.py      ← monolithic stationary base chassis (1-piece box, micro-grip texture, cable channels)
+│   ├── part_02_follower_frame.py   ← passive follower U-frame (top 360° closed bore, bottom C-snap, under-frame cable clips)
+│   ├── part_03_follower_flap.py    ← passive follower flap (gradient ~45% mass cutouts, hole chamfers, 45° lead-in pins, micro-grip texture)
+│   ├── part_04_motorized_frame.py  ← active motorized outer U-frame with servo mounting pocket
+│   ├── part_05_motorized_shaft.py  ← active drive shaft with integrated metal servo horn pocket (direct drive, 0 slop)
+│   ├── part_06_servo_cover.py      ← toolless snap-latch servo housing cover with wire strain relief
+│   ├── part_07_active_flap.py      ← active folding flap panel with corner cutout, hole chamfers & micro-grip texture
+│   ├── part_08_interface_panel.py  ← 15° angled ergonomic control deck faceplate (4 button cutouts + LED status bar window)
+│   ├── part_09_controller_case.py  ← electronics enclosure case with passive convection cooling chimneys for Pico 2W + PCA9685
+│   └── part_10_frame_joiner.py     ← hollow dovetail interlocking frame joiner peg (mechanical key + internal wire raceway)
+├── assemblies/
+│   ├── assembly_follower_module.py ← follower module sub-assembly (Pin-Slide & Snap: Frame + Flap + Joiners)
+│   ├── assembly_motorized_module.py← motorized module sub-assembly (Frame + Shaft + Cover + Active Flap + Joiners)
+│   ├── assembly_interface_module.py← interface module sub-assembly (Case + 15° Faceplate)
+│   └── assembly_4x3_grid.py        ← full 4x3 grid assembly model (2 Base + 4 Follower + 6 Motorized + Interface)
+├── export_all.py                   ← batch script to export all STEP and STL models
+├── run.sh                          ← CLI entrypoint for building and exporting CAD models
 ├── README.md
-├── .gitignore
-├── exports/
-├── 3d-print/
-└── media/
+└── exports/                        ← target directory for generated STL and STEP files
 ```
