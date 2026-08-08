@@ -135,8 +135,8 @@ def create_follower_frame():
     return frame
 
 
-if __name__ == "__main__":
-    doc = App.newDocument("FollowerFrame")
+def export_part():
+    doc = App.ActiveDocument or App.newDocument("FollowerFrame")
     obj = doc.addObject("Part::Feature", "Part02FollowerFrame")
     shape = create_follower_frame()
     obj.Shape = shape
@@ -149,3 +149,5 @@ if __name__ == "__main__":
     shape.exportStep(step_path)
     shape.exportStl(stl_path)
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+
+export_part()

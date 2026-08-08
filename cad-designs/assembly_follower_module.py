@@ -45,7 +45,7 @@ def build_follower_assembly():
     return doc
 
 
-if __name__ == "__main__":
+def export_part():
     doc = build_follower_assembly()
     export_dir = os.path.join(os.path.dirname(__file__), "exports")
     os.makedirs(export_dir, exist_ok=True)
@@ -58,3 +58,5 @@ if __name__ == "__main__":
     compound.exportStep(step_path)
     compound.exportStl(stl_path)
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+
+export_part()
