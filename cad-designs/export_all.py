@@ -10,8 +10,6 @@ if not os.path.exists(FREECAD_CMD):
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 EXPORT_DIR = os.path.join(CURRENT_DIR, "exports")
-PARTS_DIR = os.path.join(CURRENT_DIR, "parts")
-ASSEMBLIES_DIR = os.path.join(CURRENT_DIR, "assemblies")
 
 def clear_exports():
     if os.path.exists(EXPORT_DIR):
@@ -47,8 +45,8 @@ def main():
     print("=== Starting Fabrica CAD Export All ===")
     clear_exports()
     
-    part_files = sorted(glob.glob(os.path.join(PARTS_DIR, "part_*.py")))
-    assembly_files = sorted(glob.glob(os.path.join(ASSEMBLIES_DIR, "assembly_*.py")))
+    part_files = sorted(glob.glob(os.path.join(CURRENT_DIR, "part_*.py")))
+    assembly_files = sorted(glob.glob(os.path.join(CURRENT_DIR, "assembly_*.py")))
     all_scripts = part_files + assembly_files
     
     if not all_scripts:

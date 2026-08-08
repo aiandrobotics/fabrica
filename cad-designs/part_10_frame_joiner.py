@@ -7,9 +7,8 @@ import sys
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CAD_DIR = os.path.dirname(SCRIPT_DIR)
-if CAD_DIR not in sys.path:
-    sys.path.insert(0, CAD_DIR)
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
 
 import FreeCAD as App
 import Part
