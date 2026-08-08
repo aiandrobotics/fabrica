@@ -31,6 +31,7 @@ TEXTURE_HEIGHT         = 0.6 * SCALE
 HOLE_CHAMFER           = 0.8 * SCALE
 ELEPHANTS_FOOT_CHAMFER = 0.4 * SCALE
 CONTROL_DECK_ANGLE     = 15.0
+ACCENT_BEVEL_DEPTH     = 1.2 * SCALE
 
 # TPU Dampers, Alignment Reticles & Power Port
 TPU_BUMPER_DEPTH     = 1.5 * SCALE
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     print(f"Interface Panel: {INTERFACE_PANEL_WIDTH:.1f} x {INTERFACE_PANEL_HEIGHT:.1f} x {INTERFACE_PANEL_THICKNESS:.1f} mm")
     print(f"Standard 4x3 Grid Size: {TOTAL_GRID_WIDTH:.1f} x {TOTAL_GRID_HEIGHT:.1f} mm")
     print(f"TPU Bumper Slot: {TPU_BUMPER_DEPTH:.1f} mm | Anti-Slip Feet Sockets: Ø{FOOT_PAD_DIA:.1f} x {FOOT_PAD_DEPTH:.1f} mm")
-    print(f"Joiner Click Detent: {JOINER_DETENT:.1f} mm | Wire Port Fillet: {WIRE_PORT_FILLET:.1f} mm")
+    print(f"Joiner Click Detent: {JOINER_DETENT:.1f} mm | Dual-Tone Accent Bevel: {ACCENT_BEVEL_DEPTH:.1f} mm")
     print(f"DC Power Jack Port: Ø{DC_JACK_DIAMETER:.1f} mm | Garment Reticle Deboss: {RETICLE_DEBOSS_DEPTH:.1f} mm")
     print(f"Fit Clearance: {FIT_CLEARANCE:.2f} mm | Press Fit Clearance: {PRESS_FIT_CLEARANCE:.2f} mm")
     print(f"Export Path: {EXPORT_DIR}")

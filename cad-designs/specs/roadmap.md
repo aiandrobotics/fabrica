@@ -9,13 +9,13 @@ Build, validate, and commit before moving to the next phase.
 - Create `specs/mission.md`, `specs/tech-stack.md`, and `specs/roadmap.md` tailored for Fabrica Cloth Folding Robot.
 - Establish default **256 × 256 × 256 mm** build plate target with support for scaling down to **180 × 180 × 180 mm** via the `SCALE` parameter in `params.py`.
 - Incorporate FreeCAD MCP server tools (`render_freecad_script`, `inspect_freecad_assembly`, `section_freecad_model`, `check_interference`) and `freecad-visual-validation` skill rules into project specs.
-- Review reference images (`base-module.png`, `follower-module.png`, `motorized-module.png`, `interface-module.png`, `3d-overview.png`) and lock component sub-part breakdowns.
+- Review reference images (`base-module.png`, `follower-module.png`, `motorized-module.png`, `interface-module.png`, `3d-overview.png`, `sub-part-breakdown.png`) and lock component sub-part breakdowns.
 
 ---
 
 ## Phase 1 — Parametric Foundations (`params.py` & Directory Skeleton) ✅
 - Apply `freecad-project` skill conventions for project structure, `params.py` template, `run.sh` entrypoint, and automated export pipeline.
-- Create `params.py` with `SCALE = 1.0` as the first line, defining single source of truth dimensions (default 256mm build plate `BUILD_PLATE_X/Y/Z = 256.0 * SCALE`), `SCALE_180 = 180.0 / 256.0`, FDM clearances (`FIT_CLEARANCE`, `PRESS_FIT_CLEARANCE`), wall thicknesses, servo mounting parameters, `TEXTURE_HEIGHT = 0.6 mm`, `HOLE_CHAMFER = 0.8 mm`, `ELEPHANTS_FOOT_CHAMFER = 0.4 mm`, `CONTROL_DECK_ANGLE = 15.0°`, `TPU_BUMPER_DEPTH = 1.5 mm`, `RETICLE_DEBOSS_DEPTH = 0.4 mm`, `DC_JACK_DIAMETER = 11.5 mm`, `FOOT_PAD_DIA = 20.1 mm`, `FOOT_PAD_DEPTH = 2.0 mm`, `JOINER_DETENT = 0.3 mm`, `WIRE_PORT_FILLET = 1.5 mm`, `PROJECT_DIR`, and `EXPORT_DIR`.
+- Create `params.py` with `SCALE = 1.0` as the first line, defining single source of truth dimensions (default 256mm build plate `BUILD_PLATE_X/Y/Z = 256.0 * SCALE`), `SCALE_180 = 180.0 / 256.0`, FDM clearances (`FIT_CLEARANCE`, `PRESS_FIT_CLEARANCE`), wall thicknesses, servo mounting parameters, `TEXTURE_HEIGHT = 0.6 mm`, `HOLE_CHAMFER = 0.8 mm`, `ELEPHANTS_FOOT_CHAMFER = 0.4 mm`, `CONTROL_DECK_ANGLE = 15.0°`, `ACCENT_BEVEL_DEPTH = 1.2 mm`, `TPU_BUMPER_DEPTH = 1.5 mm`, `RETICLE_DEBOSS_DEPTH = 0.4 mm`, `DC_JACK_DIAMETER = 11.5 mm`, `FOOT_PAD_DIA = 20.1 mm`, `FOOT_PAD_DEPTH = 2.0 mm`, `JOINER_DETENT = 0.3 mm`, `WIRE_PORT_FILLET = 1.5 mm`, `PROJECT_DIR`, and `EXPORT_DIR`.
 - Setup directory layout adhering to `freecad-project` structure: `parts/`, `assemblies/`, `exports/`, `3d-print/`, `media/`, `run.sh` (executable via `chmod +x run.sh`), `export_all.py`, and `.gitignore`.
 - Smoke test: `python params.py` executes cleanly without error and prints key parametric dimensions.
 
@@ -30,7 +30,7 @@ Build, validate, and commit before moving to the next phase.
 
 ## Phase 3 — Passive Follower Module (`part_02_follower_frame.py`, `part_03_follower_flap.py`, `assembly_follower_module.py`)
 - **Follower Outer Frame** (`part_02_follower_frame.py`): Model passive follower module U-frame (green) featuring a top 360° closed cylindrical bearing bore, a bottom flex C-snap socket with a 0.5 mm lead-in funnel, 1.5 mm recessed silent flip TPU bumper slots, 0.4 mm bottom Elephant's Foot relief chamfers, 0.5 mm debossed Poka-Yoke directional alignment arrows ("FRONT ➔"), 1.5 mm filleted internal wire pass-through ports with zip-tie strain-relief loops, click-lock dovetail joiner sockets with detent dimples, and integrated under-frame cable routing clips.
-- **Follower Folding Flap** (`part_03_follower_flap.py`): Model rotating follower flap panel (orange) with integrated top & bottom male pivot pins featuring 45° lead-in chamfers (1.5 mm), 0.6 mm micro-grip diamond surface texture, 0.8 mm hole edge chamfers, and gradient circular weight-reduction cutouts (~45% mass reduction, reducing panel weight to ~80g and minimizing rotational inertia on active servo modules).
+- **Follower Folding Flap** (`part_03_follower_flap.py`): Model rotating follower flap panel (orange) with integrated top & bottom male pivot pins featuring 45° lead-in chamfers (1.5 mm), 0.6 mm micro-grip diamond surface texture, 0.8 mm hole edge chamfers, 1.2 mm recessed perimeter shadow bevel for dual-tone panel aesthetics, and gradient circular weight-reduction cutouts (~45% mass reduction, reducing panel weight to ~80g and minimizing rotational inertia on active servo modules).
 - **Follower Sub-Assembly** (`assembly_follower_module.py`): Assemble Follower Frame + Follower Flap (Pin-Slide & Snap: slide top chamfered pin into 360° closed bore, snap bottom chamfered pin into C-snap socket) + Frame Joiners. Toolless 3-second assembly with zero pin layer damage.
 - **Visual & Kinematic Validation**: Apply `freecad-visual-validation` skill using `render_freecad_script` and `section_freecad_model` to verify 0° to 180° rotation clearance and pivot pin engagement. Confirm PASS report.
 

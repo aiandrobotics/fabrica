@@ -70,6 +70,7 @@ All part and assembly Python scripts must be visually and analytically validated
 | `FOOT_PAD_DEPTH` | 2.0 mm | Recessed depth for tabletop anti-slip rubber pads |
 | `JOINER_DETENT` | 0.3 mm | Flex detent bump on dovetail joiners for click-lock retention |
 | `WIRE_PORT_FILLET` | 1.5 mm | Smooth radius fillet on internal cable pass-through ports |
+| `ACCENT_BEVEL_DEPTH` | 1.2 mm | Recessed perimeter shadow bevel for dual-tone panel aesthetics |
 
 ## File & Folder Structure
 
@@ -80,7 +81,7 @@ cad-designs/
 ├── parts/
 │   ├── part_01_base_module.py      ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
 │   ├── part_02_follower_frame.py   ← passive follower U-frame (360° closed bore, C-snap, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets, under-frame clips)
-│   ├── part_03_follower_flap.py    ← passive follower flap (45° chamfered pivot pins, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture)
+│   ├── part_03_follower_flap.py    ← passive follower flap (45° chamfered pivot pins, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm dual-tone accent bevel)
 │   ├── part_04_motorized_frame.py  ← active motorized U-frame (servo mounting pocket, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets)
 │   ├── part_05_motorized_shaft.py  ← active drive shaft with integrated metal servo horn pocket (direct drive, 0 rotational slop)
 │   ├── part_06_servo_cover.py      ← toolless snap-latch servo housing cover with wire strain relief

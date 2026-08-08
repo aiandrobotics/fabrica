@@ -8,3 +8,4 @@
 - Implemented Phase 1 parametric foundation script (`params.py`), headless build script (`export_all.py`), executable shell entrypoint (`run.sh`), and standard directory layout.
 - Optimized modular 4×3 grid architecture, consolidating the central column into a Monolithic Base Chassis Module and selecting Click-Lock Hollow Dovetail Frame Joiners for toolless assembly and hidden cable routing.
 - Harmonized universal CAD design standards (Poka-Yoke directional arrows, Elephant's Foot bed relief, micro-grip diamond texture, hole chamfers, filleted wire ports, and click-lock dovetail sockets) across all 10 module part files.
+- Added 1.2 mm recessed perimeter shadow bevel (`ACCENT_BEVEL_DEPTH`) for dual-tone panel aesthetics on the Follower Folding Flap.
