@@ -65,6 +65,9 @@ def construct_base_module():
 
     cavity_bounds = Part.makeBox(cavity_w, cavity_h, cavity_z, App.Vector(wall, wall, 0))
 
+    # Store valid internal hex cell center coordinates for top cutouts
+    internal_hex_centers = []
+
     for col in range(-1, cols):
         for row in range(-1, rows):
             cx = wall + (col * dx)
@@ -88,9 +91,52 @@ def construct_base_module():
             if cropped.Volume > 0.001:
                 ribs.append(cropped)
 
+            # Collect internal hex centers (margin check for clean top cutouts)
+            margin = wall + hex_radius + (15.0 * SCALE)
+            if (margin < cx < w - margin) and (margin < cy < h - margin):
+                internal_hex_centers.append((col, row, cx, cy))
+
     if ribs:
         lattice_compound = Part.makeCompound(ribs)
         main_shell = main_shell.fuse(lattice_compound)
+
+    # 4. Aligned Pseudo-Random Hexagonal Top Cutouts (Generative Cyberpunk Vibe)
+    top_hex_cutters = []
+    top_hex_r = hex_radius - hex_wall - (0.5 * SCALE)
+
+    # Deterministic selection pattern (9 open hex cells scattered across matrix)
+    selected_centers = [
+        item for item in internal_hex_centers
+        if (item[0] * 3 + item[1] * 7 + 2) % 5 in (0, 1) and not (item[0] == 2 and item[1] == 2)
+    ]
+
+    for col, row, cx, cy in selected_centers:
+        hex_poly = Part.makePolygon([
+            App.Vector(cx + top_hex_r * math.cos(a), cy + top_hex_r * math.sin(a), t - top_plate_thick - 0.1)
+            for a in [i * math.pi / 3 for i in range(7)]
+        ])
+        hex_face = Part.Face(hex_poly)
+        hex_prism = hex_face.extrude(App.Vector(0, 0, top_plate_thick + 0.2))
+        top_hex_cutters.append(hex_prism)
+
+    if top_hex_cutters:
+        top_hex_compound = Part.makeCompound(top_hex_cutters)
+        main_shell = main_shell.cut(top_hex_compound)
+
+    # Apply 0.8mm Snag-Free Chamfers to all top hex cutout edges
+    try:
+        top_hex_edges = []
+        for edge in main_shell.Edges:
+            bb = edge.BoundBox
+            if abs(bb.ZMin - t) < 0.001 and abs(bb.ZMax - t) < 0.001:
+                # Identify short hex segment edges on top surface
+                if 5.0 * SCALE < bb.XLength < 20.0 * SCALE or 5.0 * SCALE < bb.YLength < 20.0 * SCALE:
+                    if abs(bb.XMin - wall) > 5.0 and abs(bb.XMax - (w - wall)) > 5.0:
+                        top_hex_edges.append(edge)
+        if top_hex_edges:
+            main_shell = main_shell.makeChamfer(HOLE_CHAMFER, top_hex_edges)
+    except Exception as e:
+        print(f"Warning: Top hex chamfer skipped on base module: {e}")
 
     # 4. Anti-Slip Foot Pad Recess Sockets (Bottom 4 corners)
     foot_radius = FOOT_PAD_DIA / 2.0
