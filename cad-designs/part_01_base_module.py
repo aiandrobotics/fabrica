@@ -100,15 +100,21 @@ def construct_base_module():
         lattice_compound = Part.makeCompound(ribs)
         main_shell = main_shell.fuse(lattice_compound)
 
-    # 4. Aligned Dense Organic Hexagonal Cutouts (Rich Organic Mesh, No Large Blank Spaces)
+    # 4. Aligned Symmetrical Diamond Honeycomb Shield Pattern (Stunning Premium Aesthetic)
     top_hex_cutters = []
     top_hex_r = hex_radius - hex_wall - (0.5 * SCALE)
+    center_x = w / 2.0
+    center_y = h / 2.0
 
-    # Rich 2D organic cluster selection (75% open cell ratio covering full X/Y span without blank margins)
-    selected_centers = [
-        item for item in internal_hex_centers
-        if (item[0] * 3 + item[1] * 5 + 1) % 4 != 0
-    ]
+    # Select hex cells forming a 100% perfectly 4-way symmetrical central Diamond Shield
+    selected_centers = []
+    for col, row, cx, cy in internal_hex_centers:
+        dx_c = abs(cx - center_x)
+        dy_c = abs(cy - center_y)
+
+        # 4-way symmetrical diamond shape filter
+        if (dx_c / (65.0 * SCALE) + dy_c / (65.0 * SCALE)) <= 1.0:
+            selected_centers.append((col, row, cx, cy))
 
     for col, row, cx, cy in selected_centers:
         hex_poly = Part.makePolygon([
