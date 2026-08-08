@@ -168,7 +168,38 @@ def construct_base_module():
     dovetail_compound = Part.makeCompound(dovetail_cuts)
     main_shell = main_shell.cut(dovetail_compound)
 
-    # 8. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
+    # 8. Gradient Circular Chamfered Hole Pattern (Option B - Aesthetic & Weight Reduction)
+    hole_radius = 12.0 * SCALE
+    grid_count = 4
+    step_x = cavity_w / grid_count
+    step_y = cavity_h / grid_count
+    top_holes = []
+
+    for c in range(grid_count):
+        for r in range(grid_count):
+            hx = wall + step_x * (c + 0.5)
+            hy = wall + step_y * (r + 0.5)
+            hole_cyl = Part.makeCylinder(hole_radius, top_plate_thick + 0.2, App.Vector(hx, hy, t - top_plate_thick - 0.1), App.Vector(0, 0, 1))
+            top_holes.append(hole_cyl)
+
+    if top_holes:
+        hole_compound = Part.makeCompound(top_holes)
+        main_shell = main_shell.cut(hole_compound)
+
+    # Apply 0.8mm Snag-Free Chamfers to top circular hole edges
+    try:
+        hole_top_edges = []
+        for edge in main_shell.Edges:
+            bb = edge.BoundBox
+            if abs(bb.ZMin - t) < 0.001 and abs(bb.ZMax - t) < 0.001 and hasattr(edge.Curve, "Radius"):
+                if abs(edge.Curve.Radius - hole_radius) < 0.1:
+                    hole_top_edges.append(edge)
+        if hole_top_edges:
+            main_shell = main_shell.makeChamfer(HOLE_CHAMFER, hole_top_edges)
+    except Exception as e:
+        print(f"Warning: Hole chamfer skipped on base module: {e}")
+
+    # 9. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
     try:
         bottom_edges = []
         for edge in main_shell.Edges:
