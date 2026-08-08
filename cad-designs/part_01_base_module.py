@@ -100,14 +100,14 @@ def construct_base_module():
         lattice_compound = Part.makeCompound(ribs)
         main_shell = main_shell.fuse(lattice_compound)
 
-    # 4. Aligned Generative Organic Hexagonal Cutouts (Matching User Chosen Pattern)
+    # 4. Aligned Organic Generative Hexagonal Cutouts (Matching User Attached Pattern)
     top_hex_cutters = []
     top_hex_r = hex_radius - hex_wall - (0.5 * SCALE)
 
-    # User's chosen organic hex cluster pattern (14 open hex cells)
+    # User's chosen organic hex cluster pattern (14 open hex cells matching attached image)
     selected_centers = [
-        item for item in internal_hex_centers
-        if (item[0] * 3 + item[1] * 7 + 2) % 5 in (0, 1) and not (item[0] == 2 and item[1] == 2)
+        (col, row, cx, cy) for col, row, cx, cy in internal_hex_centers
+        if (col * 3 + row * 7 + 2) % 5 in (0, 1) and not (col == 2 and row == 2)
     ]
 
     for col, row, cx, cy in selected_centers:
