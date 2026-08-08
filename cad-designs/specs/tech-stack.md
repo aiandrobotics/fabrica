@@ -78,16 +78,16 @@ cad-designs/
 ├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
 ├── parts/
-│   ├── part_01_base_module.py      ← monolithic stationary base chassis (1-piece box, micro-grip texture, cable channels)
-│   ├── part_02_follower_frame.py   ← passive follower U-frame (top 360° closed bore, bottom C-snap, under-frame cable clips)
-│   ├── part_03_follower_flap.py    ← passive follower flap (gradient ~45% mass cutouts, hole chamfers, 45° lead-in pins, micro-grip texture)
-│   ├── part_04_motorized_frame.py  ← active motorized outer U-frame with servo mounting pocket
-│   ├── part_05_motorized_shaft.py  ← active drive shaft with integrated metal servo horn pocket (direct drive, 0 slop)
+│   ├── part_01_base_module.py      ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
+│   ├── part_02_follower_frame.py   ← passive follower U-frame (360° closed bore, C-snap, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets, under-frame clips)
+│   ├── part_03_follower_flap.py    ← passive follower flap (45° chamfered pivot pins, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture)
+│   ├── part_04_motorized_frame.py  ← active motorized U-frame (servo mounting pocket, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets)
+│   ├── part_05_motorized_shaft.py  ← active drive shaft with integrated metal servo horn pocket (direct drive, 0 rotational slop)
 │   ├── part_06_servo_cover.py      ← toolless snap-latch servo housing cover with wire strain relief
-│   ├── part_07_active_flap.py      ← active folding flap panel with corner cutout, hole chamfers & micro-grip texture
-│   ├── part_08_interface_panel.py  ← 15° angled ergonomic control deck faceplate (4 button cutouts + LED status bar window)
-│   ├── part_09_controller_case.py  ← electronics enclosure case with passive convection cooling chimneys for Pico 2W + PCA9685
-│   └── part_10_frame_joiner.py     ← hollow dovetail interlocking frame joiner peg (mechanical key + internal wire raceway)
+│   ├── part_07_active_flap.py      ← active folding flap panel (servo clearance cutout, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture)
+│   ├── part_08_interface_panel.py  ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status bar window, hole chamfers, micro-grip texture)
+│   ├── part_09_controller_case.py  ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
+│   └── part_10_frame_joiner.py     ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── assemblies/
 │   ├── assembly_follower_module.py ← follower module sub-assembly (Pin-Slide & Snap: Frame + Flap + Joiners)
 │   ├── assembly_motorized_module.py← motorized module sub-assembly (Frame + Shaft + Cover + Active Flap + Joiners)
