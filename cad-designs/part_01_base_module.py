@@ -107,21 +107,7 @@ def construct_base_module():
         foot_cuts.append(cylinder)
     foot_compound = Part.makeCompound(foot_cuts)
     main_shell = main_shell.cut(foot_compound)
-
-    # 5. Filleted Internal Wire Pass-Through Ports with Zip-Tie Loops
-    wire_port_w = 20.0 * SCALE
-    wire_port_h = 8.0 * SCALE
-    wire_port_z = (t - wire_port_h) / 2.0
-    wire_cuts = [
-        Part.makeBox(wire_port_w, wall + 0.2, wire_port_h, App.Vector((w - wire_port_w) / 2.0, -0.1, wire_port_z)),
-        Part.makeBox(wire_port_w, wall + 0.2, wire_port_h, App.Vector((w - wire_port_w) / 2.0, h - wall - 0.1, wire_port_z)),
-        Part.makeBox(wall + 0.2, wire_port_w, wire_port_h, App.Vector(-0.1, (h - wire_port_w) / 2.0, wire_port_z)),
-        Part.makeBox(wall + 0.2, wire_port_w, wire_port_h, App.Vector(w - wall - 0.1, (h - wire_port_w) / 2.0, wire_port_z)),
-    ]
-    wire_compound = Part.makeCompound(wire_cuts)
-    main_shell = main_shell.cut(wire_compound)
-
-    # 7. Female Dovetail Joiner Sockets with Detent Dimples (All 4 outer side walls)
+    # 5. Female Dovetail Joiner Sockets with Detent Dimples (All 4 outer side walls)
     dt_top_w = 16.0 * SCALE
     dt_bot_w = 10.0 * SCALE
     dt_depth = 8.0 * SCALE
