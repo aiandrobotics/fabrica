@@ -100,15 +100,27 @@ def construct_base_module():
         lattice_compound = Part.makeCompound(ribs)
         main_shell = main_shell.fuse(lattice_compound)
 
-    # 4. Aligned Pseudo-Random Hexagonal Top Cutouts (Generative Cyberpunk Vibe)
+    # 4. Aligned Symmetrical Radial Rosette Hexagonal Top Cutouts (Stunning Architectural Motif)
     top_hex_cutters = []
     top_hex_r = hex_radius - hex_wall - (0.5 * SCALE)
+    center_x = w / 2.0
+    center_y = h / 2.0
 
-    # Deterministic selection pattern (9 open hex cells scattered across matrix)
-    selected_centers = [
-        item for item in internal_hex_centers
-        if (item[0] * 3 + item[1] * 7 + 2) % 5 in (0, 1) and not (item[0] == 2 and item[1] == 2)
-    ]
+    # Sort & filter hex cells into a breathtaking symmetrical radial rosette (1 central + 6 inner ring + 12 outer corners)
+    selected_centers = []
+    for col, row, cx, cy in internal_hex_centers:
+        dist = math.sqrt((cx - center_x) ** 2 + (cy - center_y) ** 2)
+        # Select central hex, 6 inner ring hexes (~27mm radius), and 8 outer corner accent hexes (~65-75mm radius)
+        if dist < 5.0 * SCALE:  # Center hex
+            selected_centers.append((col, row, cx, cy))
+        elif 22.0 * SCALE < dist < 32.0 * SCALE:  # Inner Ring (6-fold rosette)
+            selected_centers.append((col, row, cx, cy))
+        elif 60.0 * SCALE < dist < 82.0 * SCALE:  # Outer Accent Ring
+            # 4-fold diagonal symmetry check
+            dx_c = abs(cx - center_x)
+            dy_c = abs(cy - center_y)
+            if abs(dx_c - dy_c) < 15.0 * SCALE or dx_c < 10.0 * SCALE or dy_c < 10.0 * SCALE:
+                selected_centers.append((col, row, cx, cy))
 
     for col, row, cx, cy in selected_centers:
         hex_poly = Part.makePolygon([
