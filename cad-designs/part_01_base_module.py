@@ -185,21 +185,7 @@ def construct_base_module():
     dovetail_compound = Part.makeCompound(dovetail_cuts)
     main_shell = main_shell.cut(dovetail_compound)
 
-    # 8. Garment Alignment Reticles (Collar & Shoulder Centering Lines) Debossed on Top Face
-    reticle_w = 1.0 * SCALE
-    reticle_depth = RETICLE_DEBOSS_DEPTH
-    reticle_y = Part.makeBox(reticle_w, h - (40.0 * SCALE), reticle_depth, App.Vector((w - reticle_w) / 2.0, 20.0 * SCALE, t - reticle_depth))
-    reticle_x = Part.makeBox(w - (40.0 * SCALE), reticle_w, reticle_depth, App.Vector(20.0 * SCALE, (h - reticle_w) / 2.0, t - reticle_depth))
-    reticles = Part.makeCompound([reticle_y, reticle_x])
-    main_shell = main_shell.cut(reticles)
-
-    # 9. Debossed Poka-Yoke Alignment Arrow ("FRONT ➔") on Front Bed Edge
-    arrow_w = 6.0 * SCALE
-    arrow_l = 12.0 * SCALE
-    arrow_box = Part.makeBox(arrow_w, arrow_l, reticle_depth, App.Vector((w - arrow_w) / 2.0, 10.0 * SCALE, t - reticle_depth))
-    main_shell = main_shell.cut(arrow_box)
-
-    # 10. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
+    # 8. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
     try:
         bottom_edges = []
         for edge in main_shell.Edges:
