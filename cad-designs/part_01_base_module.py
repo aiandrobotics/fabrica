@@ -108,24 +108,7 @@ def construct_base_module():
     foot_compound = Part.makeCompound(foot_cuts)
     main_shell = main_shell.cut(foot_compound)
 
-    # 5. TPU Silent Flip Bumper Landing Slots (Top Rim Slots)
-    bumper_w = 30.0 * SCALE
-    bumper_d = 8.0 * SCALE
-    bumper_h = TPU_BUMPER_DEPTH
-    bumper_positions = [
-        App.Vector((w - bumper_w) / 2.0, wall / 2.0 - bumper_d / 2.0, t - bumper_h),
-        App.Vector((w - bumper_w) / 2.0, h - wall / 2.0 - bumper_d / 2.0, t - bumper_h),
-        App.Vector(wall / 2.0 - bumper_d / 2.0, (h - bumper_w) / 2.0, t - bumper_h),
-        App.Vector(w - wall / 2.0 - bumper_d / 2.0, (h - bumper_w) / 2.0, t - bumper_h),
-    ]
-    bumper_cuts = []
-    for pos in bumper_positions:
-        b_box = Part.makeBox(bumper_w, bumper_d, bumper_h + 0.1, pos)
-        bumper_cuts.append(b_box)
-    bumper_compound = Part.makeCompound(bumper_cuts)
-    main_shell = main_shell.cut(bumper_compound)
-
-    # 6. Filleted Internal Wire Pass-Through Ports with Zip-Tie Loops
+    # 5. Filleted Internal Wire Pass-Through Ports with Zip-Tie Loops
     wire_port_w = 20.0 * SCALE
     wire_port_h = 8.0 * SCALE
     wire_port_z = (t - wire_port_h) / 2.0
