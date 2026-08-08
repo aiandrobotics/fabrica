@@ -129,26 +129,26 @@ def construct_base_module():
     dimple = Part.makeCylinder(JOINER_DETENT * 1.5, dt_top_w, App.Vector(0, dt_depth / 2.0, dt_height / 2.0), App.Vector(1, 0, 0))
     dt_cutter = dt_cutter.fuse(dimple)
 
-    # Place dovetail cutters on 4 side walls
+    # Place dovetail cutters on 4 side walls (Pointing INTO each wall)
     dovetail_cuts = []
-    # Front wall (Y=0)
+    # Front wall (Y=0) -> cuts in +Y direction
     dt_front = dt_cutter.copy()
     dt_front.Placement = App.Placement(App.Vector(w / 2.0, -0.1, (t - dt_height) / 2.0), App.Rotation(0, 0, 0))
     dovetail_cuts.append(dt_front)
 
-    # Back wall (Y=h)
+    # Back wall (Y=h) -> cuts in -Y direction
     dt_back = dt_cutter.copy()
     dt_back.Placement = App.Placement(App.Vector(w / 2.0, h + 0.1, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 180))
     dovetail_cuts.append(dt_back)
 
-    # Left wall (X=0)
+    # Left wall (X=0) -> cuts in +X direction
     dt_left = dt_cutter.copy()
-    dt_left.Placement = App.Placement(App.Vector(-0.1, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 90))
+    dt_left.Placement = App.Placement(App.Vector(-0.1, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), -90))
     dovetail_cuts.append(dt_left)
 
-    # Right wall (X=w)
+    # Right wall (X=w) -> cuts in -X direction
     dt_right = dt_cutter.copy()
-    dt_right.Placement = App.Placement(App.Vector(w + 0.1, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), -90))
+    dt_right.Placement = App.Placement(App.Vector(w + 0.1, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 90))
     dovetail_cuts.append(dt_right)
 
     dovetail_compound = Part.makeCompound(dovetail_cuts)
