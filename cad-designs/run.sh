@@ -21,8 +21,8 @@ case "$1" in
     open)
         [[ -z "$2" ]] && { echo "Error: specify a name"; exit 1; }
         "$FREECAD_GUI" "exports/$2.step" ;;
-    assembly)   "$FREECAD_CMD" assembly_4x3_grid.py ;;
-    export_all) "$FREECAD_CMD" export_all.py ;;
+    assembly)   "$FREECAD_CMD" assembly_follower_module.py ;;
+    export_all) python3 export_all.py ;;
     *.py)       "$FREECAD_CMD" "$1" ;;
     *)          echo "Unknown command: $1"; exit 1 ;;
 esac

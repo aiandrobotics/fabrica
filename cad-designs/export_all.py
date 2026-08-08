@@ -20,25 +20,31 @@ def clear_exports():
 def run_script(script_path):
     rel_path = os.path.relpath(script_path, CURRENT_DIR)
     print(f"\n--- Building {rel_path} ---")
+    sys.stdout.flush()
     try:
+        env = os.environ.copy()
+        # Strip python path overrides so child freecadcmd uses its own bundled python
+        env.pop("PYTHONHOME", None)
+        env.pop("PYTHONPATH", None)
         result = subprocess.run(
             [FREECAD_CMD, script_path],
+            env=env,
             capture_output=True,
             text=True,
             check=False
         )
-        output = result.stdout + result.stderr
-        for line in output.splitlines():
-            if any(k in line for k in ["Exported", "Error", "Exception", "Traceback", "Warning"]):
-                print(f"  {line}")
-        if result.returncode == 0 and "Traceback" not in output:
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+        sys.stdout.flush()
+        if result.returncode == 0:
             print(f"  [SUCCESS] {rel_path}")
             return True
         else:
             print(f"  [FAILED] {rel_path} (Exit code: {result.returncode})")
             return False
     except Exception as e:
-        print(f"  [ERROR] Failed to run {rel_path}: {e}")
+        print(f"  [FAILED] {rel_path}: {e}")
         return False
 
 def main():
