@@ -53,32 +53,40 @@ def construct_base_module():
     cavity = Part.makeBox(cavity_w, cavity_h, cavity_z, App.Vector(wall, wall, 0))
     main_shell = base_box.cut(cavity)
 
-    # 3. Internal Hexagonal Web Lattice Ribbing inside bottom cavity (3.0mm walls)
-    # Adds rigidity to central column chassis plate while preventing bed warping
+    # 3. Internal Hexagonal Web Lattice Ribbing inside bottom cavity (Wall-to-Wall Coverage)
     ribs = []
-    hex_radius = 25.0 * SCALE
+    hex_radius = 16.0 * SCALE
     hex_wall = 2.0 * SCALE
-    cols = int(math.floor(cavity_w / (hex_radius * 1.5)))
-    rows = int(math.floor(cavity_h / (hex_radius * math.sqrt(3))))
+    dx = hex_radius * 1.5
+    dy = hex_radius * math.sqrt(3)
 
-    for col in range(cols):
-        for row in range(rows):
-            cx = wall + (hex_radius * 1.5 * col) + hex_radius
-            cy = wall + (hex_radius * math.sqrt(3) * (row + 0.5 * (col % 2))) + (hex_radius * 0.87)
-            if (cx + hex_radius < w - wall) and (cy + hex_radius < h - wall):
-                outer_hex = Part.makePolygon([
-                    App.Vector(cx + hex_radius * math.cos(a), cy + hex_radius * math.sin(a), 0)
-                    for a in [i * math.pi / 3 for i in range(7)]
-                ])
-                inner_hex = Part.makePolygon([
-                    App.Vector(cx + (hex_radius - hex_wall) * math.cos(a), cy + (hex_radius - hex_wall) * math.sin(a), 0)
-                    for a in [i * math.pi / 3 for i in range(7)]
-                ])
-                outer_face = Part.Face(outer_hex)
-                inner_face = Part.Face(inner_hex)
-                rib_face = outer_face.cut(inner_face)
-                rib_solid = rib_face.extrude(App.Vector(0, 0, cavity_z))
-                ribs.append(rib_solid)
+    cols = int(math.ceil(cavity_w / dx)) + 2
+    rows = int(math.ceil(cavity_h / dy)) + 2
+
+    cavity_bounds = Part.makeBox(cavity_w, cavity_h, cavity_z, App.Vector(wall, wall, 0))
+
+    for col in range(-1, cols):
+        for row in range(-1, rows):
+            cx = wall + (col * dx)
+            cy = wall + (row * dy) + (0.5 * dy if (col % 2 != 0) else 0.0)
+
+            outer_hex = Part.makePolygon([
+                App.Vector(cx + hex_radius * math.cos(a), cy + hex_radius * math.sin(a), 0)
+                for a in [i * math.pi / 3 for i in range(7)]
+            ])
+            inner_hex = Part.makePolygon([
+                App.Vector(cx + (hex_radius - hex_wall) * math.cos(a), cy + (hex_radius - hex_wall) * math.sin(a), 0)
+                for a in [i * math.pi / 3 for i in range(7)]
+            ])
+            outer_face = Part.Face(outer_hex)
+            inner_face = Part.Face(inner_hex)
+            rib_face = outer_face.cut(inner_face)
+            rib_solid = rib_face.extrude(App.Vector(0, 0, cavity_z))
+            
+            # Crop hex cell cleanly within cavity boundary
+            cropped = rib_solid.common(cavity_bounds)
+            if cropped.Volume > 0.001:
+                ribs.append(cropped)
 
     if ribs:
         lattice_compound = Part.makeCompound(ribs)
