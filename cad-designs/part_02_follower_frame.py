@@ -17,12 +17,11 @@ from params import (
     WALL_THICKNESS,
 )
 
-# Local Dovetail & Flap Constants
-DOVETAIL_MALE_WIDTH = 20.0 * SCALE
-DOVETAIL_HEIGHT = 10.0 * SCALE
-DOVETAIL_DEPTH = 6.0 * SCALE
-DOVETAIL_MALE_NECK = 14.0 * SCALE
-DOVETAIL_TOLERANCE = 0.2 * SCALE
+# Local Dovetail & Flap Constants (Matching part_01_base_module and part_10_frame_joiner exactly)
+DOVETAIL_TOP_WIDTH = 16.0 * SCALE
+DOVETAIL_BOT_WIDTH = 10.0 * SCALE
+DOVETAIL_DEPTH = 8.0 * SCALE
+DOVETAIL_HEIGHT = BASE_PANEL_THICKNESS - (2.0 * SCALE)  # 13.0mm
 PADDLE_PIVOT_DIAMETER = 5.0 * SCALE
 BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
@@ -45,17 +44,17 @@ def create_follower_frame():
     frame = outer_box.cut(cavity)
 
     # 3. 4-Wall Symmetrical Click-Lock Dovetail Sockets
-    dt_w = DOVETAIL_MALE_WIDTH + 2 * DOVETAIL_TOLERANCE
-    dt_h = DOVETAIL_HEIGHT + 2 * DOVETAIL_TOLERANCE
-    dt_d = DOVETAIL_DEPTH + DOVETAIL_TOLERANCE
-    dt_neck = DOVETAIL_MALE_NECK + 2 * DOVETAIL_TOLERANCE
+    dt_top_w = DOVETAIL_TOP_WIDTH
+    dt_bot_w = DOVETAIL_BOT_WIDTH
+    dt_d = DOVETAIL_DEPTH
+    dt_h = DOVETAIL_HEIGHT
 
     dt_pts = [
-        App.Vector(-dt_w / 2.0, 0, 0),
-        App.Vector(dt_w / 2.0, 0, 0),
-        App.Vector(dt_neck / 2.0, dt_d, 0),
-        App.Vector(-dt_neck / 2.0, dt_d, 0),
-        App.Vector(-dt_w / 2.0, 0, 0),
+        App.Vector(-dt_top_w / 2.0, 0, 0),
+        App.Vector(dt_top_w / 2.0, 0, 0),
+        App.Vector(dt_bot_w / 2.0, dt_d, 0),
+        App.Vector(-dt_bot_w / 2.0, dt_d, 0),
+        App.Vector(-dt_top_w / 2.0, 0, 0),
     ]
     dt_poly = Part.makePolygon(dt_pts)
     dt_face = Part.Face(dt_poly)

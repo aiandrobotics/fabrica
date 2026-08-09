@@ -50,11 +50,13 @@ def construct_frame_joiner():
 
     joiner_solid = solid_half.fuse(solid_half_2)
 
-    # 3. Add 0.3mm Flex Detent Bumps on outer faces for click-lock retention
+    # 3. Add 0.3mm Flex Detent Bumps on both insertion sides (Y = +4.0mm and Y = -4.0mm) for click-lock retention
     detent_radius = JOINER_DETENT
-    detent_1 = Part.makeCylinder(detent_radius, dt_top_w, App.Vector(-dt_top_w / 2.0, 0, dt_height / 2.0), App.Vector(1, 0, 0))
+    detent_y_pos = dt_depth / 2.0  # 4.0mm from center line
+    detent_1 = Part.makeCylinder(detent_radius, dt_top_w, App.Vector(-dt_top_w / 2.0, detent_y_pos, dt_height / 2.0), App.Vector(1, 0, 0))
+    detent_2 = Part.makeCylinder(detent_radius, dt_top_w, App.Vector(-dt_top_w / 2.0, -detent_y_pos, dt_height / 2.0), App.Vector(1, 0, 0))
 
-    joiner_solid = joiner_solid.fuse(detent_1)
+    joiner_solid = joiner_solid.fuse(Part.makeCompound([detent_1, detent_2]))
 
     # 4. Model Hollow Internal Wire Conduit Tunnel (Center Hole for Servo/Power Wires)
     conduit_w = 6.0 * SCALE
