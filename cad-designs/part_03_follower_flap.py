@@ -112,22 +112,17 @@ def create_follower_flap():
     axle_bore = Part.makeCylinder(bore_r, axle_total_len + 0.2, App.Vector(0, axle_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     axle_solid = axle_solid.cut(axle_bore).removeSplitter()
 
-    # 4. Top End Female 8.0mm Hex Torque Socket (at Y = 240.0mm, depth 12.0mm)
-    hex_socket_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)
-    hex_socket_face = Part.Face(hex_socket_wire)
-    hex_socket_cutter = hex_socket_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH - 0.1, 0))
-    axle_solid = axle_solid.cut(hex_socket_cutter).removeSplitter()
+    # 4. Top End Female 8.0mm Hex Torque Socket (at Y = 240.0mm, depth 12.0mm in -Y)
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)
+    hex_socket_top_face = Part.Face(hex_socket_top_wire)
+    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH - 0.1, 0))
+    axle_solid = axle_solid.cut(hex_socket_top_cutter).removeSplitter()
 
-    # 5. Bottom End Male 8.0mm Hex Torque Drive Shaft (at Y = 0 to Y = -12.0mm)
-    hex_male_size = HEX_COUPLER_SIZE - (0.3 * SCALE) # 7.7mm flat-to-flat (0.15mm clearance per side)
-    hex_male_wire = make_hexagon_wire(hex_male_size, 0, pivot_z, 0)
-    hex_male_face = Part.Face(hex_male_wire)
-    hex_male_peg = hex_male_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH, 0))
-    
-    # 45° Lead-in nose chamfer on male hex tip
-    c_hex = Part.makeCone(shaft_r, shaft_r - 2.0 * SCALE, 2.0 * SCALE, App.Vector(0, -HEX_COUPLER_DEPTH, pivot_z), App.Vector(0, -1, 0))
-    hex_male_peg = hex_male_peg.cut(c_hex).removeSplitter()
-    axle_solid = axle_solid.fuse(hex_male_peg).removeSplitter()
+    # 5. Bottom End Female 8.0mm Hex Torque Socket (at Y = 0.0mm, depth 12.0mm in +Y)
+    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_start_y - 0.1)
+    hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
+    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, HEX_COUPLER_DEPTH + 0.1, 0))
+    axle_solid = axle_solid.cut(hex_socket_bot_cutter).removeSplitter()
 
     # 6. Bottom Structural Reinforcing Fillet Gusset (Underneath hinge joint for 3x torsional stiffness)
     # Smooth curved transition from Ø14mm axle underside up to flap panel floor between knuckles

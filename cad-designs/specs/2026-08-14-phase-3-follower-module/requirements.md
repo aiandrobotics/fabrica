@@ -71,14 +71,24 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - Spans the hinge axis at $(X = 0, Z = 8.0\text{ mm})$.
   - Internal $\varnothing 8.0\text{ mm}$ weight-relief core maintaining low rotational inertia.
 - **Bottom Reinforcing Fillet Gusset**: Smooth curved structural transition from axle underside ($Z = 5.0\text{ mm}$) up to the blade floor ($Z = 12.6\text{ mm}$) providing $3\times$ torsional load distribution.
-- **Torque Coupler Interfaces on Both Ends**:
-  - **Top End ($Y = 208\text{ mm} \to 240\text{ mm}$)**: $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($12.0\text{ mm}$ engagement depth).
-  - **Bottom End ($Y = 0\text{ mm}$)**: $8.0\text{ mm}$ Flat-to-Flat male hexagonal drive shaft ($10.0\text{ mm}$ length) with $1.5\text{ mm} \times 45^\circ$ self-aligning lead-in chamfer.
+- **Dual Symmetrical Female Hex Coupler Sockets**:
+  - **Top End ($Y = 240\text{ mm}$)**: $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($12.0\text{ mm}$ engagement depth in $-Y$).
+  - **Bottom End ($Y = 0\text{ mm}$)**: Identical $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($12.0\text{ mm}$ engagement depth in $+Y$).
+  - **100% Flat 3D Printability**: Zero protruding male pegs, allowing the flap to print 100% flat on the bed with clean surface finishes.
 - **Organic Gradient Circular Cutouts (~45% Mass Reduction)**:
   - Multi-tiered circular cutouts (ranging from $\varnothing 12\text{ mm}$ to $\varnothing 34\text{ mm}$) distributed across the paddle face matching reference images `follower-module.png` and `3d-overview.png`.
   - $0.8\text{ mm}$ chamfers on all cutout edges.
 - **Dual-Tone Accent Bevel**: $1.2\text{ mm}$ recessed perimeter shadow bevel along top perimeter edges.
 - **Diamond Micro-Grip Texture**: $0.6\text{ mm}$ debossed diamond knurling pattern across the top garment-contact face to prevent cloth slippage.
+
+---
+
+### 2.3 Modular Double-Male Hex Drive Coupler Pin (`part_11_hex_drive_coupler.py`)
+- **Overall Dimensions**: $8.0\text{ mm} \text{ (Hex)} \times 22.0\text{ mm} \text{ (Total Length)}$.
+- **Double-Ended Hex Keys**: $7.7\text{ mm}$ Flat-to-Flat ($0.15\text{ mm}$ sliding fit clearance per side) with $1.5\text{ mm} \times 45^\circ$ self-aligning lead-in entry chamfers on both ends.
+- **Center Stop Flange**: $\varnothing 13.8\text{ mm} \times 1.0\text{ mm}$ collar that keeps the coupler centered across the module seam.
+- **Through-Hole**: $\varnothing 3.2\text{ mm}$ central bore for mass reduction or optional M3 reinforcing tension rod.
+- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap.
 
 ---
 

@@ -23,6 +23,7 @@ from params import (
 from part_02_follower_frame import create_follower_frame
 from part_03_follower_flap import create_follower_flap, PADDLE_THICKNESS
 from part_10_frame_joiner import construct_frame_joiner
+from part_11_hex_drive_coupler import construct_hex_drive_coupler
 
 def build_follower_assembly():
     """
@@ -30,6 +31,7 @@ def build_follower_assembly():
     1. Follower 3-Sided U-Frame (Green #2ecc71).
     2. Full-Size Rotating Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
     3. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
+    4. Modular Double-Male Hex Drive Coupler Pin (Purple #9b59b6) at bottom hinge port (Y=0).
     """
     for doc_name in list(App.listDocuments().keys()):
         App.closeDocument(doc_name)
@@ -47,8 +49,8 @@ def build_follower_assembly():
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
         frame_obj.ViewObject.ShapeColor = (0.18, 0.8, 0.44)
 
-    # 2. Full-Size Follower Flap with Ø14mm Drive Axle (Color: Orange #e67e22)
-    # Flap axle is centered along hinge axis at X = 0, Z = t/2 = 7.5mm
+    # 2. Full-Size Follower Flap with Dual Female Hex Sockets (Color: Orange #e67e22)
+    # Flap axle is centered along hinge axis at X = 0, Z = 8.0mm
     flap_shape = create_follower_flap()
     flap_obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
     flap_obj.Shape = flap_shape
@@ -79,6 +81,17 @@ def build_follower_assembly():
     )
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
         joiner_right.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
+
+    # 5. Modular Double-Male Hex Drive Coupler Pin (Color: Purple #9b59b6)
+    coupler_shape = construct_hex_drive_coupler()
+    coupler_obj = doc.addObject("Part::Feature", "Part11HexDriveCoupler")
+    coupler_obj.Shape = coupler_shape
+    coupler_obj.Placement = App.Placement(
+        App.Vector(0, 0, 0),
+        App.Rotation(App.Vector(0, 0, 1), 0)
+    )
+    if hasattr(coupler_obj, "ViewObject") and coupler_obj.ViewObject:
+        coupler_obj.ViewObject.ShapeColor = (0.6, 0.35, 0.71)
 
     doc.recompute()
     return doc
