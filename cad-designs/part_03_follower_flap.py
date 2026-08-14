@@ -106,8 +106,22 @@ def create_follower_flap():
     hex_male_peg = hex_male_peg.cut(c_hex).removeSplitter()
     axle_solid = axle_solid.fuse(hex_male_peg).removeSplitter()
 
-    # Fuse flap panel with continuous drive axle
-    flap = flap.fuse(axle_solid).removeSplitter()
+    # 6. Bottom Structural Reinforcing Fillet Gusset (Underneath hinge joint for 3x torsional stiffness)
+    # Smooth curved transition from Ø14mm axle underside up to flap panel floor
+    gusset_pts = [
+        App.Vector(0, y_offset, pivot_z),                   # (0, 8.0)
+        App.Vector(3.5 * SCALE, y_offset, pivot_z - 3.0 * SCALE), # (3.5, 5.0) lower axle contour
+        App.Vector(7.0 * SCALE, y_offset, pivot_z - 1.0 * SCALE), # (7.0, 7.0)
+        App.Vector(14.0 * SCALE, y_offset, panel_z_min),    # (14.0, 11.0) panel floor
+        App.Vector(0, y_offset, panel_z_min),               # (0, 11.0)
+        App.Vector(0, y_offset, pivot_z),                   # Close loop
+    ]
+    gusset_wire = Part.makePolygon(gusset_pts)
+    gusset_face = Part.Face(gusset_wire)
+    gusset_solid = gusset_face.extrude(App.Vector(0, h, 0))
+
+    # Fuse flap panel with continuous drive axle and reinforcing gusset
+    flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid])).removeSplitter()
 
     # 6. Multi-Tiered Organic Gradient Circular Cutouts (matching reference images)
     hole_specs = [
