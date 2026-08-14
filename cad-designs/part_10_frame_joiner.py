@@ -37,8 +37,8 @@ def construct_frame_joiner():
        - Completely smooth flat side walls slide in silk-smoothly and wedge firmly into sockets.
     3. Central Finger/Pry Lip Ridge (Y = 0 seam):
        - Ergonomic 1.2mm center collar creates a fingernail/tool pry lip for quick detachment.
-    4. Continuous Neutral-Axis Wire Raceway (5.8mm x 7.2mm):
-       - Massive filleted raceway accommodates pre-crimped 3-pin servo plugs and wire harnesses.
+    4. 3-Servo Wire Raceway (6.8mm x 8.6mm):
+       - High-capacity filleted raceway fits 3 full servo motor harnesses (9 wires + connectors).
     5. 4-Corner Lead-in Nose Chamfers:
        - 45° entry chamfers on all 4 tip quadrants ensure smooth insertion.
     6. 100% Supportless FDM Printability:
@@ -88,9 +88,10 @@ def construct_frame_joiner():
     collar.translate(App.Vector(-collar_w / 2.0, -collar_d / 2.0, center_z - (collar_h / 2.0)))
     joiner_solid = joiner_solid.fuse(collar).removeSplitter()
 
-    # 3. Continuous Internal Wire Raceway (5.8mm x 7.2mm with 1.2mm Fillets)
-    raceway_w = 5.8 * SCALE
-    raceway_h = 7.2 * SCALE
+    # 3. High-Capacity Internal Wire Raceway (6.8mm x 8.6mm with 1.0mm Fillets)
+    # Designed specifically to fit 3 full servo motor harnesses (9 wires + connectors)
+    raceway_w = 6.8 * SCALE
+    raceway_h = 8.6 * SCALE
     raceway_d = (total_tip_y * 2.0) + (4.0 * SCALE)
     raceway_box = Part.makeBox(
         raceway_w,
@@ -104,7 +105,7 @@ def construct_frame_joiner():
             if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.ZMin - e.BoundBox.ZMax) < 0.001
         ]
         if y_edges:
-            raceway_box = raceway_box.makeFillet(1.2 * SCALE, y_edges)
+            raceway_box = raceway_box.makeFillet(1.0 * SCALE, y_edges)
     except Exception:
         pass
 
