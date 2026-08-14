@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-14
+- Optimized `part_10_frame_joiner.py` for fast headless execution, eliminating boolean meshing bottlenecks during STEP and STL export.
+- Redesigned Click-Lock Dovetail Frame Joiner to be 100% 3-axis symmetrical ($X, Y, Z$) for zero-orientation Poka-Yoke assembly.
+- Enlarged internal wire raceway in `part_10_frame_joiner.py` to $5.8\text{ mm} \times 7.2\text{ mm}$ with filleted corners to accommodate pre-crimped 3-pin servo connectors and multi-wire harnesses.
+- Added 4-corner $45^\circ$ lead-in entry chamfers, $1.2\text{ mm}$ central indexing/pry lip collar, and tactile retention detents for effortless tool-free attachment and removal.
+
 ## 2026-08-08
 - Created initial project scaffolding for `cad-designs`, `firmware`, `docs`, and `mobile-app` subdirectories.
 - Added `specs/mission.md` detailing the project vision, high-level system architecture, four core deliverables, and roadmap.
