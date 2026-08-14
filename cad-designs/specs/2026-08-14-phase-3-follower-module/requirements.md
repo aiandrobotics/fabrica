@@ -25,6 +25,9 @@ Requirements specification for the Passive Follower Module of the Fabrica Cloth 
 - **Diamond Micro-Grip Texture**: $0.6\text{ mm}$ debossed diamond knurling pattern across the top garment-contact face to prevent cloth slippage during folding.
 
 ### 3. Chassis Interlocking & Cable Management
+- **20.0 mm Inter-Module Bridge Gap (`MODULE_GAP`)**: $20.0\text{ mm}$ spacing between adjacent module frames providing bend relief for thick folded garments (hoodies, denim, towels), flap sweep clearance, and generous cable management.
+- **20.0 mm Flush Bridge Joiners (`part_10_frame_joiner.py`)**: 3-axis symmetrical double dovetail joiner with a $20.0\text{ mm}$ central flush bridge body that spans between frames, preventing fabric from sagging into the inter-module gap.
+- **High-Capacity Wire Raceway**: Continuous $5.8\text{ mm} \times 7.2\text{ mm}$ filleted conduit through the joiner bridge to pass pre-crimped 3-pin servo plugs and power harnesses.
 - **Modular Dovetail Sockets**: 4-wall symmetrical female dovetail sockets with $0.3\text{ mm}$ detent locking dimples matching `part_10_frame_joiner.py`.
 - **Under-Frame Cable Clips**: Integrated $1.5\text{ mm}$ filleted wire pass-through ports and under-chassis cable routing clips for secure wire harness distribution.
 - **TPU Dampers**: $1.5\text{ mm}$ recessed landing pockets for silent flap rest during high-speed return cycles.

@@ -52,11 +52,12 @@ SERVO_HOLE_SPACING_X = 48.0 * SCALE
 SERVO_HOLE_SPACING_Y = 10.0 * SCALE
 SERVO_SCREW_RADIUS   = 2.0 * SCALE
 
-# Standard 4x3 Folding Grid Assembly Layout
-GRID_ROWS = 4
-GRID_COLS = 3
-TOTAL_GRID_WIDTH  = PANEL_WIDTH * GRID_COLS
-TOTAL_GRID_HEIGHT = PANEL_HEIGHT * GRID_ROWS
+# Standard 4x3 Folding Grid Assembly Layout & Inter-Module Gap
+MODULE_GAP        = 20.0 * SCALE  # 20mm fabric relief and cable raceway bridge gap
+GRID_ROWS         = 4
+GRID_COLS         = 3
+TOTAL_GRID_WIDTH  = (PANEL_WIDTH * GRID_COLS) + (MODULE_GAP * (GRID_COLS - 1))
+TOTAL_GRID_HEIGHT = (PANEL_HEIGHT * GRID_ROWS) + (MODULE_GAP * (GRID_ROWS - 1))
 
 # Directory Paths
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
