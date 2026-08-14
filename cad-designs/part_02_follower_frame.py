@@ -22,13 +22,13 @@ from params import (
     PRESS_FIT_CLEARANCE,
     TPU_BUMPER_DEPTH,
     ELEPHANTS_FOOT_CHAMFER,
+    DOVETAIL_NECK_WIDTH,
+    DOVETAIL_FLARE_WIDTH,
+    DOVETAIL_DEPTH,
+    DOVETAIL_HEIGHT,
     EXPORT_DIR,
 )
 
-DOVETAIL_TOP_WIDTH = 16.0 * SCALE
-DOVETAIL_BOT_WIDTH = 10.0 * SCALE
-DOVETAIL_DEPTH = 8.0 * SCALE
-DOVETAIL_HEIGHT = BASE_PANEL_THICKNESS - (2.0 * SCALE)  # 13.0mm
 PADDLE_PIVOT_DIAMETER = 5.0 * SCALE
 ROTATING_CLEARANCE = 0.3 * SCALE  # per side
 BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
@@ -95,39 +95,39 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel])).removeSplitter()
 
-    # 5. Dovetail Joiner Sockets on 3 Outer Walls (Front Y=0, Back Y=H, Right X=W)
-    dt_top_w = DOVETAIL_TOP_WIDTH
-    dt_bot_w = DOVETAIL_BOT_WIDTH
-    dt_d = DOVETAIL_DEPTH
-    dt_h = DOVETAIL_HEIGHT
+    # 5. True Sliding Dovetail Joiner Sockets on 3 Outer Walls (Front Y=0, Back Y=H, Right X=W)
+    dt_neck_w = DOVETAIL_NECK_WIDTH
+    dt_flare_w = DOVETAIL_FLARE_WIDTH
+    dt_depth = DOVETAIL_DEPTH
+    dt_height = DOVETAIL_HEIGHT
 
     dt_pts = [
-        App.Vector(-dt_top_w / 2.0, 0, 0),
-        App.Vector(dt_top_w / 2.0, 0, 0),
-        App.Vector(dt_bot_w / 2.0, dt_d, 0),
-        App.Vector(-dt_bot_w / 2.0, dt_d, 0),
-        App.Vector(-dt_top_w / 2.0, 0, 0),
+        App.Vector(-dt_neck_w / 2.0, -0.1, 0),
+        App.Vector(dt_neck_w / 2.0, -0.1, 0),
+        App.Vector(dt_flare_w / 2.0, dt_depth, 0),
+        App.Vector(-dt_flare_w / 2.0, dt_depth, 0),
+        App.Vector(-dt_neck_w / 2.0, -0.1, 0),
     ]
     dt_poly = Part.makePolygon(dt_pts)
     dt_face = Part.Face(dt_poly)
-    dt_cutter_master = dt_face.extrude(App.Vector(0, 0, dt_h))
+    dt_cutter_master = dt_face.extrude(App.Vector(0, 0, dt_height))
 
     dt_cutters = []
     # Front Wall (Y=0) -> cuts into +Y
     c_front = dt_cutter_master.copy()
-    c_front.translate(App.Vector(w / 2.0, -0.1, (t - dt_h) / 2.0))
+    c_front.translate(App.Vector(w / 2.0, 0, (t - dt_height) / 2.0))
     dt_cutters.append(c_front)
 
     # Back Wall (Y=H) -> cuts into -Y
     c_back = dt_cutter_master.copy()
     c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
-    c_back.translate(App.Vector(w / 2.0, h + 0.1, (t - dt_h) / 2.0))
+    c_back.translate(App.Vector(w / 2.0, h, (t - dt_height) / 2.0))
     dt_cutters.append(c_back)
 
     # Right Wall (X=W) -> cuts into -X
     c_right = dt_cutter_master.copy()
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
-    c_right.translate(App.Vector(w + 0.1, h / 2.0, (t - dt_h) / 2.0))
+    c_right.translate(App.Vector(w, h / 2.0, (t - dt_height) / 2.0))
     dt_cutters.append(c_right)
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()

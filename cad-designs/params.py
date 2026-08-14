@@ -38,11 +38,19 @@ TPU_BUMPER_DEPTH     = 1.5 * SCALE
 RETICLE_DEBOSS_DEPTH = 0.4 * SCALE
 DC_JACK_DIAMETER     = 11.5 * SCALE
 
-# Base Module & Joiner Optimizations (Phase 2)
+# Base Module & Joiner Optimizations (True Sliding Dovetail System)
 FOOT_PAD_DIA      = 20.1 * SCALE
 FOOT_PAD_DEPTH    = 2.0 * SCALE
 JOINER_DETENT     = 0.3 * SCALE
 WIRE_PORT_FILLET  = 1.5 * SCALE
+
+# True Sliding Dovetail Geometry (Top-Slide Drop-In Lock)
+DOVETAIL_NECK_WIDTH   = 12.0 * SCALE  # Width at frame seam
+DOVETAIL_FLARE_WIDTH  = 18.0 * SCALE  # Flared width inside pocket (locks horizontally)
+DOVETAIL_DEPTH        = 12.0 * SCALE  # 12mm deep insertion into frame for high moment stiffness
+DOVETAIL_CLEARANCE    = 0.15 * SCALE  # Precision sliding tolerance per side (smooth vertical slide, zero play)
+DOVETAIL_HEIGHT       = BASE_PANEL_THICKNESS - (2.0 * SCALE)  # 13.0mm socket height
+
 
 # Servo Motor Footprint (Standard MG996R PWM Servo)
 SERVO_MOUNT_WIDTH    = 40.5 * SCALE

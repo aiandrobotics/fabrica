@@ -30,6 +30,10 @@ from params import (
     HOLE_CHAMFER,
     JOINER_DETENT,
     WIRE_PORT_FILLET,
+    DOVETAIL_NECK_WIDTH,
+    DOVETAIL_FLARE_WIDTH,
+    DOVETAIL_DEPTH,
+    DOVETAIL_HEIGHT,
     EXPORT_DIR,
 )
 
@@ -153,52 +157,49 @@ def construct_base_module():
         foot_cuts.append(cylinder)
     foot_compound = Part.makeCompound(foot_cuts)
     main_shell = main_shell.cut(foot_compound)
-    # 5. Female Dovetail Joiner Sockets with Detent Dimples (All 4 outer side walls)
-    dt_top_w = 16.0 * SCALE
-    dt_bot_w = 10.0 * SCALE
-    dt_depth = 8.0 * SCALE
-    dt_height = t - (2.0 * SCALE)
+    # 5. Female True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
+    # Flared inside the pocket (12mm neck -> 18mm flared width at 12mm depth) for indestructible lock
+    dt_neck_w = DOVETAIL_NECK_WIDTH
+    dt_flare_w = DOVETAIL_FLARE_WIDTH
+    dt_depth = DOVETAIL_DEPTH
+    dt_height = DOVETAIL_HEIGHT
 
     # Create master dovetail cutter
     poly_pts = [
-        App.Vector(-dt_top_w / 2.0, 0, 0),
-        App.Vector(dt_top_w / 2.0, 0, 0),
-        App.Vector(dt_bot_w / 2.0, dt_depth, 0),
-        App.Vector(-dt_bot_w / 2.0, dt_depth, 0),
-        App.Vector(-dt_top_w / 2.0, 0, 0),
+        App.Vector(-dt_neck_w / 2.0, -0.1, 0),
+        App.Vector(dt_neck_w / 2.0, -0.1, 0),
+        App.Vector(dt_flare_w / 2.0, dt_depth, 0),
+        App.Vector(-dt_flare_w / 2.0, dt_depth, 0),
+        App.Vector(-dt_neck_w / 2.0, -0.1, 0),
     ]
     dt_wire = Part.makePolygon(poly_pts)
     dt_face = Part.Face(dt_wire)
     dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_height))
 
-    # Add detent locking dimple cutter to dovetail socket
-    dimple = Part.makeCylinder(JOINER_DETENT * 1.5, dt_top_w, App.Vector(0, dt_depth / 2.0, dt_height / 2.0), App.Vector(1, 0, 0))
-    dt_cutter = dt_cutter.fuse(dimple)
-
     # Place dovetail cutters on 4 side walls (Pointing INTO each wall)
     dovetail_cuts = []
     # Front wall (Y=0) -> cuts in +Y direction
     dt_front = dt_cutter.copy()
-    dt_front.Placement = App.Placement(App.Vector(w / 2.0, -0.1, (t - dt_height) / 2.0), App.Rotation(0, 0, 0))
+    dt_front.Placement = App.Placement(App.Vector(w / 2.0, 0, (t - dt_height) / 2.0), App.Rotation(0, 0, 0))
     dovetail_cuts.append(dt_front)
 
     # Back wall (Y=h) -> cuts in -Y direction
     dt_back = dt_cutter.copy()
-    dt_back.Placement = App.Placement(App.Vector(w / 2.0, h + 0.1, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 180))
+    dt_back.Placement = App.Placement(App.Vector(w / 2.0, h, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 180))
     dovetail_cuts.append(dt_back)
 
     # Left wall (X=0) -> cuts in +X direction
     dt_left = dt_cutter.copy()
-    dt_left.Placement = App.Placement(App.Vector(-0.1, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), -90))
+    dt_left.Placement = App.Placement(App.Vector(0, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), -90))
     dovetail_cuts.append(dt_left)
 
     # Right wall (X=w) -> cuts in -X direction
     dt_right = dt_cutter.copy()
-    dt_right.Placement = App.Placement(App.Vector(w + 0.1, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 90))
+    dt_right.Placement = App.Placement(App.Vector(w, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 90))
     dovetail_cuts.append(dt_right)
 
     dovetail_compound = Part.makeCompound(dovetail_cuts)
-    main_shell = main_shell.cut(dovetail_compound)
+    main_shell = main_shell.cut(dovetail_compound).removeSplitter()
 
     # 8. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
     try:

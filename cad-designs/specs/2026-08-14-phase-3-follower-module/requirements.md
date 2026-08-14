@@ -42,7 +42,9 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - **Top Knuckle ($Y = 240\text{ mm}$)**: $360^\circ$ closed cylindrical bearing bore ($\varnothing 5.6\text{ mm}$, providing $+0.3\text{ mm}$ radial rotating clearance around the $\varnothing 5.0\text{ mm}$ male pin).
   - **Bottom Knuckle ($Y = 0$)**: Flex C-snap bearing socket ($\varnothing 5.6\text{ mm}$) with a $0.5\text{ mm}$ lead-in entry funnel and retention detent, enabling toolless downward snap-in without bending or delaminating 3D-printed pin layers.
 - **TPU Landing Dampers**: $1.5\text{ mm}$ recessed pockets on the inner floor ledge to cushion the flap on return.
-- **Interlocking Dovetail Sockets**: Female sockets on the 3 outer walls matching the $20\text{ mm}$ bridge joiner (`part_10_frame_joiner.py`).
+- **True Sliding Dovetail System (`part_10_frame_joiner.py`)**: Symmetrical double flared dovetail key ($12.0\text{ mm}$ neck flaring to $18.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play and high bending moment resistance.
+- **3-Servo High-Capacity Wire Raceway**: Continuous $6.8\text{ mm} \times 8.6\text{ mm}$ filleted conduit through the joiner bridge to comfortably route 3 full servo motor harnesses (9 wires + connectors) with zero binding.
+- **Modular Dovetail Sockets**: 3-wall matching flared female dovetail sockets on the U-frame perimeter.
 - **Cable Management**: $1.5\text{ mm}$ filleted wire pass-through ports and under-frame routing clips along perimeter rails.
 - **Poka-Yoke & Relief**: $0.5\text{ mm}$ debossed `"FRONT ➔"` directional arrow and $0.4\text{ mm}$ Elephant's Foot bed relief chamfers.
 
