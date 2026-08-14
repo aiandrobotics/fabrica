@@ -17,7 +17,6 @@ from params import (
     SCALE,
     BASE_PANEL_THICKNESS,
     PRESS_FIT_CLEARANCE,
-    JOINER_DETENT,
     MODULE_GAP,
     ELEPHANTS_FOOT_CHAMFER,
     EXPORT_DIR,
@@ -33,18 +32,16 @@ def construct_frame_joiner():
          (hoodies, denim, towels) and flap-to-flap sweep clearance.
        - Top face forms a flush garment bridge across the inter-module gap to prevent
          cloth sagging or button snagging.
-    2. Precision Double Dovetail Wedge Keys (Y in [+10.0, +17.8] & [-10.0, -17.8] mm):
-       - 15.6mm width at frame seam tapering to 9.6mm at insertion tips (0.2mm clearance).
-       - Self-aligns and firmly locks adjacent modules in place.
+    2. Precision Double Dovetail Smooth Wedge Keys (Y in [+10.0, +17.8] & [-10.0, -17.8] mm):
+       - 15.6mm width at frame seam tapering down to 9.6mm at insertion tips (0.2mm clearance).
+       - Completely smooth flat side walls slide in silk-smoothly and wedge firmly into sockets.
     3. Central Finger/Pry Lip Ridge (Y = 0 seam):
        - Ergonomic 1.2mm center collar creates a fingernail/tool pry lip for quick detachment.
-    4. Symmetrical Click Detents (Y = ±14.0mm, Z = H/2):
-       - Dual cylindrical bumps lock positively into female socket dimples with a tactile snap.
-    5. Continuous Neutral-Axis Wire Raceway (5.8mm x 7.2mm):
+    4. Continuous Neutral-Axis Wire Raceway (5.8mm x 7.2mm):
        - Massive filleted raceway accommodates pre-crimped 3-pin servo plugs and wire harnesses.
-    6. 4-Corner Lead-in Nose Chamfers:
+    5. 4-Corner Lead-in Nose Chamfers:
        - 45° entry chamfers on all 4 tip quadrants ensure smooth insertion.
-    7. 100% Supportless FDM Printability:
+    6. 100% Supportless FDM Printability:
        - Prints flat with 0.4mm Elephant's foot relief and zero supports.
     """
     clearance = PRESS_FIT_CLEARANCE  # 0.2mm per side
@@ -91,15 +88,7 @@ def construct_frame_joiner():
     collar.translate(App.Vector(-collar_w / 2.0, -collar_d / 2.0, center_z - (collar_h / 2.0)))
     joiner_solid = joiner_solid.fuse(collar).removeSplitter()
 
-    # 3. Symmetrical Tactile Detent Bumps (Y = ±(gap_half + 4.0mm) = ±14.0mm, Z = H/2)
-    detent_r = JOINER_DETENT  # 0.3mm
-    detent_y = gap_half + (4.0 * SCALE)
-    detent_len = dt_top_w * 0.8
-    det_pos = Part.makeCylinder(detent_r, detent_len, App.Vector(-detent_len / 2.0, detent_y, center_z), App.Vector(1, 0, 0))
-    det_neg = Part.makeCylinder(detent_r, detent_len, App.Vector(-detent_len / 2.0, -detent_y, center_z), App.Vector(1, 0, 0))
-    joiner_solid = joiner_solid.fuse(Part.makeCompound([det_pos, det_neg])).removeSplitter()
-
-    # 4. Continuous Internal Wire Raceway (5.8mm x 7.2mm with 1.2mm Fillets)
+    # 3. Continuous Internal Wire Raceway (5.8mm x 7.2mm with 1.2mm Fillets)
     raceway_w = 5.8 * SCALE
     raceway_h = 7.2 * SCALE
     raceway_d = (total_tip_y * 2.0) + (4.0 * SCALE)
