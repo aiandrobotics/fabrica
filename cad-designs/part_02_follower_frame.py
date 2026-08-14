@@ -61,7 +61,12 @@ def create_follower_frame():
     cav_h = h - 2 * rail_w
     cavity = Part.makeBox(cav_w, cav_h, t - bottom_thick + 0.5)
     cavity.translate(App.Vector(-0.1, rail_w, bottom_thick))
-    frame = outer_box.cut(cavity).removeSplitter()
+    
+    # Axle floor clearance trough along X=0 for Ø14mm continuous drive axle (Z=1.0 to 3.0mm)
+    axle_trough = Part.makeBox(8.0 * SCALE, cav_h, bottom_thick + 0.2)
+    axle_trough.translate(App.Vector(-0.1, rail_w, -0.1))
+    
+    frame = outer_box.cut(Part.makeCompound([cavity, axle_trough])).removeSplitter()
 
     # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
     # Heavy-duty knuckles housing Ø14.0mm drive axle centered at Z=8.0mm (top flush at Z=15.0mm)

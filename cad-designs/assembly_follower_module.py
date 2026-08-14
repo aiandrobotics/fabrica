@@ -31,6 +31,8 @@ def build_follower_assembly():
     2. Full-Size Rotating Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
     3. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
     """
+    for doc_name in list(App.listDocuments().keys()):
+        App.closeDocument(doc_name)
     doc = App.newDocument("FollowerAssembly")
     w = PANEL_WIDTH          # 240.0mm
     h = PANEL_HEIGHT         # 240.0mm

@@ -56,30 +56,31 @@ def create_follower_flap():
     w = 220.0 * SCALE          # Width extending into U-frame along +X
     h = 208.0 * SCALE          # Length along Y (flap panel body between knuckles)
     t = PADDLE_THICKNESS       # 4.0mm panel thickness
+    y_offset = 16.0 * SCALE    # Offset to clear 15mm bottom knuckle with 1mm clearance
     total_z = BASE_PANEL_THICKNESS # 15.0mm
     pivot_z = 8.0 * SCALE      # 8.0mm (hinge center axis; Ø14mm axle top is at 8.0 + 7.0 = 15.0mm)
     panel_z_min = total_z - t  # 11.0mm (top of panel sits at 11.0 + 4.0 = 15.0mm)
 
-    # 1. Base solid flap slab (Extends from X=0 to X=w, Y=0 to Y=h, Z=11.0 to Z=15.0mm flush with top deck)
+    # 1. Base solid flap slab (Extends from X=0 to X=w, Y=16 to Y=224mm, Z=11.0 to Z=15.0mm flush with top deck)
     flap_box = Part.makeBox(w, h, t)
-    flap_box.translate(App.Vector(0, 0, panel_z_min))
+    flap_box.translate(App.Vector(0, y_offset, panel_z_min))
 
     # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth along top perimeter face at Z=15.0mm)
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
     bevel_w = 3.0 * SCALE
     top_z = total_z  # 15.0mm
     bevel_cutter = Part.makeBox(w + 0.2, h + 0.2, bevel_d + 0.1)
-    bevel_cutter.translate(App.Vector(-0.1, -0.1, top_z - bevel_d))
+    bevel_cutter.translate(App.Vector(-0.1, y_offset - 0.1, top_z - bevel_d))
     bevel_inner = Part.makeBox(w - 2 * bevel_w, h - 2 * bevel_w, bevel_d + 0.3)
-    bevel_inner.translate(App.Vector(bevel_w, bevel_w, top_z - bevel_d - 0.1))
+    bevel_inner.translate(App.Vector(bevel_w, y_offset + bevel_w, top_z - bevel_d - 0.1))
     bevel_rim = bevel_cutter.cut(bevel_inner)
     flap = flap_box.cut(bevel_rim).removeSplitter()
 
-    # 3. Continuous Ø14.0mm Heavy-Duty Drive Axle (from Y = 0 to Y = 224mm)
+    # 3. Continuous Ø14.0mm Heavy-Duty Drive Axle (from Y = 0 to Y = 240mm across both knuckles)
     shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 7.0mm
     axle_start_y = 0.0                    # Bottom knuckle interface
-    axle_end_y = h + (16.0 * SCALE)       # Top knuckle interface (224.0mm)
-    axle_total_len = axle_end_y - axle_start_y # 224.0mm
+    axle_end_y = 240.0 * SCALE            # Top knuckle interface (240.0mm)
+    axle_total_len = axle_end_y - axle_start_y # 240.0mm
     
     axle_solid = Part.makeCylinder(shaft_r, axle_total_len, App.Vector(0, axle_start_y, pivot_z), App.Vector(0, 1, 0))
 
@@ -88,7 +89,7 @@ def create_follower_flap():
     axle_bore = Part.makeCylinder(bore_r, axle_total_len + 0.2, App.Vector(0, axle_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     axle_solid = axle_solid.cut(axle_bore).removeSplitter()
 
-    # 4. Top End Female 8.0mm Hex Torque Socket (at Y = 224.0mm, depth 12.0mm)
+    # 4. Top End Female 8.0mm Hex Torque Socket (at Y = 240.0mm, depth 12.0mm)
     hex_socket_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)
     hex_socket_face = Part.Face(hex_socket_wire)
     hex_socket_cutter = hex_socket_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH - 0.1, 0))
@@ -105,7 +106,7 @@ def create_follower_flap():
     hex_male_peg = hex_male_peg.cut(c_hex).removeSplitter()
     axle_solid = axle_solid.fuse(hex_male_peg).removeSplitter()
 
-    # Fuse flap panel with continuous drive axle and knuckle fillet transitions
+    # Fuse flap panel with continuous drive axle
     flap = flap.fuse(axle_solid).removeSplitter()
 
     # 6. Multi-Tiered Organic Gradient Circular Cutouts (matching reference images)
@@ -134,9 +135,9 @@ def create_follower_flap():
 
     cutters = []
     for cx, cy, hr in hole_specs:
-        cyl = Part.makeCylinder(hr, t + 1.0, App.Vector(cx, cy, panel_z_min - 0.5))
-        c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, top_z - HOLE_CHAMFER))
-        c_bot = Part.makeCone(hr, hr + HOLE_CHAMFER, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, panel_z_min - 0.1))
+        cyl = Part.makeCylinder(hr, t + 1.0, App.Vector(cx, cy + y_offset, panel_z_min - 0.5))
+        c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy + y_offset, top_z - HOLE_CHAMFER))
+        c_bot = Part.makeCone(hr, hr + HOLE_CHAMFER, HOLE_CHAMFER + 0.1, App.Vector(cx, cy + y_offset, panel_z_min - 0.1))
         cutters.extend([cyl, c_top, c_bot])
 
     if cutters:
@@ -152,16 +153,16 @@ def create_follower_flap():
         # Diagonal +45° groove
         g1 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
         g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
-        g1.translate(App.Vector(i, 0, top_z - tex_d))
+        g1.translate(App.Vector(i, y_offset, top_z - tex_d))
         # Diagonal -45° groove
         g2 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
         g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
-        g2.translate(App.Vector(i, h, top_z - tex_d))
+        g2.translate(App.Vector(i, y_offset + h, top_z - tex_d))
         tex_cutters.extend([g1, g2])
 
     if tex_cutters:
         tex_bound = Part.makeBox(w - 2 * bevel_w, h - 2 * bevel_w, t + 2.0)
-        tex_bound.translate(App.Vector(bevel_w, bevel_w, panel_z_min - 1.0))
+        tex_bound.translate(App.Vector(bevel_w, y_offset + bevel_w, panel_z_min - 1.0))
         tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
         flap = flap.cut(tex_compound).removeSplitter()
 
