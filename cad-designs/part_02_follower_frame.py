@@ -109,7 +109,14 @@ def create_follower_frame():
     funnel = Part.makeBox(funnel_w, knuckle_len + 0.2, 2.5 * SCALE)
     funnel.translate(App.Vector(-funnel_w / 2.0, -0.1, t - 2.0 * SCALE))
 
-    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel])).removeSplitter()
+    # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
+    trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
+    trim_top.translate(App.Vector(-knuckle_r * 2.0, -1.0, t))
+    
+    trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
+    trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
+
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel, trim_top, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
     # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
