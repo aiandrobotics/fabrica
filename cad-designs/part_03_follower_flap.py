@@ -65,16 +65,30 @@ def create_follower_flap():
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, y_offset, panel_z_min))
 
-    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth along top perimeter face at Z=15.0mm)
+    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=224, Bottom Y=16)
+    # Hinge side (X <= 8mm) is left completely solid and flat at Z=15.0mm with zero bevel gap
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
     bevel_w = 3.0 * SCALE
     top_z = total_z  # 15.0mm
-    bevel_cutter = Part.makeBox(w + 0.2, h + 0.2, bevel_d + 0.1)
-    bevel_cutter.translate(App.Vector(-0.1, y_offset - 0.1, top_z - bevel_d))
-    bevel_inner = Part.makeBox(w - 2 * bevel_w, h - 2 * bevel_w, bevel_d + 0.3)
-    bevel_inner.translate(App.Vector(bevel_w, y_offset + bevel_w, top_z - bevel_d - 0.1))
-    bevel_rim = bevel_cutter.cut(bevel_inner)
-    flap = flap_box.cut(bevel_rim).removeSplitter()
+    
+    # Outer 3-sided bevel cutter (cuts right X=w, bottom Y=y_offset, top Y=y_offset+h)
+    bevel_cuts = []
+    # Right edge bevel (at X = w - bevel_w to w)
+    b_right = Part.makeBox(bevel_w + 0.2, h + 0.2, bevel_d + 0.1)
+    b_right.translate(App.Vector(w - bevel_w, y_offset - 0.1, top_z - bevel_d))
+    bevel_cuts.append(b_right)
+    
+    # Bottom edge bevel (at Y = y_offset to y_offset + bevel_w)
+    b_bot = Part.makeBox(w - 8.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(8.0 * SCALE, y_offset - 0.1, top_z - bevel_d))
+    bevel_cuts.append(b_bot)
+    
+    # Top edge bevel (at Y = y_offset + h - bevel_w to y_offset + h)
+    b_top = Part.makeBox(w - 8.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(8.0 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
+    bevel_cuts.append(b_top)
+    
+    flap = flap_box.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
     # 3. Continuous Ø14.0mm Heavy-Duty Drive Axle (from Y = 0 to Y = 240mm across both knuckles)
     shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 7.0mm
