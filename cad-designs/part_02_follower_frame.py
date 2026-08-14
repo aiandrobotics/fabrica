@@ -96,8 +96,15 @@ def create_follower_frame():
     # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Bottom Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = -0.1 to knuckle_len + 0.1)
+    # Bottom Knuckle: Cylindrical Bore with Horizontal Blade Slide-In Slot for +Y Axial Installation
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
+    
+    # 2.8mm Blade Pass-Through Slot (at Z=12.35mm to Z=15.25mm) allowing flap blade to slide along +Y into top 360° knuckle
+    # Note: Ø14.0mm axle is physically trapped inside bore and cannot pop out radially
+    slide_slot_w = knuckle_r + 2.0 * SCALE
+    slide_slot_h = (blade_t + 0.5) * SCALE # 2.9mm
+    slide_slot = Part.makeBox(slide_slot_w, knuckle_len + 0.2, slide_slot_h)
+    slide_slot.translate(App.Vector(bore_r - (2.0 * SCALE), -0.1, landing_z - (0.25 * SCALE)))
 
     # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
     trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
@@ -106,7 +113,7 @@ def create_follower_frame():
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, trim_top, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, slide_slot, trim_top, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
     # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
