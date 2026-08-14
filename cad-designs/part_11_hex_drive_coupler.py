@@ -36,7 +36,7 @@ def construct_hex_drive_coupler():
     4. Ø3.2mm internal through-hole for weight relief or optional M3 reinforcing tension rod.
     5. Modular, easily replaceable wear-part architecture.
     """
-    pivot_z = 8.0 * SCALE
+    pivot_z = 7.5 * SCALE
     hex_size = HEX_COUPLER_SIZE - (0.3 * SCALE) # 7.7mm flat-to-flat
     peg_len = 10.5 * SCALE                      # 10.5mm insertion depth into each socket
     flange_d = DRIVE_SHAFT_DIAMETER - (0.2 * SCALE) # 13.8mm

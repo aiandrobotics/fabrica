@@ -79,10 +79,10 @@ def create_follower_frame():
     frame = outer_box.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
 
     # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
-    # Heavy-duty knuckles housing Ø14.0mm drive axle centered at Z=8.0mm (top flush at Z=15.0mm)
+    # Heavy-duty 360° fully enclosed knuckles housing Ø14.0mm drive axle centered at Z=7.5mm
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 10.0mm radius (Ø20.0mm outer barrel)
     knuckle_len = rail_w
-    pivot_z = 8.0 * SCALE  # Axle center (top of Ø14mm axle sits exactly flush at Z = 8.0 + 7.0 = 15.0mm)
+    pivot_z = 7.5 * SCALE  # Exact vertical midpoint of 15.0mm frame
     
     # Bottom Knuckle Barrel (+Y facing)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
@@ -90,24 +90,14 @@ def create_follower_frame():
     k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
     frame = frame.fuse(Part.makeCompound([k_bot, k_top])).removeSplitter()
 
-    # 4. Hinge Bearing Bores & C-Snap Sockets (Ø14.6mm for Ø14.0mm drive axle)
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 7.3mm radius (Ø14.6mm)
+    # 4. Hinge Bearing Bores: 360° Fully Enclosed Cylindrical Tunnels on Both Ends
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (0.25 * SCALE)  # 7.25mm radius (Ø14.5mm with 0.25mm radial clearance)
 
     # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Bottom Knuckle: Flex C-Snap Socket with 1.0mm Lead-In Funnel
+    # Bottom Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = -0.1 to knuckle_len + 0.1)
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
-    
-    # Snap throat opening (width = 2*bore_r - 0.6mm = 14.0mm for positive snap retention)
-    snap_w = (bore_r * 2.0) - (0.6 * SCALE)
-    snap_throat = Part.makeBox(snap_w, knuckle_len + 0.2, t - pivot_z + 0.1)
-    snap_throat.translate(App.Vector(-snap_w / 2.0, -0.1, pivot_z))
-    
-    # 1.0mm 45° Lead-in funnel at top of C-snap entrance
-    funnel_w = snap_w + (2.0 * SCALE)
-    funnel = Part.makeBox(funnel_w, knuckle_len + 0.2, 2.5 * SCALE)
-    funnel.translate(App.Vector(-funnel_w / 2.0, -0.1, t - 2.0 * SCALE))
 
     # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
     trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
@@ -116,7 +106,7 @@ def create_follower_frame():
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel, trim_top, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, trim_top, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
     # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole

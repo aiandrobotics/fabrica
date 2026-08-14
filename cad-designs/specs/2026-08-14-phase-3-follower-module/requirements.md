@@ -47,9 +47,11 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - Rail wall width: $15.0\text{ mm}$; bottom shell floor: $3.0\text{ mm}$.
   - Open inner side ($X = 0$) allowing the flap to swing unobstructed across the $0^\circ \to 180^\circ$ range.
 - **Heavy-Duty Hinge Pivot Knuckles (Left Rail $X = 0$)**:
-  - Outer knuckle barrel diameter: $\varnothing 20.0\text{ mm}$.
-  - **Top Knuckle ($Y = 225\text{ to }240\text{ mm}$)**: $360^\circ$ closed cylindrical bearing bore ($\varnothing 14.6\text{ mm}$, providing $+0.3\text{ mm}$ radial rotating clearance around the $\varnothing 14.0\text{ mm}$ axle).
-  - **Bottom Knuckle ($Y = 0\text{ to }15\text{ mm}$)**: Flex C-snap bearing socket ($\varnothing 14.6\text{ mm}$) with a $1.0\text{ mm}$ lead-in entry funnel and retention detent, enabling toolless downward snap-in without bending or delaminating 3D-printed layers.
+  - **Dual 360° Fully Enclosed Solid Knuckle Tunnels**:
+  - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous cylindrical bearing tunnel housing the $\varnothing 14.0\text{ mm}$ axle with zero top slit ($Z = 7.5\text{ mm}$ center, $0.25\text{ mm}$ radial rotating clearance).
+  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Identical $360^\circ$ continuous solid cylindrical bearing tunnel, completely eliminating open C-snap gaps and preventing the axle from ever popping out under high torque.
+  - **Assembly / Locking**: Flap axle engages into both $360^\circ$ tunnels, and is positively locked axially by the modular Part 11 Hex Drive Coupler Pin.
+  - **100% Planar Flat Underside**: Both knuckles trimmed coplanar at $Z = 0.0\text{ mm}$ for zero-support 3D printing and rock-solid tabletop stability.
 - **TPU Landing Dampers**: $1.5\text{ mm}$ recessed pockets on the inner floor ledge to cushion the flap on return.
 - **True Sliding Dovetail System (`part_10_frame_joiner.py`)**: Symmetrical double flared dovetail key ($12.0\text{ mm}$ neck flaring to $18.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play and high bending moment resistance.
 - **3-Servo High-Capacity Wire Raceway**: Continuous $6.8\text{ mm} \times 8.6\text{ mm}$ filleted conduit through the joiner bridge to comfortably route 3 full servo motor harnesses (9 wires + connectors) with zero binding.
