@@ -1,57 +1,101 @@
+"""
+assembly_follower_module.py — Passive Follower Module Sub-Assembly
+Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
+"""
+
 import os
 import sys
 import FreeCAD as App
 import Part
 
-# Ensure cad-designs root is in path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
-from params import SCALE
-from part_02_follower_frame import create_follower_frame
-from part_03_follower_flap import create_follower_flap
-
-BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
-
+from params import (
+    SCALE,
+    PANEL_WIDTH,
+    PANEL_HEIGHT,
+    BASE_PANEL_THICKNESS,
+    MODULE_GAP,
+    EXPORT_DIR,
+)
+from part_02_follower_frame import create_follower_frame, DOVETAIL_DEPTH
+from part_03_follower_flap import create_follower_flap, PADDLE_THICKNESS
+from part_10_frame_joiner import construct_frame_joiner
 
 def build_follower_assembly():
+    """
+    Assembles the Passive Follower Module:
+    1. Follower Frame (Green): Holds 360° closed bores and flex C-snap sockets.
+    2. Follower Flap (Orange): Mated via Toolless Pin-Slide & Snap.
+    3. 2x Frame Joiners (Blue): 20mm flush bridge joiners attached in front and right sockets.
+    """
     doc = App.newDocument("FollowerAssembly")
+    w = PANEL_WIDTH
+    h = PANEL_HEIGHT
+    t = BASE_PANEL_THICKNESS
+    wall = 15.0 * SCALE
+    bottom_thick = 3.0 * SCALE
 
-    # 1. Base Follower Frame
+    # 1. Base Follower Chassis Frame (Color: Green #2ecc71)
     frame_shape = create_follower_frame()
     frame_obj = doc.addObject("Part::Feature", "Part02FollowerFrame")
     frame_obj.Shape = frame_shape
+    if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
+        frame_obj.ViewObject.ShapeColor = (0.18, 0.8, 0.44)
 
-    # 2. Left Flap
+    # 2. Rotating Follower Flap (Color: Orange #e67e22)
+    # Flap pivot axis is along Y at pivot_z = bottom_thick + 4.0mm
     flap_1 = create_follower_flap()
-    flap_1_obj = doc.addObject("Part::Feature", "Part03FollowerFlap_Left")
+    flap_1_obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
     flap_1_obj.Shape = flap_1
+    
+    # Placed with pins centered in bores at X = wall, Y = h/2 - 45mm - flap_h/2
+    pivot_z = bottom_thick + (4.0 * SCALE)
+    flap_h = 82.0 * SCALE
     flap_1_obj.Placement = App.Placement(
-        App.Vector(26.0 * SCALE, 26.0 * SCALE, BOTTOM_SHELL_THICKNESS + 2.0 * SCALE),
+        App.Vector(wall, (h / 2.0 - 45.0 * SCALE) - flap_h / 2.0, pivot_z - (PADDLE_THICKNESS / 2.0)),
         App.Rotation(App.Vector(0, 0, 1), 0)
     )
+    if hasattr(flap_1_obj, "ViewObject") and flap_1_obj.ViewObject:
+        flap_1_obj.ViewObject.ShapeColor = (0.9, 0.49, 0.13)
 
-    # 3. Right Flap
-    flap_2 = create_follower_flap()
-    flap_2_obj = doc.addObject("Part::Feature", "Part03FollowerFlap_Right")
-    flap_2_obj.Shape = flap_2
-    flap_2_obj.Placement = App.Placement(
-        App.Vector(26.0 * SCALE, 126.0 * SCALE, BOTTOM_SHELL_THICKNESS + 2.0 * SCALE),
+    # 3. Front Interlocking Bridge Joiner (Color: Blue #3498db)
+    joiner_shape = construct_frame_joiner()
+    joiner_front = doc.addObject("Part::Feature", "Part10FrameJoiner_Front")
+    joiner_front.Shape = joiner_shape.copy()
+    joiner_front.Placement = App.Placement(
+        App.Vector(w / 2.0, - (MODULE_GAP / 2.0), (t - 12.6 * SCALE) / 2.0),
         App.Rotation(App.Vector(0, 0, 1), 0)
     )
+    if hasattr(joiner_front, "ViewObject") and joiner_front.ViewObject:
+        joiner_front.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
+
+    # 4. Right Interlocking Bridge Joiner (Color: Blue #3498db)
+    joiner_right = doc.addObject("Part::Feature", "Part10FrameJoiner_Right")
+    joiner_right.Shape = joiner_shape.copy()
+    joiner_right.Placement = App.Placement(
+        App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, (t - 12.6 * SCALE) / 2.0),
+        App.Rotation(App.Vector(0, 0, 1), 90)
+    )
+    if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
+        joiner_right.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
     doc.recompute()
     return doc
 
-
 def export_part():
+    """Exports STEP and STL files to EXPORT_DIR."""
+    os.makedirs(EXPORT_DIR, exist_ok=True)
     doc = build_follower_assembly()
-    export_dir = os.path.join(os.path.dirname(__file__), "exports")
-    os.makedirs(export_dir, exist_ok=True)
 
-    step_path = os.path.join(export_dir, "assembly_follower_module.step")
-    stl_path = os.path.join(export_dir, "assembly_follower_module.stl")
+    step_path = os.path.join(EXPORT_DIR, "assembly_follower_module.step")
+    stl_path  = os.path.join(EXPORT_DIR, "assembly_follower_module.stl")
+
+    for path in (step_path, stl_path):
+        if os.path.exists(path):
+            os.remove(path)
 
     shapes = [obj.Shape for obj in doc.Objects if hasattr(obj, "Shape")]
     compound = Part.makeCompound(shapes)
@@ -60,3 +104,5 @@ def export_part():
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
 
 export_part()
+
+
