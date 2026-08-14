@@ -99,18 +99,13 @@ def create_follower_flap():
     
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 3. Continuous Ø14.0mm Heavy-Duty Drive Axle (from Y = 0 to Y = 240mm across both knuckles)
+    # 3. Continuous Ø14.0mm Solid Heavy-Duty Drive Axle (from Y = 0 to Y = 240mm across both knuckles)
     shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 7.0mm
     axle_start_y = 0.0                    # Bottom knuckle interface
     axle_end_y = 240.0 * SCALE            # Top knuckle interface (240.0mm)
     axle_total_len = axle_end_y - axle_start_y # 240.0mm
     
     axle_solid = Part.makeCylinder(shaft_r, axle_total_len, App.Vector(0, axle_start_y, pivot_z), App.Vector(0, 1, 0))
-
-    # Internal Weight-Relief Bore (Ø8.0mm throughout the center core)
-    bore_r = DRIVE_SHAFT_BORE / 2.0  # 4.0mm
-    axle_bore = Part.makeCylinder(bore_r, axle_total_len + 0.2, App.Vector(0, axle_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
-    axle_solid = axle_solid.cut(axle_bore).removeSplitter()
 
     # 4. Top End Female 8.0mm Hex Torque Socket (at Y = 240.0mm, depth 12.0mm in -Y)
     hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)

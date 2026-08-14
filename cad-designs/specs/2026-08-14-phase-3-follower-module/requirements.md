@@ -67,9 +67,10 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - **Rock-Solid $0^\circ$ Home Hard Stop**: Prevents flap sagging or over-travel under heavy garment loads.
   - **Optimized 2.4mm Blade Thickness**: High flexural stiffness (12 solid layers) while keeping moving blade mass light ($\approx 75\text{g}$).
   - Top face sits flush at $Z = 15.0\text{ mm}$.
-- **Heavy-Duty Continuous Drive Axle ($\varnothing 14.0\text{ mm}$)**:
-  - Spans the hinge axis at $(X = 0, Z = 8.0\text{ mm})$.
-  - Internal $\varnothing 8.0\text{ mm}$ weight-relief core maintaining low rotational inertia.
+- **Heavy-Duty Continuous Solid-Core Drive Axle ($\varnothing 14.0\text{ mm}$)**:
+  - Spans the hinge axis at $(X = 0, Z = 8.0\text{ mm})$ across the full $240.0\text{ mm}$ length.
+  - **100% Solid Central Core ($Y = 12.0\text{ to }228.0\text{ mm}$)**: Maximizes torsional rigidity and eliminates torsional twist when transmitting motor torque across multiple follower stages.
+  - Hollow hex connector cavities located exclusively at the top and bottom ends ($12.0\text{ mm}$ deep).
 - **Bottom Reinforcing Fillet Gusset**: Smooth curved structural transition from axle underside ($Z = 5.0\text{ mm}$) up to the blade floor ($Z = 12.6\text{ mm}$) providing $3\times$ torsional load distribution.
 - **Dual Symmetrical Female Hex Coupler Sockets**:
   - **Top End ($Y = 240\text{ mm}$)**: $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($12.0\text{ mm}$ engagement depth in $-Y$).
