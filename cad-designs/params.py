@@ -45,11 +45,12 @@ JOINER_DETENT     = 0.3 * SCALE
 WIRE_PORT_FILLET  = 1.5 * SCALE
 
 # True Sliding Dovetail Geometry (Top-Slide Drop-In Lock)
-DOVETAIL_NECK_WIDTH   = 12.0 * SCALE  # Width at frame seam
-DOVETAIL_FLARE_WIDTH  = 18.0 * SCALE  # Flared width inside pocket (locks horizontally)
-DOVETAIL_DEPTH        = 12.0 * SCALE  # 12mm deep insertion into frame for high moment stiffness
-DOVETAIL_CLEARANCE    = 0.15 * SCALE  # Precision sliding tolerance per side (smooth vertical slide, zero play)
-DOVETAIL_HEIGHT       = BASE_PANEL_THICKNESS - (2.0 * SCALE)  # 13.0mm socket height
+DOVETAIL_FLOOR_THICKNESS = 3.0 * SCALE  # 3.0mm bottom floor drop stop
+DOVETAIL_NECK_WIDTH      = 12.0 * SCALE  # Width at frame seam
+DOVETAIL_FLARE_WIDTH     = 18.0 * SCALE  # Flared width inside pocket (locks horizontally)
+DOVETAIL_DEPTH           = 12.0 * SCALE  # 12mm deep insertion into frame for high moment stiffness
+DOVETAIL_CLEARANCE       = 0.15 * SCALE  # Precision sliding tolerance per side (smooth vertical slide, zero play)
+DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
 
 # Servo Motor Footprint (Standard MG996R PWM Servo)

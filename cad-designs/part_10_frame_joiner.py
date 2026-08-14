@@ -50,7 +50,7 @@ def construct_frame_joiner():
     neck_w    = DOVETAIL_NECK_WIDTH - (2.0 * clearance)   # 11.7mm at frame seam
     flare_w   = DOVETAIL_FLARE_WIDTH - (2.0 * clearance)  # 17.7mm at deepest tip
     dt_depth  = DOVETAIL_DEPTH - clearance                # 11.85mm insertion depth
-    dt_height = DOVETAIL_HEIGHT - (2.0 * clearance)       # 12.7mm height
+    dt_height = DOVETAIL_HEIGHT                           # Exactly 12.0mm height (seats at Z=3.0 to Z=15.0 flush)
     bridge_w  = DOVETAIL_FLARE_WIDTH                      # 18.0mm wide bridge deck
     
     total_tip_y = gap_half + dt_depth                     # 21.85mm from center
