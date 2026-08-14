@@ -29,7 +29,7 @@ from params import (
     EXPORT_DIR,
 )
 
-PADDLE_THICKNESS = 4.0 * SCALE
+PADDLE_THICKNESS = 2.4 * SCALE
 
 def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
     """Generates a regular hexagon wire in the XZ plane at a given Y position."""
@@ -44,22 +44,22 @@ def create_follower_flap():
     """
     Constructs the Full-Size Lightweight Passive Follower Folding Flap Panel.
     Features:
-    1. Full-Size Panel Body (220mm x 208mm x 4.0mm) filling the 3-sided U-frame.
-    2. Integrated Continuous Ø14.0mm Heavy-Duty Drive Axle (centered at X=0, Z=7.5mm).
+    1. Full-Size Panel Body (220mm x 208mm x 2.4mm) filling the 3-sided U-frame.
+    2. Integrated Continuous Ø14.0mm Heavy-Duty Drive Axle (centered at X=0, Z=8.0mm).
     3. Top 8.0mm Female Hex Torque Drive Socket (12.0mm depth at Y=240mm).
     4. Bottom 8.0mm Male Hex Torque Drive Shaft (12.0mm long at Y=0 to Y=-12mm) with 45° chamfer.
-    5. Multi-tiered Organic Gradient Circular Cutouts (~45% mass reduction, target weight ~80g).
+    5. Multi-tiered Organic Gradient Circular Cutouts (~45% mass reduction, target weight ~75g).
     6. 1.2mm Recessed Perimeter Shadow Bevel for premium dual-tone panel aesthetics.
     7. 0.6mm Debossed Diamond Micro-Grip Texture for non-slip garment traction.
     8. 100% Supportless FDM Printability.
     """
     w = 220.0 * SCALE          # Width extending into U-frame along +X
     h = 208.0 * SCALE          # Length along Y (flap panel body between knuckles)
-    t = PADDLE_THICKNESS       # 4.0mm panel thickness
+    t = PADDLE_THICKNESS       # 2.4mm panel thickness (optimal 12-layer rigidity & 40% weight reduction)
     y_offset = 16.0 * SCALE    # Offset to clear 15mm bottom knuckle with 1mm clearance
     total_z = BASE_PANEL_THICKNESS # 15.0mm
     pivot_z = 8.0 * SCALE      # 8.0mm (hinge center axis; Ø14mm axle top is at 8.0 + 7.0 = 15.0mm)
-    panel_z_min = total_z - t  # 11.0mm (top of panel sits at 11.0 + 4.0 = 15.0mm)
+    panel_z_min = total_z - t  # 12.6mm (top of panel sits at 12.6 + 2.4 = 15.0mm flush with top deck)
 
     # 1. Base solid flap slab (Extends from X=0 to X=w, Y=16 to Y=224mm, Z=11.0 to Z=15.0mm flush with top deck)
     flap_box = Part.makeBox(w, h, t)
