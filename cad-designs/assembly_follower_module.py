@@ -45,16 +45,13 @@ def build_follower_assembly():
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
         frame_obj.ViewObject.ShapeColor = (0.18, 0.8, 0.44)
 
-    # 2. Full-Size Follower Flap (Color: Orange #e67e22)
-    # Flap hinge axis is at X = 0, Z = t/2 = 7.5mm. Flap body extends Y in [16.0, 224.0]
+    # 2. Full-Size Follower Flap with Ø14mm Drive Axle (Color: Orange #e67e22)
+    # Flap axle is centered along hinge axis at X = 0, Z = t/2 = 7.5mm
     flap_shape = create_follower_flap()
     flap_obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
     flap_obj.Shape = flap_shape
-    
-    flap_offset_y = 16.0 * SCALE
-    flap_offset_z = (t - PADDLE_THICKNESS) / 2.0  # (15 - 4)/2 = 5.5mm
     flap_obj.Placement = App.Placement(
-        App.Vector(0, flap_offset_y, flap_offset_z),
+        App.Vector(0, 0, 0),
         App.Rotation(App.Vector(0, 0, 1), 0)
     )
     if hasattr(flap_obj, "ViewObject") and flap_obj.ViewObject:

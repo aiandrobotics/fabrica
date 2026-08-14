@@ -26,11 +26,11 @@ from params import (
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
     DOVETAIL_HEIGHT,
+    DRIVE_SHAFT_DIAMETER,
+    BEARING_ROTATING_CLEARANCE,
     EXPORT_DIR,
 )
 
-PADDLE_PIVOT_DIAMETER = 5.0 * SCALE
-ROTATING_CLEARANCE = 0.3 * SCALE  # per side
 BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
@@ -64,34 +64,35 @@ def create_follower_frame():
     frame = outer_box.cut(cavity).removeSplitter()
 
     # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
-    knuckle_r = (PADDLE_PIVOT_DIAMETER / 2.0) + (4.0 * SCALE)  # 6.5mm radius outer barrel
+    # Heavy-duty knuckles housing Ø14.0mm drive axle
+    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 10.0mm radius (Ø20.0mm outer barrel)
     knuckle_len = rail_w
+    pivot_z = t / 2.0  # Centered in frame thickness (7.5mm)
     
     # Bottom Knuckle Barrel (+Y facing)
-    k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, t / 2.0), App.Vector(0, 1, 0))
+    k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
     # Top Knuckle Barrel (-Y facing)
-    k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, t / 2.0), App.Vector(0, 1, 0))
+    k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
     frame = frame.fuse(Part.makeCompound([k_bot, k_top])).removeSplitter()
 
-    # 4. Hinge Bearing Bores & C-Snap Sockets
-    bore_r = (PADDLE_PIVOT_DIAMETER / 2.0) + ROTATING_CLEARANCE  # 2.8mm radius (Ø5.6mm)
-    pivot_z = t / 2.0  # Centered in frame thickness (7.5mm)
+    # 4. Hinge Bearing Bores & C-Snap Sockets (Ø14.6mm for Ø14.0mm drive axle)
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 7.3mm radius (Ø14.6mm)
 
     # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Bottom Knuckle: Flex C-Snap Socket with 0.5mm Lead-In Funnel
+    # Bottom Knuckle: Flex C-Snap Socket with 1.0mm Lead-In Funnel
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # Snap throat opening (width = 2*bore_r - 0.4mm = 5.2mm for positive snap retention)
-    snap_w = (bore_r * 2.0) - (0.4 * SCALE)
+    # Snap throat opening (width = 2*bore_r - 0.6mm = 14.0mm for positive snap retention)
+    snap_w = (bore_r * 2.0) - (0.6 * SCALE)
     snap_throat = Part.makeBox(snap_w, knuckle_len + 0.2, t - pivot_z + 0.1)
     snap_throat.translate(App.Vector(-snap_w / 2.0, -0.1, pivot_z))
     
-    # 0.5mm 45° Lead-in funnel at top of C-snap entrance
-    funnel_w = snap_w + (1.2 * SCALE)
-    funnel = Part.makeBox(funnel_w, knuckle_len + 0.2, 2.0 * SCALE)
-    funnel.translate(App.Vector(-funnel_w / 2.0, -0.1, t - 1.5 * SCALE))
+    # 1.0mm 45° Lead-in funnel at top of C-snap entrance
+    funnel_w = snap_w + (2.0 * SCALE)
+    funnel = Part.makeBox(funnel_w, knuckle_len + 0.2, 2.5 * SCALE)
+    funnel.translate(App.Vector(-funnel_w / 2.0, -0.1, t - 2.0 * SCALE))
 
     frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel])).removeSplitter()
 
