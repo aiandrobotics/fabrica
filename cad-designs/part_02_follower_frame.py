@@ -99,12 +99,12 @@ def create_follower_frame():
     # Bottom Knuckle: Cylindrical Bore with 6 o'clock Bottom Slide Gate
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # 6 o'clock Bottom Slide Gate (Z <= 8.0mm, X >= -2.0mm)
-    # Allows inverted downward slide-in along +Y; once placed on table, table surface acts as physical floor
-    gate_w = knuckle_r + rail_w
+    # 6 o'clock Bottom Slide Gate (strictly underneath the knuckle barrel: X in [-bore_r, +bore_r], Z <= pivot_z)
+    # The adjacent frame rail and floor (X >= 10.0mm) remain 100% SOLID and continuous with zero notch!
+    gate_w = bore_r * 2.0
     gate_h = pivot_z + 0.1 * SCALE
     gate_bot = Part.makeBox(gate_w, knuckle_len + 0.2, gate_h)
-    gate_bot.translate(App.Vector(-2.0 * SCALE, -0.1, -0.1))
+    gate_bot.translate(App.Vector(-bore_r, -0.1, -0.1))
 
     # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
     trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
