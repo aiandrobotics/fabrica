@@ -30,18 +30,16 @@ def construct_frame_joiner():
     1. 20mm Inter-Module Fabric Relief Bridge (Y in [-10.0, +10.0] mm):
        - Spaces adjacent module frames exactly 20.0mm apart for heavy garment bend relief
          (hoodies, denim, towels) and flap-to-flap sweep clearance.
-       - Top face forms a flush garment bridge across the inter-module gap to prevent
-         cloth sagging or button snagging.
+       - 100% completely flat and flush top bridge deck across the inter-module gap,
+         providing a smooth runway so clothes glide across seamlessly without snagging.
     2. Precision Double Dovetail Smooth Wedge Keys (Y in [+10.0, +17.8] & [-10.0, -17.8] mm):
        - 15.6mm width at frame seam tapering down to 9.6mm at insertion tips (0.2mm clearance).
        - Completely smooth flat side walls slide in silk-smoothly and wedge firmly into sockets.
-    3. Central Finger/Pry Lip Ridge (Y = 0 seam):
-       - Ergonomic 1.2mm center collar creates a fingernail/tool pry lip for quick detachment.
-    4. 3-Servo Wire Raceway (6.8mm x 8.6mm):
-       - High-capacity filleted raceway fits 3 full servo motor harnesses (9 wires + connectors).
-    5. 4-Corner Lead-in Nose Chamfers:
+    3. 3-Servo High-Capacity Wire Raceway (6.8mm x 8.6mm):
+       - Generous filleted raceway fits 3 full servo motor harnesses (9 wires + connectors).
+    4. 4-Corner Lead-in Nose Chamfers:
        - 45° entry chamfers on all 4 tip quadrants ensure smooth insertion.
-    6. 100% Supportless FDM Printability:
+    5. 100% Supportless FDM Printability:
        - Prints flat with 0.4mm Elephant's foot relief and zero supports.
     """
     clearance = PRESS_FIT_CLEARANCE  # 0.2mm per side
@@ -54,6 +52,7 @@ def construct_frame_joiner():
     center_z = dt_height / 2.0
 
     # 1. Fully Symmetrical 20mm Bridge + Dovetail Body (XY Lozenge)
+    # Forms a 100% flat, flush bridge deck across the 20mm inter-module gap
     c_tip = 1.0 * SCALE  # 1.0mm 45° tip lead-in chamfer
     poly_pts = [
         # Center bridge right edge
@@ -80,15 +79,7 @@ def construct_frame_joiner():
     dovetail_face = Part.Face(dovetail_wire)
     joiner_solid = dovetail_face.extrude(App.Vector(0, 0, dt_height))
 
-    # 2. Central Ergonomic Pry Lip Collar (Centered at Y=0, 1.2mm thick)
-    collar_w = dt_top_w + (1.6 * SCALE)
-    collar_d = 1.2 * SCALE
-    collar_h = dt_height + (0.8 * SCALE)
-    collar = Part.makeBox(collar_w, collar_d, collar_h)
-    collar.translate(App.Vector(-collar_w / 2.0, -collar_d / 2.0, center_z - (collar_h / 2.0)))
-    joiner_solid = joiner_solid.fuse(collar).removeSplitter()
-
-    # 3. High-Capacity Internal Wire Raceway (6.8mm x 8.6mm with 1.0mm Fillets)
+    # 2. High-Capacity Internal Wire Raceway (6.8mm x 8.6mm with 1.0mm Fillets)
     # Designed specifically to fit 3 full servo motor harnesses (9 wires + connectors)
     raceway_w = 6.8 * SCALE
     raceway_h = 8.6 * SCALE
