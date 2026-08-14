@@ -47,14 +47,15 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - Rail wall width: $15.0\text{ mm}$; bottom shell floor: $3.0\text{ mm}$.
   - Open inner side ($X = 0$) allowing the flap to swing unobstructed across the $0^\circ \to 180^\circ$ range.
 - **Dual Hinge Pivot Knuckles (Left Rail $X = 0$)**:
-  - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel housing the $\varnothing 14.0\text{ mm}$ axle with zero top slit ($Z = 7.5\text{ mm}$ center, $0.25\text{ mm}$ radial rotating clearance).
-  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 14.5\text{ mm}$) featuring an **Inner-Side Gusset Pass-Through Gate** ($Z \in [4.0, 15.5\text{ mm}]$, $X \ge 4.0\text{ mm}$).
-  - **Ample Gusset Clearance ($0^\circ$ Horizontal Slide-In)**: The inner gate accommodates the combined profile of the $2.4\text{ mm}$ blade and the curved bottom reinforcing gusset ($Z = 5.0\text{ mm} \to 12.6\text{ mm}$), allowing the flap to slide in flat with zero binding.
-  - **Zero Pop-Out Radial Lock**: The outer knuckle shell ($X \le 0$) and bottom floor ($Z \le 4.0\text{ mm}$) remain $100\%$ solid continuous material. Once the top axle engages the top $360^\circ$ tunnel, the unit is completely trapped radially and cannot pop out during rotation ($0^\circ \to 180^\circ$).
+  - **Hinge Center Axis**: Centered at $Z = 8.0\text{ mm}$, providing **$1.5\text{ mm}$ Ground Clearance** (8 solid print layers) beneath the $\varnothing 13.0\text{ mm}$ solid drive axle ($Z \in [1.5, 14.5\text{ mm}]$), with the flap top surface perfectly flush at $Z = 15.0\text{ mm}$.
+  - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel housing the $\varnothing 13.0\text{ mm}$ axle with zero top slit ($0.25\text{ mm}$ radial rotating clearance).
+  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 13.5\text{ mm}$) featuring a **6 o'clock (Bottom) Slide-In Gate** ($Z \le 8.0\text{ mm}$, $X \ge -2.0\text{ mm}$).
+  - **100% Solid Top Arch (9-to-3 o'clock)**: Solid $180^\circ$ top roof provides high upward stiffness when lifting heavy garments ($0^\circ \to 90^\circ$).
+  - **Tabletop Physical Lock**: When the robot rests on the table, the table surface physically seals the bottom opening, completely preventing any downward displacement while the $1.5\text{ mm}$ air gap guarantees zero ground drag.
   - **Toolless Axial Installation Flow**:
-    1. Place flap flat at $0^\circ$ and slide the axle forward in $+Y$ through the bottom knuckle gate.
-    2. The top axle tip slides directly into the top $360^\circ$ closed tunnel.
-    3. Insert the modular Part 11 Hex Coupler Pin at $Y = 0$ to permanently lock $-Y$ axial retraction.
+    1. Hold frame inverted or in hand, point flap blade downwards (6 o'clock) and slide the axle forward in $+Y$.
+    2. The top axle tip docks into the **Top 360° Closed Knuckle Tunnel**.
+    3. Rotate flap to $0^\circ$ (horizontal resting position) and insert the modular Part 11 Hex Coupler Pin at $Y = 0$.
   - **100% Planar Flat Underside**: Both knuckles trimmed coplanar at $Z = 0.0\text{ mm}$ for zero-support 3D printing and rock-solid tabletop stability.
 - **TPU Landing Dampers**: $1.5\text{ mm}$ recessed pockets on the inner floor ledge to cushion the flap on return.
 - **True Sliding Dovetail System (`part_10_frame_joiner.py`)**: Symmetrical double flared dovetail key ($12.0\text{ mm}$ neck flaring to $18.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play and high bending moment resistance.

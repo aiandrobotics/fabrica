@@ -79,10 +79,10 @@ def create_follower_frame():
     frame = outer_box.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
 
     # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
-    # Heavy-duty 360° fully enclosed knuckles housing Ø14.0mm drive axle centered at Z=7.5mm
-    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 10.0mm radius (Ø20.0mm outer barrel)
+    # Heavy-duty knuckles housing Ø13.0mm drive axle centered at Z=8.0mm (1.5mm ground clearance & 100% flush tabletop)
+    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w
-    pivot_z = 7.5 * SCALE  # Exact vertical midpoint of 15.0mm frame
+    pivot_z = 8.0 * SCALE  # Axle center (1.5mm ground clearance & top at Z = 8.0 + 6.5 = 14.5mm)
     
     # Bottom Knuckle Barrel (+Y facing)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
@@ -90,24 +90,21 @@ def create_follower_frame():
     k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
     frame = frame.fuse(Part.makeCompound([k_bot, k_top])).removeSplitter()
 
-    # 4. Hinge Bearing Bores: 360° Fully Enclosed Cylindrical Tunnels on Both Ends
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (0.25 * SCALE)  # 7.25mm radius (Ø14.5mm with 0.25mm radial clearance)
+    # 4. Hinge Bearing Bores: Top 360° Closed Tunnel & Bottom 6 o'clock Slide-In Gate
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
     # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Bottom Knuckle: Cylindrical Bore with Generous Inner-Side Gusset Pass-Through Gate (0° Horizontal Slide-In)
+    # Bottom Knuckle: Cylindrical Bore with 6 o'clock Bottom Slide Gate
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # Inner-Side Pass-Through Gate (Z = 4.0mm to 15.5mm, X >= 4.0mm)
-    # Provides full clearance for the flap blade (2.4mm thick) AND the reinforcing fillet gusset (down to Z = 5.0mm)
-    # Note: Outer wall (X <= 0) and bottom floor (Z <= 4.0mm) remain 100% solid, trapping the Ø14mm axle securely!
-    gate_x_min = 4.0 * SCALE
-    gate_z_min = 4.0 * SCALE
-    gate_w = knuckle_r + rail_w + 5.0 * SCALE
-    gate_h = t - gate_z_min + 1.0 * SCALE
-    gate = Part.makeBox(gate_w, knuckle_len + 0.2, gate_h)
-    gate.translate(App.Vector(gate_x_min, -0.1, gate_z_min))
+    # 6 o'clock Bottom Slide Gate (Z <= 8.0mm, X >= -2.0mm)
+    # Allows inverted downward slide-in along +Y; once placed on table, table surface acts as physical floor
+    gate_w = knuckle_r + rail_w
+    gate_h = pivot_z + 0.1 * SCALE
+    gate_bot = Part.makeBox(gate_w, knuckle_len + 0.2, gate_h)
+    gate_bot.translate(App.Vector(-2.0 * SCALE, -0.1, -0.1))
 
     # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
     trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
@@ -116,7 +113,7 @@ def create_follower_frame():
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, gate, trim_top, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, gate_bot, trim_top, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
     # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole

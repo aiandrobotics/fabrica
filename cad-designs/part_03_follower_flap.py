@@ -58,7 +58,7 @@ def create_follower_flap():
     t = PADDLE_THICKNESS       # 2.4mm panel thickness (optimal 12-layer rigidity & 40% weight reduction)
     y_offset = 1.0 * SCALE     # 1.0mm margin on top and bottom
     total_z = BASE_PANEL_THICKNESS # 15.0mm
-    pivot_z = 7.5 * SCALE      # 7.5mm (exact vertical center of 15.0mm frame)
+    pivot_z = 8.0 * SCALE      # 8.0mm (1.5mm ground clearance; Ø13mm axle extends from Z=1.5mm to Z=14.5mm)
     panel_z_min = total_z - t  # 12.6mm (top of panel sits at 12.6 + 2.4 = 15.0mm flush with top deck)
 
     # 1. Base solid full-deck flap slab (Extends from X=0 to X=239mm, Y=1 to Y=239mm, Z=12.6 to Z=15.0mm)
