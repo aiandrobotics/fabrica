@@ -47,13 +47,14 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - Rail wall width: $15.0\text{ mm}$; bottom shell floor: $3.0\text{ mm}$.
   - Open inner side ($X = 0$) allowing the flap to swing unobstructed across the $0^\circ \to 180^\circ$ range.
 - **Dual Hinge Pivot Knuckles (Left Rail $X = 0$)**:
-  - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous cylindrical bearing tunnel housing the $\varnothing 14.0\text{ mm}$ axle with zero top slit ($Z = 7.5\text{ mm}$ center, $0.25\text{ mm}$ radial rotating clearance).
-  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 14.5\text{ mm}$) featuring a precision **$2.8\text{ mm}$ Horizontal Blade Slide-In Slot** ($Z \in [12.35, 15.25\text{ mm}]$).
-  - **Zero Pop-Out Radial Lock**: Because the blade slot is only $2.8\text{ mm}$ high and the solid axle is $\varnothing 14.0\text{ mm}$, the axle is physically trapped inside the cylindrical bore and cannot pop out radially in any direction during rotation ($0^\circ \to 180^\circ$).
+  - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel housing the $\varnothing 14.0\text{ mm}$ axle with zero top slit ($Z = 7.5\text{ mm}$ center, $0.25\text{ mm}$ radial rotating clearance).
+  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 14.5\text{ mm}$) featuring an **Inner-Side Gusset Pass-Through Gate** ($Z \in [4.0, 15.5\text{ mm}]$, $X \ge 4.0\text{ mm}$).
+  - **Ample Gusset Clearance ($0^\circ$ Horizontal Slide-In)**: The inner gate accommodates the combined profile of the $2.4\text{ mm}$ blade and the curved bottom reinforcing gusset ($Z = 5.0\text{ mm} \to 12.6\text{ mm}$), allowing the flap to slide in flat with zero binding.
+  - **Zero Pop-Out Radial Lock**: The outer knuckle shell ($X \le 0$) and bottom floor ($Z \le 4.0\text{ mm}$) remain $100\%$ solid continuous material. Once the top axle engages the top $360^\circ$ tunnel, the unit is completely trapped radially and cannot pop out during rotation ($0^\circ \to 180^\circ$).
   - **Toolless Axial Installation Flow**:
-    1. Align the flap blade with the bottom knuckle slot and slide the axle forward in $+Y$.
+    1. Place flap flat at $0^\circ$ and slide the axle forward in $+Y$ through the bottom knuckle gate.
     2. The top axle tip slides directly into the top $360^\circ$ closed tunnel.
-    3. Insert the modular Part 11 Hex Coupler Pin at $Y = 0$ to lock the axle against $-Y$ retraction.
+    3. Insert the modular Part 11 Hex Coupler Pin at $Y = 0$ to permanently lock $-Y$ axial retraction.
   - **100% Planar Flat Underside**: Both knuckles trimmed coplanar at $Z = 0.0\text{ mm}$ for zero-support 3D printing and rock-solid tabletop stability.
 - **TPU Landing Dampers**: $1.5\text{ mm}$ recessed pockets on the inner floor ledge to cushion the flap on return.
 - **True Sliding Dovetail System (`part_10_frame_joiner.py`)**: Symmetrical double flared dovetail key ($12.0\text{ mm}$ neck flaring to $18.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play and high bending moment resistance.
