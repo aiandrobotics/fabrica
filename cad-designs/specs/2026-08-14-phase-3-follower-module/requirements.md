@@ -59,10 +59,14 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
 ---
 
 ### 2.2 Follower Folding Flap (`part_03_follower_flap.py`)
-- **Overall Dimensions**: $220.0\text{ mm} \text{ (W)} \times 208.0\text{ mm} \text{ (L)} \times 2.4\text{ mm} \text{ (T)}$ paddle fused to a continuous $\varnothing 14.0\text{ mm}$ tubular drive axle.
-- **Optimized 2.4mm Blade Thickness**:
-  - $2.4\text{ mm}$ solid blade (12 perimeter/surface layers at $0.2\text{ mm}$) provides high flexural stiffness while reducing moving blade mass by **40%** (target total flap mass $\le 75\text{g}$).
-  - Top face sits at $Z = 15.0\text{ mm}$, flush with the chassis frame and base module tabletop surface.
+- **Overall Dimensions**: $239.0\text{ mm} \text{ (W)} \times 238.0\text{ mm} \text{ (L)} \times 2.4\text{ mm} \text{ (T)}$ full-deck overlapping paddle fused to a continuous $\varnothing 14.0\text{ mm}$ tubular drive axle.
+- **Full-Deck 3-Rail Overlap ("Lid" Architecture)**:
+  - Spans across the entire module footprint ($X \in [0, 239.0\text{ mm}]$, $Y \in [1.0, 239.0\text{ mm}]$), completely covering the 3 chassis frame rails (Bottom, Top, Right).
+  - Lands directly onto $2.4\text{ mm}$ recessed hard-stop ledges ($Z = 12.6\text{ mm}$) machined into the frame rails.
+  - **Zero Fabric Catch Points**: Eliminates all perimeter seam gaps so thin garments and loose threads can never slip between flap and frame.
+  - **Rock-Solid $0^\circ$ Home Hard Stop**: Prevents flap sagging or over-travel under heavy garment loads.
+  - **Optimized 2.4mm Blade Thickness**: High flexural stiffness (12 solid layers) while keeping moving blade mass light ($\approx 75\text{g}$).
+  - Top face sits flush at $Z = 15.0\text{ mm}$.
 - **Heavy-Duty Continuous Drive Axle ($\varnothing 14.0\text{ mm}$)**:
   - Spans the hinge axis at $(X = 0, Z = 8.0\text{ mm})$.
   - Internal $\varnothing 8.0\text{ mm}$ weight-relief core maintaining low rotational inertia.

@@ -53,20 +53,29 @@ def create_follower_flap():
     7. 0.6mm Debossed Diamond Micro-Grip Texture for non-slip garment traction.
     8. 100% Supportless FDM Printability.
     """
-    w = 220.0 * SCALE          # Width extending into U-frame along +X
-    h = 208.0 * SCALE          # Length along Y (flap panel body between knuckles)
+    w = 239.0 * SCALE          # Full-Deck Width extending across right rail
+    h = 238.0 * SCALE          # Full-Deck Length extending from Y=1.0 to Y=239.0mm
     t = PADDLE_THICKNESS       # 2.4mm panel thickness (optimal 12-layer rigidity & 40% weight reduction)
-    y_offset = 16.0 * SCALE    # Offset to clear 15mm bottom knuckle with 1mm clearance
+    y_offset = 1.0 * SCALE     # 1.0mm margin on top and bottom
     total_z = BASE_PANEL_THICKNESS # 15.0mm
     pivot_z = 8.0 * SCALE      # 8.0mm (hinge center axis; Ø14mm axle top is at 8.0 + 7.0 = 15.0mm)
     panel_z_min = total_z - t  # 12.6mm (top of panel sits at 12.6 + 2.4 = 15.0mm flush with top deck)
 
-    # 1. Base solid flap slab (Extends from X=0 to X=w, Y=16 to Y=224mm, Z=11.0 to Z=15.0mm flush with top deck)
+    # 1. Base solid full-deck flap slab (Extends from X=0 to X=239mm, Y=1 to Y=239mm, Z=12.6 to Z=15.0mm)
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, y_offset, panel_z_min))
 
-    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=224, Bottom Y=16)
-    # Hinge side (X <= 8mm) is left completely solid and flat at Z=15.0mm with zero bevel gap
+    # Knuckle clearance corner cutouts at X=0 to 10.5mm for bottom and top knuckle barrels
+    cut_bot = Part.makeBox(11.0 * SCALE, 15.5 * SCALE, t + 0.5)
+    cut_bot.translate(App.Vector(-0.5, y_offset - 0.5, panel_z_min - 0.1))
+
+    cut_top = Part.makeBox(11.0 * SCALE, 15.5 * SCALE, t + 0.5)
+    cut_top.translate(App.Vector(-0.5, y_offset + h - 15.0 * SCALE, panel_z_min - 0.1))
+
+    flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
+
+    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=239, Bottom Y=1)
+    # Hinge side (X <= 10.5mm) is left completely solid and flat at Z=15.0mm with zero bevel gap
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
     bevel_w = 3.0 * SCALE
     top_z = total_z  # 15.0mm
@@ -79,16 +88,16 @@ def create_follower_flap():
     bevel_cuts.append(b_right)
     
     # Bottom edge bevel (at Y = y_offset to y_offset + bevel_w)
-    b_bot = Part.makeBox(w - 8.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(8.0 * SCALE, y_offset - 0.1, top_z - bevel_d))
+    b_bot = Part.makeBox(w - 10.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(10.5 * SCALE, y_offset - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
     
     # Top edge bevel (at Y = y_offset + h - bevel_w to y_offset + h)
-    b_top = Part.makeBox(w - 8.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(8.0 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
+    b_top = Part.makeBox(w - 10.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(10.5 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
     
-    flap = flap_box.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
+    flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
     # 3. Continuous Ø14.0mm Heavy-Duty Drive Axle (from Y = 0 to Y = 240mm across both knuckles)
     shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 7.0mm
@@ -121,18 +130,20 @@ def create_follower_flap():
     axle_solid = axle_solid.fuse(hex_male_peg).removeSplitter()
 
     # 6. Bottom Structural Reinforcing Fillet Gusset (Underneath hinge joint for 3x torsional stiffness)
-    # Smooth curved transition from Ø14mm axle underside up to flap panel floor
+    # Smooth curved transition from Ø14mm axle underside up to flap panel floor between knuckles
+    gusset_start_y = 16.0 * SCALE
+    gusset_len = 208.0 * SCALE
     gusset_pts = [
-        App.Vector(0, y_offset, pivot_z),                   # (0, 8.0)
-        App.Vector(3.5 * SCALE, y_offset, pivot_z - 3.0 * SCALE), # (3.5, 5.0) lower axle contour
-        App.Vector(7.0 * SCALE, y_offset, pivot_z - 1.0 * SCALE), # (7.0, 7.0)
-        App.Vector(14.0 * SCALE, y_offset, panel_z_min),    # (14.0, 11.0) panel floor
-        App.Vector(0, y_offset, panel_z_min),               # (0, 11.0)
-        App.Vector(0, y_offset, pivot_z),                   # Close loop
+        App.Vector(0, gusset_start_y, pivot_z),                   # (0, 8.0)
+        App.Vector(3.5 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE), # (3.5, 5.0) lower axle contour
+        App.Vector(7.0 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE), # (7.0, 7.0)
+        App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),    # (14.0, 12.6) panel floor
+        App.Vector(0, gusset_start_y, panel_z_min),               # (0, 12.6)
+        App.Vector(0, gusset_start_y, pivot_z),                   # Close loop
     ]
     gusset_wire = Part.makePolygon(gusset_pts)
     gusset_face = Part.Face(gusset_wire)
-    gusset_solid = gusset_face.extrude(App.Vector(0, h, 0))
+    gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
 
     # Fuse flap panel with continuous drive axle and reinforcing gusset
     flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid])).removeSplitter()

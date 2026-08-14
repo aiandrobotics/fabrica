@@ -66,7 +66,17 @@ def create_follower_frame():
     axle_trough = Part.makeBox(8.0 * SCALE, cav_h, bottom_thick + 0.2)
     axle_trough.translate(App.Vector(-0.1, rail_w, -0.1))
     
-    frame = outer_box.cut(Part.makeCompound([cavity, axle_trough])).removeSplitter()
+    # 2b. 3-Rail Landing Steps (2.4mm depth at Z=12.6mm for Full-Deck Overlapping Flap hard-stop rest)
+    blade_t = 2.4 * SCALE
+    landing_z = t - blade_t
+    step_bot = Part.makeBox(w - 10.0 * SCALE + 0.2, rail_w + 0.1, blade_t + 0.5)
+    step_bot.translate(App.Vector(10.0 * SCALE, -0.1, landing_z))
+    step_top = Part.makeBox(w - 10.0 * SCALE + 0.2, rail_w + 0.1, blade_t + 0.5)
+    step_top.translate(App.Vector(10.0 * SCALE, h - rail_w, landing_z))
+    step_right = Part.makeBox(rail_w + 0.2, h + 0.2, blade_t + 0.5)
+    step_right.translate(App.Vector(w - rail_w, -0.1, landing_z))
+
+    frame = outer_box.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
 
     # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
     # Heavy-duty knuckles housing Ø14.0mm drive axle centered at Z=8.0mm (top flush at Z=15.0mm)
