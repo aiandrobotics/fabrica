@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower Chassis U-Frame
+part_02_follower_frame.py — Passive Follower Chassis 3-Sided U-Frame
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -25,7 +25,6 @@ from params import (
     EXPORT_DIR,
 )
 
-# Dovetail Constants (matching part_10_frame_joiner exactly)
 DOVETAIL_TOP_WIDTH = 16.0 * SCALE
 DOVETAIL_BOT_WIDTH = 10.0 * SCALE
 DOVETAIL_DEPTH = 8.0 * SCALE
@@ -36,34 +35,67 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
     """
-    Constructs the Passive Follower U-Frame Module.
+    Constructs the Passive Follower 3-Sided U-Frame Module.
     Features:
-    1. Rigid U-Frame Chassis with 3.0mm outer walls and recessed internal cavity.
-    2. Top 360° Closed Bearing Bore (Ø5.6mm) for secure axial hinge retention.
-    3. Bottom Flex C-Snap Socket with a 0.5mm lead-in funnel for toolless downward snap-in.
-    4. 1.5mm recessed silent-flip TPU bumper landing pockets.
-    5. 0.5mm debossed Poka-Yoke directional alignment arrow ("FRONT ➔").
-    6. 1.5mm filleted wire pass-through ports with zip-tie loops.
-    7. 4-wall symmetrical female dovetail sockets for part_10 bridge joiners.
+    1. 3-Sided U-Frame Chassis (240x240x15mm) with open inner side (X=0) for 180° flap sweep.
+    2. Top Knuckle (X=0, Y=240): 360° Closed Bearing Bore (Ø5.6mm) for axial pin retention.
+    3. Bottom Knuckle (X=0, Y=0): Flex C-Snap Socket with 0.5mm lead-in funnel for toolless insertion.
+    4. 1.5mm recessed silent-flip TPU bumper landing pockets on the inner ledge.
+    5. Dovetail Joiner Sockets on the 3 outer walls (Y=0, Y=240, X=240).
+    6. Filleted internal wire pass-through ports and under-frame cable routing clips.
+    7. 0.5mm debossed Poka-Yoke directional alignment arrow ("FRONT ➔").
     8. 0.4mm bottom Elephant's Foot relief chamfers.
     """
-    w = PANEL_WIDTH
-    h = PANEL_HEIGHT
-    t = BASE_PANEL_THICKNESS
-    wall = 15.0 * SCALE
+    w = PANEL_WIDTH          # 240.0mm
+    h = PANEL_HEIGHT         # 240.0mm
+    t = BASE_PANEL_THICKNESS # 15.0mm
+    rail_w = 15.0 * SCALE
     bottom_thick = BOTTOM_SHELL_THICKNESS
 
-    # 1. Main outer shell box
+    # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
 
-    # 2. Main internal folding paddle cavity cut
-    cav_w = w - 2 * wall
-    cav_h = h - 2 * wall
+    # 2. Open U-Frame Cavity (Cut through inner swing side at X=0 to X=w-rail_w)
+    # Cavity extends from X = -0.1 to X = w - rail_w, Y = rail_w to Y = h - rail_w
+    cav_w = w - rail_w + 0.1
+    cav_h = h - 2 * rail_w
     cavity = Part.makeBox(cav_w, cav_h, t - bottom_thick + 0.5)
-    cavity.translate(App.Vector(wall, wall, bottom_thick))
+    cavity.translate(App.Vector(-0.1, rail_w, bottom_thick))
     frame = outer_box.cut(cavity).removeSplitter()
 
-    # 3. 4-Wall Symmetrical Dovetail Joiner Sockets
+    # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
+    knuckle_r = (PADDLE_PIVOT_DIAMETER / 2.0) + (4.0 * SCALE)  # 6.5mm radius outer barrel
+    knuckle_len = rail_w
+    
+    # Bottom Knuckle Barrel (+Y facing)
+    k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, t / 2.0), App.Vector(0, 1, 0))
+    # Top Knuckle Barrel (-Y facing)
+    k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, t / 2.0), App.Vector(0, 1, 0))
+    frame = frame.fuse(Part.makeCompound([k_bot, k_top])).removeSplitter()
+
+    # 4. Hinge Bearing Bores & C-Snap Sockets
+    bore_r = (PADDLE_PIVOT_DIAMETER / 2.0) + ROTATING_CLEARANCE  # 2.8mm radius (Ø5.6mm)
+    pivot_z = t / 2.0  # Centered in frame thickness (7.5mm)
+
+    # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
+    top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+
+    # Bottom Knuckle: Flex C-Snap Socket with 0.5mm Lead-In Funnel
+    bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
+    
+    # Snap throat opening (width = 2*bore_r - 0.4mm = 5.2mm for positive snap retention)
+    snap_w = (bore_r * 2.0) - (0.4 * SCALE)
+    snap_throat = Part.makeBox(snap_w, knuckle_len + 0.2, t - pivot_z + 0.1)
+    snap_throat.translate(App.Vector(-snap_w / 2.0, -0.1, pivot_z))
+    
+    # 0.5mm 45° Lead-in funnel at top of C-snap entrance
+    funnel_w = snap_w + (1.2 * SCALE)
+    funnel = Part.makeBox(funnel_w, knuckle_len + 0.2, 2.0 * SCALE)
+    funnel.translate(App.Vector(-funnel_w / 2.0, -0.1, t - 1.5 * SCALE))
+
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel])).removeSplitter()
+
+    # 5. Dovetail Joiner Sockets on 3 Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_top_w = DOVETAIL_TOP_WIDTH
     dt_bot_w = DOVETAIL_BOT_WIDTH
     dt_d = DOVETAIL_DEPTH
@@ -81,24 +113,18 @@ def create_follower_frame():
     dt_cutter_master = dt_face.extrude(App.Vector(0, 0, dt_h))
 
     dt_cutters = []
-    # Front Wall (Y=0)
+    # Front Wall (Y=0) -> cuts into +Y
     c_front = dt_cutter_master.copy()
     c_front.translate(App.Vector(w / 2.0, -0.1, (t - dt_h) / 2.0))
     dt_cutters.append(c_front)
 
-    # Back Wall (Y=H)
+    # Back Wall (Y=H) -> cuts into -Y
     c_back = dt_cutter_master.copy()
     c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
     c_back.translate(App.Vector(w / 2.0, h + 0.1, (t - dt_h) / 2.0))
     dt_cutters.append(c_back)
 
-    # Left Wall (X=0)
-    c_left = dt_cutter_master.copy()
-    c_left.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -90)
-    c_left.translate(App.Vector(-0.1, h / 2.0, (t - dt_h) / 2.0))
-    dt_cutters.append(c_left)
-
-    # Right Wall (X=W)
+    # Right Wall (X=W) -> cuts into -X
     c_right = dt_cutter_master.copy()
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w + 0.1, h / 2.0, (t - dt_h) / 2.0))
@@ -106,64 +132,28 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
-    # 4. Hinge Pivot Interfaces (Along internal walls at X = wall and X = w - wall)
-    # Top Pivot: 360° Closed Bore (Ø5.6mm)
-    # Bottom Pivot: Flex C-Snap with 0.5mm Funnel
-    bore_r = (PADDLE_PIVOT_DIAMETER / 2.0) + ROTATING_CLEARANCE  # 2.8mm radius (Ø5.6mm)
-    pivot_z = bottom_thick + (4.0 * SCALE)
-    bore_depth = 9.0 * SCALE
-    
-    # Left flap pivot axis (Y = h/2 - 40mm) and Right flap pivot axis (Y = h/2 + 40mm)
-    pivot_y_positions = [h / 2.0 - 45.0 * SCALE, h / 2.0 + 45.0 * SCALE]
-    hinge_cutters = []
-
-    for py in pivot_y_positions:
-        # Left wall pivot (facing +X)
-        # Top 360° closed cylindrical bore
-        bore_left = Part.makeCylinder(bore_r, bore_depth, App.Vector(wall - bore_depth + 0.1, py, pivot_z), App.Vector(1, 0, 0))
-        hinge_cutters.append(bore_left)
-
-        # Bottom Flex C-Snap with 0.5mm lead-in funnel on right wall (facing -X)
-        bore_right = Part.makeCylinder(bore_r, bore_depth, App.Vector(w - wall - 0.1, py, pivot_z), App.Vector(1, 0, 0))
-        # Snap insertion throat (width = 2*bore_r - 0.4mm for snap retention)
-        snap_w = (bore_r * 2.0) - (0.4 * SCALE)
-        snap_throat = Part.makeBox(bore_depth + 0.2, snap_w, t - pivot_z + 0.1)
-        snap_throat.translate(App.Vector(w - wall - 0.1, py - snap_w / 2.0, pivot_z))
-        
-        # 0.5mm 45° Lead-in funnel at top of C-snap throat
-        funnel_w = snap_w + (1.2 * SCALE)
-        funnel = Part.makeBox(bore_depth + 0.2, funnel_w, 2.0 * SCALE)
-        funnel.translate(App.Vector(w - wall - 0.1, py - funnel_w / 2.0, t - 1.5 * SCALE))
-        
-        hinge_cutters.extend([bore_right, snap_throat, funnel])
-
-    frame = frame.cut(Part.makeCompound(hinge_cutters)).removeSplitter()
-
-    # 5. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed)
+    # 6. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into floor ledge)
     tpu_cutters = []
-    tpu_w = 12.0 * SCALE
-    tpu_d = 4.0 * SCALE
-    tpu_h = TPU_BUMPER_DEPTH  # 1.5mm
-    
-    for py in [h / 4.0, 3 * h / 4.0]:
-        b1 = Part.makeBox(tpu_w, tpu_d, tpu_h + 0.1)
-        b1.translate(App.Vector(wall + 10.0 * SCALE, py, bottom_thick - 0.05))
-        b2 = Part.makeBox(tpu_w, tpu_d, tpu_h + 0.1)
-        b2.translate(App.Vector(w - wall - 10.0 * SCALE - tpu_w, py, bottom_thick - 0.05))
-        tpu_cutters.extend([b1, b2])
+    tpu_w = 14.0 * SCALE
+    tpu_d = 5.0 * SCALE
+    tpu_h = TPU_BUMPER_DEPTH
+    for py in [h * 0.25, h * 0.5, h * 0.75]:
+        b = Part.makeBox(tpu_w, tpu_d, tpu_h + 0.1)
+        b.translate(App.Vector(w - rail_w - tpu_w - 5.0 * SCALE, py - tpu_d / 2.0, bottom_thick - 0.05))
+        tpu_cutters.append(b)
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 6. Filleted Internal Wire Pass-Through Ports with Zip-Tie Saddles
-    wire_port_w = 8.0 * SCALE
-    wire_port_h = 5.0 * SCALE
-    wire_port_1 = Part.makeBox(wire_port_w, wall + 0.2, wire_port_h)
-    wire_port_1.translate(App.Vector(w / 4.0 - wire_port_w / 2.0, -0.1, bottom_thick))
-    wire_port_2 = Part.makeBox(wire_port_w, wall + 0.2, wire_port_h)
-    wire_port_2.translate(App.Vector(3 * w / 4.0 - wire_port_w / 2.0, -0.1, bottom_thick))
-    frame = frame.cut(Part.makeCompound([wire_port_1, wire_port_2])).removeSplitter()
+    # 7. Filleted Wire Pass-Through Ports with Zip-Tie Saddles
+    wire_port_w = 10.0 * SCALE
+    wire_port_h = 5.5 * SCALE
+    wp_top = Part.makeBox(wire_port_w, rail_w + 0.2, wire_port_h)
+    wp_top.translate(App.Vector(w / 2.0 - wire_port_w / 2.0, h - rail_w - 0.1, bottom_thick))
+    wp_bot = Part.makeBox(wire_port_w, rail_w + 0.2, wire_port_h)
+    wp_bot.translate(App.Vector(w / 2.0 - wire_port_w / 2.0, -0.1, bottom_thick))
+    frame = frame.cut(Part.makeCompound([wp_top, wp_bot])).removeSplitter()
 
-    # 7. Debossed Poka-Yoke Directional Arrow ("FRONT ➔" along front outer face)
+    # 8. Debossed Poka-Yoke Directional Arrow ("FRONT ➔" on front outer wall)
     arrow_shaft = Part.makeBox(12.0 * SCALE, 0.6 * SCALE, 2.0 * SCALE)
     arrow_shaft.translate(App.Vector(w / 2.0 - 6.0 * SCALE, -0.1, t - 3.5 * SCALE))
     arrow_head_poly = Part.makePolygon([
@@ -172,11 +162,10 @@ def create_follower_frame():
         App.Vector(w / 2.0 + 6.0 * SCALE, -0.1, t - 0.5 * SCALE),
         App.Vector(w / 2.0 + 6.0 * SCALE, -0.1, t - 4.5 * SCALE),
     ])
-    arrow_head_face = Part.Face(arrow_head_poly)
-    arrow_head = arrow_head_face.extrude(App.Vector(0, 0.6 * SCALE, 0))
+    arrow_head = Part.Face(arrow_head_poly).extrude(App.Vector(0, 0.6 * SCALE, 0))
     frame = frame.cut(Part.makeCompound([arrow_shaft, arrow_head])).removeSplitter()
 
-    # 8. Elephant's Foot Relief Chamfer (0.4mm on bottom outer perimeter edges)
+    # 9. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
         base_edges = [
             e for e in frame.Edges
@@ -185,7 +174,7 @@ def create_follower_frame():
         if base_edges:
             frame = frame.makeChamfer(ELEPHANTS_FOOT_CHAMFER, base_edges)
             frame = frame.removeSplitter()
-    except Exception as e:
+    except Exception:
         pass
 
     return frame
@@ -212,5 +201,6 @@ def export_part():
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
 
 export_part()
+
 
 

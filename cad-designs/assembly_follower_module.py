@@ -20,22 +20,22 @@ from params import (
     MODULE_GAP,
     EXPORT_DIR,
 )
-from part_02_follower_frame import create_follower_frame, DOVETAIL_DEPTH
+from part_02_follower_frame import create_follower_frame
 from part_03_follower_flap import create_follower_flap, PADDLE_THICKNESS
 from part_10_frame_joiner import construct_frame_joiner
 
 def build_follower_assembly():
     """
     Assembles the Passive Follower Module:
-    1. Follower Frame (Green): Holds 360° closed bores and flex C-snap sockets.
-    2. Follower Flap (Orange): Mated via Toolless Pin-Slide & Snap.
-    3. 2x Frame Joiners (Blue): 20mm flush bridge joiners attached in front and right sockets.
+    1. Follower 3-Sided U-Frame (Green #2ecc71).
+    2. Full-Size Rotating Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
+    3. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
     """
     doc = App.newDocument("FollowerAssembly")
-    w = PANEL_WIDTH
-    h = PANEL_HEIGHT
-    t = BASE_PANEL_THICKNESS
-    wall = 15.0 * SCALE
+    w = PANEL_WIDTH          # 240.0mm
+    h = PANEL_HEIGHT         # 240.0mm
+    t = BASE_PANEL_THICKNESS # 15.0mm
+    rail_w = 15.0 * SCALE
     bottom_thick = 3.0 * SCALE
 
     # 1. Base Follower Chassis Frame (Color: Green #2ecc71)
@@ -45,21 +45,20 @@ def build_follower_assembly():
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
         frame_obj.ViewObject.ShapeColor = (0.18, 0.8, 0.44)
 
-    # 2. Rotating Follower Flap (Color: Orange #e67e22)
-    # Flap pivot axis is along Y at pivot_z = bottom_thick + 4.0mm
-    flap_1 = create_follower_flap()
-    flap_1_obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
-    flap_1_obj.Shape = flap_1
+    # 2. Full-Size Follower Flap (Color: Orange #e67e22)
+    # Flap hinge axis is at X = 0, Z = t/2 = 7.5mm. Flap body extends Y in [16.0, 224.0]
+    flap_shape = create_follower_flap()
+    flap_obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
+    flap_obj.Shape = flap_shape
     
-    # Placed with pins centered in bores at X = wall, Y = h/2 - 45mm - flap_h/2
-    pivot_z = bottom_thick + (4.0 * SCALE)
-    flap_h = 82.0 * SCALE
-    flap_1_obj.Placement = App.Placement(
-        App.Vector(wall, (h / 2.0 - 45.0 * SCALE) - flap_h / 2.0, pivot_z - (PADDLE_THICKNESS / 2.0)),
+    flap_offset_y = 16.0 * SCALE
+    flap_offset_z = (t - PADDLE_THICKNESS) / 2.0  # (15 - 4)/2 = 5.5mm
+    flap_obj.Placement = App.Placement(
+        App.Vector(0, flap_offset_y, flap_offset_z),
         App.Rotation(App.Vector(0, 0, 1), 0)
     )
-    if hasattr(flap_1_obj, "ViewObject") and flap_1_obj.ViewObject:
-        flap_1_obj.ViewObject.ShapeColor = (0.9, 0.49, 0.13)
+    if hasattr(flap_obj, "ViewObject") and flap_obj.ViewObject:
+        flap_obj.ViewObject.ShapeColor = (0.9, 0.49, 0.13)
 
     # 3. Front Interlocking Bridge Joiner (Color: Blue #3498db)
     joiner_shape = construct_frame_joiner()
@@ -104,5 +103,6 @@ def export_part():
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
 
 export_part()
+
 
 
