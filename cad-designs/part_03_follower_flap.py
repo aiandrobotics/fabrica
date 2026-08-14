@@ -57,17 +57,17 @@ def create_follower_flap():
     h = 208.0 * SCALE          # Length along Y (flap panel body between knuckles)
     t = PADDLE_THICKNESS       # 4.0mm panel thickness
     total_z = BASE_PANEL_THICKNESS # 15.0mm
-    pivot_z = total_z / 2.0    # 7.5mm (hinge center axis)
-    panel_z_min = pivot_z - (t / 2.0) # 5.5mm
+    pivot_z = 8.0 * SCALE      # 8.0mm (hinge center axis; Ø14mm axle top is at 8.0 + 7.0 = 15.0mm)
+    panel_z_min = total_z - t  # 11.0mm (top of panel sits at 11.0 + 4.0 = 15.0mm)
 
-    # 1. Base solid flap slab (Extends from X=0 to X=w, Y=0 to Y=h, Z=panel_z_min to Z=panel_z_min+t)
+    # 1. Base solid flap slab (Extends from X=0 to X=w, Y=0 to Y=h, Z=11.0 to Z=15.0mm flush with top deck)
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, 0, panel_z_min))
 
-    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth along top perimeter face)
+    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth along top perimeter face at Z=15.0mm)
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
     bevel_w = 3.0 * SCALE
-    top_z = panel_z_min + t
+    top_z = total_z  # 15.0mm
     bevel_cutter = Part.makeBox(w + 0.2, h + 0.2, bevel_d + 0.1)
     bevel_cutter.translate(App.Vector(-0.1, -0.1, top_z - bevel_d))
     bevel_inner = Part.makeBox(w - 2 * bevel_w, h - 2 * bevel_w, bevel_d + 0.3)

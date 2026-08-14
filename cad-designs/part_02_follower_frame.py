@@ -64,10 +64,10 @@ def create_follower_frame():
     frame = outer_box.cut(cavity).removeSplitter()
 
     # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
-    # Heavy-duty knuckles housing Ø14.0mm drive axle
+    # Heavy-duty knuckles housing Ø14.0mm drive axle centered at Z=8.0mm (top flush at Z=15.0mm)
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 10.0mm radius (Ø20.0mm outer barrel)
     knuckle_len = rail_w
-    pivot_z = t / 2.0  # Centered in frame thickness (7.5mm)
+    pivot_z = 8.0 * SCALE  # Axle center (top of Ø14mm axle sits exactly flush at Z = 8.0 + 7.0 = 15.0mm)
     
     # Bottom Knuckle Barrel (+Y facing)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
