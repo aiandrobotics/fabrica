@@ -95,11 +95,12 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound([top_bore, bot_bore, snap_throat, funnel])).removeSplitter()
 
-    # 5. True Sliding Dovetail Joiner Sockets on 3 Outer Walls (Front Y=0, Back Y=H, Right X=W)
+    # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
+    # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
-    dt_height = DOVETAIL_HEIGHT
+    dt_cut_h = t - bottom_thick + 0.5  # Cuts open through top deck
 
     dt_pts = [
         App.Vector(-dt_neck_w / 2.0, -0.1, 0),
@@ -110,24 +111,28 @@ def create_follower_frame():
     ]
     dt_poly = Part.makePolygon(dt_pts)
     dt_face = Part.Face(dt_poly)
-    dt_cutter_master = dt_face.extrude(App.Vector(0, 0, dt_height))
+    dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_cut_h))
+
+    # Master bottom push-out finger access hole (Ø6.0mm through bottom floor)
+    push_hole = Part.makeCylinder(3.0 * SCALE, bottom_thick + 0.2, App.Vector(0, dt_depth * 0.6, -0.1))
+    dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
     dt_cutters = []
     # Front Wall (Y=0) -> cuts into +Y
-    c_front = dt_cutter_master.copy()
-    c_front.translate(App.Vector(w / 2.0, 0, (t - dt_height) / 2.0))
+    c_front = dt_cutter_with_hole.copy()
+    c_front.translate(App.Vector(w / 2.0, 0, bottom_thick))
     dt_cutters.append(c_front)
 
     # Back Wall (Y=H) -> cuts into -Y
-    c_back = dt_cutter_master.copy()
+    c_back = dt_cutter_with_hole.copy()
     c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
-    c_back.translate(App.Vector(w / 2.0, h, (t - dt_height) / 2.0))
+    c_back.translate(App.Vector(w / 2.0, h, bottom_thick))
     dt_cutters.append(c_back)
 
     # Right Wall (X=W) -> cuts into -X
-    c_right = dt_cutter_master.copy()
+    c_right = dt_cutter_with_hole.copy()
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
-    c_right.translate(App.Vector(w, h / 2.0, (t - dt_height) / 2.0))
+    c_right.translate(App.Vector(w, h / 2.0, bottom_thick))
     dt_cutters.append(c_right)
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()

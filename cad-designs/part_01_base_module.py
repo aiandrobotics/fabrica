@@ -157,14 +157,15 @@ def construct_base_module():
         foot_cuts.append(cylinder)
     foot_compound = Part.makeCompound(foot_cuts)
     main_shell = main_shell.cut(foot_compound)
-    # 5. Female True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
-    # Flared inside the pocket (12mm neck -> 18mm flared width at 12mm depth) for indestructible lock
+    # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
+    # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
-    dt_height = DOVETAIL_HEIGHT
+    bottom_floor = 3.0 * SCALE
+    dt_cut_h = t - bottom_floor + 0.5  # Cuts all the way to top surface
 
-    # Create master dovetail cutter
+    # Create master open-top dovetail cutter
     poly_pts = [
         App.Vector(-dt_neck_w / 2.0, -0.1, 0),
         App.Vector(dt_neck_w / 2.0, -0.1, 0),
@@ -174,28 +175,32 @@ def construct_base_module():
     ]
     dt_wire = Part.makePolygon(poly_pts)
     dt_face = Part.Face(dt_wire)
-    dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_height))
+    dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_cut_h))
+
+    # Master bottom push-out finger access hole (Ø6.0mm through bottom floor)
+    push_hole = Part.makeCylinder(3.0 * SCALE, bottom_floor + 0.2, App.Vector(0, dt_depth * 0.6, -0.1))
+    dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
     # Place dovetail cutters on 4 side walls (Pointing INTO each wall)
     dovetail_cuts = []
     # Front wall (Y=0) -> cuts in +Y direction
-    dt_front = dt_cutter.copy()
-    dt_front.Placement = App.Placement(App.Vector(w / 2.0, 0, (t - dt_height) / 2.0), App.Rotation(0, 0, 0))
+    dt_front = dt_cutter_with_hole.copy()
+    dt_front.Placement = App.Placement(App.Vector(w / 2.0, 0, bottom_floor), App.Rotation(0, 0, 0))
     dovetail_cuts.append(dt_front)
 
     # Back wall (Y=h) -> cuts in -Y direction
-    dt_back = dt_cutter.copy()
-    dt_back.Placement = App.Placement(App.Vector(w / 2.0, h, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 180))
+    dt_back = dt_cutter_with_hole.copy()
+    dt_back.Placement = App.Placement(App.Vector(w / 2.0, h, bottom_floor), App.Rotation(App.Vector(0, 0, 1), 180))
     dovetail_cuts.append(dt_back)
 
     # Left wall (X=0) -> cuts in +X direction
-    dt_left = dt_cutter.copy()
-    dt_left.Placement = App.Placement(App.Vector(0, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), -90))
+    dt_left = dt_cutter_with_hole.copy()
+    dt_left.Placement = App.Placement(App.Vector(0, h / 2.0, bottom_floor), App.Rotation(App.Vector(0, 0, 1), -90))
     dovetail_cuts.append(dt_left)
 
     # Right wall (X=w) -> cuts in -X direction
-    dt_right = dt_cutter.copy()
-    dt_right.Placement = App.Placement(App.Vector(w, h / 2.0, (t - dt_height) / 2.0), App.Rotation(App.Vector(0, 0, 1), 90))
+    dt_right = dt_cutter_with_hole.copy()
+    dt_right.Placement = App.Placement(App.Vector(w, h / 2.0, bottom_floor), App.Rotation(App.Vector(0, 0, 1), 90))
     dovetail_cuts.append(dt_right)
 
     dovetail_compound = Part.makeCompound(dovetail_cuts)

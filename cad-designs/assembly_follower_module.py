@@ -65,7 +65,7 @@ def build_follower_assembly():
     joiner_front = doc.addObject("Part::Feature", "Part10FrameJoiner_Front")
     joiner_front.Shape = joiner_shape.copy()
     joiner_front.Placement = App.Placement(
-        App.Vector(w / 2.0, - (MODULE_GAP / 2.0), (t - 12.6 * SCALE) / 2.0),
+        App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick),
         App.Rotation(App.Vector(0, 0, 1), 0)
     )
     if hasattr(joiner_front, "ViewObject") and joiner_front.ViewObject:
@@ -75,7 +75,7 @@ def build_follower_assembly():
     joiner_right = doc.addObject("Part::Feature", "Part10FrameJoiner_Right")
     joiner_right.Shape = joiner_shape.copy()
     joiner_right.Placement = App.Placement(
-        App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, (t - 12.6 * SCALE) / 2.0),
+        App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick),
         App.Rotation(App.Vector(0, 0, 1), 90)
     )
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
