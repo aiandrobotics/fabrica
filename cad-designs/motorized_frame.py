@@ -104,23 +104,27 @@ def construct_motorized_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
     ramp_top.translate(App.Vector(0, k_top_start_y, 0))
 
-    # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=-2.0 to 21.2mm, with 2.0mm solid bottom base floor)
+    # Solid 2.0mm Bottom Base Floor under entire motor module zone (Y in [170.0, 240.0mm], X in [-18.0, 48.0mm], Z in [-2.0, 0.0mm])
+    floor_t = 2.0 * SCALE
+    module_base_floor = Part.makeBox(66.0 * SCALE, h - 170.0 * SCALE, floor_t)
+    module_base_floor.translate(App.Vector(-18.0 * SCALE, 170.0 * SCALE, -floor_t))
+
+    # Knuckle Solid Vertical Pedestal (X in [-6.5, 6.5mm], Y in [170.0, 185.0mm], Z in [0.0, 10.0mm]) anchoring knuckle to base floor
+    knuckle_pedestal = Part.makeBox(13.0 * SCALE, 15.0 * SCALE, 10.0 * SCALE)
+    knuckle_pedestal.translate(App.Vector(-6.5 * SCALE, k_top_start_y, 0.0))
+
+    # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=0.0 to 21.2mm, sitting on base floor)
     t_servo = 21.2 * SCALE
-    floor_t = 2.0 * SCALE # 2.0mm solid bottom floor under motor
-    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo + floor_t)
-    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, -floor_t))
+    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo)
+    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0.0))
 
-    # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=-2.0 to 21.2mm, matching solid towers and floor)
-    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo + floor_t)
-    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, -floor_t))
+    # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=0.0 to 21.2mm, sitting on base floor)
+    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo)
+    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, 0.0))
 
-    # Knuckle-to-Housing Full Continuous Support Bridge (X = -18.0 to 48.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
-    knuckle_bridge = Part.makeBox(66.0 * SCALE, 15.0 * SCALE, t)
-    knuckle_bridge.translate(App.Vector(-18.0 * SCALE, k_top_start_y, 0))
+    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
-    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, towers_box, rear_box, knuckle_bridge]).removeSplitter()
-
-    # 2. Cut open interior cavities while preserving inner enclosure wall at X in [39.0, 48.0mm], Y in [185.0, 240.0mm] and full transverse bridge wall at Y in [170.0, 185.0mm]
+    # 2. Cut open interior cavities while preserving inner enclosure wall at X in [39.0, 48.0mm], Y in [185.0, 240.0mm]
     # Lower main cavity (Y = 15 to 170mm, X = 25 to 225mm)
     cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 155.0 * SCALE, t + 2.0)
     cav_main_lower.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
@@ -129,13 +133,13 @@ def construct_motorized_frame():
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
     cav_main_upper.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -1.0))
 
-    # Front-Right Screw Access Pocket (X = 6.5 to 48.5mm, Y = 170.0 to 185.5mm) — opens front face of right tower for screwdriver
-    cut_screw_access_right = Part.makeBox(42.0 * SCALE, 15.5 * SCALE, t + 2.0)
-    cut_screw_access_right.translate(App.Vector(6.5 * SCALE, k_top_start_y, -1.0))
+    # Front-Right Screw Access Pocket (X = 6.5 to 48.5mm, Y = 170.0 to 185.5mm, Z = 0.0 to 25.0mm) — opens front face of right tower down to base floor
+    cut_screw_access_right = Part.makeBox(42.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
+    cut_screw_access_right.translate(App.Vector(6.5 * SCALE, k_top_start_y, 0.0))
 
-    # Front-Left Screw Access Pocket (X = -18.5 to -6.5mm, Y = 170.0 to 185.5mm) — opens front face of left tower for screwdriver
-    cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, t + 2.0)
-    cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, -1.0))
+    # Front-Left Screw Access Pocket (X = -18.5 to -6.5mm, Y = 170.0 to 185.5mm, Z = 0.0 to 25.0mm) — opens front face of left tower down to base floor
+    cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
+    cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, 0.0))
 
     # Left rail interior cavity
     cav_left = Part.makeBox(tie_x + 0.5, k_top_start_y - knuckle_len, t + 2.0)
@@ -156,12 +160,12 @@ def construct_motorized_frame():
     # 6mm Adapter Disk Clearance Counterbore (Ø20.0mm for Ø19.0mm disk spanning Y=178.5 to 185.1mm)
     adapter_bore = Part.makeCylinder(10.0 * SCALE, 6.6 * SCALE, App.Vector(0, 178.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor bay)
-    trim_bot_main = Part.makeBox(w + 50.0, 185.0 * SCALE + 25.0, 20.0)
+    # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor module zone Y=170-240mm)
+    trim_bot_main = Part.makeBox(w + 50.0, 170.0 * SCALE + 25.0, 20.0)
     trim_bot_main.translate(App.Vector(-25.0, -25.0, -20.0))
 
-    trim_bot_right = Part.makeBox(w - 48.0 * SCALE + 25.0, h - 185.0 * SCALE + 25.0, 20.0)
-    trim_bot_right.translate(App.Vector(48.0 * SCALE, 185.0 * SCALE, -20.0))
+    trim_bot_right = Part.makeBox(w - 48.0 * SCALE + 25.0, h - 170.0 * SCALE + 25.0, 20.0)
+    trim_bot_right.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -20.0))
 
     trim_under_motor = Part.makeBox(w + 50.0, h + 50.0, 20.0)
     trim_under_motor.translate(App.Vector(-25.0, -25.0, -22.0 * SCALE))
