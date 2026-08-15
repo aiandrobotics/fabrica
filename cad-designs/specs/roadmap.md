@@ -37,7 +37,7 @@ Build, validate, and commit before moving to the next phase.
 
 ---
 
-## Phase 4 — Active Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `servo_drive_adapter.py`, `motorized_servo_cover.py`, `motorized_assembly.py`) ✅
+## Phase 4 — Active Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`, `motorized_assembly.py`) ✅
 - **Specs**: [plan.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/plan.md) | [requirements.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/requirements.md) | [validation.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/validation.md)
 - **Motorized Outer Frame** (`motorized_frame.py`): Model rigid 4-sided motorized module chassis (yellow) with horizontal inline MG996R servo mounting bay:
   - $240 \times 240 \times 15\text{ mm}$ outer envelope with $15.0\text{ mm}$ perimeter rails, open-bottom interior saving ~120g PLA, and 100% planar flat base at $Z = 0.0\text{ mm}$.
@@ -45,10 +45,10 @@ Build, validate, and commit before moving to the next phase.
   - Solid front mounting towers ($Y \in [185.0, 195.5\text{ mm}]$) with 4x M3 clearance through-holes ($\varnothing 3.4\text{ mm}$) and 4x front captive hex nut pockets ($W_{af} = 5.8\text{ mm}$, depth $3.2\text{ mm}$) accurately spaced per MG996R tabs.
   - Rear slide-in opening at $Y = 240.0\text{ mm}$ with ear slide channels ($X \in [-17.5, 38.0\text{ mm}]$).
   - Dual solid 360° closed cylindrical bearing knuckles centered at $Z_{pivot} = 10.0\text{ mm}$ with C1-continuous concave blend ramps ($R_f = 12.0\text{ mm}$).
-- **Modular Circular Servo Horn Drive Adapter** (`servo_drive_adapter.py`): Model $\varnothing 19.0\text{ mm} \times 7.0\text{ mm}$ circular flange adapter bolting directly to standard MG996R round horn via 4x screws, central M3 screw counterbore, and male 8.0mm hex drive peg with $45^\circ$ lead-in chamfer.
+- **Modular Circular Servo Horn Drive Adapter** (`motorized_servo_adapter.py`): Model $\varnothing 19.0\text{ mm} \times 7.0\text{ mm}$ circular flange adapter bolting directly to standard MG996R round horn via 4x screws, central M3 screw counterbore, and male 8.0mm hex drive peg with $45^\circ$ lead-in chamfer.
 - **Symmetrical Dual-Hex Active Folding Flap** (`motorized_flap.py`): Model active folding flap panel (red) with integrated continuous solid-core $\varnothing 12.9\text{ mm}$ drive axle:
   - Full-size blade ($239 \times 238 \times 2.4\text{ mm}$) resting flush on frame rails ($Z = 15.0$ to $17.4\text{ mm}$).
-  - Symmetrical 8.0mm female hex sockets at both top ($Y = 178.0\text{ mm}$, receiving `servo_drive_adapter`) and bottom ($Y = 0.5\text{ mm}$, receiving `hex_drive_coupler`).
+  - Symmetrical 8.0mm female hex sockets at both top ($Y = 178.0\text{ mm}$, receiving `motorized_servo_adapter`) and bottom ($Y = 0.5\text{ mm}$, receiving `hex_drive_coupler`).
   - Multi-tiered organic circular cutouts (~45% mass reduction), $0.6\text{ mm}$ diamond knurling, and $1.2\text{ mm}$ perimeter shadow bevel.
 - **Full Enclosure Slide-In Hood Cover** (`motorized_servo_cover.py`): Model full hood cover with top plate, rear face cap, lateral retention tongues, and motor clearance pocket.
 - **Motorized Sub-Assembly** (`motorized_assembly.py`): Multi-body sub-assembly verifying $0.00000\text{ mm}^3$ interference across all mating component pairs.

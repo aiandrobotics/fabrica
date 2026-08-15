@@ -9,7 +9,7 @@ Validation specification and acceptance criteria for the Active Motorized Module
 ### 1. Headless Build Verification (`export_all.py` / `run.sh`)
 - Execute `./run.sh motorized_frame.py` -> exit code `0`, valid `motorized_frame.step` and `motorized_frame.stl` generated in `exports/`.
 - Execute `./run.sh motorized_flap.py` -> exit code `0`, valid `motorized_flap.step` and `motorized_flap.stl` generated in `exports/`.
-- Execute `./run.sh servo_drive_adapter.py` -> exit code `0`, valid `servo_drive_adapter.step` and `servo_drive_adapter.stl` generated in `exports/`.
+- Execute `./run.sh motorized_servo_adapter.py` -> exit code `0`, valid `motorized_servo_adapter.step` and `motorized_servo_adapter.stl` generated in `exports/`.
 - Execute `./run.sh motorized_servo_cover.py` -> exit code `0`, valid `motorized_servo_cover.step` and `motorized_servo_cover.stl` generated in `exports/`.
 - Execute `./run.sh motorized_assembly.py` -> exit code `0`, valid `motorized_assembly.step` and `motorized_assembly.stl` generated in `exports/`.
 - Run `python3 export_all.py` -> all CAD scripts build cleanly without warnings or OpenCASCADE boolean topology errors.

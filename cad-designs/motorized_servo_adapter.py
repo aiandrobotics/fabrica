@@ -1,5 +1,5 @@
 """
-servo_drive_adapter.py — Modular Circular Servo Horn Drive Adapter
+motorized_servo_adapter.py — Modular Circular Servo Horn Drive Adapter
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 
 Bolts directly onto the standard circular servo horn disk (Ø20mm) included with MG996R,
@@ -34,7 +34,7 @@ def make_hexagon_wire(size_af, center_x, center_z, y_pos):
     pts.append(pts[0])
     return Part.makePolygon(pts)
 
-def construct_servo_drive_adapter():
+def construct_motorized_servo_adapter():
     """
     Constructs the 3D-printed Servo Horn to Hex Drive Adapter (Part 12).
     Features:
@@ -95,16 +95,18 @@ def construct_servo_drive_adapter():
     adapter = adapter.cut(Part.makeCompound(cutters)).removeSplitter()
 
     # Export STEP and STL
-    step_path = os.path.join(EXPORT_DIR, "servo_drive_adapter.step")
-    stl_path  = os.path.join(EXPORT_DIR, "servo_drive_adapter.stl")
+    step_path = os.path.join(EXPORT_DIR, "motorized_servo_adapter.step")
+    stl_path  = os.path.join(EXPORT_DIR, "motorized_servo_adapter.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
     adapter.exportStep(step_path)
     adapter.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
     return adapter
 
+# Alias for backward compatibility
+construct_servo_drive_adapter = construct_motorized_servo_adapter
+
 def export_part():
-    construct_servo_drive_adapter()
+    construct_motorized_servo_adapter()
 
 export_part()
-

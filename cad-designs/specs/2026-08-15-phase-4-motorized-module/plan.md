@@ -15,12 +15,12 @@ Implementation plan for the Active Motorized Module of the Fabrica Cloth Folding
 
 ---
 
-## Task Group 2: Modular Circular Servo Horn Drive Adapter (`servo_drive_adapter.py`)
+## Task Group 2: Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)
 1. Model the $\varnothing 19.0\text{ mm}$ circular flange disk of $7.0\text{ mm}$ thickness spanning $Y \in [178.0, 185.0\text{ mm}]$ centered at $(X=0, Z=10.0\text{ mm})$.
 2. Model 4x M2/M2.5 screw through-holes ($\varnothing 2.2\text{ mm}$) in a $90^\circ$ cross on $\varnothing 14.0\text{ mm}$ bolt circle for bolting directly to the MG996R round horn disk.
 3. Model central $\varnothing 6.5\text{ mm}$ counterbore for screwdriver access to the M3 spline lock screw.
 4. Model male 8.0mm hex drive peg ($7.7\text{ mm}$ flat-to-flat, $10.5\text{ mm}$ length extending along $-Y$ into the flap) with $1.5\text{ mm} \times 45^\circ$ self-aligning lead-in chamfer.
-5. Implement headless STEP and STL export in `construct_servo_drive_adapter()`.
+5. Implement headless STEP and STL export in `construct_motorized_servo_adapter()`.
 
 ---
 
@@ -28,7 +28,7 @@ Implementation plan for the Active Motorized Module of the Fabrica Cloth Folding
 1. Model the full-size folding flap paddle body ($239.0 \times 238.0 \times 2.4\text{ mm}$) resting directly on frame landing rails ($Z = 15.0$ to $17.4\text{ mm}$).
 2. Model the top-left servo clearance corner relief notch ($45.0 \times 55.0\text{ mm}$) providing collision-free rotation around the motor bay across full $0^\circ \to 180^\circ$ swing.
 3. Model integrated continuous solid-core drive axle ($\varnothing 12.9\text{ mm}$) along $X = 0$ spanning $Y = 0.5$ to $178.0\text{ mm}$, centered at $Z_{pivot} = 10.0\text{ mm}$.
-4. Model **Driven Top End ($Y = 178.0\text{ mm}$)** with standardized $8.0\text{ mm}$ female hex torque socket ($10.5\text{ mm}$ deep) receiving the `servo_drive_adapter` male hex peg.
+4. Model **Driven Top End ($Y = 178.0\text{ mm}$)** with standardized $8.0\text{ mm}$ female hex torque socket ($10.5\text{ mm}$ deep) receiving the `motorized_servo_adapter` male hex peg.
 5. Model **Output Bottom End ($Y = 0.5\text{ mm}$)** with standardized $8.0\text{ mm}$ female hex torque socket ($10.5\text{ mm}$ deep) transmitting torque down the column via `hex_drive_coupler`.
 6. Model multi-tiered organic circular cutouts (~45% mass reduction), $0.6\text{ mm}$ diamond micro-grip knurling texture, and $1.2\text{ mm}$ perimeter shadow bevel.
 7. Implement headless STEP and STL export in `construct_motorized_flap()`.

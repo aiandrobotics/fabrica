@@ -26,7 +26,7 @@ from params import (
 
 from motorized_frame import construct_motorized_frame
 from motorized_flap import construct_motorized_flap
-from servo_drive_adapter import construct_servo_drive_adapter
+from motorized_servo_adapter import construct_motorized_servo_adapter
 from motorized_servo_cover import construct_motorized_servo_cover
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
@@ -99,7 +99,7 @@ def build_motorized_assembly():
         flap_obj.ViewObject.ShapeColor = (0.85, 0.20, 0.20)
 
     # 3. Modular Circular Servo Horn Drive Adapter (Orange)
-    adapter_shape = construct_servo_drive_adapter()
+    adapter_shape = construct_motorized_servo_adapter()
     adapter_obj = doc.addObject("Part::Feature", "ServoDriveAdapter")
     adapter_obj.Shape = adapter_shape
     if hasattr(adapter_obj, "ViewObject") and adapter_obj.ViewObject:

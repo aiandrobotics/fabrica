@@ -42,7 +42,7 @@ def construct_motorized_flap():
     Constructs the Active Folding Flap (Part 7) with symmetrical dual-ended 8.0mm female hex sockets.
     Features:
       1. Solid cylindrical drive axle (Ø12.9mm) centered at Z_pivot=10.0mm spanning Y=0.5 to 178.0mm.
-      2. Driven Top End (Y=178.0mm): Standard 8.0mm female hex socket receiving the servo_drive_adapter peg.
+      2. Driven Top End (Y=178.0mm): Standard 8.0mm female hex socket receiving the motorized_servo_adapter peg.
       3. Output Bottom End (Y=0.5mm): Standard 8.0mm female hex socket transmitting column torque via hex_drive_coupler.
       4. Full-size blade (239x238x2.4mm) with organic circular cutouts (~45% mass reduction) and micro-grip knurling.
     """

@@ -1,6 +1,6 @@
 # Requirements — Phase 4: Active Motorized Module (Horizontal Drive & Modular Horn Adapter Architecture)
 
-Requirements specification for the Active Motorized Module of the Fabrica Cloth Folding Robot, featuring **Horizontal Inline MG996R Servo Bay with Inner Enclosure Wall**, **Solid Mounting Towers with Captive Hex Nut Housings**, **100% Flat Bottom Base ($Z = 0.0\text{ mm}$)**, **Unified Hinge Pivot Axis ($Z_{pivot} = 10.0\text{ mm}$)**, **Modular Circular Servo Horn Drive Adapter (`servo_drive_adapter.py`)**, **Symmetrical Dual-Ended 8.0mm Female Hex Active Flap Axle**, **Full Enclosure Slide-In Hood Cover**, and **Synchronous Column Hex Torque Transmission**.
+Requirements specification for the Active Motorized Module of the Fabrica Cloth Folding Robot, featuring **Horizontal Inline MG996R Servo Bay with Inner Enclosure Wall**, **Solid Mounting Towers with Captive Hex Nut Housings**, **100% Flat Bottom Base ($Z = 0.0\text{ mm}$)**, **Unified Hinge Pivot Axis ($Z_{pivot} = 10.0\text{ mm}$)**, **Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)**, **Symmetrical Dual-Ended 8.0mm Female Hex Active Flap Axle**, **Full Enclosure Slide-In Hood Cover**, and **Synchronous Column Hex Torque Transmission**.
 
 ---
 
@@ -11,7 +11,7 @@ In the Fabrica $4 \times 3$ modular folding grid:
 - It houses a standard high-torque MG996R metal-gear servo mounted **horizontally flat on its $20.0\text{ mm}$ side** along the rear rail ($Y = 185\text{..}240\text{ mm}$).
 - **100% Flat Base Plane ($Z = 0.0\text{ mm}$)**: All frame bases sit completely flush on the table surface without any downward bumps or steps.
 - **Unified Hinge Centerline ($Z_{pivot} = 10.0\text{ mm}$)**: Identical pivot axis height across all active and passive follower modules for seamless multi-module column torque coupling.
-- **Modular Circular Servo Horn Drive Adapter (`servo_drive_adapter.py`)**:
+- **Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)**:
   - Solves the FDM printability limitation of 3D-printing micro 25T metal gear splines.
   - Bolted directly onto the standard circular servo horn ($\varnothing 20\text{ mm}$) included in the MG996R kit via 4x screws on a $\varnothing 14.0\text{ mm}$ bolt pattern.
   - Extends an $8.0\text{ mm}$ male hex torque peg ($7.7\text{ mm}$ flat-to-flat, $10.5\text{ mm}$ length) along $-Y$ into the active flap.
@@ -80,7 +80,7 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
 
 ---
 
-### 2.2 Modular Circular Servo Horn Drive Adapter (`servo_drive_adapter.py`)
+### 2.2 Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)
 - **Flange Disk**: $\varnothing 19.0\text{ mm}$ circular flange, $7.0\text{ mm}$ thick base disk ($Y \in [178.0, 185.0\text{ mm}]$, centered at $X=0, Z=10.0\text{ mm}$).
 - **Horn Fastening Interface**:
   - 4x M2/M2.5 clearance through-holes ($\varnothing 2.2\text{ mm}$) arranged in a $90^\circ$ cross on a $\varnothing 14.0\text{ mm}$ bolt circle to screw directly into the metal round horn.
@@ -98,7 +98,7 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
   - $\varnothing 13.0\text{ mm}$ solid-core continuous drive axle along $X = 0$ ($Y = 0.5$ to $178.0\text{ mm}$), centered at $Z = 10.0\text{ mm}$.
   - Fused with bottom reinforcing fillet gusset between knuckles ($Y \in [15.5, 169.5\text{ mm}]$).
 - **Dual Symmetrical 8.0mm Female Hex Sockets**:
-  - **Driven Top End ($Y = 178.0\text{ mm}$)**: $8.0\text{ mm}$ female hex socket ($10.5\text{ mm}$ deep) receiving the `servo_drive_adapter` male hex peg.
+  - **Driven Top End ($Y = 178.0\text{ mm}$)**: $8.0\text{ mm}$ female hex socket ($10.5\text{ mm}$ deep) receiving the `motorized_servo_adapter` male hex peg.
   - **Output Bottom End ($Y = 0.5\text{ mm}$)**: $8.0\text{ mm}$ female hex socket ($10.5\text{ mm}$ deep) receiving the `hex_drive_coupler` pin.
 - **Weight Reduction & Aesthetics**:
   - Multi-tiered organic circular cutouts (~45% mass reduction, target blade weight $\le 75\text{g}$).
@@ -140,7 +140,7 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
 | Knuckle Bore Diameter | `DRIVE_SHAFT_DIAMETER + 2*BEARING_ROTATING_CLEARANCE` | $\varnothing 13.5\text{ mm}$ ($0.25\text{ mm}$ radial) | `params.py` |
 | Servo Mounting Holes | Top & Bottom spacing per ear ($\Delta Z$), Ear-to-Ear spacing ($\Delta X$) | $\Delta Z = 10.5\text{ mm}$, $\Delta X = 49.4\text{ mm}$ | `specs/reference-images/mg996r-servo.png` |
 | Captive Hex Nut Housings | Regular Hexagon Across-Flats / Depth | $W_{af} = 5.8\text{ mm}$, depth $3.2\text{ mm}$ | `motorized_frame.py` |
-| Servo Drive Adapter Disk | Flange Diameter / Thickness | $\varnothing 19.0\text{ mm} \times 7.0\text{ mm}$ ($Y \in [178.0, 185.0\text{ mm}]$) | `servo_drive_adapter.py` |
-| Adapter Male Hex Peg | Across-Flats / Length / Lead-in Chamfer | $7.7\text{ mm} \times 10.5\text{ mm}$, $1.5\text{ mm} \times 45^\circ$ | `servo_drive_adapter.py` |
+| Servo Drive Adapter Disk | Flange Diameter / Thickness | $\varnothing 19.0\text{ mm} \times 7.0\text{ mm}$ ($Y \in [178.0, 185.0\text{ mm}]$) | `motorized_servo_adapter.py` |
+| Adapter Male Hex Peg | Across-Flats / Length / Lead-in Chamfer | $7.7\text{ mm} \times 10.5\text{ mm}$, $1.5\text{ mm} \times 45^\circ$ | `motorized_servo_adapter.py` |
 | Flap Hex Sockets (Both Ends) | `HEX_COUPLER_SIZE`, Depth | $8.0\text{ mm}$ Flat-to-Flat, $10.5\text{ mm}$ deep | `params.py` |
 | Active Flap Axle Span | $Y_{start} \to Y_{end}$ | $Y = 0.5\text{ mm}$ to $Y = 178.0\text{ mm}$ | `motorized_flap.py` |
