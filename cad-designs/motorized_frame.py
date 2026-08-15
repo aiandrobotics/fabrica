@@ -125,9 +125,17 @@ def construct_motorized_frame():
     cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 155.0 * SCALE, t + 2.0)
     cav_main_lower.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
-    # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall and full transverse wall
+    # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
     cav_main_upper.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -1.0))
+
+    # Front-Right Screw Access Pocket (X = 6.5 to 48.5mm, Y = 170.0 to 185.5mm) — opens front face of right tower for screwdriver
+    cut_screw_access_right = Part.makeBox(42.0 * SCALE, 15.5 * SCALE, t + 2.0)
+    cut_screw_access_right.translate(App.Vector(6.5 * SCALE, k_top_start_y, -1.0))
+
+    # Front-Left Screw Access Pocket (X = -18.5 to -6.5mm, Y = 170.0 to 185.5mm) — opens front face of left tower for screwdriver
+    cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, t + 2.0)
+    cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, -1.0))
 
     # Left rail interior cavity
     cav_left = Part.makeBox(tie_x + 0.5, k_top_start_y - knuckle_len, t + 2.0)
@@ -137,7 +145,7 @@ def construct_motorized_frame():
     cav_tie = Part.makeBox(tie_w + 2.0 * SCALE, k_top_start_y - knuckle_len, t - tie_h + 2.0)
     cav_tie.translate(App.Vector(tie_x - 1.0 * SCALE, knuckle_len, tie_h))
 
-    for cav in [cav_main_lower, cav_main_upper, cav_left, cav_tie]:
+    for cav in [cav_main_lower, cav_main_upper, cut_screw_access_right, cut_screw_access_left, cav_left, cav_tie]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Adapter Disk Rotating Clearance Pocket
@@ -175,7 +183,7 @@ def construct_motorized_frame():
     pocket_rebate = Part.makeBox(58.3 * SCALE, 41.5 * SCALE, 2.0 * SCALE)
     pocket_rebate.translate(App.Vector(-17.8 * SCALE, 195.5 * SCALE, 19.4 * SCALE))
 
-    # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing through the solid towers along Y-axis:
+    # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing cleanly through the solid towers along Y-axis:
     screw_r = 1.7 * SCALE
     screw_holes = [
         Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
@@ -184,19 +192,11 @@ def construct_motorized_frame():
         Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
     ]
 
-    # 4x M3 Hex Nut / Screw Head Housing Pockets on the front face of the towers (Y in [185.0, 188.0mm]):
-    hex_nut_housings = [
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
-    ]
-
     # Internal wire routing conduit through inner wall into main chassis cavity (Z in [0.0, 6.0mm])
     pocket_wire = Part.makeBox(12.0 * SCALE, 10.0 * SCALE, 6.0 * SCALE)
     pocket_wire.translate(App.Vector(37.0 * SCALE, 218.0 * SCALE, 0.0))
 
-    cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire] + screw_holes + hex_nut_housings
+    cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire] + screw_holes
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 
