@@ -37,7 +37,8 @@ Build, validate, and commit before moving to the next phase.
 
 ---
 
-## Phase 4 — Active Motorized Module (`motorized_frame.py`, `active_flap.py`, `servo_cover.py`, `assembly_motorized_module.py`)
+## Phase 4 — Active Motorized Module (`motorized_frame.py`, `active_flap.py`, `servo_cover.py`, `assembly_motorized_module.py`) ✅
+- **Specs**: [plan.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/plan.md) | [requirements.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/requirements.md) | [validation.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/validation.md)
 - **Motorized Outer Frame** (`motorized_frame.py`): Model rigid 4-sided motorized module chassis (yellow) sharing the standardized Follower chassis architecture:
   - $240 \times 240 \times 15\text{ mm}$ outer envelope with $15.0\text{ mm}$ rigid outer perimeter rails, open-bottom interior saving ~120g PLA, and integrated 4th stiffener tie-bar ($X \in [11, 25\text{ mm}]$, $Z \in [0, 3.0\text{ mm}]$) with clean solid continuous through-dovetail joint at $Y=120\text{ mm}$ ($4.0\text{ mm}$ neck $\to 8.0\text{ mm}$ flare $\times 8.0\text{ mm}$ depth, $3.0\text{ mm}$ solid outer walls) for $100\%$ flush rotation clearance.
   - Dual 100% solid 360° closed cylindrical bearing knuckles centered at $Z = 8.0\text{ mm}$ with $1.5\text{ mm}$ ground clearance and C1-continuous concave blend ramps ($R_f = 12.0\text{ mm}$).

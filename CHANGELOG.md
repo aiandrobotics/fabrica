@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-15
+- Implemented Phase 4 Active Motorized Module (`cad-designs/motorized_frame.py`, `cad-designs/active_flap.py`, `cad-designs/servo_cover.py`, `cad-designs/assembly_motorized_module.py`) with 0.00000 mm³ interference across all mating pairs.
+- Designed 4-sided active motorized chassis frame (`motorized_frame.py`) with dual Ø13.5mm closed bearing knuckles, integrated MG996R servo mounting bay with M3 screw bosses, cable routing conduit, and snap-latch cover sockets.
+- Modeled monolithic active folding flap (`active_flap.py`) with continuous Ø13.0mm solid-core drive axle, integrated 25T metal servo horn socket with M3 central retention screw counterbore, bottom 8.0mm female hex torque socket, and corner servo clearance notch.
+- Modeled toolless snap-latch protective servo cover (`servo_cover.py`) featuring dual cantilever snap tabs with 0.4mm detents, wire exit notch, and top convection cooling ventilation gills.
+- Created complete motorized module sub-assembly script (`assembly_motorized_module.py`) with MG996R servo CAD reference, frame joiners, and hex coupler pin.
+- Verified visual bursts, exploded inspection, XZ section cuts, and boolean interference (`0.00000 mm³` overlap) via FreeCAD MCP tools.
+- Updated `export_all.py` batch build pipeline to automatically build and export all 10 CAD parts and assemblies to `cad-designs/exports/`.
+
 ## 2026-08-14
 - Implemented Phase 3 Passive Follower Module (`part_02_follower_frame.py`, `part_03_follower_flap.py`, `part_11_hex_drive_coupler.py`, `assembly_follower_module.py`) with 0.000 mm³ interference across all components.
 - Designed 4-sided open-bottom follower frame with integrated male-female interlocking dovetail joint on the 4th stiffener tie-bar (flush at Z=3.0mm with 0.25mm clearance and zero floating slivers).

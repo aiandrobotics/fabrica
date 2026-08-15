@@ -238,5 +238,4 @@ def main():
     feature = doc.addObject("Part::Feature", "BaseModule")
     feature.Shape = shape
 
-if __name__ == "__main__":
-    main()
+main()
