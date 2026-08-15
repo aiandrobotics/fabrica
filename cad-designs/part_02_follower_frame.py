@@ -96,15 +96,16 @@ def create_follower_frame():
     # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Bottom Knuckle: Cylindrical Bore with 6 o'clock Bottom Slide Gate
+    # Bottom Knuckle: Cylindrical Bore with 3.2mm Bottom Blade Slide Slit (Cradled Captive Axle)
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # 6 o'clock Bottom Slide Gate (strictly underneath the knuckle barrel: X in [-bore_r, +bore_r], Z <= pivot_z)
-    # The adjacent frame rail and floor (X >= 10.0mm) remain 100% SOLID and continuous with zero notch!
-    gate_w = bore_r * 2.0
-    gate_h = pivot_z + 0.1 * SCALE
-    gate_bot = Part.makeBox(gate_w, knuckle_len + 0.2, gate_h)
-    gate_bot.translate(App.Vector(-bore_r, -0.1, -0.1))
+    # 3.2mm Bottom Blade Slide Slit (centered at X=0, Z <= pivot_z)
+    # The 2.4mm flap blade slides smoothly through the 3.2mm slit along +Y, while the Ø13.0mm axle is
+    # fully cradled by 5.15mm solid lateral bottom shelves on both sides—preventing the axle from dropping down!
+    slit_w = (blade_t + 0.8) * SCALE  # 3.2mm precision slit
+    slit_h = pivot_z + 0.1 * SCALE    # Cuts through bottom floor
+    slit_bot = Part.makeBox(slit_w, knuckle_len + 0.2, slit_h)
+    slit_bot.translate(App.Vector(-slit_w / 2.0, -0.1, -0.1))
 
     # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
     trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
@@ -113,7 +114,7 @@ def create_follower_frame():
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, gate_bot, trim_top, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, slit_bot, trim_top, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
     # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
