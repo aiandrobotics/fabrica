@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower 4-Sided Clamshell Frame (Top & Bottom Halves)
+part_02_follower_frame.py — Passive Follower Frame with Split 4th Wall & Center Dovetail Joiner
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -35,16 +35,16 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
     """
-    Constructs the Passive Follower 4-Sided Rigid Clamshell Frame with Integrated 4th Tie-Bar.
+    Constructs the Passive Follower Frame with Split 4th Wall and Center Dovetail Joiner.
     
     Features:
-    1. 4-Sided Closed Rigid Perimeter Chassis (240x240x15mm):
+    1. 4-Sided Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
-       - Integrated 4th Left Stiffener Tie-Bar (12mm x 3mm at X=10 to 22mm) connecting top & bottom knuckles.
-       - Symmetrical Clamshell Seam at Y=120mm with center dovetail joiner sockets.
+       - 4th Left Wall (X=10 to 22mm, Z=0 to 3mm) divided into TWO HALVES at Y=120mm.
+       - Center Dovetail Joiner Socket at Y=120mm on the 4th wall to lock the two halves together.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
     3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
-    4. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240, Seam Y=120)
+    4. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240)
        with 3.0mm bottom floor drop stops and Ø6.0mm true through-floor push-out access holes.
     5. 4x Bottom Anti-Slip Grip Foot Sockets (Ø12mm x 2.0mm) for high-traction silicone/TPU rubber pads.
     6. 3x Silent-Flip TPU Bumper Slots (1.5mm depth) recessed into the top landing rail.
@@ -58,6 +58,7 @@ def create_follower_frame():
     tie_w = 12.0 * SCALE
     tie_h = 3.0 * SCALE
     tie_x = 10.0 * SCALE
+    center_x = tie_x + (tie_w / 2.0) # 16.0mm
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -99,20 +100,26 @@ def create_follower_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
+    # Reinforced Center Dovetail Boss on 4th Wall (at Y in [105, 135mm], X in [8, 24mm])
+    boss_w = 16.0 * SCALE
+    boss_l = 32.0 * SCALE
+    boss = Part.makeBox(boss_w, boss_l, tie_h)
+    boss.translate(App.Vector(center_x - boss_w / 2.0, (h / 2.0) - (boss_l / 2.0), 0))
 
-    # 3. Open Interior Cavities (preserving 4th Tie-Bar at X in [tie_x, tie_x + tie_w], Z in [0, tie_h])
+    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top, boss])).removeSplitter()
+
+    # 3. Open Interior Cavities (preserving split 4th Wall at X in [tie_x, tie_x + tie_w], Z in [0, tie_h])
     # Main center through-cavity
     cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
-    # Left clearance slot between knuckle barrel and 4th tie-bar
+    # Left clearance slot between knuckle barrel and 4th wall
     cav_left = Part.makeBox(tie_x + 0.5, h - 2 * knuckle_len, t + 2.0)
     cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
 
-    # Top space above the 3.0mm 4th tie-bar
-    cav_tie_top = Part.makeBox(tie_w + 0.2, h - 2 * knuckle_len, t - tie_h + 2.0)
-    cav_tie_top.translate(App.Vector(tie_x - 0.1, knuckle_len, tie_h))
+    # Top space above the 3.0mm 4th wall
+    cav_tie_top = Part.makeBox(boss_w + 6.0 * SCALE, h - 2 * knuckle_len, t - tie_h + 2.0)
+    cav_tie_top.translate(App.Vector(center_x - (boss_w + 6.0 * SCALE) / 2.0, knuckle_len, tie_h))
 
     frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
 
@@ -168,9 +175,43 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
+    # 6. Center Dovetail Joiner Socket on 4th Wall at Y = 120mm (Connecting the Two Halves)
+    dt4_neck_w = 6.0 * SCALE
+    dt4_flare_w = 10.0 * SCALE
+    dt4_depth = 8.0 * SCALE
+    dt4_cut_h = tie_h + 1.0
+
+    # Socket in Top Half (cuts into +Y from Y = 120mm)
+    dt4_pts_top = [
+        App.Vector(-dt4_neck_w / 2.0, 0, 0),
+        App.Vector(dt4_neck_w / 2.0, 0, 0),
+        App.Vector(dt4_flare_w / 2.0, dt4_depth, 0),
+        App.Vector(-dt4_flare_w / 2.0, dt4_depth, 0),
+        App.Vector(-dt4_neck_w / 2.0, 0, 0),
+    ]
+    dt4_cutter_top = Part.Face(Part.makePolygon(dt4_pts_top)).extrude(App.Vector(0, 0, dt4_cut_h))
+    dt4_cutter_top.translate(App.Vector(center_x, h / 2.0, -0.5))
+
+    # Socket in Bottom Half (cuts into -Y from Y = 120mm)
+    dt4_pts_bot = [
+        App.Vector(-dt4_neck_w / 2.0, 0, 0),
+        App.Vector(dt4_neck_w / 2.0, 0, 0),
+        App.Vector(dt4_flare_w / 2.0, -dt4_depth, 0),
+        App.Vector(-dt4_flare_w / 2.0, -dt4_depth, 0),
+        App.Vector(-dt4_neck_w / 2.0, 0, 0),
+    ]
+    dt4_cutter_bot = Part.Face(Part.makePolygon(dt4_pts_bot)).extrude(App.Vector(0, 0, dt4_cut_h))
+    dt4_cutter_bot.translate(App.Vector(center_x, h / 2.0, -0.5))
+
+    # Center Seam Split Cut on 4th Wall (0.4mm gap dividing 4th wall into two halves)
+    seam_cut = Part.makeBox(boss_w + 2.0 * SCALE, 0.4 * SCALE, tie_h + 2.0)
+    seam_cut.translate(App.Vector(center_x - (boss_w + 2.0 * SCALE) / 2.0, (h / 2.0) - (0.2 * SCALE), -1.0))
+
+    dt_cutters.extend([dt4_cutter_top, dt4_cutter_bot, seam_cut])
+
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
-    # 6. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
+    # 7. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
     foot_r = 6.0 * SCALE
     foot_d = 2.0 * SCALE
     foot_locs = [
@@ -185,7 +226,7 @@ def create_follower_frame():
     ]
     frame = frame.cut(Part.makeCompound(foot_cutters)).removeSplitter()
 
-    # 7. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into top landing rail at X = w - rail_w/2)
+    # 8. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into top landing rail at X = w - rail_w/2)
     tpu_cutters = []
     tpu_w = 5.0 * SCALE
     tpu_l = 14.0 * SCALE
@@ -197,7 +238,7 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 8. Elephant's Foot Relief Chamfer along outer bottom bed edges
+    # 9. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
         base_edges = [
             e for e in frame.Edges
