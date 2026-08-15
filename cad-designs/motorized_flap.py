@@ -56,7 +56,7 @@ def construct_motorized_flap():
     top_z = panel_z_min + t                  # 17.4mm
     pivot_z = PIVOT_Z                        # 10.0mm
     axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - (0.05 * SCALE) # 6.45mm radius (Ø12.9mm solid core)
-    axle_len = 177.5 * SCALE                 # Axle spans from Y=0.5 to Y=178.0mm
+    axle_len = 178.5 * SCALE                 # Axle spans from Y=0.5 to Y=179.0mm
 
     # 1. Main full-size rectangular blade (X = 0 to 239mm, Y = 1 to 239mm, Z = 15.0 to 17.4mm)
     blade = Part.makeBox(w, h, t)
@@ -74,7 +74,7 @@ def construct_motorized_flap():
 
     blade = blade.cut(Part.makeCompound([cut_bot, cut_mid_k, cut_motor])).removeSplitter()
 
-    # 2. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to 178.0mm)
+    # 2. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to 179.0mm)
     axle = Part.makeCylinder(axle_r, axle_len, App.Vector(0, 0.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
     # Structural Gusset Web bridging axle into blade between knuckles (X = 0 to 11mm, Y = 15.5 to 169.5mm, Z = 10.0 to 15.0mm)
@@ -98,7 +98,7 @@ def construct_motorized_flap():
 
     # 3. Top & Bottom End Female 8.0mm Hex Torque Sockets (Matching follower_flap.py)
     socket_d = 10.5 * SCALE
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, 178.0 * SCALE + 0.1)
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, 179.0 * SCALE + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
     hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
 

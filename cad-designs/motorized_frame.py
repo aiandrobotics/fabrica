@@ -144,8 +144,8 @@ def construct_motorized_frame():
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     top_bore = Part.makeCylinder(bore_r, k_top_len + 0.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # 7mm Adapter Disk Clearance Counterbore (Ø20.0mm for Ø19.0mm disk spanning Y=177.5 to 185.1mm)
-    adapter_bore = Part.makeCylinder(10.0 * SCALE, 7.6 * SCALE, App.Vector(0, 177.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    # 6mm Adapter Disk Clearance Counterbore (Ø20.0mm for Ø19.0mm disk spanning Y=178.5 to 185.1mm)
+    adapter_bore = Part.makeCylinder(10.0 * SCALE, 6.6 * SCALE, App.Vector(0, 178.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
     # Planar bottom trim at Z=0.0mm (ensuring base of motor frame is 100% flat)
     trim_bot = Part.makeBox(w + 50.0, h + 50.0, 20.0)

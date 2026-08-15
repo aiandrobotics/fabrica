@@ -46,13 +46,13 @@ def construct_motorized_servo_adapter():
     """
     pivot_z = PIVOT_Z                          # 10.0mm
     disk_r = 9.5 * SCALE                       # 9.5mm radius (Ø19.0mm)
-    disk_t = 7.0 * SCALE                       # 7.0mm thickness
+    disk_t = 6.0 * SCALE                       # 6.0mm thickness
     y_rear = 185.0 * SCALE                     # Seats against servo horn at Y=185.0mm
-    y_front = y_rear - disk_t                  # 178.0mm
+    y_front = y_rear - disk_t                  # 179.0mm
     hex_size = HEX_COUPLER_SIZE - (0.3 * SCALE)# 7.7mm flat-to-flat
     peg_len = 10.5 * SCALE                     # 10.5mm insertion length into flap
 
-    # 1. Main Circular Flange Disk (Y in [178.0, 185.0mm])
+    # 1. Main Circular Flange Disk (Y in [179.0, 185.0mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))
 
     # 2. Male 8.0mm Hex Drive Peg (Extending along -Y from Y=178.0 to 167.5mm)
