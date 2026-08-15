@@ -62,52 +62,7 @@ def construct_base_module():
     cavity = Part.makeBox(cavity_w, cavity_h, cavity_z + 0.1, App.Vector(rail_w, rail_w, -0.1))
     main_shell = base_box.cut(cavity).removeSplitter()
 
-    # 3. Garment Alignment Reticles (0.4mm debossed crosshairs and collar guides on top surface)
-    reticle_d = RETICLE_DEBOSS_DEPTH # 0.4mm
-    reticle_w = 1.2 * SCALE
-    reticle_cutters = []
-
-    # Center vertical alignment line (X = w/2)
-    v_line = Part.makeBox(reticle_w, h - 2.0 * rail_w, reticle_d + 0.1)
-    v_line.translate(App.Vector(w / 2.0 - reticle_w / 2.0, rail_w, t - reticle_d))
-    reticle_cutters.append(v_line)
-
-    # Center horizontal alignment line (Y = h/2)
-    h_line = Part.makeBox(w - 2.0 * rail_w, reticle_w, reticle_d + 0.1)
-    h_line.translate(App.Vector(rail_w, h / 2.0 - reticle_w / 2.0, t - reticle_d))
-    reticle_cutters.append(h_line)
-
-    # Collar centering guide arc / chevron at top (Y = h - 45mm)
-    chevron_l = 30.0 * SCALE
-    c1 = Part.makeBox(reticle_w, chevron_l, reticle_d + 0.1)
-    c1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 30)
-    c1.translate(App.Vector(w / 2.0, h - 45.0 * SCALE, t - reticle_d))
-    c2 = Part.makeBox(reticle_w, chevron_l, reticle_d + 0.1)
-    c2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -30)
-    c2.translate(App.Vector(w / 2.0, h - 45.0 * SCALE, t - reticle_d))
-    reticle_cutters.extend([c1, c2])
-
-    # Poka-Yoke Directional Arrow ("FRONT ➔" / arrow indicator at front edge Y = 25mm)
-    arrow_w = 14.0 * SCALE
-    arrow_pts = [
-        App.Vector(w / 2.0, 20.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0 - arrow_w / 2.0, 30.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0 - arrow_w / 4.0, 30.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0 - arrow_w / 4.0, 38.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0 + arrow_w / 4.0, 38.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0 + arrow_w / 4.0, 30.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0 + arrow_w / 2.0, 30.0 * SCALE, t - reticle_d - 0.1),
-        App.Vector(w / 2.0, 20.0 * SCALE, t - reticle_d - 0.1),
-    ]
-    arrow_wire = Part.makePolygon(arrow_pts)
-    arrow_face = Part.Face(arrow_wire)
-    arrow_solid = arrow_face.extrude(App.Vector(0, 0, reticle_d + 0.2))
-    reticle_cutters.append(arrow_solid)
-
-    if reticle_cutters:
-        main_shell = main_shell.cut(Part.makeCompound(reticle_cutters)).removeSplitter()
-
-    # 4. Multi-Tiered Organic Circular Weight-Reduction Cutouts through top plate (~35% mass saving)
+    # 3. Multi-Tiered Organic Circular Weight-Reduction Cutouts through top plate (~35% mass saving)
     hole_specs = [
         (w * 0.30, h * 0.32, 16.0 * SCALE),
         (w * 0.70, h * 0.32, 16.0 * SCALE),

@@ -1,7 +1,8 @@
 # Changelog
 
 ## 2026-08-15
-- Redesigned Base Module chassis (`cad-designs/base_module.py`) to the 4-wall open-bottom frame architecture with 15mm perimeter rails, garment centering reticles, directional arrow, circular mass reduction cutouts, and open underside cavity (eliminating dense hex infill to save ~150g PLA and reduce print time).
+- Updated Base Module chassis (`cad-designs/base_module.py`) to the clean 4-wall open-bottom frame architecture, removing debossed directional reticles/lines for a sleek, uniform top surface while retaining circular mass-reduction cutouts, diamond knurling, TPU bumper landing slots, and sliding dovetail joiner sockets.
+- Synchronized all CAD specs in `cad-designs/specs/` (`requirements.md`, `plan.md`, `roadmap.md`, `tech-stack.md`) to match the latest 4-wall open-bottom chassis architecture and standardized `motorized_` / `follower_` naming conventions.
 - Standardized CAD naming conventions with `motorized_` and `follower_` prefixes (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_cover.py`, `motorized_assembly.py`, `follower_frame.py`, `follower_flap.py`, `follower_assembly.py`).
 - Implemented Phase 4 Active Motorized Module (`cad-designs/motorized_frame.py`, `cad-designs/active_flap.py`, `cad-designs/servo_cover.py`, `cad-designs/assembly_motorized_module.py`) with 0.00000 mm³ interference across all mating pairs.
 - Designed 4-sided active motorized chassis frame (`motorized_frame.py`) with dual Ø13.5mm closed bearing knuckles, integrated MG996R servo mounting bay with M3 screw bosses, cable routing conduit, and snap-latch cover sockets.

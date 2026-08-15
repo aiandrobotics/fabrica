@@ -76,20 +76,20 @@ All part and assembly Python scripts must be visually and analytically validated
 
 ```
 cad-designs/
-├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md)
+├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md, and phase specs)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
-├── base_module.py                  ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
+├── base_module.py                  ← monolithic base chassis (4-wall frame, open-bottom cavity, TPU bumpers, wire ports, micro-grip texture, circular cutouts, dovetail sockets)
 ├── follower_frame.py               ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
 ├── follower_flap.py                ← passive follower flap (continuous Ø13mm axle, dual 8mm hex sockets, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
+├── follower_assembly.py            ← follower module sub-assembly (FollowerFrame + FollowerFlap + FrameJoiners + HexCoupler)
 ├── motorized_frame.py              ← active motorized 4-sided frame (servo mounting bay, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, dovetail sockets)
-├── active_flap.py                  ← monolithic active folding flap (integrated Ø13mm axle, 25T servo horn pocket, 8mm hex output socket, ~45% mass cutouts, micro-grip texture)
-├── servo_cover.py                  ← toolless snap-latch servo housing cover with wire strain relief
+├── motorized_flap.py               ← monolithic active folding flap (integrated Ø13mm axle, 25T servo horn pocket, 8mm hex output socket, ~45% mass cutouts, micro-grip texture)
+├── motorized_servo_cover.py        ← toolless snap-latch servo housing cover with wire strain relief and cooling gills
+├── motorized_assembly.py           ← motorized module sub-assembly (MotorizedFrame + MotorizedServoCover + MotorizedFlap + FrameJoiners + HexCoupler + Servo)
 ├── interface_panel.py              ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status bar window, hole chamfers, micro-grip texture)
 ├── controller_case.py              ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
 ├── frame_joiner.py                 ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── hex_drive_coupler.py            ← modular double-male 8.0mm hex torque drive coupler pin
-├── assembly.py                     ← follower module sub-assembly (Frame + Flap + Joiners + Hex Coupler)
-├── assembly_motorized_module.py    ← motorized module sub-assembly (Frame + Snap Cover + Active Flap + Joiners + Hex Coupler)
 ├── assembly_interface_module.py    ← interface module sub-assembly (Case + 15° Faceplate)
 ├── assembly_4x3_grid.py            ← full 4x3 grid assembly model (2 Base + 4 Follower + 6 Motorized + Interface)
 ├── export_all.py                   ← batch script to export all STEP and STL models
