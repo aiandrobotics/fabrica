@@ -40,8 +40,8 @@ def create_follower_frame():
     Features:
     1. 4-Sided Rigid Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
-       - 4th Left Wall (X=10 to 22mm, Z=0 to 3mm) with visible integrated direct male-female dovetail joint at Y=120mm.
-       - Bottom Half has integrated male dovetail tab; Top Half has matching female dovetail socket with 0.15mm tolerance.
+       - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm) with clean integrated direct male-female dovetail joint at Y=120mm.
+       - Bottom Half has integrated male dovetail tab; Top Half has matching female dovetail socket with zero floating slivers.
        - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
     3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
@@ -56,10 +56,10 @@ def create_follower_frame():
     t = BASE_PANEL_THICKNESS # 15.0mm
     rail_w = 15.0 * SCALE
     bottom_thick = BOTTOM_SHELL_THICKNESS
-    tie_w = 12.0 * SCALE
+    tie_w = 14.0 * SCALE
     tie_h = 3.0 * SCALE
-    tie_x = 10.0 * SCALE
-    center_x = tie_x + (tie_w / 2.0) # 16.0mm
+    tie_x = 11.0 * SCALE
+    center_x = tie_x + (tie_w / 2.0) # 18.0mm
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -101,26 +101,17 @@ def create_follower_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    # Reinforced Center Dovetail Boss on 4th Wall (at Y in [100, 140mm], X in [6, 26mm])
-    boss_w = 20.0 * SCALE
-    boss_l = 40.0 * SCALE
-    boss = Part.makeBox(boss_w, boss_l, tie_h)
-    boss.translate(App.Vector(center_x - boss_w / 2.0, (h / 2.0) - (boss_l / 2.0), 0))
+    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
-    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top, boss])).removeSplitter()
-
-    # 3. Open Interior Cavities (preserving 4th Wall at X in [tie_x, tie_x + tie_w], Z in [0, tie_h])
-    # Main center through-cavity
+    # 3. Open Interior Cavities (preserving straight 14mm tie-bar at X in [11, 25mm], Z in [0, 3mm])
     cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
-    # Left clearance slot between knuckle barrel and 4th wall
     cav_left = Part.makeBox(tie_x + 0.5, h - 2 * knuckle_len, t + 2.0)
     cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
 
-    # Top space above the 3.0mm 4th wall
-    cav_tie_top = Part.makeBox(boss_w + 6.0 * SCALE, h - 2 * knuckle_len, t - tie_h + 2.0)
-    cav_tie_top.translate(App.Vector(center_x - (boss_w + 6.0 * SCALE) / 2.0, knuckle_len, tie_h))
+    cav_tie_top = Part.makeBox(tie_w + 0.2, h - 2 * knuckle_len, t - tie_h + 2.0)
+    cav_tie_top.translate(App.Vector(tie_x - 0.1, knuckle_len, tie_h))
 
     frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
 
@@ -176,39 +167,39 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. True Visible Integrated Interlocking Dovetail Joint Ribbon Cut at Y = 120mm on 4th Wall
+    # 6. Clean Interlocking Dovetail Parting Line on 4th Wall (Zero Floating Slivers)
     dt4_neck_w = 6.0 * SCALE
-    dt4_flare_w = 12.0 * SCALE
-    dt4_depth = 10.0 * SCALE
-    gap = 0.3 * SCALE  # 0.3mm visible separation clearance gap
+    dt4_flare_w = 10.0 * SCALE
+    dt4_depth = 8.0 * SCALE
+    gap = 0.25 * SCALE
 
-    x_left = center_x - (boss_w / 2.0) - 2.0 * SCALE
-    x_right = center_x + (boss_w / 2.0) + 2.0 * SCALE
-    y_mid = h / 2.0
+    x_min = tie_x - (2.0 * SCALE)
+    x_max = tie_x + tie_w + (2.0 * SCALE)
+    y_seam = h / 2.0
 
-    dt_contour_pts = [
-        # Top ribbon contour (+Y offset)
-        App.Vector(x_left, y_mid + (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_neck_w / 2.0) - (gap / 2.0), y_mid + (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_flare_w / 2.0) - (gap / 2.0), y_mid + dt4_depth + (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_flare_w / 2.0) + (gap / 2.0), y_mid + dt4_depth + (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_neck_w / 2.0) + (gap / 2.0), y_mid + (gap / 2.0), 0),
-        App.Vector(x_right, y_mid + (gap / 2.0), 0),
+    poly_pts = [
+        # Top boundary (+Y side of parting line)
+        App.Vector(x_min, y_seam + (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_neck_w / 2.0), y_seam + (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_flare_w / 2.0), y_seam + dt4_depth + (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_flare_w / 2.0), y_seam + dt4_depth + (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_neck_w / 2.0), y_seam + (gap / 2.0), 0),
+        App.Vector(x_max, y_seam + (gap / 2.0), 0),
         
-        # Bottom ribbon contour (-Y offset)
-        App.Vector(x_right, y_mid - (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_neck_w / 2.0) - (gap / 2.0), y_mid - (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_flare_w / 2.0) - (gap / 2.0), y_mid + dt4_depth - (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_flare_w / 2.0) + (gap / 2.0), y_mid + dt4_depth - (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_neck_w / 2.0) + (gap / 2.0), y_mid - (gap / 2.0), 0),
-        App.Vector(x_left, y_mid - (gap / 2.0), 0),
+        # Bottom boundary (-Y side of parting line)
+        App.Vector(x_max, y_seam - (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_neck_w / 2.0) + gap, y_seam - (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_flare_w / 2.0) + gap, y_seam + dt4_depth - (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_flare_w / 2.0) - gap, y_seam + dt4_depth - (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_neck_w / 2.0) - gap, y_seam - (gap / 2.0), 0),
+        App.Vector(x_min, y_seam - (gap / 2.0), 0),
         
-        App.Vector(x_left, y_mid + (gap / 2.0), 0),
+        App.Vector(x_min, y_seam + (gap / 2.0), 0),
     ]
 
-    dt_ribbon = Part.Face(Part.makePolygon(dt_contour_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
-    dt_ribbon.translate(App.Vector(0, 0, -1.0))
-    dt_cutters.append(dt_ribbon)
+    dt4_cutter = Part.Face(Part.makePolygon(poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    dt4_cutter.translate(App.Vector(0, 0, -1.0))
+    dt_cutters.append(dt4_cutter)
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
