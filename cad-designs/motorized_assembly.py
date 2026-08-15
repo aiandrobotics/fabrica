@@ -1,5 +1,5 @@
 """
-assembly_motorized_module.py — Active Motorized Module Sub-Assembly
+motorized_assembly.py — Active Motorized Module Sub-Assembly
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -21,8 +21,8 @@ from params import (
     EXPORT_DIR,
 )
 from motorized_frame import construct_motorized_frame
-from active_flap import construct_active_flap
-from servo_cover import construct_servo_cover
+from motorized_flap import construct_motorized_flap
+from motorized_servo_cover import construct_motorized_servo_cover
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
 
@@ -52,8 +52,8 @@ def build_motorized_assembly():
         frame_obj.ViewObject.ShapeColor = (0.95, 0.77, 0.05)
 
     # 2. Monolithic Active Flap (Color: Red #d93829)
-    flap_shape = construct_active_flap()
-    flap_obj = doc.addObject("Part::Feature", "ActiveFlap")
+    flap_shape = construct_motorized_flap()
+    flap_obj = doc.addObject("Part::Feature", "MotorizedFlap")
     flap_obj.Shape = flap_shape
     flap_obj.Placement = App.Placement(
         App.Vector(0, 0, 0),
@@ -63,8 +63,8 @@ def build_motorized_assembly():
         flap_obj.ViewObject.ShapeColor = (0.85, 0.22, 0.16)
 
     # 3. Toolless Snap-Latch Servo Cover (Color: Dark Slate #2c3e50)
-    cover_shape = construct_servo_cover()
-    cover_obj = doc.addObject("Part::Feature", "ServoCover")
+    cover_shape = construct_motorized_servo_cover()
+    cover_obj = doc.addObject("Part::Feature", "MotorizedServoCover")
     cover_obj.Shape = cover_shape
     if hasattr(cover_obj, "ViewObject") and cover_obj.ViewObject:
         cover_obj.ViewObject.ShapeColor = (0.17, 0.24, 0.31)
@@ -123,8 +123,8 @@ def export_part():
     os.makedirs(EXPORT_DIR, exist_ok=True)
     doc = build_motorized_assembly()
 
-    step_path = os.path.join(EXPORT_DIR, "assembly_motorized_module.step")
-    stl_path  = os.path.join(EXPORT_DIR, "assembly_motorized_module.stl")
+    step_path = os.path.join(EXPORT_DIR, "motorized_assembly.step")
+    stl_path  = os.path.join(EXPORT_DIR, "motorized_assembly.stl")
 
     for path in (step_path, stl_path):
         if os.path.exists(path):

@@ -1,5 +1,5 @@
 """
-active_flap.py — Monolithic Active Folding Flap with Integrated 25T Servo Horn Socket & Drive Axle
+motorized_flap.py — Monolithic Active Motorized Folding Flap with Integrated 25T Servo Horn Socket & Drive Axle
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -39,9 +39,9 @@ def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
     ]
     return Part.makePolygon(pts)
 
-def construct_active_flap():
+def construct_motorized_flap():
     """
-    Constructs the Monolithic Active Folding Flap with Integrated 25T Servo Horn Socket.
+    Constructs the Monolithic Active Motorized Folding Flap with Integrated 25T Servo Horn Socket.
     """
     w = PANEL_WIDTH          # 240.0mm full module width
     h = PANEL_HEIGHT         # 240.0mm full module length
@@ -193,22 +193,20 @@ def construct_active_flap():
         flap = flap.cut(tex_compound).removeSplitter()
 
     # Export STEP and STL
-    step_path = os.path.join(EXPORT_DIR, "active_flap.step")
-    stl_path  = os.path.join(EXPORT_DIR, "active_flap.stl")
+    step_path = os.path.join(EXPORT_DIR, "motorized_flap.step")
+    stl_path  = os.path.join(EXPORT_DIR, "motorized_flap.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
-    for path in (step_path, stl_path):
-        if os.path.exists(path):
-            os.remove(path)
-
     flap.exportStep(step_path)
     flap.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
     return flap
 
+construct_active_flap = construct_motorized_flap
+
 def main():
-    doc = App.newDocument("ActiveFlap")
-    shape = construct_active_flap()
-    feature = doc.addObject("Part::Feature", "ActiveFlap")
+    doc = App.newDocument("MotorizedFlap")
+    shape = construct_motorized_flap()
+    feature = doc.addObject("Part::Feature", "MotorizedFlap")
     feature.Shape = shape
 
 main()

@@ -1,5 +1,5 @@
 """
-servo_cover.py — Toolless Snap-Latch Servo Enclosure Cover
+motorized_servo_cover.py — Toolless Snap-Latch Servo Enclosure Cover
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -23,7 +23,7 @@ from params import (
     EXPORT_DIR,
 )
 
-def construct_servo_cover():
+def construct_motorized_servo_cover():
     """
     Constructs the Toolless Snap-Latch Protective Servo Cover for MG996R.
     """
@@ -99,22 +99,20 @@ def construct_servo_cover():
     cover = cover.fuse(Part.makeCompound(tabs)).removeSplitter()
 
     # Export STEP and STL
-    step_path = os.path.join(EXPORT_DIR, "servo_cover.step")
-    stl_path  = os.path.join(EXPORT_DIR, "servo_cover.stl")
+    step_path = os.path.join(EXPORT_DIR, "motorized_servo_cover.step")
+    stl_path  = os.path.join(EXPORT_DIR, "motorized_servo_cover.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
-    for path in (step_path, stl_path):
-        if os.path.exists(path):
-            os.remove(path)
-
     cover.exportStep(step_path)
     cover.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
     return cover
 
+construct_servo_cover = construct_motorized_servo_cover
+
 def main():
-    doc = App.newDocument("ServoCover")
-    shape = construct_servo_cover()
-    feature = doc.addObject("Part::Feature", "ServoCover")
+    doc = App.newDocument("MotorizedServoCover")
+    shape = construct_motorized_servo_cover()
+    feature = doc.addObject("Part::Feature", "MotorizedServoCover")
     feature.Shape = shape
 
 main()

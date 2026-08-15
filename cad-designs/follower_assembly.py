@@ -1,5 +1,5 @@
 """
-assembly_follower_module.py — Passive Follower Module Sub-Assembly
+follower_assembly.py — Passive Follower Module Sub-Assembly
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -101,8 +101,8 @@ def export_part():
     os.makedirs(EXPORT_DIR, exist_ok=True)
     doc = build_follower_assembly()
 
-    step_path = os.path.join(EXPORT_DIR, "assembly.step")
-    stl_path  = os.path.join(EXPORT_DIR, "assembly.stl")
+    step_path = os.path.join(EXPORT_DIR, "follower_assembly.step")
+    stl_path  = os.path.join(EXPORT_DIR, "follower_assembly.stl")
 
     for path in (step_path, stl_path):
         if os.path.exists(path):
