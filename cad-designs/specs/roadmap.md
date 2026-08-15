@@ -29,8 +29,9 @@ Build, validate, and commit before moving to the next phase.
 ---
 
 ## Phase 3 — Passive Follower Module (`part_02_follower_frame.py`, `part_03_follower_flap.py`, `assembly_follower_module.py`, `part_11_hex_drive_coupler.py`) ✅
-- **Follower Outer Frame** (`part_02_follower_frame.py`): Model rigid 4-sided follower module chassis (green) featuring dual 100% solid 360° closed cylindrical bearing bores, an open-bottom interior saving ~120g PLA, an integrated 4th stiffener tie-bar with flush male-female interlocking dovetail joint at Y=120mm, 4x bottom anti-slip rubber foot sockets (Ø12.0×2.0mm), 1.5mm top rail silent-flip TPU bumper slots, 0.4mm bottom Elephant's Foot relief chamfers, and true open-top sliding dovetail joiner sockets with Ø6.0mm true through-floor push-out access holes.
-- **Follower Folding Flap** (`part_03_follower_flap.py`): Model rotating full-size follower flap panel (orange) resting on frame rails (Z=15.0 to 17.4mm) with integrated continuous full-length Ø13.0mm solid drive axle (Y=0 to 240mm) rotating directly in closed knuckles, dual 8.0mm female hex torque sockets, 0.6mm micro-grip diamond surface texture, 0.8mm hole edge chamfers, 1.2mm recessed perimeter shadow bevel, and gradient circular weight-reduction cutouts (~45% mass reduction).
+- **Follower Outer Frame** (`part_02_follower_frame.py`): Model rigid 4-sided follower module chassis (green) featuring dual 100% solid 360° closed cylindrical bearing bores ($\varnothing 13.5\text{ mm}$), C1-continuous concave blend ramps ($R_f = 12.0\text{ mm}$), an open-bottom interior saving ~120g PLA, an integrated 4th stiffener tie-bar ($X \in [11, 25\text{ mm}]$, $Z \in [0, 3.0\text{ mm}]$) with clean solid continuous through-dovetail joint at $Y=120\text{ mm}$ ($4.0\text{ mm}$ neck $\to 8.0\text{ mm}$ flare $\times 8.0\text{ mm}$ depth, $0.25\text{ mm}$ clearance) with $3.0\text{ mm}$ solid continuous outer walls on both sides, 4x bottom anti-slip rubber foot sockets ($\varnothing 12.0 \times 2.0\text{ mm}$), 3x top rail silent-flip TPU bumper slots ($1.5\text{ mm}$), 0.4mm bottom Elephant's Foot relief chamfers, and true open-top sliding dovetail joiner sockets with $\varnothing 6.0\text{ mm}$ true through-floor push-out access holes.
+- **Follower Folding Flap** (`part_03_follower_flap.py`): Model rotating full-size follower flap panel (orange) resting on frame rails ($Z=15.0$ to $17.4\text{ mm}$) with integrated continuous full-length $\varnothing 13.0\text{ mm}$ solid drive axle ($Y=0$ to $240\text{ mm}$, centered at $X=0, Z=8.0\text{ mm}$) rotating directly in closed knuckles, dual $8.0\text{ mm}$ female hex torque sockets ($12.0\text{ mm}$ deep), $0.6\text{ mm}$ micro-grip diamond surface texture, $0.8\text{ mm}$ hole edge chamfers, $1.2\text{ mm}$ recessed perimeter shadow bevel, and gradient circular weight-reduction cutouts (~45% mass reduction).
+- **Hex Drive Coupler Pin** (`part_11_hex_drive_coupler.py`): Model modular double-male $8.0\text{ mm}$ hex torque coupler with central locating stop collar and self-aligning chamfers.
 - **Follower Sub-Assembly** (`assembly_follower_module.py`): Assemble Follower Frame + Follower Flap + Part 10 Frame Joiners + Part 11 Compact Hex Drive Coupler. Toolless assembly with 0.000 mm³ interference.
 - **Visual & Kinematic Validation**: FreeCAD MCP multi-view verification and interference check confirming PASS across all components.
 
@@ -58,22 +59,3 @@ Build, validate, and commit before moving to the next phase.
 - Build full 4×3 grid assembly model bringing together 2 Base Modules, 4 Follower Modules, 6 Motorized Modules, and 1 Interface Control Pad Module connected by Click-Lock Hollow Dovetail Wire-Channel Joiners.
 - Validate kinematic panel flip positions (0° flat rest, 90° vertical fold, 180° flipped fold).
 - Export full `assembly_4x3_grid.step` and `assembly_4x3_grid.stl`.
-- **Visual Validation**: Apply `freecad-visual-validation` skill across all assembly steps:
-  1. `render_freecad_script`: Full multi-view burst (`Isometric`, `Front`, `Top`, `Right`, `Back`).
-  2. `inspect_freecad_assembly`: Exploded view (`explode_factor = 1.2`, `show_dimensions = true`) and part interface highlighting (`highlight_objects`).
-  3. `check_interference`: Compute Boolean overlap volume (`overlap_volume_mm3`) on all touching part pairs to ensure zero unexpected intersections (`overlap_volume_mm3 <= 0.001`).
-  4. `section_freecad_model`: Cross-section cut at primary panel hinges and controller mount.
-  5. Confirm PASS report.
-
----
-
-## Phase 7 — Automated Export & Validation Pipeline (`export_all.py`, `run.sh`)
-- Implement `export_all.py` batch script to generate clean STEP (AP214) and binary STL exports for all 10 part scripts, 3 module sub-assemblies, and the full 4×3 grid assembly in both 256 mm (default) and 180 mm (`SCALE`) configurations.
-- Verify 100% manifold topology pass across all generated STL files.
-- Final visual validation pass using FreeCAD MCP tools across all parts and full grid assembly; tag CAD release commit.
-
----
-
-## Out of Scope (v1)
-- Finite Element Analysis (FEA) structural stress simulation in Python.
-- Photorealistic material/texture rendering.

@@ -17,7 +17,7 @@
 
 All part and assembly Python scripts must be visually and analytically validated using the FreeCAD MCP server tools before final approval:
 
-1. **`render_freecad_script`**: Multi-view bursts (`Isometric`, `Front`, `Top`, `Right`), custom elevation/azimuth angles, and close-up detail inspection.
+1. **`render_freecad_script`**: Multi-view bursts (`Isometric`, `Front`, `Top`, `Right`, `Bottom`), custom elevation/azimuth angles, and close-up detail inspection.
 2. **`inspect_freecad_assembly`**: Exploded assembly rendering (`explode_factor`), part highlighting (`highlight_objects`), focus zooming (`focus_object`), and dimension labels (`show_dimensions`).
 3. **`section_freecad_model`**: Diagnostic cross-section cuts (`XZ`, `YZ`, `XY`), wireframe mesh topology (`wireframe`), and orientation/print-face analysis (`orientation_check`).
 4. **`check_interference`**: Precise Boolean intersection volume calculations (`overlap_volume_mm3`) between mating part pairs. `overlap_volume_mm3 > 0.001` on clearance joints indicates a design error.
@@ -79,8 +79,8 @@ cad-designs/
 ├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
 ├── part_01_base_module.py          ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
-├── part_02_follower_frame.py       ← passive follower U-frame (360° closed bore, C-snap, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets, under-frame clips)
-├── part_03_follower_flap.py        ← passive follower flap (45° chamfered pivot pins, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm dual-tone accent bevel)
+├── part_02_follower_frame.py       ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
+├── part_03_follower_flap.py        ← passive follower flap (continuous Ø13mm axle, dual 8mm hex sockets, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
 ├── part_04_motorized_frame.py      ← active motorized U-frame (servo mounting pocket, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets)
 ├── part_05_motorized_shaft.py      ← active drive shaft with integrated metal servo horn pocket (direct drive, 0 rotational slop)
 ├── part_06_servo_cover.py          ← toolless snap-latch servo housing cover with wire strain relief
@@ -88,7 +88,8 @@ cad-designs/
 ├── part_08_interface_panel.py      ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status bar window, hole chamfers, micro-grip texture)
 ├── part_09_controller_case.py      ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
 ├── part_10_frame_joiner.py         ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
-├── assembly_follower_module.py     ← follower module sub-assembly (Pin-Slide & Snap: Frame + Flap + Joiners)
+├── part_11_hex_drive_coupler.py    ← modular double-male 8.0mm hex torque drive coupler pin
+├── assembly_follower_module.py     ← follower module sub-assembly (Frame + Flap + Joiners + Hex Coupler)
 ├── assembly_motorized_module.py    ← motorized module sub-assembly (Frame + Shaft + Cover + Active Flap + Joiners)
 ├── assembly_interface_module.py    ← interface module sub-assembly (Case + 15° Faceplate)
 ├── assembly_4x3_grid.py            ← full 4x3 grid assembly model (2 Base + 4 Follower + 6 Motorized + Interface)
