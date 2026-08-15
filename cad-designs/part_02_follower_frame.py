@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower Chassis Open-Bottom U-Frame
+part_02_follower_frame.py — Passive Follower 4-Sided Clamshell Frame (Top & Bottom Halves)
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -35,15 +35,18 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
     """
-    Constructs the Passive Follower Open-Bottom 3-Sided U-Frame Module.
+    Constructs the Passive Follower 4-Sided Rigid Clamshell Frame with Integrated 4th Tie-Bar.
+    
     Features:
-    1. Open-Bottom 3-Sided U-Frame Chassis (240x240x15mm) with 15mm rigid perimeter rails.
-       100% open interior eliminates lint/dust traps and saves ~120g of plastic.
-    2. 4x Bottom Anti-Slip Grip Foot Sockets (Ø12mm x 2.0mm) for high-traction silicone/TPU rubber pads.
-    3. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing Ø13.0mm drive axle.
-    4. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
-    5. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240)
+    1. 4-Sided Closed Rigid Perimeter Chassis (240x240x15mm):
+       - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
+       - Integrated 4th Left Stiffener Tie-Bar (12mm x 3mm at X=10 to 22mm) connecting top & bottom knuckles.
+       - Symmetrical Clamshell Seam at Y=120mm with center dovetail joiner sockets.
+    2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
+    3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
+    4. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240, Seam Y=120)
        with 3.0mm bottom floor drop stops and Ø6.0mm true through-floor push-out access holes.
+    5. 4x Bottom Anti-Slip Grip Foot Sockets (Ø12mm x 2.0mm) for high-traction silicone/TPU rubber pads.
     6. 3x Silent-Flip TPU Bumper Slots (1.5mm depth) recessed into the top landing rail.
     7. 0.4mm bottom Elephant's Foot relief chamfers.
     """
@@ -52,6 +55,9 @@ def create_follower_frame():
     t = BASE_PANEL_THICKNESS # 15.0mm
     rail_w = 15.0 * SCALE
     bottom_thick = BOTTOM_SHELL_THICKNESS
+    tie_w = 12.0 * SCALE
+    tie_h = 3.0 * SCALE
+    tie_x = 10.0 * SCALE
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -72,14 +78,12 @@ def create_follower_frame():
     zc = t + rf                                                 # 27.0mm
     touch_theta = math.atan2(zc - pivot_z, xc)
 
-    ramp_pts = [App.Vector(-knuckle_r, 0, 0)] # bottom left
-    # Outer circle arch from -X up around crown to touch_theta
+    ramp_pts = [App.Vector(-knuckle_r, 0, 0)]
     num_arch = 16
     for i in range(num_arch):
         th = math.pi - i * (math.pi - touch_theta) / float(num_arch - 1)
         ramp_pts.append(App.Vector(knuckle_r * math.cos(th), 0, pivot_z + knuckle_r * math.sin(th)))
 
-    # Concave sweeping fillet arc from touch point down to horizontal deck (X = xc, Z = 15.0)
     num_fillet = 16
     for i in range(1, num_fillet):
         alpha = (touch_theta - math.pi) + i * (-math.pi / 2.0 - (touch_theta - math.pi)) / float(num_fillet - 1)
@@ -97,13 +101,20 @@ def create_follower_frame():
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
-    # 3. 100% Open Interior Through-Cavity (Cuts completely from Z = -0.5mm to Z = t + 0.5mm)
-    cav_w = w - rail_w + 1.0
-    cav_h = h - 2 * rail_w
-    cavity = Part.makeBox(cav_w, cav_h, t + 2.0)
-    cavity.translate(App.Vector(-0.5, rail_w, -1.0))
-    
-    frame = frame.cut(cavity).removeSplitter()
+    # 3. Open Interior Cavities (preserving 4th Tie-Bar at X in [tie_x, tie_x + tie_w], Z in [0, tie_h])
+    # Main center through-cavity
+    cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
+    cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
+
+    # Left clearance slot between knuckle barrel and 4th tie-bar
+    cav_left = Part.makeBox(tie_x + 0.5, h - 2 * knuckle_len, t + 2.0)
+    cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
+
+    # Top space above the 3.0mm 4th tie-bar
+    cav_tie_top = Part.makeBox(tie_w + 0.2, h - 2 * knuckle_len, t - tie_h + 2.0)
+    cav_tie_top.translate(App.Vector(tie_x - 0.1, knuckle_len, tie_h))
+
+    frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
 
     # 4. Hinge Bearing Bores: Dual 100% Solid 360° Closed Cylindrical Tunnels (Top & Bottom)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
@@ -111,7 +122,7 @@ def create_follower_frame():
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Knuckle planar bottom trim: 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
+    # Knuckle planar bottom trim: 100% flat at Z=0.0mm
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
@@ -121,7 +132,7 @@ def create_follower_frame():
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
-    dt_cut_h = t - bottom_thick + 0.5  # Cuts open through top deck
+    dt_cut_h = t - bottom_thick + 0.5
 
     dt_pts = [
         App.Vector(-dt_neck_w / 2.0, -0.1, 0),

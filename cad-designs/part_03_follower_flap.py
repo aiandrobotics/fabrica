@@ -1,5 +1,5 @@
 """
-part_03_follower_flap.py — Full-Size Follower Folding Flap with Ø14mm Drive Axle & Hex Couplers
+part_03_follower_flap.py — Full-Size Follower Flap with Integrated Full-Length Axle
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -41,15 +41,17 @@ def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
 
 def create_follower_flap():
     """
-    Constructs the Full-Size Lightweight Passive Follower Folding Flap Panel (Over-The-Frame Landing).
+    Constructs the Full-Size Lightweight Follower Folding Flap with Integrated Full-Length Axle.
     Features:
-    1. Full-Size Panel Body (240mm x 240mm x 2.4mm) landing directly on top of the 3-sided frame rails.
-    2. Integrated Continuous Ø13.0mm Heavy-Duty Drive Axle (centered at X=0, Z=8.0mm).
-    3. Dual Top & Bottom 8.0mm Female Hex Torque Drive Sockets (12.0mm depth).
-    4. Multi-tiered Organic Gradient Circular Cutouts (~45% mass reduction).
-    5. 1.2mm Recessed Perimeter Shadow Bevel for premium dual-tone panel aesthetics.
-    6. 0.6mm Debossed Diamond Micro-Grip Texture for non-slip garment traction.
-    7. 100% Supportless FDM Printability.
+    1. Full-Size Over-The-Frame Landing Blade (240x240x2.4mm) resting on 3 frame rails at Z=15.0mm.
+    2. Integrated Continuous Full-Length Ø13.0mm Drive Axle (Y = 0 to 240mm, centered at X=0, Z=8.0mm)
+       whose ends rotate directly inside the 360° closed frame knuckle tunnels.
+    3. Dual Top & Bottom 8.0mm Female Hex Torque Sockets (10.5mm depth) for modular inter-module coupling.
+    4. Heavy-duty Under-Flap Reinforcing Gusset (Y = 15.5 to 224.5mm) for 3x torsional stiffness.
+    5. Multi-tiered Organic Gradient Circular Cutouts (~45% mass reduction).
+    6. 1.2mm Recessed Perimeter Shadow Bevel for premium aesthetics.
+    7. 0.6mm Debossed Diamond Micro-Grip Texture for fabric traction.
+    8. 100% Supportless FDM Printability.
     """
     w = PANEL_WIDTH          # 240.0mm full module width
     h = PANEL_HEIGHT         # 240.0mm full module length
@@ -64,7 +66,6 @@ def create_follower_flap():
     flap_box.translate(App.Vector(0, 0, panel_z_min))
 
     # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle barrels
-    # Knuckle outer radius is 9.5mm and concave blend ramp extends to X ~10.06mm. Cutout X in [-1, 11.5mm]
     cut_bot = Part.makeBox(11.5 * SCALE, 16.0 * SCALE, t + 2.0)
     cut_bot.translate(App.Vector(-0.5, -0.5, panel_z_min - 0.5))
 
@@ -78,42 +79,37 @@ def create_follower_flap():
     bevel_w = 3.0 * SCALE
     
     bevel_cuts = []
-    # Right edge bevel (at X = w - bevel_w to w)
+    # Right edge bevel
     b_right = Part.makeBox(bevel_w + 0.2, h + 0.2, bevel_d + 0.1)
     b_right.translate(App.Vector(w - bevel_w, -0.1, top_z - bevel_d))
     bevel_cuts.append(b_right)
     
-    # Bottom edge bevel (at Y = 0 to bevel_w, for X >= 12mm)
+    # Bottom edge bevel (for X >= 12mm)
     b_bot = Part.makeBox(w - 11.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
     b_bot.translate(App.Vector(11.5 * SCALE, -0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
     
-    # Top edge bevel (at Y = h - bevel_w to h, for X >= 12mm)
+    # Top edge bevel (for X >= 12mm)
     b_top = Part.makeBox(w - 11.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
     b_top.translate(App.Vector(11.5 * SCALE, h - bevel_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
     
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 3. Drop-In Solid Heavy-Duty Drive Axle (from Y = 16.0mm to Y = 224.0mm between frame knuckles)
-    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm
-    axle_start_y = 16.0 * SCALE           # 1.0mm axial clearance from bottom knuckle (Y = 15.0mm)
-    axle_end_y = 224.0 * SCALE            # 1.0mm axial clearance from top knuckle (Y = 225.0mm)
-    axle_total_len = axle_end_y - axle_start_y # 208.0mm
-    
-    axle_solid = Part.makeCylinder(shaft_r, axle_total_len, App.Vector(0, axle_start_y, pivot_z), App.Vector(0, 1, 0))
+    # 3. Continuous Full-Length Solid Drive Axle (Full 240mm: Y = 0.0 to 240.0mm)
+    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm (Ø13.0mm in Ø13.5mm knuckle bores)
+    axle_solid = Part.makeCylinder(shaft_r, h, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Bottom Structural Reinforcing Fillet Gusset (Underneath hinge joint for 3x torsional stiffness)
-    # Smooth curved transition from Ø13mm axle underside up to flap panel floor (Z = 15.0mm)
-    gusset_start_y = 16.0 * SCALE
-    gusset_len = 208.0 * SCALE
+    # 4. Under-Flap Structural Reinforcing Gusset (Y = 15.5mm to 224.5mm between knuckles)
+    gusset_start_y = 15.5 * SCALE
+    gusset_len = h - (31.0 * SCALE) # 209.0mm
     gusset_pts = [
-        App.Vector(0, gusset_start_y, pivot_z),                      # (0, 8.0)
-        App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE), # (3.25, 5.0) lower axle contour
-        App.Vector(6.5 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE),  # (6.5, 7.0)
-        App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),       # (14.0, 15.0) panel floor
-        App.Vector(0, gusset_start_y, panel_z_min),                  # (0, 15.0)
-        App.Vector(0, gusset_start_y, pivot_z),                      # Close loop
+        App.Vector(0, gusset_start_y, pivot_z),
+        App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),
+        App.Vector(6.5 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE),
+        App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),
+        App.Vector(0, gusset_start_y, panel_z_min),
+        App.Vector(0, gusset_start_y, pivot_z),
     ]
     gusset_wire = Part.makePolygon(gusset_pts)
     gusset_face = Part.Face(gusset_wire)
@@ -122,31 +118,29 @@ def create_follower_flap():
     # Fuse flap panel with continuous drive axle and reinforcing gusset
     flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid])).removeSplitter()
 
-    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (Cleanly cuts through axle & gusset core)
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)
+    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 0 and Y = 240 outer axle ends)
+    socket_d = 10.5 * SCALE
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, h + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
-    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH - 0.1, 0))
+    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
 
-    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_start_y - 0.1)
+    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, -0.1)
     hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
-    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, HEX_COUPLER_DEPTH + 0.1, 0))
+    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
 
     flap = flap.cut(Part.makeCompound([hex_socket_top_cutter, hex_socket_bot_cutter])).removeSplitter()
 
-    # 6. Multi-Tiered Organic Gradient Circular Cutouts (matching reference images across 240x240 footprint)
+    # 6. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction)
     hole_specs = [
-        # Center large circular cutouts
         (w * 0.48, h * 0.50, 18.0 * SCALE),
         (w * 0.28, h * 0.32, 15.0 * SCALE),
         (w * 0.72, h * 0.35, 16.0 * SCALE),
         (w * 0.32, h * 0.70, 17.0 * SCALE),
         (w * 0.70, h * 0.68, 15.5 * SCALE),
-        # Medium gradient transition holes
         (w * 0.52, h * 0.22, 12.0 * SCALE),
         (w * 0.52, h * 0.78, 12.5 * SCALE),
         (w * 0.22, h * 0.52, 11.0 * SCALE),
         (w * 0.84, h * 0.50, 11.5 * SCALE),
-        # Corner & border relief holes
         (w * 0.22, h * 0.15, 8.5 * SCALE),
         (w * 0.82, h * 0.18, 9.0 * SCALE),
         (w * 0.20, h * 0.85, 8.0 * SCALE),
@@ -167,18 +161,16 @@ def create_follower_flap():
     if cutters:
         flap = flap.cut(Part.makeCompound(cutters)).removeSplitter()
 
-    # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture (Debossed Grid Grooves)
+    # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture
     tex_cutters = []
     tex_spacing = 14.0 * SCALE
     tex_w = 0.8 * SCALE
-    tex_d = TEXTURE_HEIGHT  # 0.6mm
+    tex_d = TEXTURE_HEIGHT
     
     for i in range(-int(w), int(w + h), int(tex_spacing)):
-        # Diagonal +45° groove
         g1 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
         g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
         g1.translate(App.Vector(i, 0, top_z - tex_d))
-        # Diagonal -45° groove
         g2 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
         g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
         g2.translate(App.Vector(i, h, top_z - tex_d))
