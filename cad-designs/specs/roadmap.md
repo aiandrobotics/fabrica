@@ -28,11 +28,11 @@ Build, validate, and commit before moving to the next phase.
 
 ---
 
-## Phase 3 — Passive Follower Module (`part_02_follower_frame.py`, `part_03_follower_flap.py`, `assembly_follower_module.py`)
-- **Follower Outer Frame** (`part_02_follower_frame.py`): Model passive follower module U-frame (green) featuring a top 360° closed cylindrical bearing bore, a bottom flex C-snap socket with a 0.5 mm lead-in funnel, 1.5 mm recessed silent flip TPU bumper slots, 0.4 mm bottom Elephant's Foot relief chamfers, 0.5 mm debossed Poka-Yoke directional alignment arrows ("FRONT ➔"), 1.5 mm filleted internal wire pass-through ports with zip-tie strain-relief loops, click-lock dovetail joiner sockets with detent dimples, and integrated under-frame cable routing clips.
-- **Follower Folding Flap** (`part_03_follower_flap.py`): Model rotating follower flap panel (orange) with integrated top & bottom male pivot pins featuring 45° lead-in chamfers (1.5 mm), 0.6 mm micro-grip diamond surface texture, 0.8 mm hole edge chamfers, 1.2 mm recessed perimeter shadow bevel for dual-tone panel aesthetics, and gradient circular weight-reduction cutouts (~45% mass reduction, reducing panel weight to ~80g and minimizing rotational inertia on active servo modules).
-- **Follower Sub-Assembly** (`assembly_follower_module.py`): Assemble Follower Frame + Follower Flap (Pin-Slide & Snap: slide top chamfered pin into 360° closed bore, snap bottom chamfered pin into C-snap socket) + Frame Joiners. Toolless 3-second assembly with zero pin layer damage.
-- **Visual & Kinematic Validation**: Apply `freecad-visual-validation` skill using `render_freecad_script` and `section_freecad_model` to verify 0° to 180° rotation clearance and pivot pin engagement. Confirm PASS report.
+## Phase 3 — Passive Follower Module (`part_02_follower_frame.py`, `part_03_follower_flap.py`, `assembly_follower_module.py`, `part_11_hex_drive_coupler.py`) ✅
+- **Follower Outer Frame** (`part_02_follower_frame.py`): Model rigid 4-sided follower module chassis (green) featuring dual 100% solid 360° closed cylindrical bearing bores, an open-bottom interior saving ~120g PLA, an integrated 4th stiffener tie-bar with flush male-female interlocking dovetail joint at Y=120mm, 4x bottom anti-slip rubber foot sockets (Ø12.0×2.0mm), 1.5mm top rail silent-flip TPU bumper slots, 0.4mm bottom Elephant's Foot relief chamfers, and true open-top sliding dovetail joiner sockets with Ø6.0mm true through-floor push-out access holes.
+- **Follower Folding Flap** (`part_03_follower_flap.py`): Model rotating full-size follower flap panel (orange) resting on frame rails (Z=15.0 to 17.4mm) with integrated continuous full-length Ø13.0mm solid drive axle (Y=0 to 240mm) rotating directly in closed knuckles, dual 8.0mm female hex torque sockets, 0.6mm micro-grip diamond surface texture, 0.8mm hole edge chamfers, 1.2mm recessed perimeter shadow bevel, and gradient circular weight-reduction cutouts (~45% mass reduction).
+- **Follower Sub-Assembly** (`assembly_follower_module.py`): Assemble Follower Frame + Follower Flap + Part 10 Frame Joiners + Part 11 Compact Hex Drive Coupler. Toolless assembly with 0.000 mm³ interference.
+- **Visual & Kinematic Validation**: FreeCAD MCP multi-view verification and interference check confirming PASS across all components.
 
 ---
 
