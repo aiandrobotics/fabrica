@@ -1,5 +1,5 @@
 """
-motorized_servo_cover.py — Full Enclosure Hood Cover for Horizontal MG996R Servo Bay
+motorized_servo_cover.py — Flush Top Drop-In Lid for Motorized Servo Enclosure
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -21,49 +21,50 @@ from params import (
 
 def construct_motorized_servo_cover():
     """
-    Constructs the Full Enclosure Hood Cover for the Motorized Module.
+    Constructs the Flush Top Drop-In Enclosure Lid (Part 8) for the Motorized Module.
     Features:
-      1. Top plate covering X in [-17.0, 43.5mm], Y in [186.0, 240.0mm], Z in [15.0, 21.2mm].
-      2. Rear face plate capping off the rear slide-in opening at Y in [237.5, 240.0mm], Z in [0.0, 21.2mm].
-      3. Lateral slide retention tongues that engage with frame side grooves.
-      4. Internal hollow pocket providing generous clearance around the MG996R motor body.
+      1. Main flush top plate (1.4mm thick, spanning X in [-17.5, 40.2mm], Y in [195.7, 236.8mm], Z in [19.8, 21.2mm]).
+      2. Rear corner downward alignment tabs (extending Z in [18.0, 19.8mm]) for friction lock.
+      3. Rear-left corner finger pry notch for toolless removal.
     """
-    # 1. Top Face Plate (60.5mm wide x 44.5mm long x 6.2mm thick spanning Z=15.0..21.2mm, X in [-17.0, 43.5mm], Y in [195.5, 240.0mm])
-    top_plate = Part.makeBox(60.5 * SCALE, 44.5 * SCALE, 6.2 * SCALE)
-    top_plate.translate(App.Vector(-17.0 * SCALE, 195.5 * SCALE, 15.0 * SCALE))
+    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 19.8 to 21.2mm, clearing servo top at Z=19.75mm)
+    w_top = 57.7 * SCALE # X in [-17.5, 40.2mm]
+    l_top = 41.1 * SCALE # Y in [195.7, 236.8mm]
+    t_top = 1.4 * SCALE
+    z_top_min = 19.8 * SCALE
 
-    # 2. Rear Face Cap (54.5mm wide x 2.5mm thick x 21.2mm tall spanning X in [-17.0, 37.5mm], Z=0..21.2mm)
-    rear_cap = Part.makeBox(54.5 * SCALE, 2.5 * SCALE, 21.2 * SCALE)
-    rear_cap.translate(App.Vector(-17.0 * SCALE, 237.5 * SCALE, 0.0))
+    top_plate = Part.makeBox(w_top, l_top, t_top)
+    top_plate.translate(App.Vector(-17.5 * SCALE, 195.7 * SCALE, z_top_min))
 
-    # 3. Lateral Retention Tongues (sliding into frame grooves at Z=13.6..14.8mm, Y in [196.5, 236.5mm])
-    tongue_l = Part.makeBox(1.5 * SCALE, 40.0 * SCALE, 1.2 * SCALE)
-    tongue_l.translate(App.Vector(-18.5 * SCALE, 196.5 * SCALE, 13.6 * SCALE))
+    # 2. Downward Alignment Tabs at Rear Corners (behind/beside the servo motor)
+    tab_l = Part.makeBox(3.0 * SCALE, 3.5 * SCALE, 1.8 * SCALE)
+    tab_l.translate(App.Vector(-17.0 * SCALE, 231.0 * SCALE, z_top_min - 1.8 * SCALE))
 
-    tongue_r = Part.makeBox(1.5 * SCALE, 40.0 * SCALE, 1.2 * SCALE)
-    tongue_r.translate(App.Vector(42.0 * SCALE, 196.5 * SCALE, 13.6 * SCALE))
+    tab_r = Part.makeBox(3.0 * SCALE, 3.5 * SCALE, 1.8 * SCALE)
+    tab_r.translate(App.Vector(35.0 * SCALE, 231.0 * SCALE, z_top_min - 1.8 * SCALE))
 
-    cover = top_plate.fuse([rear_cap, tongue_l, tongue_r]).removeSplitter()
+    lid = top_plate.fuse([tab_l, tab_r]).removeSplitter()
 
-    # 4. Underside clearance pocket for motor top casing (Z in [13.8, 20.0mm], X in [-17.0, 38.0mm], Y in [195.5, 235.5mm])
-    pocket = Part.makeBox(56.0 * SCALE, 40.0 * SCALE, 6.2 * SCALE)
-    pocket.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, 13.8 * SCALE))
-
-    cover = cover.cut(pocket).removeSplitter()
+    # 3. Finger Pry Notch at Rear-Left Corner
+    notch = Part.makeCylinder(3.5 * SCALE, 3.0 * SCALE, App.Vector(-17.5 * SCALE, 236.8 * SCALE, z_top_min - 1.0))
+    lid = lid.cut(notch).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_servo_cover.step")
     stl_path  = os.path.join(EXPORT_DIR, "motorized_servo_cover.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
-    cover.exportStep(step_path)
-    cover.exportStl(stl_path)
+    lid.exportStep(step_path)
+    lid.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
-    return cover
+    return lid
 
 def main():
-    doc = App.newDocument("MotorizedServoCover")
+    doc = App.ActiveDocument or App.newDocument("MotorizedServoCover")
     shape = construct_motorized_servo_cover()
     feature = doc.addObject("Part::Feature", "MotorizedServoCover")
     feature.Shape = shape
 
-main()
+def export_part():
+    main()
+
+export_part()
