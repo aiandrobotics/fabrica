@@ -40,10 +40,11 @@ def create_follower_frame():
     Features:
     1. 4-Sided Rigid Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
-       - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm) with 20mm reinforced center boss at Y=120mm.
-       - Clean Solid Through-Dovetail Joint (8mm neck -> 14mm flare x 12mm depth, 0.25mm clearance)
-         continuous from Z=0 to Z=3.0mm with 100% flat bed printing, zero overhangs, zero internal
-         slits, zero supports, and zero floating geometry.
+       - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm, width 14mm) with Clean Solid Through-Dovetail Joint:
+         * Neck Width = 4.0mm, Flare Width = 8.0mm, Depth = 8.0mm, Clearance = 0.25mm.
+         * 3.0mm of 100% solid, thick continuous outer wall on BOTH sides (Left X=11 to 14mm, Right X=22 to 25mm).
+         * Eliminates all thin knife-edge wedges, floating slivers, and horizontal slits.
+         * 100% flat bed 3D printing with zero overhangs, zero supports, and zero post-processing.
        - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
     3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
@@ -62,7 +63,7 @@ def create_follower_frame():
     tie_h = 3.0 * SCALE
     tie_x = 11.0 * SCALE
     center_x = tie_x + (tie_w / 2.0) # 18.0mm
-    boss_w = 20.0 * SCALE
+    y_seam = h / 2.0                 # 120.0mm
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -104,31 +105,17 @@ def create_follower_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    # Reinforced Center Boss on 4th Wall (Width 20mm, Y from 110 to 137mm with 45-deg chamfer transitions)
-    boss_pts = [
-        App.Vector(center_x - tie_w / 2.0, (h / 2.0) - 13.0 * SCALE, 0),
-        App.Vector(center_x - boss_w / 2.0, (h / 2.0) - 10.0 * SCALE, 0),
-        App.Vector(center_x - boss_w / 2.0, (h / 2.0) + 17.0 * SCALE, 0),
-        App.Vector(center_x - tie_w / 2.0, (h / 2.0) + 20.0 * SCALE, 0),
-        App.Vector(center_x + tie_w / 2.0, (h / 2.0) + 20.0 * SCALE, 0),
-        App.Vector(center_x + boss_w / 2.0, (h / 2.0) + 17.0 * SCALE, 0),
-        App.Vector(center_x + boss_w / 2.0, (h / 2.0) - 10.0 * SCALE, 0),
-        App.Vector(center_x + tie_w / 2.0, (h / 2.0) - 13.0 * SCALE, 0),
-        App.Vector(center_x - tie_w / 2.0, (h / 2.0) - 13.0 * SCALE, 0),
-    ]
-    boss_face = Part.Face(Part.makePolygon(boss_pts)).extrude(App.Vector(0, 0, tie_h))
+    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
-    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top, boss_face])).removeSplitter()
-
-    # 3. Open Interior Cavities (preserving tie-bar at X in [11, 25mm], Z in [0, 3mm], and boss)
+    # 3. Open Interior Cavities (preserving tie-bar at X in [11, 25mm], Z in [0, 3mm])
     cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
     cav_left = Part.makeBox(tie_x + 0.5, h - 2 * knuckle_len, t + 2.0)
     cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
 
-    cav_tie_top = Part.makeBox(boss_w + 4.0 * SCALE, h - 2 * knuckle_len, t - tie_h + 2.0)
-    cav_tie_top.translate(App.Vector(center_x - (boss_w + 4.0 * SCALE) / 2.0, knuckle_len, tie_h))
+    cav_tie_top = Part.makeBox(tie_w + 2.0 * SCALE, h - 2 * knuckle_len, t - tie_h + 2.0)
+    cav_tie_top.translate(App.Vector(tie_x - 1.0 * SCALE, knuckle_len, tie_h))
 
     frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
 
@@ -184,34 +171,33 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. Clean Solid Through-Dovetail Joint on 4th Wall (100% Support-Free, Zero Internal Slits, Zero Overhangs)
-    dt_lk_neck = 8.0 * SCALE
-    dt_lk_flare = 14.0 * SCALE
-    dt_lk_depth = 12.0 * SCALE
+    # 6. Clean Solid Through-Dovetail Joint on 4th Wall (3.0mm solid outer walls, 0 floating pieces, 0 supports)
+    dt_lk_neck = 4.0 * SCALE
+    dt_lk_flare = 8.0 * SCALE
+    dt_lk_depth = 8.0 * SCALE
     gap = 0.25 * SCALE
-    y_seam = h / 2.0
 
-    x_min = center_x - (boss_w / 2.0) - (2.0 * SCALE)
-    x_max = center_x + (boss_w / 2.0) + (2.0 * SCALE)
+    x_left = tie_x - (1.0 * SCALE)
+    x_right = tie_x + tie_w + (1.0 * SCALE)
 
     dt4_poly_pts = [
         # Top edge of female pocket (in +Y half)
-        App.Vector(x_max, y_seam + gap, 0),
+        App.Vector(x_right, y_seam + gap, 0),
         App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_seam + gap, 0),
         App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_seam + dt_lk_depth + gap, 0),
         App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_seam + dt_lk_depth + gap, 0),
         App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_seam + gap, 0),
-        App.Vector(x_min, y_seam + gap, 0),
+        App.Vector(x_left, y_seam + gap, 0),
         
         # Bottom edge of male tab (in -Y half)
-        App.Vector(x_min, y_seam, 0),
+        App.Vector(x_left, y_seam, 0),
         App.Vector(center_x - dt_lk_neck / 2.0, y_seam, 0),
         App.Vector(center_x - dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
         App.Vector(center_x + dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
         App.Vector(center_x + dt_lk_neck / 2.0, y_seam, 0),
-        App.Vector(x_max, y_seam, 0),
+        App.Vector(x_right, y_seam, 0),
         
-        App.Vector(x_max, y_seam + gap, 0),
+        App.Vector(x_right, y_seam + gap, 0),
     ]
     dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
     dt4_cutter.translate(App.Vector(0, 0, -1.0))
