@@ -28,26 +28,26 @@ def construct_motorized_servo_cover():
       3. Lateral slide retention tongues that engage with frame side grooves.
       4. Internal hollow pocket providing generous clearance around the MG996R motor body.
     """
-    # 1. Top Face Plate (60.5mm wide x 54mm long x 6.2mm thick spanning Z=15.0..21.2mm, X in [-17.0, 43.5mm])
-    top_plate = Part.makeBox(60.5 * SCALE, 54.0 * SCALE, 6.2 * SCALE)
-    top_plate.translate(App.Vector(-17.0 * SCALE, 186.0 * SCALE, 15.0 * SCALE))
+    # 1. Top Face Plate (60.5mm wide x 44.5mm long x 6.2mm thick spanning Z=15.0..21.2mm, X in [-17.0, 43.5mm], Y in [195.5, 240.0mm])
+    top_plate = Part.makeBox(60.5 * SCALE, 44.5 * SCALE, 6.2 * SCALE)
+    top_plate.translate(App.Vector(-17.0 * SCALE, 195.5 * SCALE, 15.0 * SCALE))
 
     # 2. Rear Face Cap (54.5mm wide x 2.5mm thick x 21.2mm tall spanning X in [-17.0, 37.5mm], Z=0..21.2mm)
     rear_cap = Part.makeBox(54.5 * SCALE, 2.5 * SCALE, 21.2 * SCALE)
     rear_cap.translate(App.Vector(-17.0 * SCALE, 237.5 * SCALE, 0.0))
 
-    # 3. Lateral Retention Tongues (sliding into frame grooves at Z=13.6..14.8mm)
-    tongue_l = Part.makeBox(1.5 * SCALE, 50.0 * SCALE, 1.2 * SCALE)
-    tongue_l.translate(App.Vector(-18.5 * SCALE, 187.0 * SCALE, 13.6 * SCALE))
+    # 3. Lateral Retention Tongues (sliding into frame grooves at Z=13.6..14.8mm, Y in [196.5, 236.5mm])
+    tongue_l = Part.makeBox(1.5 * SCALE, 40.0 * SCALE, 1.2 * SCALE)
+    tongue_l.translate(App.Vector(-18.5 * SCALE, 196.5 * SCALE, 13.6 * SCALE))
 
-    tongue_r = Part.makeBox(1.5 * SCALE, 50.0 * SCALE, 1.2 * SCALE)
-    tongue_r.translate(App.Vector(42.0 * SCALE, 187.0 * SCALE, 13.6 * SCALE))
+    tongue_r = Part.makeBox(1.5 * SCALE, 40.0 * SCALE, 1.2 * SCALE)
+    tongue_r.translate(App.Vector(42.0 * SCALE, 196.5 * SCALE, 13.6 * SCALE))
 
     cover = top_plate.fuse([rear_cap, tongue_l, tongue_r]).removeSplitter()
 
-    # 4. Underside clearance pocket for motor top casing (Z in [13.8, 20.0mm], X in [-17.0, 38.0mm], Y in [185.5, 230.5mm])
-    pocket = Part.makeBox(56.0 * SCALE, 46.0 * SCALE, 6.2 * SCALE)
-    pocket.translate(App.Vector(-17.5 * SCALE, 185.5 * SCALE, 13.8 * SCALE))
+    # 4. Underside clearance pocket for motor top casing (Z in [13.8, 20.0mm], X in [-17.0, 38.0mm], Y in [195.5, 235.5mm])
+    pocket = Part.makeBox(56.0 * SCALE, 40.0 * SCALE, 6.2 * SCALE)
+    pocket.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, 13.8 * SCALE))
 
     cover = cover.cut(pocket).removeSplitter()
 

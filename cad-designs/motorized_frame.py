@@ -103,24 +103,29 @@ def construct_motorized_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
     ramp_top.translate(App.Vector(0, k_top_start_y, 0))
 
-    # Servo housing corner block at Y=185..240mm, X = -18.0 to 48.0mm
-    servo_box = Part.makeBox(66.0 * SCALE, h - 185.0 * SCALE, t)
-    servo_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0))
+    # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=21.2mm, fully closing top screw holes)
+    t_servo = 21.2 * SCALE
+    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo)
+    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0))
 
-    # Knuckle-to-Housing Support Gusset (X = -18.0 to 25.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
-    knuckle_bridge = Part.makeBox(43.0 * SCALE, 15.0 * SCALE, t)
+    # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=15.0mm, receiving the slide-in cover)
+    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t)
+    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, 0))
+
+    # Knuckle-to-Housing Full Continuous Support Bridge (X = -18.0 to 48.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
+    knuckle_bridge = Part.makeBox(66.0 * SCALE, 15.0 * SCALE, t)
     knuckle_bridge.translate(App.Vector(-18.0 * SCALE, k_top_start_y, 0))
 
-    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, servo_box, knuckle_bridge]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, towers_box, rear_box, knuckle_bridge]).removeSplitter()
 
-    # 2. Cut open interior cavities while preserving inner enclosure wall at X in [38.0, 48.0mm], Y in [185.0, 240.0mm]
-    # Lower main cavity (Y = 15 to 185mm, X = 25 to 225mm)
-    cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 170.0 * SCALE, t + 2.0)
+    # 2. Cut open interior cavities while preserving inner enclosure wall at X in [38.0, 48.0mm], Y in [185.0, 240.0mm] and full transverse bridge wall at Y in [170.0, 185.0mm]
+    # Lower main cavity (Y = 15 to 170mm, X = 25 to 225mm)
+    cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 155.0 * SCALE, t + 2.0)
     cav_main_lower.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
-    # Upper main cavity (Y = 185 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
-    cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 40.0 * SCALE, t + 2.0)
-    cav_main_upper.translate(App.Vector(48.0 * SCALE, 185.0 * SCALE, -1.0))
+    # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall and full transverse wall
+    cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
+    cav_main_upper.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -1.0))
 
     # Left rail interior cavity
     cav_left = Part.makeBox(tie_x + 0.5, k_top_start_y - knuckle_len, t + 2.0)
@@ -148,14 +153,14 @@ def construct_motorized_frame():
     for b in [bot_bore, top_bore, adapter_bore, trim_bot]:
         frame = frame.cut(b).removeSplitter()
 
-    # 4. Slide-in Servo Bay Cavity with Solid Front Towers, Inner Enclosure Wall, and Open Rear Slot (Y=240mm):
-    # Main motor body pocket opening through rear wall at Y=240mm (X in [-11.0, 31.0mm], Y in [185.0, 242.0mm], Z in [0.0, t+6.0])
-    pocket_body = Part.makeBox(42.0 * SCALE, 57.0 * SCALE, t + 6.0)
+    # 4. Slide-in Servo Bay Cavity with Solid Front Towers (height up to Z=21.2mm), Inner Enclosure Wall, and Open Rear Slot (Y=240mm):
+    # Main motor body pocket opening through rear wall at Y=240mm (X in [-11.0, 31.0mm], Y in [185.0, 242.0mm], Z in [0.0, 23.0mm])
+    pocket_body = Part.makeBox(42.0 * SCALE, 57.0 * SCALE, 23.0 * SCALE)
     pocket_body.translate(App.Vector(-11.0 * SCALE, 185.0 * SCALE, 0.0))
 
-    # Mounting Ear Recess Bay behind the solid towers (X in [-17.5, 38.0mm], Y in [195.5, 242.0mm], Z in [0.0, 18.0mm])
-    # Solid towers are preserved in front at Y in [185.0, 195.5mm]
-    pocket_ears_slide = Part.makeBox(55.5 * SCALE, 46.5 * SCALE, t + 6.0)
+    # Mounting Ear Recess Bay behind the solid towers (X in [-17.5, 38.0mm], Y in [195.5, 242.0mm], Z in [0.0, 23.0mm])
+    # Solid towers are preserved in front at Y in [185.0, 195.5mm] with height Z=21.2mm, fully enclosing top screw holes
+    pocket_ears_slide = Part.makeBox(55.5 * SCALE, 46.5 * SCALE, 23.0 * SCALE)
     pocket_ears_slide.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, 0.0))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing through the solid towers along Y-axis:
@@ -177,10 +182,10 @@ def construct_motorized_frame():
     ]
 
     # Slide-in lid retention channels along side walls
-    groove_l = Part.makeBox(2.5 * SCALE, 56.0 * SCALE, 2.0 * SCALE)
-    groove_l.translate(App.Vector(-18.5 * SCALE, 185.0 * SCALE, 13.4 * SCALE))
-    groove_r = Part.makeBox(2.5 * SCALE, 56.0 * SCALE, 2.0 * SCALE)
-    groove_r.translate(App.Vector(42.0 * SCALE, 185.0 * SCALE, 13.4 * SCALE))
+    groove_l = Part.makeBox(2.5 * SCALE, 45.0 * SCALE, 2.0 * SCALE)
+    groove_l.translate(App.Vector(-18.5 * SCALE, 195.5 * SCALE, 13.4 * SCALE))
+    groove_r = Part.makeBox(2.5 * SCALE, 45.0 * SCALE, 2.0 * SCALE)
+    groove_r.translate(App.Vector(42.0 * SCALE, 195.5 * SCALE, 13.4 * SCALE))
 
     # Wire exit conduit through inner enclosure wall into interior cavity
     pocket_wire = Part.makeBox(14.0 * SCALE, 12.0 * SCALE, 10.0 * SCALE)

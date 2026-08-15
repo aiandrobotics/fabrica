@@ -69,8 +69,8 @@ def construct_motorized_flap():
     cut_mid_k = Part.makeBox(14.0 * SCALE, 17.0 * SCALE, t + 2.0)
     cut_mid_k.translate(App.Vector(-0.5 * SCALE, 169.5 * SCALE, panel_z_min - 1.0))
 
-    cut_motor = Part.makeBox(45.0 * SCALE, 55.0 * SCALE, t + 2.0)
-    cut_motor.translate(App.Vector(-0.5 * SCALE, 185.5 * SCALE, panel_z_min - 1.0))
+    cut_motor = Part.makeBox(49.0 * SCALE, 56.0 * SCALE, t + 10.0)
+    cut_motor.translate(App.Vector(-0.5 * SCALE, 184.8 * SCALE, panel_z_min - 1.0))
 
     blade = blade.cut(Part.makeCompound([cut_bot, cut_mid_k, cut_motor])).removeSplitter()
 
