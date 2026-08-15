@@ -26,6 +26,7 @@ from params import (
 
 from motorized_frame import construct_motorized_frame
 from motorized_flap import construct_motorized_flap
+from servo_drive_adapter import construct_servo_drive_adapter
 from motorized_servo_cover import construct_motorized_servo_cover
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
@@ -33,7 +34,7 @@ from hex_drive_coupler import construct_hex_drive_coupler
 def construct_servo_cad_reference():
     """
     Loads and positions the real MG996R STEP solid reference model in horizontal orientation.
-    Spline output aligns directly with flap hinge axis at (X=0, Z=PIVOT_Z), protruding into flap at Y=185.0mm.
+    Spline output aligns directly with flap hinge axis at (X=0, Z=PIVOT_Z), protruding into adapter at Y=185.0mm.
     """
     step_paths = [
         os.path.join(SCRIPT_DIR, "..", "specs", "reference-images", "mg996r.step"),
@@ -71,7 +72,8 @@ def build_motorized_assembly():
     3. Flush Slide-In Servo Cover (Slate Black)
     4. 2x Frame Joiners (Blue)
     5. Modular Hex Drive Coupler Pin (Purple)
-    6. MG996R Horizontal Servo Motor Solid (Cyan)
+    6. Modular Servo Drive Adapter (Orange)
+    7. MG996R Horizontal Servo Motor Solid (Cyan)
     """
     for doc_name in list(App.listDocuments().keys()):
         App.closeDocument(doc_name)
@@ -89,21 +91,28 @@ def build_motorized_assembly():
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
         frame_obj.ViewObject.ShapeColor = (0.95, 0.78, 0.20)
 
-    # 2. Active Folding Flap
+    # 2. Active Folding Flap (Red)
     flap_shape = construct_motorized_flap()
     flap_obj = doc.addObject("Part::Feature", "MotorizedFlap")
     flap_obj.Shape = flap_shape
     if hasattr(flap_obj, "ViewObject") and flap_obj.ViewObject:
         flap_obj.ViewObject.ShapeColor = (0.85, 0.20, 0.20)
 
-    # 3. Flush Low-Profile Servo Cover
+    # 3. Modular Circular Servo Horn Drive Adapter (Orange)
+    adapter_shape = construct_servo_drive_adapter()
+    adapter_obj = doc.addObject("Part::Feature", "ServoDriveAdapter")
+    adapter_obj.Shape = adapter_shape
+    if hasattr(adapter_obj, "ViewObject") and adapter_obj.ViewObject:
+        adapter_obj.ViewObject.ShapeColor = (0.90, 0.50, 0.15)
+
+    # 4. Flush Low-Profile Servo Cover (Purple/Slate)
     cover_shape = construct_motorized_servo_cover()
     cover_obj = doc.addObject("Part::Feature", "MotorizedServoCover")
     cover_obj.Shape = cover_shape
     if hasattr(cover_obj, "ViewObject") and cover_obj.ViewObject:
-        cover_obj.ViewObject.ShapeColor = (0.20, 0.22, 0.25)
+        cover_obj.ViewObject.ShapeColor = (0.50, 0.25, 0.60)
 
-    # 4. Front Interlocking Bridge Joiner (Blue)
+    # 5. Front Interlocking Bridge Joiner (Blue)
     joiner_shape = construct_frame_joiner()
     joiner_front = doc.addObject("Part::Feature", "FrameJoiner_Front")
     joiner_front.Shape = joiner_shape.copy()
@@ -114,7 +123,7 @@ def build_motorized_assembly():
     if hasattr(joiner_front, "ViewObject") and joiner_front.ViewObject:
         joiner_front.ViewObject.ShapeColor = (0.20, 0.40, 0.85)
 
-    # 5. Right Interlocking Bridge Joiner (Blue)
+    # 6. Right Interlocking Bridge Joiner (Blue)
     joiner_right = doc.addObject("Part::Feature", "FrameJoiner_Right")
     joiner_right.Shape = joiner_shape.copy()
     joiner_right.Placement = App.Placement(
@@ -124,7 +133,7 @@ def build_motorized_assembly():
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
         joiner_right.ViewObject.ShapeColor = (0.20, 0.40, 0.85)
 
-    # 6. Modular Double-Male Hex Drive Coupler Pin (Purple)
+    # 7. Modular Double-Male Hex Drive Coupler Pin (Yellow)
     coupler_shape = construct_hex_drive_coupler()
     coupler_obj = doc.addObject("Part::Feature", "HexDriveCoupler")
     coupler_obj.Shape = coupler_shape
@@ -133,41 +142,33 @@ def build_motorized_assembly():
         App.Rotation(App.Vector(0, 0, 1), 0)
     )
     if hasattr(coupler_obj, "ViewObject") and coupler_obj.ViewObject:
-        coupler_obj.ViewObject.ShapeColor = (0.60, 0.20, 0.80)
+        coupler_obj.ViewObject.ShapeColor = (0.90, 0.85, 0.20)
 
-    # 7. ServoMotor Reference Solid (Cyan)
+    # 8. ServoMotor Reference Solid (Cyan)
     servo_shape = construct_servo_cad_reference()
     servo_obj = doc.addObject("Part::Feature", "ServoMotor")
     servo_obj.Shape = servo_shape
     if hasattr(servo_obj, "ViewObject") and servo_obj.ViewObject:
-        servo_obj.ViewObject.ShapeColor = (0.15, 0.65, 0.75)
+        servo_obj.ViewObject.ShapeColor = (0.20, 0.80, 0.90)
 
-    doc.recompute()
-    return doc
-
-def export_part():
-    """Exports STEP and STL files to EXPORT_DIR."""
-    os.makedirs(EXPORT_DIR, exist_ok=True)
-    doc = build_motorized_assembly()
-
+    # Compound and Export Assembly
+    comp = Part.makeCompound([
+        frame_shape,
+        flap_shape,
+        adapter_shape,
+        cover_shape,
+        joiner_front.Shape,
+        joiner_right.Shape,
+        coupler_shape,
+        servo_shape
+    ])
     step_path = os.path.join(EXPORT_DIR, "motorized_assembly.step")
     stl_path  = os.path.join(EXPORT_DIR, "motorized_assembly.stl")
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+    comp.exportStep(step_path)
+    comp.exportStl(stl_path)
+    print("Successfully exported motorized_assembly.step and motorized_assembly.stl")
+    return doc
 
-    for path in (step_path, stl_path):
-        if os.path.exists(path):
-            os.remove(path)
-
-    shapes = []
-    for obj in doc.Objects:
-        if hasattr(obj, "Shape"):
-            s = obj.Shape.copy()
-            if hasattr(obj, "Placement"):
-                s.transformGeometry(obj.Placement.toMatrix())
-            shapes.append(s)
-
-    compound = Part.makeCompound(shapes)
-    compound.exportStep(step_path)
-    compound.exportStl(stl_path)
-    print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
-
-export_part()
+if __name__ == "__main__":
+    build_motorized_assembly()

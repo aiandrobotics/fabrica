@@ -133,16 +133,19 @@ def construct_motorized_frame():
     for cav in [cav_main_lower, cav_main_upper, cav_left, cav_tie]:
         frame = frame.cut(cav).removeSplitter()
 
-    # 3. Hinge Bearing Bores
+    # 3. Hinge Bearing Bores & Adapter Disk Rotating Clearance Pocket
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     top_bore = Part.makeCylinder(bore_r, k_top_len + 0.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
+    # 7mm Adapter Disk Clearance Counterbore (Ø20.0mm for Ø19.0mm disk spanning Y=177.5 to 185.1mm)
+    adapter_bore = Part.makeCylinder(10.0 * SCALE, 7.6 * SCALE, App.Vector(0, 177.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
+
     # Planar bottom trim at Z=0.0mm (ensuring base of motor frame is 100% flat)
     trim_bot = Part.makeBox(w + 50.0, h + 50.0, 20.0)
     trim_bot.translate(App.Vector(-25.0, -25.0, -20.0))
 
-    for b in [bot_bore, top_bore, trim_bot]:
+    for b in [bot_bore, top_bore, adapter_bore, trim_bot]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Slide-in Servo Bay Cavity with Solid Front Towers, Inner Enclosure Wall, and Open Rear Slot (Y=240mm):
