@@ -35,8 +35,8 @@ Implementation plan for the Passive Follower Module of the Fabrica Cloth Folding
 
 ---
 
-## Task Group 4: Follower Sub-Assembly & Kinematics (`assembly_follower_module.py`)
+## Task Group 4: Follower Sub-Assembly & Kinematics (`assembly.py`)
 1. Assemble Follower Frame (Green), Full-Size Flap (Orange), Frame Joiners (Blue), and Compact Hex Drive Coupler (Purple).
 2. Position the flap seated inside the frame with axle ends rotating in closed knuckles.
 3. Validate kinematic $0^\circ \to 90^\circ \to 180^\circ$ full swing over onto the center base panel with zero collision (`0.00000 mm³` overlap).
-4. Export `assembly_follower_module.step` and `assembly_follower_module.stl`.
+4. Export `assembly.step` and `assembly.stl`.

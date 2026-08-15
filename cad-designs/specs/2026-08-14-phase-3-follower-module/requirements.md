@@ -100,7 +100,7 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 
 ---
 
-## 2.4 Follower Module Sub-Assembly (`assembly_follower_module.py`)
+## 2.4 Follower Module Sub-Assembly (`assembly.py`)
 - **Components**:
   1. Follower Frame (Green `#2ecc71`).
   2. Follower Flap with $\varnothing 13\text{ mm}$ Axle (Orange `#e67e22`).
