@@ -85,10 +85,13 @@ def construct_motorized_servo_adapter():
         ang = math.radians(90.0 * i)
         sx = pcd_r * math.cos(ang)
         sz = pivot_z + pcd_r * math.sin(ang)
-        cb = Part.makeCylinder(cb_r, cb_depth + 0.1, App.Vector(sx, y_front - 0.1, sz), App.Vector(0, 1, 0))
-        counterbores.append(cb)
+    # 5. Central 2.0mm Hub/Screw Clearance Pocket on Rear Contact Face (Ø8.5mm x 2.0mm deep at Y in [183.0, 185.0mm])
+    # Clears any central protrusion, raised boss, or M3 spline screw head on the MG996R round horn disk
+    rear_pocket_r = 4.25 * SCALE
+    rear_pocket_depth = 2.0 * SCALE
+    rear_pocket = Part.makeCylinder(rear_pocket_r, rear_pocket_depth + 0.1, App.Vector(0, y_rear - rear_pocket_depth, pivot_z), App.Vector(0, 1, 0))
 
-    cutters = screw_holes + counterbores
+    cutters = screw_holes + counterbores + [rear_pocket]
     adapter = adapter.cut(Part.makeCompound(cutters)).removeSplitter()
 
     # Export STEP and STL
