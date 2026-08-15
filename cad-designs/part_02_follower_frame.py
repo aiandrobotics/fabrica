@@ -41,7 +41,7 @@ def create_follower_frame():
     1. 4-Sided Rigid Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
        - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm) with clean integrated direct male-female dovetail joint at Y=120mm.
-       - Bottom Half has integrated male dovetail tab; Top Half has matching female dovetail socket with zero floating slivers.
+       - Bottom Half has integrated male dovetail tab; Top Half has matching female dovetail socket with zero floating slivers and zero corner steps.
        - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
     3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
@@ -167,7 +167,7 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. Clean Interlocking Dovetail Parting Line on 4th Wall (Zero Floating Slivers)
+    # 6. Perfectly Sharp, Razor-Clean Interlocking Dovetail Clearance Channel (Zero Corner Steps/Doglegs)
     dt4_neck_w = 6.0 * SCALE
     dt4_flare_w = 10.0 * SCALE
     dt4_depth = 8.0 * SCALE
@@ -178,23 +178,23 @@ def create_follower_frame():
     y_seam = h / 2.0
 
     poly_pts = [
-        # Top boundary (+Y side of parting line)
-        App.Vector(x_min, y_seam + (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_neck_w / 2.0), y_seam + (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_flare_w / 2.0), y_seam + dt4_depth + (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_flare_w / 2.0), y_seam + dt4_depth + (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_neck_w / 2.0), y_seam + (gap / 2.0), 0),
-        App.Vector(x_max, y_seam + (gap / 2.0), 0),
+        # Top edge of channel (Female Pocket boundary)
+        App.Vector(x_min, y_seam + gap, 0),
+        App.Vector(center_x - (dt4_neck_w / 2.0) - gap, y_seam + gap, 0),
+        App.Vector(center_x - (dt4_flare_w / 2.0) - gap, y_seam + dt4_depth + gap, 0),
+        App.Vector(center_x + (dt4_flare_w / 2.0) + gap, y_seam + dt4_depth + gap, 0),
+        App.Vector(center_x + (dt4_neck_w / 2.0) + gap, y_seam + gap, 0),
+        App.Vector(x_max, y_seam + gap, 0),
         
-        # Bottom boundary (-Y side of parting line)
-        App.Vector(x_max, y_seam - (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_neck_w / 2.0) + gap, y_seam - (gap / 2.0), 0),
-        App.Vector(center_x + (dt4_flare_w / 2.0) + gap, y_seam + dt4_depth - (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_flare_w / 2.0) - gap, y_seam + dt4_depth - (gap / 2.0), 0),
-        App.Vector(center_x - (dt4_neck_w / 2.0) - gap, y_seam - (gap / 2.0), 0),
-        App.Vector(x_min, y_seam - (gap / 2.0), 0),
+        # Bottom edge of channel (Male Tab boundary)
+        App.Vector(x_max, y_seam, 0),
+        App.Vector(center_x + (dt4_neck_w / 2.0), y_seam, 0),
+        App.Vector(center_x + (dt4_flare_w / 2.0), y_seam + dt4_depth, 0),
+        App.Vector(center_x - (dt4_flare_w / 2.0), y_seam + dt4_depth, 0),
+        App.Vector(center_x - (dt4_neck_w / 2.0), y_seam, 0),
+        App.Vector(x_min, y_seam, 0),
         
-        App.Vector(x_min, y_seam + (gap / 2.0), 0),
+        App.Vector(x_min, y_seam + gap, 0),
     ]
 
     dt4_cutter = Part.Face(Part.makePolygon(poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
