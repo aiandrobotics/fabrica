@@ -40,7 +40,7 @@ def create_follower_frame():
     Features:
     1. 4-Sided Rigid Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
-       - 4th Left Wall (X=10 to 22mm, Z=0 to 3mm) with integrated direct male-female dovetail joint at Y=120mm.
+       - 4th Left Wall (X=10 to 22mm, Z=0 to 3mm) with visible integrated direct male-female dovetail joint at Y=120mm.
        - Bottom Half has integrated male dovetail tab; Top Half has matching female dovetail socket with 0.15mm tolerance.
        - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
@@ -101,9 +101,9 @@ def create_follower_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    # Reinforced Center Dovetail Boss on 4th Wall (at Y in [105, 135mm], X in [8, 24mm])
-    boss_w = 16.0 * SCALE
-    boss_l = 30.0 * SCALE
+    # Reinforced Center Dovetail Boss on 4th Wall (at Y in [100, 140mm], X in [6, 26mm])
+    boss_w = 20.0 * SCALE
+    boss_l = 40.0 * SCALE
     boss = Part.makeBox(boss_w, boss_l, tie_h)
     boss.translate(App.Vector(center_x - boss_w / 2.0, (h / 2.0) - (boss_l / 2.0), 0))
 
@@ -176,40 +176,40 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. Integrated Interlocking Male-Female Dovetail Joint Outline at Y = 120mm (Dividing 4th Wall)
-    tab_neck_w = 6.0 * SCALE
-    tab_flare_w = 10.0 * SCALE
-    tab_depth = 8.0 * SCALE
-    clr = PRESS_FIT_CLEARANCE # 0.15mm
-    
-    # Female Pocket Outline Cut (0.15mm clearance slot around dovetail contour)
-    pocket_cut_pts = [
-        App.Vector(-(tab_neck_w / 2.0) - clr, 0, 0),
-        App.Vector((tab_neck_w / 2.0) + clr, 0, 0),
-        App.Vector((tab_flare_w / 2.0) + clr, tab_depth + clr, 0),
-        App.Vector(-(tab_flare_w / 2.0) - clr, tab_depth + clr, 0),
-        App.Vector(-(tab_neck_w / 2.0) - clr, 0, 0),
-    ]
-    # Seam separation cut dividing the two halves with dovetail contour
-    seam_pts_left = [
-        App.Vector(center_x - (boss_w / 2.0) - 1.0, (h / 2.0) - (clr / 2.0), -1.0),
-        App.Vector(center_x - (tab_neck_w / 2.0) - clr, (h / 2.0) - (clr / 2.0), -1.0),
-        App.Vector(center_x - (tab_neck_w / 2.0) - clr, (h / 2.0) + (clr / 2.0), -1.0),
-        App.Vector(center_x - (boss_w / 2.0) - 1.0, (h / 2.0) + (clr / 2.0), -1.0),
-        App.Vector(center_x - (boss_w / 2.0) - 1.0, (h / 2.0) - (clr / 2.0), -1.0),
-    ]
-    seam_left = Part.Face(Part.makePolygon(seam_pts_left)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    # 6. True Visible Integrated Interlocking Dovetail Joint Ribbon Cut at Y = 120mm on 4th Wall
+    dt4_neck_w = 6.0 * SCALE
+    dt4_flare_w = 12.0 * SCALE
+    dt4_depth = 10.0 * SCALE
+    gap = 0.3 * SCALE  # 0.3mm visible separation clearance gap
 
-    seam_pts_right = [
-        App.Vector(center_x + (tab_neck_w / 2.0) + clr, (h / 2.0) - (clr / 2.0), -1.0),
-        App.Vector(center_x + (boss_w / 2.0) + 1.0, (h / 2.0) - (clr / 2.0), -1.0),
-        App.Vector(center_x + (boss_w / 2.0) + 1.0, (h / 2.0) + (clr / 2.0), -1.0),
-        App.Vector(center_x + (tab_neck_w / 2.0) + clr, (h / 2.0) + (clr / 2.0), -1.0),
-        App.Vector(center_x + (tab_neck_w / 2.0) + clr, (h / 2.0) - (clr / 2.0), -1.0),
-    ]
-    seam_right = Part.Face(Part.makePolygon(seam_pts_right)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    x_left = center_x - (boss_w / 2.0) - 2.0 * SCALE
+    x_right = center_x + (boss_w / 2.0) + 2.0 * SCALE
+    y_mid = h / 2.0
 
-    dt_cutters.extend([seam_left, seam_right])
+    dt_contour_pts = [
+        # Top ribbon contour (+Y offset)
+        App.Vector(x_left, y_mid + (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_neck_w / 2.0) - (gap / 2.0), y_mid + (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_flare_w / 2.0) - (gap / 2.0), y_mid + dt4_depth + (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_flare_w / 2.0) + (gap / 2.0), y_mid + dt4_depth + (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_neck_w / 2.0) + (gap / 2.0), y_mid + (gap / 2.0), 0),
+        App.Vector(x_right, y_mid + (gap / 2.0), 0),
+        
+        # Bottom ribbon contour (-Y offset)
+        App.Vector(x_right, y_mid - (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_neck_w / 2.0) - (gap / 2.0), y_mid - (gap / 2.0), 0),
+        App.Vector(center_x + (dt4_flare_w / 2.0) - (gap / 2.0), y_mid + dt4_depth - (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_flare_w / 2.0) + (gap / 2.0), y_mid + dt4_depth - (gap / 2.0), 0),
+        App.Vector(center_x - (dt4_neck_w / 2.0) + (gap / 2.0), y_mid - (gap / 2.0), 0),
+        App.Vector(x_left, y_mid - (gap / 2.0), 0),
+        
+        App.Vector(x_left, y_mid + (gap / 2.0), 0),
+    ]
+
+    dt_ribbon = Part.Face(Part.makePolygon(dt_contour_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    dt_ribbon.translate(App.Vector(0, 0, -1.0))
+    dt_cutters.append(dt_ribbon)
+
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
     # 7. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
