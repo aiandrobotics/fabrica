@@ -103,11 +103,8 @@ def construct_servo_drive_adapter():
     print(f"Exported to {step_path} and {stl_path}")
     return adapter
 
-def main():
-    doc = App.newDocument("ServoDriveAdapter")
-    shape = construct_servo_drive_adapter()
-    feature = doc.addObject("Part::Feature", "ServoDriveAdapter")
-    feature.Shape = shape
+def export_part():
+    construct_servo_drive_adapter()
 
-if __name__ == "__main__":
-    main()
+export_part()
+

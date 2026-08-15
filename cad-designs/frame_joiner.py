@@ -153,11 +153,8 @@ def construct_frame_joiner():
     print(f"Exported to {step_path} and {stl_path}")
     return joiner_solid
 
-def main():
-    doc = App.newDocument("FrameJoiner")
-    shape = construct_frame_joiner()
-    feature = doc.addObject("Part::Feature", "FrameJoiner")
-    feature.Shape = shape
+def export_part():
+    construct_frame_joiner()
 
-if __name__ == "__main__":
-    main()
+export_part()
+

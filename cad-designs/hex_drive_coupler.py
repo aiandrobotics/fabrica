@@ -81,11 +81,8 @@ def construct_hex_drive_coupler():
     print(f"Exported to {step_path} and {stl_path}")
     return coupler
 
-def main():
-    doc = App.newDocument("HexDriveCoupler")
-    shape = construct_hex_drive_coupler()
-    feature = doc.addObject("Part::Feature", "HexDriveCoupler")
-    feature.Shape = shape
+def export_part():
+    construct_hex_drive_coupler()
 
-if __name__ == "__main__":
-    main()
+export_part()
+

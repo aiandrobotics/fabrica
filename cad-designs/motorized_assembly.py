@@ -167,8 +167,12 @@ def build_motorized_assembly():
     os.makedirs(EXPORT_DIR, exist_ok=True)
     comp.exportStep(step_path)
     comp.exportStl(stl_path)
-    print("Successfully exported motorized_assembly.step and motorized_assembly.stl")
+    print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
     return doc
 
-if __name__ == "__main__":
+def export_part():
+    """Exports assembly STEP and STL files."""
     build_motorized_assembly()
+
+export_part()
+

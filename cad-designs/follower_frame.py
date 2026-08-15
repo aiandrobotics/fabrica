@@ -258,11 +258,8 @@ def construct_follower_frame():
     print(f"Exported to {step_path} and {stl_path}")
     return frame
 
-def main():
-    doc = App.newDocument("FollowerFrame")
-    shape = construct_follower_frame()
-    feature = doc.addObject("Part::Feature", "FollowerFrame")
-    feature.Shape = shape
+def export_part():
+    construct_follower_frame()
 
-if __name__ == "__main__":
-    main()
+export_part()
+

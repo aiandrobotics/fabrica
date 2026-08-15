@@ -196,11 +196,8 @@ def construct_follower_flap():
     print(f"Exported to {step_path} and {stl_path}")
     return flap
 
-def main():
-    doc = App.newDocument("FollowerFlap")
-    shape = construct_follower_flap()
-    feature = doc.addObject("Part::Feature", "FollowerFlap")
-    feature.Shape = shape
+def export_part():
+    construct_follower_flap()
 
-if __name__ == "__main__":
-    main()
+export_part()
+

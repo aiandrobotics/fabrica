@@ -175,11 +175,8 @@ def construct_motorized_flap():
     print(f"Exported to {step_path} and {stl_path}")
     return flap
 
-def main():
-    doc = App.newDocument("MotorizedFlap")
-    shape = construct_motorized_flap()
-    feature = doc.addObject("Part::Feature", "MotorizedFlap")
-    feature.Shape = shape
+def export_part():
+    construct_motorized_flap()
 
-if __name__ == "__main__":
-    main()
+export_part()
+
