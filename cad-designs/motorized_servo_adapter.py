@@ -66,10 +66,7 @@ def construct_motorized_servo_adapter():
 
     adapter = flange.fuse(hex_peg).removeSplitter()
 
-    # 3. Central M3 Screwdriver Access Through-Hole (Ø6.5mm)
-    center_hole = Part.makeCylinder(3.25 * SCALE, disk_t + peg_len + 2.0, App.Vector(0, y_front - peg_len - 1.0, pivot_z), App.Vector(0, 1, 0))
-
-    # 4. 4x M2/M2.5 Mounting Screw Clearance Holes (Ø2.2mm) on Ø14.0mm PCD (R = 7.0mm)
+    # 3. 4x M2/M2.5 Mounting Screw Clearance Holes (Ø2.2mm) on Ø14.0mm PCD (R = 7.0mm)
     pcd_r = 7.0 * SCALE
     screw_r = 1.1 * SCALE
     screw_holes = []
@@ -80,7 +77,7 @@ def construct_motorized_servo_adapter():
         sh = Part.makeCylinder(screw_r, disk_t + 2.0, App.Vector(sx, y_front - 1.0, sz), App.Vector(0, 1, 0))
         screw_holes.append(sh)
 
-    # 5. M2/M2.5 Screw Head Counterbores on front face (Ø4.2mm x 2.5mm deep at Y in [178.0, 180.5mm])
+    # 4. M2/M2.5 Screw Head Counterbores on front face (Ø4.2mm x 2.5mm deep at Y in [178.0, 180.5mm])
     cb_r = 2.1 * SCALE
     cb_depth = 2.5 * SCALE
     counterbores = []
@@ -91,7 +88,7 @@ def construct_motorized_servo_adapter():
         cb = Part.makeCylinder(cb_r, cb_depth + 0.1, App.Vector(sx, y_front - 0.1, sz), App.Vector(0, 1, 0))
         counterbores.append(cb)
 
-    cutters = [center_hole] + screw_holes + counterbores
+    cutters = screw_holes + counterbores
     adapter = adapter.cut(Part.makeCompound(cutters)).removeSplitter()
 
     # Export STEP and STL
@@ -103,10 +100,13 @@ def construct_motorized_servo_adapter():
     print(f"Exported to {step_path} and {stl_path}")
     return adapter
 
-# Alias for backward compatibility
-construct_servo_drive_adapter = construct_motorized_servo_adapter
+def main():
+    doc = App.ActiveDocument or App.newDocument("MotorizedServoAdapter")
+    shape = construct_motorized_servo_adapter()
+    feature = doc.addObject("Part::Feature", "MotorizedServoAdapter")
+    feature.Shape = shape
 
 def export_part():
-    construct_motorized_servo_adapter()
+    main()
 
 export_part()
