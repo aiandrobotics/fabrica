@@ -1,6 +1,13 @@
 # Changelog
 
 ## 2026-08-14
+- Implemented Phase 3 Passive Follower Module (`part_02_follower_frame.py`, `part_03_follower_flap.py`, `part_11_hex_drive_coupler.py`, `assembly_follower_module.py`) with 0.000 mm³ interference across all components.
+- Designed 4-sided open-bottom follower frame with integrated male-female interlocking dovetail joint on the 4th stiffener tie-bar (flush at Z=3.0mm with 0.25mm clearance and zero floating slivers).
+- Added 4x bottom anti-slip grip foot sockets (Ø12.0mm x 2.0mm) and top-rail silent-flip TPU bumper landing slots.
+- Implemented dual 100% solid 360° closed cylindrical bearing knuckles with C1-continuous concave blend transition ramps.
+- Designed full-size 240x240mm rotating follower flap resting on frame rails with continuous full-length Ø13.0mm drive axle, dual 8.0mm female hex torque sockets, and gradient circular weight-reduction cutouts (~45% mass reduction).
+- Modeled compact 31.0mm solid double-male hex drive coupler bridging 10.0mm inter-module gaps with cylindrical bearing journal.
+- Updated true open-top sliding dovetail sockets with Ø6.0mm through-floor push-out access holes across base and follower chassis.
 - Optimized `part_10_frame_joiner.py` for fast headless execution, eliminating boolean meshing bottlenecks during STEP and STL export.
 - Redesigned Click-Lock Dovetail Frame Joiner to be 100% 3-axis symmetrical ($X, Y, Z$) for zero-orientation Poka-Yoke assembly.
 - Enlarged internal wire raceway in `part_10_frame_joiner.py` to $5.8\text{ mm} \times 7.2\text{ mm}$ with filleted corners to accommodate pre-crimped 3-pin servo connectors and multi-wire harnesses.
