@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower Frame with Integrated Interlocking Dovetail Joint
+part_02_follower_frame.py — Passive Follower Frame with Large Robust Snap-Lock Dovetail Joint
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -35,13 +35,14 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
     """
-    Constructs the Passive Follower Frame with Integrated Male-Female Interlocking Dovetail Joint.
+    Constructs the Passive Follower Frame with Large Robust Snap-Lock Dovetail Joint.
     
     Features:
     1. 4-Sided Rigid Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
-       - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm) with clean integrated direct male-female dovetail joint at Y=120mm.
-       - Bottom Half has integrated male dovetail tab; Top Half has matching female dovetail socket with zero floating slivers and zero corner steps.
+       - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm) with 20mm reinforced center boss at Y=120mm.
+       - Large Robust Snap-Lock Dovetail (8mm neck -> 14mm flare x 12mm depth) with dual Ø3.5mm detent bumps (0.8mm positive lock)
+         and dual compliant flex-cantilever relief slots (1.2mm x 7.0mm) for a strong, satisfying mechanical click-lock.
        - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
     3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
@@ -60,6 +61,7 @@ def create_follower_frame():
     tie_h = 3.0 * SCALE
     tie_x = 11.0 * SCALE
     center_x = tie_x + (tie_w / 2.0) # 18.0mm
+    boss_w = 20.0 * SCALE
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -101,17 +103,31 @@ def create_follower_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
+    # Reinforced Center Boss on 4th Wall (Width 20mm, Y from 110 to 137mm with 45-deg chamfer transitions)
+    boss_pts = [
+        App.Vector(center_x - tie_w / 2.0, (h / 2.0) - 13.0 * SCALE, 0),
+        App.Vector(center_x - boss_w / 2.0, (h / 2.0) - 10.0 * SCALE, 0),
+        App.Vector(center_x - boss_w / 2.0, (h / 2.0) + 17.0 * SCALE, 0),
+        App.Vector(center_x - tie_w / 2.0, (h / 2.0) + 20.0 * SCALE, 0),
+        App.Vector(center_x + tie_w / 2.0, (h / 2.0) + 20.0 * SCALE, 0),
+        App.Vector(center_x + boss_w / 2.0, (h / 2.0) + 17.0 * SCALE, 0),
+        App.Vector(center_x + boss_w / 2.0, (h / 2.0) - 10.0 * SCALE, 0),
+        App.Vector(center_x + tie_w / 2.0, (h / 2.0) - 13.0 * SCALE, 0),
+        App.Vector(center_x - tie_w / 2.0, (h / 2.0) - 13.0 * SCALE, 0),
+    ]
+    boss_face = Part.Face(Part.makePolygon(boss_pts)).extrude(App.Vector(0, 0, tie_h))
 
-    # 3. Open Interior Cavities (preserving straight 14mm tie-bar at X in [11, 25mm], Z in [0, 3mm])
+    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top, boss_face])).removeSplitter()
+
+    # 3. Open Interior Cavities (preserving tie-bar at X in [11, 25mm], Z in [0, 3mm], and boss)
     cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
     cav_left = Part.makeBox(tie_x + 0.5, h - 2 * knuckle_len, t + 2.0)
     cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
 
-    cav_tie_top = Part.makeBox(tie_w + 0.2, h - 2 * knuckle_len, t - tie_h + 2.0)
-    cav_tie_top.translate(App.Vector(tie_x - 0.1, knuckle_len, tie_h))
+    cav_tie_top = Part.makeBox(boss_w + 4.0 * SCALE, h - 2 * knuckle_len, t - tie_h + 2.0)
+    cav_tie_top.translate(App.Vector(center_x - (boss_w + 4.0 * SCALE) / 2.0, knuckle_len, tie_h))
 
     frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
 
@@ -167,39 +183,102 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. Perfectly Sharp, Razor-Clean Interlocking Dovetail Clearance Channel (Zero Corner Steps/Doglegs)
-    dt4_neck_w = 6.0 * SCALE
-    dt4_flare_w = 10.0 * SCALE
-    dt4_depth = 8.0 * SCALE
+    # 6. Large Robust Snap-Lock Dovetail Joint with Dual Rounded Detent Bumps and Flex-Relief Slots
+    dt_lk_neck = 8.0 * SCALE
+    dt_lk_flare = 14.0 * SCALE
+    dt_lk_depth = 12.0 * SCALE
     gap = 0.25 * SCALE
-
-    x_min = tie_x - (2.0 * SCALE)
-    x_max = tie_x + tie_w + (2.0 * SCALE)
+    detent_h = 0.8 * SCALE
     y_seam = h / 2.0
 
-    poly_pts = [
-        # Top edge of channel (Female Pocket boundary)
-        App.Vector(x_min, y_seam + gap, 0),
-        App.Vector(center_x - (dt4_neck_w / 2.0) - gap, y_seam + gap, 0),
-        App.Vector(center_x - (dt4_flare_w / 2.0) - gap, y_seam + dt4_depth + gap, 0),
-        App.Vector(center_x + (dt4_flare_w / 2.0) + gap, y_seam + dt4_depth + gap, 0),
-        App.Vector(center_x + (dt4_neck_w / 2.0) + gap, y_seam + gap, 0),
-        App.Vector(x_max, y_seam + gap, 0),
-        
-        # Bottom edge of channel (Male Tab boundary)
-        App.Vector(x_max, y_seam, 0),
-        App.Vector(center_x + (dt4_neck_w / 2.0), y_seam, 0),
-        App.Vector(center_x + (dt4_flare_w / 2.0), y_seam + dt4_depth, 0),
-        App.Vector(center_x - (dt4_flare_w / 2.0), y_seam + dt4_depth, 0),
-        App.Vector(center_x - (dt4_neck_w / 2.0), y_seam, 0),
+    x_min = center_x - (boss_w / 2.0) - (2.0 * SCALE)
+    x_max = center_x + (boss_w / 2.0) + (2.0 * SCALE)
+
+    hyp = math.hypot(12.0, 3.0)
+    nx = -12.0 / hyp
+    ny = -3.0 / hyp
+
+    num_d = 5
+    detent_offsets = []
+    for i in range(num_d):
+        t_frac = float(i) / (num_d - 1)
+        h_bump = detent_h * math.sin(t_frac * math.pi)
+        detent_offsets.append((t_frac, h_bump))
+
+    # Male tab left flank
+    male_left_flank = []
+    for t_frac, h_bump in detent_offsets:
+        t_pos = 0.3 + t_frac * 0.4
+        px = center_x - (4.0 * SCALE) + t_pos * (-3.0 * SCALE) + nx * h_bump
+        py = y_seam + t_pos * (12.0 * SCALE) + ny * h_bump
+        male_left_flank.append(App.Vector(px, py, 0))
+
+    # Male tab right flank
+    male_right_flank = []
+    for t_frac, h_bump in reversed(detent_offsets):
+        t_pos = 0.3 + t_frac * 0.4
+        px = center_x + (4.0 * SCALE) + t_pos * (3.0 * SCALE) - nx * h_bump
+        py = y_seam + t_pos * (12.0 * SCALE) + ny * h_bump
+        male_right_flank.append(App.Vector(px, py, 0))
+
+    male_pts = [
         App.Vector(x_min, y_seam, 0),
-        
+        App.Vector(center_x - dt_lk_neck / 2.0, y_seam, 0),
+        App.Vector(center_x - (4.0 * SCALE) + 0.3 * (-3.0 * SCALE), y_seam + 0.3 * (12.0 * SCALE), 0),
+    ] + male_left_flank + [
+        App.Vector(center_x - (4.0 * SCALE) + 0.7 * (-3.0 * SCALE), y_seam + 0.7 * (12.0 * SCALE), 0),
+        App.Vector(center_x - dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
+        App.Vector(center_x + dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
+        App.Vector(center_x + (4.0 * SCALE) + 0.7 * (3.0 * SCALE), y_seam + 0.7 * (12.0 * SCALE), 0),
+    ] + male_right_flank + [
+        App.Vector(center_x + (4.0 * SCALE) + 0.3 * (3.0 * SCALE), y_seam + 0.3 * (12.0 * SCALE), 0),
+        App.Vector(center_x + dt_lk_neck / 2.0, y_seam, 0),
+        App.Vector(x_max, y_seam, 0),
+    ]
+
+    # Female pocket points (expanded by gap = 0.25mm)
+    female_right_flank = []
+    for t_frac, h_bump in detent_offsets:
+        t_pos = 0.3 + t_frac * 0.4
+        px = center_x + (4.0 * SCALE) + t_pos * (3.0 * SCALE) - nx * h_bump + gap
+        py = y_seam + t_pos * (12.0 * SCALE) + ny * h_bump + gap
+        female_right_flank.append(App.Vector(px, py, 0))
+
+    female_left_flank = []
+    for t_frac, h_bump in reversed(detent_offsets):
+        t_pos = 0.3 + t_frac * 0.4
+        px = center_x - (4.0 * SCALE) + t_pos * (-3.0 * SCALE) + nx * h_bump - gap
+        py = y_seam + t_pos * (12.0 * SCALE) + ny * h_bump + gap
+        female_left_flank.append(App.Vector(px, py, 0))
+
+    female_pts = [
+        App.Vector(x_max, y_seam + gap, 0),
+        App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_seam + gap, 0),
+        App.Vector(center_x + (4.0 * SCALE) + 0.3 * (3.0 * SCALE) + gap, y_seam + 0.3 * (12.0 * SCALE) + gap, 0),
+    ] + female_right_flank + [
+        App.Vector(center_x + (4.0 * SCALE) + 0.7 * (3.0 * SCALE) + gap, y_seam + 0.7 * (12.0 * SCALE) + gap, 0),
+        App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_seam + dt_lk_depth + gap, 0),
+        App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_seam + dt_lk_depth + gap, 0),
+        App.Vector(center_x - (4.0 * SCALE) + 0.7 * (-3.0 * SCALE) - gap, y_seam + 0.7 * (12.0 * SCALE) + gap, 0),
+    ] + female_left_flank + [
+        App.Vector(center_x - (4.0 * SCALE) + 0.3 * (-3.0 * SCALE) - gap, y_seam + 0.3 * (12.0 * SCALE) + gap, 0),
+        App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_seam + gap, 0),
         App.Vector(x_min, y_seam + gap, 0),
     ]
 
+    poly_pts = female_pts + male_pts + [female_pts[0]]
     dt4_cutter = Part.Face(Part.makePolygon(poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
     dt4_cutter.translate(App.Vector(0, 0, -1.0))
     dt_cutters.append(dt4_cutter)
+
+    # Compliant Flex Cantilever Relief Slots in Male Tab (1.2mm wide x 7.0mm long)
+    slot_w = 1.2 * SCALE
+    slot_l = 7.0 * SCALE
+    slot1 = Part.makeBox(slot_w, slot_l, tie_h + 2.0)
+    slot1.translate(App.Vector(center_x - (3.0 * SCALE) - slot_w / 2.0, y_seam + (2.5 * SCALE), -1.0))
+    slot2 = Part.makeBox(slot_w, slot_l, tie_h + 2.0)
+    slot2.translate(App.Vector(center_x + (3.0 * SCALE) - slot_w / 2.0, y_seam + (2.5 * SCALE), -1.0))
+    dt_cutters.extend([slot1, slot2])
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
