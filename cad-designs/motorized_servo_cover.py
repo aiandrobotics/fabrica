@@ -23,13 +23,13 @@ def construct_motorized_servo_cover():
     """
     Constructs the Full Enclosure Hood Cover for the Motorized Module.
     Features:
-      1. Top plate covering X in [-17.0, 43.0mm], Y in [186.0, 240.0mm], Z in [15.0, 21.2mm].
+      1. Top plate covering X in [-17.0, 43.5mm], Y in [186.0, 240.0mm], Z in [15.0, 21.2mm].
       2. Rear face plate capping off the rear slide-in opening at Y in [237.5, 240.0mm], Z in [0.0, 21.2mm].
       3. Lateral slide retention tongues that engage with frame side grooves.
       4. Internal hollow pocket providing generous clearance around the MG996R motor body.
     """
-    # 1. Top Face Plate (60mm wide x 54mm long x 6.2mm thick spanning Z=15.0..21.2mm)
-    top_plate = Part.makeBox(60.0 * SCALE, 54.0 * SCALE, 6.2 * SCALE)
+    # 1. Top Face Plate (60.5mm wide x 54mm long x 6.2mm thick spanning Z=15.0..21.2mm, X in [-17.0, 43.5mm])
+    top_plate = Part.makeBox(60.5 * SCALE, 54.0 * SCALE, 6.2 * SCALE)
     top_plate.translate(App.Vector(-17.0 * SCALE, 186.0 * SCALE, 15.0 * SCALE))
 
     # 2. Rear Face Cap (54.5mm wide x 2.5mm thick x 21.2mm tall spanning X in [-17.0, 37.5mm], Z=0..21.2mm)

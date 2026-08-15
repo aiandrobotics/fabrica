@@ -1,5 +1,5 @@
 """
-motorized_frame.py — Motorized Outer Frame Chassis with Solid Mounting Towers, Hex Screw Housings, and Rear Slide-in Servo Bay
+motorized_frame.py — Motorized Outer Frame Chassis with Solid Mounting Towers, Hex Screw Housings, Inner Enclosure Wall, and Rear Slide-in Servo Bay
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -45,9 +45,11 @@ def construct_motorized_frame():
     """
     Constructs the 4-sided outer perimeter chassis for the Active Motorized Module.
     Features:
-      1. Solid front mounting towers (Y in [185.0, 195.5mm]) with M3 through-holes and hex nut housings.
-      2. Open rear slot (Y=240mm) allowing the MG996R servo to slide directly in horizontally from the back.
-      3. Open 4-wall perimeter chassis with interlocking 4th wall tie-bar puzzle joint.
+      1. Complete continuous inner enclosure wall (X in [38.0, 48.0mm], Y in [185.0, 240.0mm])
+         sealing the motor compartment from the frame's central cavity.
+      2. Solid front mounting towers (Y in [185.0, 195.5mm]) with 4x M3 through-holes (2 top, 2 bottom)
+         spaced accurately per MG996R motor specs with captive hex nut housings.
+      3. Open rear slide-in slot (Y=240mm) allowing the horizontal MG996R servo to slide directly into place.
       4. 100% Flat Base Plane at Z=0.0mm matching the follower frame base.
       5. Hinge pivot axis at PIVOT_Z = 10.0mm identically matching all follower modules.
     """
@@ -101,27 +103,34 @@ def construct_motorized_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
     ramp_top.translate(App.Vector(0, k_top_start_y, 0))
 
-    # Servo housing corner block at Y=185..240mm, X = -18.0 to 44.0mm
-    servo_box = Part.makeBox(62.0 * SCALE, h - 185.0 * SCALE, t)
+    # Servo housing corner block at Y=185..240mm, X = -18.0 to 48.0mm
+    servo_box = Part.makeBox(66.0 * SCALE, h - 185.0 * SCALE, t)
     servo_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0))
 
-    # Knuckle-to-Housing Support Gusset (X = -18.0 to 11.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
-    knuckle_bridge = Part.makeBox(29.0 * SCALE, 15.0 * SCALE, t)
+    # Knuckle-to-Housing Support Gusset (X = -18.0 to 25.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
+    knuckle_bridge = Part.makeBox(43.0 * SCALE, 15.0 * SCALE, t)
     knuckle_bridge.translate(App.Vector(-18.0 * SCALE, k_top_start_y, 0))
 
     frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, servo_box, knuckle_bridge]).removeSplitter()
 
-    # 2. Cut open interior cavity (leaving 15mm perimeter rails and 4th tie-bar floor Z=0..3mm)
-    cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
-    cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
+    # 2. Cut open interior cavities while preserving inner enclosure wall at X in [38.0, 48.0mm], Y in [185.0, 240.0mm]
+    # Lower main cavity (Y = 15 to 185mm, X = 25 to 225mm)
+    cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 170.0 * SCALE, t + 2.0)
+    cav_main_lower.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
+    # Upper main cavity (Y = 185 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
+    cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 40.0 * SCALE, t + 2.0)
+    cav_main_upper.translate(App.Vector(48.0 * SCALE, 185.0 * SCALE, -1.0))
+
+    # Left rail interior cavity
     cav_left = Part.makeBox(tie_x + 0.5, k_top_start_y - knuckle_len, t + 2.0)
     cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
 
+    # Tie bar pocket
     cav_tie = Part.makeBox(tie_w + 2.0 * SCALE, k_top_start_y - knuckle_len, t - tie_h + 2.0)
     cav_tie.translate(App.Vector(tie_x - 1.0 * SCALE, knuckle_len, tie_h))
 
-    for cav in [cav_main, cav_left, cav_tie]:
+    for cav in [cav_main_lower, cav_main_upper, cav_left, cav_tie]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores
@@ -136,7 +145,7 @@ def construct_motorized_frame():
     for b in [bot_bore, top_bore, trim_bot]:
         frame = frame.cut(b).removeSplitter()
 
-    # 4. Slide-in Servo Bay Cavity with Solid Front Towers and Open Rear Slot (Y=240mm):
+    # 4. Slide-in Servo Bay Cavity with Solid Front Towers, Inner Enclosure Wall, and Open Rear Slot (Y=240mm):
     # Main motor body pocket opening through rear wall at Y=240mm (X in [-11.0, 31.0mm], Y in [185.0, 242.0mm], Z in [0.0, t+6.0])
     pocket_body = Part.makeBox(42.0 * SCALE, 57.0 * SCALE, t + 6.0)
     pocket_body.translate(App.Vector(-11.0 * SCALE, 185.0 * SCALE, 0.0))
@@ -147,7 +156,7 @@ def construct_motorized_frame():
     pocket_ears_slide.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, 0.0))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing through the solid towers along Y-axis:
-    # At PIVOT_Z = 10.0mm, mounting holes on the MG996R solid are at Z = 4.75mm and Z = 15.25mm
+    # Top and bottom holes on each mounting ear accurately spaced per MG996R dimensions (Z=4.75mm & Z=15.25mm, X=-14.45mm & X=34.95mm):
     screw_r = 1.7 * SCALE
     screw_holes = [
         Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
@@ -170,9 +179,9 @@ def construct_motorized_frame():
     groove_r = Part.makeBox(2.5 * SCALE, 56.0 * SCALE, 2.0 * SCALE)
     groove_r.translate(App.Vector(42.0 * SCALE, 185.0 * SCALE, 13.4 * SCALE))
 
-    # Wire exit conduit into interior cavity
-    pocket_wire = Part.makeBox(14.0 * SCALE, 12.0 * SCALE, 12.0 * SCALE)
-    pocket_wire.translate(App.Vector(28.0 * SCALE, 219.0 * SCALE, 0.0))
+    # Wire exit conduit through inner enclosure wall into interior cavity
+    pocket_wire = Part.makeBox(14.0 * SCALE, 12.0 * SCALE, 10.0 * SCALE)
+    pocket_wire.translate(App.Vector(36.0 * SCALE, 219.0 * SCALE, 2.0 * SCALE))
 
     cutters = [pocket_body, pocket_ears_slide, pocket_wire, groove_l, groove_r] + screw_holes + hex_nut_housings
     for c in cutters:
