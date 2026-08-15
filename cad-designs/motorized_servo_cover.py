@@ -15,6 +15,7 @@ if SCRIPT_DIR not in sys.path:
 from params import (
     SCALE,
     BASE_PANEL_THICKNESS,
+    PIVOT_Z,
     EXPORT_DIR,
 )
 
@@ -22,17 +23,17 @@ def construct_motorized_servo_cover():
     """
     Constructs the Full Enclosure Hood Cover for the Motorized Module.
     Features:
-      1. Top plate covering X in [-17.0, 43.0mm], Y in [186.0, 240.0mm], Z in [15.0, 19.5mm].
-      2. Rear face plate capping off the rear slide-in opening at Y in [237.5, 240.0mm], Z in [0.0, 19.5mm].
+      1. Top plate covering X in [-17.0, 43.0mm], Y in [186.0, 240.0mm], Z in [15.0, 21.2mm].
+      2. Rear face plate capping off the rear slide-in opening at Y in [237.5, 240.0mm], Z in [0.0, 21.2mm].
       3. Lateral slide retention tongues that engage with frame side grooves.
       4. Internal hollow pocket providing generous clearance around the MG996R motor body.
     """
-    # 1. Top Face Plate (60mm wide x 54mm long x 4.5mm thick spanning Z=15.0..19.5mm)
-    top_plate = Part.makeBox(60.0 * SCALE, 54.0 * SCALE, 4.5 * SCALE)
+    # 1. Top Face Plate (60mm wide x 54mm long x 6.2mm thick spanning Z=15.0..21.2mm)
+    top_plate = Part.makeBox(60.0 * SCALE, 54.0 * SCALE, 6.2 * SCALE)
     top_plate.translate(App.Vector(-17.0 * SCALE, 186.0 * SCALE, 15.0 * SCALE))
 
-    # 2. Rear Face Cap (54.5mm wide x 2.5mm thick x 19.5mm tall spanning X in [-17.0, 37.5mm], Z=0..19.5mm)
-    rear_cap = Part.makeBox(54.5 * SCALE, 2.5 * SCALE, 19.5 * SCALE)
+    # 2. Rear Face Cap (54.5mm wide x 2.5mm thick x 21.2mm tall spanning X in [-17.0, 37.5mm], Z=0..21.2mm)
+    rear_cap = Part.makeBox(54.5 * SCALE, 2.5 * SCALE, 21.2 * SCALE)
     rear_cap.translate(App.Vector(-17.0 * SCALE, 237.5 * SCALE, 0.0))
 
     # 3. Lateral Retention Tongues (sliding into frame grooves at Z=13.6..14.8mm)
@@ -44,8 +45,8 @@ def construct_motorized_servo_cover():
 
     cover = top_plate.fuse([rear_cap, tongue_l, tongue_r]).removeSplitter()
 
-    # 4. Underside clearance pocket for motor top casing (Z in [13.8, 18.3mm], X in [-17.0, 38.0mm], Y in [186.0, 230.5mm])
-    pocket = Part.makeBox(56.0 * SCALE, 46.0 * SCALE, 4.5 * SCALE)
+    # 4. Underside clearance pocket for motor top casing (Z in [13.8, 20.0mm], X in [-17.0, 38.0mm], Y in [185.5, 230.5mm])
+    pocket = Part.makeBox(56.0 * SCALE, 46.0 * SCALE, 6.2 * SCALE)
     pocket.translate(App.Vector(-17.5 * SCALE, 185.5 * SCALE, 13.8 * SCALE))
 
     cover = cover.cut(pocket).removeSplitter()

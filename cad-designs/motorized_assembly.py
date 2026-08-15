@@ -20,6 +20,7 @@ from params import (
     BASE_PANEL_THICKNESS,
     MODULE_GAP,
     DOVETAIL_DEPTH,
+    PIVOT_Z,
     EXPORT_DIR,
 )
 
@@ -32,7 +33,7 @@ from hex_drive_coupler import construct_hex_drive_coupler
 def construct_servo_cad_reference():
     """
     Loads and positions the real MG996R STEP solid reference model in horizontal orientation.
-    Spline output aligns directly with flap hinge axis at (X=0, Z=8.0mm), protruding into flap at Y=185.0mm.
+    Spline output aligns directly with flap hinge axis at (X=0, Z=PIVOT_Z), protruding into flap at Y=185.0mm.
     """
     step_paths = [
         os.path.join(SCRIPT_DIR, "..", "specs", "reference-images", "mg996r.step"),
@@ -50,7 +51,7 @@ def construct_servo_cad_reference():
         p1 = App.Placement(App.Vector(-30.25 * SCALE, -9.75 * SCALE, -14.19 * SCALE), App.Rotation(0,0,0,1))
         r1 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(1,0,0), 90))
         r2 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(0,1,0), 180))
-        p2 = App.Placement(App.Vector(0.0, 185.0 * SCALE, 8.0 * SCALE), App.Rotation(0,0,0,1))
+        p2 = App.Placement(App.Vector(0.0, 185.0 * SCALE, PIVOT_Z), App.Rotation(0,0,0,1))
 
         full_placement = p2.multiply(r2).multiply(r1).multiply(p1)
         servo_solid = raw_servo.copy()

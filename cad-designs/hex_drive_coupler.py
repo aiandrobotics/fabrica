@@ -15,34 +15,29 @@ import Part
 from params import (
     SCALE,
     MODULE_GAP,
+    PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
     HEX_COUPLER_DEPTH,
     EXPORT_DIR,
 )
 
-def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
-    """Generates a regular hexagon wire in the XZ plane at a given Y position."""
-    r = (flat_to_flat / math.sqrt(3.0))
-    pts = [
-        App.Vector(center_x + r * math.cos(i * math.pi / 3.0), y_pos, center_z + r * math.sin(i * math.pi / 3.0))
-        for i in range(7)
-    ]
+def make_hexagon_wire(size_af, center_x, center_z, y_pos):
+    """Generates an explicit closed hexagon wire in the XZ plane."""
+    r = (size_af / 2.0) / math.cos(math.radians(30))
+    pts = []
+    for i in range(6):
+        ang = math.radians(60 * i + 30)
+        pts.append(App.Vector(center_x + r * math.cos(ang), y_pos, center_z + r * math.sin(ang)))
+    pts.append(pts[0])
     return Part.makePolygon(pts)
 
 def construct_hex_drive_coupler():
     """
     Constructs the Compact 10mm Bridge Modular Double-Male Hex Drive Coupler Pin (Part 11).
     Connects adjacent flap drive shafts across column joints.
-
-    Features:
-    1. 10.0mm Smooth Center Bridge Cylinder (Ø12.8mm) spanning the inter-module gap (Y = -10.0 to 0.0mm).
-    2. Dual 8.0mm Male Hex Drive Pegs (7.7mm flat-to-flat, 10.5mm insertion depth) engaging directly into
-       adjacent flap axle ends (+Y peg at Y = 0.0 to +10.5mm, -Y peg at Y = -10.0 to -20.5mm).
-    3. 1.5mm x 45° self-aligning lead-in entry chamfers on both hex tips.
-    4. 100% Solid Continuous Polymer Structure for maximum torsional stiffness (31.0mm total length).
     """
-    pivot_z = 8.0 * SCALE
+    pivot_z = PIVOT_Z
     hex_size = HEX_COUPLER_SIZE - (0.3 * SCALE)       # 7.7mm flat-to-flat
     socket_depth = 10.5 * SCALE                       # 10.5mm hex engagement depth into flap
     bridge_len = MODULE_GAP                           # 10.0mm inter-module seam gap

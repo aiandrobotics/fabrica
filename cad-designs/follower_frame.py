@@ -25,7 +25,8 @@ from params import (
     DOVETAIL_NECK_WIDTH,
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
-    DOVETAIL_HEIGHT,
+    DOVETAIL_FLOOR_THICKNESS,
+    PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
     EXPORT_DIR,
@@ -71,7 +72,7 @@ def construct_follower_frame():
     # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps (Y = 0 to 15mm and Y = 225 to 240mm)
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w
-    pivot_z = 8.0 * SCALE  # Axle center (1.5mm ground clearance & reinforced top crown at Z = 17.5mm)
+    pivot_z = PIVOT_Z  # Axle center (10.0mm above tabletop for 100% flat bottom across all frames)
     
     # Bottom Knuckle Barrel (+Y facing)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))

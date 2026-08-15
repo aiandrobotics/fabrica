@@ -53,7 +53,8 @@ DOVETAIL_CLEARANCE       = 0.15 * SCALE  # Precision sliding tolerance per side 
 DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
 # Heavy-Duty Drive Axle & Hex Torque Coupler (Column Synchronous Folding)
-DRIVE_SHAFT_DIAMETER      = 13.0 * SCALE  # Ø13mm outer axle diameter (1.5mm ground clearance & 100% flush tabletop)
+PIVOT_Z                   = 10.0 * SCALE  # Axle & Hinge Pivot Center (10.0mm above tabletop for 100% flat bottom across all frames)
+DRIVE_SHAFT_DIAMETER      = 13.0 * SCALE  # Ø13mm outer axle diameter (3.5mm ground clearance & 100% flush tabletop)
 DRIVE_SHAFT_BORE          = 8.0 * SCALE   # Ø8mm inner weight-relief bore
 HEX_COUPLER_SIZE          = 8.0 * SCALE   # 8.0mm Flat-to-Flat standard hex drive interface
 HEX_COUPLER_DEPTH         = 12.0 * SCALE  # 12.0mm engagement depth for zero slip under 35kg-cm servo load

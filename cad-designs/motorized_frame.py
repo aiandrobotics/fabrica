@@ -22,6 +22,7 @@ from params import (
     DOVETAIL_NECK_WIDTH,
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
+    PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
     EXPORT_DIR,
@@ -47,14 +48,15 @@ def construct_motorized_frame():
       1. Solid front mounting towers (Y in [185.0, 195.5mm]) with M3 through-holes and hex nut housings.
       2. Open rear slot (Y=240mm) allowing the MG996R servo to slide directly in horizontally from the back.
       3. Open 4-wall perimeter chassis with interlocking 4th wall tie-bar puzzle joint.
-      4. Integrated lateral slide rails for the full enclosure motor hood cover.
+      4. 100% Flat Base Plane at Z=0.0mm matching the follower frame base.
+      5. Hinge pivot axis at PIVOT_Z = 10.0mm identically matching all follower modules.
     """
     w = PANEL_WIDTH          # 240.0mm
     h = PANEL_HEIGHT         # 240.0mm
     t = BASE_PANEL_THICKNESS # 15.0mm
     rail_w = 15.0 * SCALE
     bottom_thick = 3.0 * SCALE
-    pivot_z = 8.0 * SCALE
+    pivot_z = PIVOT_Z        # 10.0mm
 
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0 * SCALE # 9.5mm radius
     knuckle_len = 15.0 * SCALE
@@ -126,37 +128,40 @@ def construct_motorized_frame():
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     top_bore = Part.makeCylinder(bore_r, k_top_len + 0.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
-    trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
-    trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
+    
+    # Planar bottom trim at Z=0.0mm (ensuring base of motor frame is 100% flat)
+    trim_bot = Part.makeBox(w + 50.0, h + 50.0, 20.0)
+    trim_bot.translate(App.Vector(-25.0, -25.0, -20.0))
 
     for b in [bot_bore, top_bore, trim_bot]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Slide-in Servo Bay Cavity with Solid Front Towers and Open Rear Slot (Y=240mm):
-    # Main motor body pocket opening through rear wall at Y=240mm (X in [-11.0, 31.0mm], Y in [185.0, 242.0mm])
+    # Main motor body pocket opening through rear wall at Y=240mm (X in [-11.0, 31.0mm], Y in [185.0, 242.0mm], Z in [0.0, t+6.0])
     pocket_body = Part.makeBox(42.0 * SCALE, 57.0 * SCALE, t + 6.0)
-    pocket_body.translate(App.Vector(-11.0 * SCALE, 185.0 * SCALE, -3.0 * SCALE))
+    pocket_body.translate(App.Vector(-11.0 * SCALE, 185.0 * SCALE, 0.0))
 
-    # Mounting Ear Recess Bay behind the solid towers (X in [-17.5, 38.0mm], Y in [195.5, 242.0mm], Z in [-3.0, 18.0mm])
+    # Mounting Ear Recess Bay behind the solid towers (X in [-17.5, 38.0mm], Y in [195.5, 242.0mm], Z in [0.0, 18.0mm])
     # Solid towers are preserved in front at Y in [185.0, 195.5mm]
     pocket_ears_slide = Part.makeBox(55.5 * SCALE, 46.5 * SCALE, t + 6.0)
-    pocket_ears_slide.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, -3.0 * SCALE))
+    pocket_ears_slide.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, 0.0))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing through the solid towers along Y-axis:
+    # At PIVOT_Z = 10.0mm, mounting holes on the MG996R solid are at Z = 4.75mm and Z = 15.25mm
     screw_r = 1.7 * SCALE
     screw_holes = [
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
     ]
 
     # 4x M3 Hex Nut / Screw Head Housing Pockets on the front face of the towers (Y in [185.0, 188.0mm]):
     hex_nut_housings = [
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
-        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
     ]
 
     # Slide-in lid retention channels along side walls
@@ -167,11 +172,14 @@ def construct_motorized_frame():
 
     # Wire exit conduit into interior cavity
     pocket_wire = Part.makeBox(14.0 * SCALE, 12.0 * SCALE, 12.0 * SCALE)
-    pocket_wire.translate(App.Vector(28.0 * SCALE, 219.0 * SCALE, -1.0 * SCALE))
+    pocket_wire.translate(App.Vector(28.0 * SCALE, 219.0 * SCALE, 0.0))
 
     cutters = [pocket_body, pocket_ears_slide, pocket_wire, groove_l, groove_r] + screw_holes + hex_nut_housings
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
+
+    # Re-apply bottom trim to guarantee 100% planar base at Z=0.0mm
+    frame = frame.cut(trim_bot).removeSplitter()
 
     # 5. Dovetails on Outer Rails
     dt_neck_w = DOVETAIL_NECK_WIDTH

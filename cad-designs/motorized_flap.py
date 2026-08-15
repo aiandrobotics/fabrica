@@ -18,10 +18,13 @@ from params import (
     PANEL_WIDTH,
     PANEL_HEIGHT,
     PANEL_THICKNESS,
+    BASE_PANEL_THICKNESS,
+    PIVOT_Z,
     TEXTURE_HEIGHT,
     HOLE_CHAMFER,
     ACCENT_BEVEL_DEPTH,
     DRIVE_SHAFT_DIAMETER,
+    HEX_COUPLER_SIZE,
     PRESS_FIT_CLEARANCE,
     EXPORT_DIR,
 )
@@ -38,7 +41,7 @@ def construct_motorized_flap():
     h = PANEL_HEIGHT - (2.0 * SCALE)         # 238.0mm
     flap_t = FLAP_THICKNESS                  # 2.4mm (Z = 15.0 to 17.4mm)
     z_deck = 15.0 * SCALE
-    pivot_z = 8.0 * SCALE                    # Hinge axis at X=0, Z=8.0mm
+    pivot_z = PIVOT_Z                        # Hinge axis at X=0, Z=10.0mm
     axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - (0.05 * SCALE) # 6.45mm radius (Ø12.9mm solid core)
     axle_len = 185.0 * SCALE                 # Reaches from Y=0.5 to Y=185.0mm (engages 25T horn at Y=185mm)
 
@@ -47,10 +50,10 @@ def construct_motorized_flap():
     blade.translate(App.Vector(0, 1.0 * SCALE, z_deck))
 
     # Knuckle and Motor Corner Relief Cutouts
-    cut_bot = Part.makeBox(11.5 * SCALE, 15.5 * SCALE, flap_t + 2.0)
-    cut_bot.translate(App.Vector(-0.5 * SCALE, 0.5 * SCALE, z_deck - 1.0))
+    cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, flap_t + 2.0)
+    cut_bot.translate(App.Vector(-0.5 * SCALE, 0.0, z_deck - 1.0))
 
-    cut_mid_k = Part.makeBox(11.5 * SCALE, 16.5 * SCALE, flap_t + 2.0)
+    cut_mid_k = Part.makeBox(14.0 * SCALE, 16.5 * SCALE, flap_t + 2.0)
     cut_mid_k.translate(App.Vector(-0.5 * SCALE, 169.5 * SCALE, z_deck - 1.0))
 
     cut_motor = Part.makeBox(44.5 * SCALE, 55.0 * SCALE, flap_t + 2.0)
@@ -61,7 +64,7 @@ def construct_motorized_flap():
     # 2. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to 185.0mm)
     axle = Part.makeCylinder(axle_r, axle_len - 0.5 * SCALE, App.Vector(0, 0.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # Structural Gusset Web bridging axle into blade between knuckles (X = 0 to 11mm, Y = 15.5 to 169.5mm, Z = 8.0 to 15.0mm)
+    # Structural Gusset Web bridging axle into blade between knuckles (X = 0 to 11mm, Y = 15.5 to 169.5mm, Z = 10.0 to 15.0mm)
     gusset = Part.makeBox(11.0 * SCALE, 154.0 * SCALE, z_deck - pivot_z + flap_t)
     gusset.translate(App.Vector(0, 15.5 * SCALE, pivot_z))
 
@@ -90,11 +93,11 @@ def construct_motorized_flap():
     screw_head_cb = Part.makeCylinder(3.2 * SCALE, 10.0 * SCALE, App.Vector(0, axle_len - horn_pocket_depth - 15.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
     # 4. Front Female Hex Torque Output Socket (at Y = 0.5mm, for HexDriveCoupler)
-    hex_r = 4.62 * SCALE + PRESS_FIT_CLEARANCE  # 4.62mm radius for 8.0mm hex flats
+    hex_r = (HEX_COUPLER_SIZE / 2.0) / math.cos(math.radians(30)) + PRESS_FIT_CLEARANCE
     hex_depth = 10.5 * SCALE
     hex_pts = []
     for i in range(6):
-        ang = math.radians(i * 60.0)
+        ang = math.radians(60 * i + 30)
         hex_pts.append(App.Vector(hex_r * math.cos(ang), 0.4 * SCALE, pivot_z + hex_r * math.sin(ang)))
     hex_pts.append(hex_pts[0])
     hex_wire = Part.makePolygon(hex_pts)

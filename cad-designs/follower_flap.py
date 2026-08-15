@@ -18,6 +18,7 @@ from params import (
     PANEL_WIDTH,
     PANEL_HEIGHT,
     BASE_PANEL_THICKNESS,
+    PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
     HEX_COUPLER_DEPTH,
@@ -30,23 +31,23 @@ from params import (
 
 PADDLE_THICKNESS = 2.4 * SCALE
 
-def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
-    """Generates a regular hexagon wire in the XZ plane at a given Y position."""
-    r = (flat_to_flat / math.sqrt(3.0))
-    pts = [
-        App.Vector(center_x + r * math.cos(i * math.pi / 3.0), y_pos, center_z + r * math.sin(i * math.pi / 3.0))
-        for i in range(7)
-    ]
+def make_hexagon_wire(size_af, center_x, center_z, y_pos):
+    """Generates an explicit closed hexagon wire oriented for extrusion along the Y-axis."""
+    r = (size_af / 2.0) / math.cos(math.radians(30))
+    pts = []
+    for i in range(6):
+        ang = math.radians(60 * i + 30)
+        pts.append(App.Vector(center_x + r * math.cos(ang), y_pos, center_z + r * math.sin(ang)))
+    pts.append(pts[0])
     return Part.makePolygon(pts)
 
 def construct_follower_flap():
     """
-    Constructs the Full-Size Lightweight Follower Folding Flap with Integrated Full-Length Axle.
+    Constructs the Full-Size Active Follower Flap (240x240mm).
     Features:
-    1. Full-Size Over-The-Frame Landing Blade (240x240x2.4mm) resting on 3 frame rails at Z=15.0mm.
-    2. Integrated Continuous Full-Length Ø13.0mm Drive Axle (Y = 0 to 240mm, centered at X=0, Z=8.0mm)
-       whose ends rotate directly inside the 360° closed frame knuckle tunnels.
-    3. Dual Top & Bottom 8.0mm Female Hex Torque Sockets (10.5mm depth) for modular inter-module coupling.
+    1. Continuous Solid Internal Drive Axle (Ø13.0mm) for maximum column torsional rigidity.
+    2. Dual Integrated 8.0mm Hex Drive Coupler Sockets on top (Y=240) and bottom (Y=0) axle ends.
+    3. Flush Top Surface (rests directly on 15.0mm frame rails).
     4. Heavy-duty Under-Flap Reinforcing Gusset (Y = 15.5 to 224.5mm) for 3x torsional stiffness.
     5. Multi-tiered Organic Gradient Circular Cutouts (~45% mass reduction).
     6. 1.2mm Recessed Perimeter Shadow Bevel for premium aesthetics.
@@ -57,7 +58,7 @@ def construct_follower_flap():
     h = PANEL_HEIGHT         # 240.0mm full module length
     t = PADDLE_THICKNESS     # 2.4mm panel thickness
     total_z = BASE_PANEL_THICKNESS # 15.0mm (frame top rail height)
-    pivot_z = 8.0 * SCALE    # 8.0mm
+    pivot_z = PIVOT_Z        # 10.0mm
     panel_z_min = total_z    # 15.0mm (rests directly on top of frame rails)
     top_z = panel_z_min + t  # 17.4mm (flush with knuckle top crown at 17.5mm)
 
@@ -66,11 +67,11 @@ def construct_follower_flap():
     flap_box.translate(App.Vector(0, 0, panel_z_min))
 
     # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle barrels
-    cut_bot = Part.makeBox(11.5 * SCALE, 16.0 * SCALE, t + 2.0)
-    cut_bot.translate(App.Vector(-0.5, -0.5, panel_z_min - 0.5))
+    cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
+    cut_bot.translate(App.Vector(-0.5 * SCALE, -0.5 * SCALE, panel_z_min - 0.5))
 
-    cut_top = Part.makeBox(11.5 * SCALE, 16.0 * SCALE, t + 2.0)
-    cut_top.translate(App.Vector(-0.5, h - 15.5 * SCALE, panel_z_min - 0.5))
+    cut_top = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
+    cut_top.translate(App.Vector(-0.5 * SCALE, h - 15.5 * SCALE, panel_z_min - 0.5))
 
     flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
 
