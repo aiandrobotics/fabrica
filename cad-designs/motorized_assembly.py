@@ -31,30 +31,27 @@ from hex_drive_coupler import construct_hex_drive_coupler
 
 def construct_servo_cad_reference():
     """
-    Constructs a CAD reference solid of the standard MG996R metal-gear servo in horizontal orientation.
-    Lies on its side along Y in the rear corner bay with spline centered at (X=0, Z=8.0mm),
-    top face resting flush at Z = 14.8mm under the slide-in cover.
+    Loads and positions the real MG996R STEP solid reference model in horizontal orientation.
+    Spline output aligns directly with flap hinge axis at (X=0, Z=8.0mm), protruding into flap at Y=185.0mm.
     """
-    pivot_z = 8.0 * SCALE
-    body_l = 40.5 * SCALE # along Y (192.5 to 233.0mm)
-    body_w = 36.0 * SCALE # along X (4.5 to 40.5mm)
-    body_h = 16.8 * SCALE # along Z (-2.0 to 14.8mm)
+    step_file = os.path.join(SCRIPT_DIR, "exports", "reference-models", "mg996r.step")
+    raw_servo = Part.Shape()
+    if os.path.exists(step_file):
+        raw_servo.read(step_file)
+        p1 = App.Placement(App.Vector(-30.25 * SCALE, -9.75 * SCALE, -14.19 * SCALE), App.Rotation(0,0,0,1))
+        r1 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(1,0,0), 90))
+        r2 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(0,1,0), 180))
+        p2 = App.Placement(App.Vector(0.0, 185.0 * SCALE, 8.0 * SCALE), App.Rotation(0,0,0,1))
 
-    # 1. Main Servo Body Block
-    main_body = Part.makeBox(body_w, body_l, body_h)
-    main_body.translate(App.Vector(4.5 * SCALE, 192.5 * SCALE, -2.0 * SCALE))
-
-    # 2. Output Spline Collar (centered at X=0, Z=8.0mm, protruding into flap horn socket at Y=178..185mm)
-    spline_gear = Part.makeCylinder(3.0 * SCALE, 7.0 * SCALE, App.Vector(0, 178.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
-    spline_collar = Part.makeCylinder(6.0 * SCALE, 7.5 * SCALE, App.Vector(0, 185.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
-
-    # 3. Flange Mounting Ears (spanning Y = 189.5 to 236.5mm at X = 29.5mm)
-    flange_t = 2.5 * SCALE
-    flange = Part.makeBox(flange_t, 47.0 * SCALE, body_h)
-    flange.translate(App.Vector(29.0 * SCALE, 189.5 * SCALE, -2.0 * SCALE))
-
-    servo_solid = main_body.fuse(Part.makeCompound([spline_gear, spline_collar, flange])).removeSplitter()
-    return servo_solid
+        full_placement = p2.multiply(r2).multiply(r1).multiply(p1)
+        servo_solid = raw_servo.copy()
+        servo_solid.Placement = full_placement
+        return servo_solid
+    else:
+        # Fallback to parametric box if file missing
+        body = Part.makeBox(36.0 * SCALE, 40.5 * SCALE, 16.8 * SCALE)
+        body.translate(App.Vector(4.5 * SCALE, 192.5 * SCALE, -2.0 * SCALE))
+        return body
 
 def build_motorized_assembly():
     """
