@@ -197,7 +197,11 @@ def construct_follower_flap():
     return flap
 
 def export_part():
-    construct_follower_flap()
+    doc = App.ActiveDocument or App.newDocument("FollowerFlap")
+    shape = construct_follower_flap()
+    obj = doc.addObject("Part::Feature", "FollowerFlap")
+    obj.Shape = shape
 
 export_part()
+
 
