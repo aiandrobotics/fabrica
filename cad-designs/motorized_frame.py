@@ -104,14 +104,15 @@ def construct_motorized_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
     ramp_top.translate(App.Vector(0, k_top_start_y, 0))
 
-    # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=21.2mm, fully closing top screw holes)
+    # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=-2.0 to 21.2mm, with 2.0mm solid bottom base floor)
     t_servo = 21.2 * SCALE
-    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo)
-    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0))
+    floor_t = 2.0 * SCALE # 2.0mm solid bottom floor under motor
+    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo + floor_t)
+    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, -floor_t))
 
-    # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=21.2mm, matching solid towers)
-    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo)
-    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, 0))
+    # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=-2.0 to 21.2mm, matching solid towers and floor)
+    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo + floor_t)
+    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, -floor_t))
 
     # Knuckle-to-Housing Full Continuous Support Bridge (X = -18.0 to 48.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
     knuckle_bridge = Part.makeBox(66.0 * SCALE, 15.0 * SCALE, t)
@@ -147,20 +148,26 @@ def construct_motorized_frame():
     # 6mm Adapter Disk Clearance Counterbore (Ø20.0mm for Ø19.0mm disk spanning Y=178.5 to 185.1mm)
     adapter_bore = Part.makeCylinder(10.0 * SCALE, 6.6 * SCALE, App.Vector(0, 178.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # Planar bottom trim at Z=0.0mm (ensuring base of motor frame is 100% flat)
-    trim_bot = Part.makeBox(w + 50.0, h + 50.0, 20.0)
-    trim_bot.translate(App.Vector(-25.0, -25.0, -20.0))
+    # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor bay)
+    trim_bot_main = Part.makeBox(w + 50.0, 185.0 * SCALE + 25.0, 20.0)
+    trim_bot_main.translate(App.Vector(-25.0, -25.0, -20.0))
 
-    for b in [bot_bore, top_bore, adapter_bore, trim_bot]:
+    trim_bot_right = Part.makeBox(w - 48.0 * SCALE + 25.0, h - 185.0 * SCALE + 25.0, 20.0)
+    trim_bot_right.translate(App.Vector(48.0 * SCALE, 185.0 * SCALE, -20.0))
+
+    trim_under_motor = Part.makeBox(w + 50.0, h + 50.0, 20.0)
+    trim_under_motor.translate(App.Vector(-25.0, -25.0, -22.0 * SCALE))
+
+    for b in [bot_bore, top_bore, adapter_bore, trim_bot_main, trim_bot_right, trim_under_motor]:
         frame = frame.cut(b).removeSplitter()
 
-    # 4. Top Drop-In Servo Bay Cavity with Solid Closed Rear Wall (5.0mm thick at Y=235-240mm), Solid Base Floor, and Solid Front Towers:
+    # 4. Top Drop-In Servo Bay Cavity with 2.0mm Solid Closed Base Floor (Z in [-2.0, 0.0mm]), Solid Closed Rear Wall (5.0mm thick at Y=235-240mm), and Solid Front Towers:
     # Front gearhead pass-through pocket through towers (X in [-11.5, 32.5mm], Y in [185.0, 195.5mm], Z in [0.0, 25.0mm])
     pocket_body = Part.makeBox(44.0 * SCALE, 10.5 * SCALE, 25.0 * SCALE)
     pocket_body.translate(App.Vector(-11.5 * SCALE, 185.0 * SCALE, 0.0))
 
     # Main Top Drop-In Motor Bay (X in [-17.8, 38.5mm], Y in [195.5, 235.0mm], Z in [0.0, 25.0mm])
-    # Solid 5.0mm back wall preserved at Y in [235.0, 240.0mm]
+    # Solid 2.0mm bottom floor preserved at Z in [-2.0, 0.0mm], solid 5.0mm back wall preserved at Y in [235.0, 240.0mm]
     pocket_bay = Part.makeBox(56.3 * SCALE, 39.5 * SCALE, 25.0 * SCALE)
     pocket_bay.translate(App.Vector(-17.8 * SCALE, 195.5 * SCALE, 0.0))
 
@@ -193,8 +200,8 @@ def construct_motorized_frame():
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 
-    # Re-apply bottom trim to guarantee 100% planar base at Z=0.0mm
-    frame = frame.cut(trim_bot).removeSplitter()
+    # Re-apply bottom trims to guarantee 100% planar base (Z=0.0mm on frame rails, Z=-2.0mm on motor base floor)
+    frame = frame.cut(Part.makeCompound([trim_bot_main, trim_bot_right, trim_under_motor])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Rails (Front Y=0, Right X=W) matching Follower Frame
     dt_neck_w = DOVETAIL_NECK_WIDTH
