@@ -49,8 +49,8 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
 - **Dual Hinge Pivot Knuckles (Left Rail $X = 0$)**:
   - **Hinge Center Axis**: Centered at $Z = 8.0\text{ mm}$, providing **$1.5\text{ mm}$ Ground Clearance** (8 solid print layers) beneath the $\varnothing 13.0\text{ mm}$ solid drive axle ($Z \in [1.5, 14.5\text{ mm}]$), with the flap top surface perfectly flush at $Z = 15.0\text{ mm}$.
   - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel housing the $\varnothing 13.0\text{ mm}$ axle with zero top slit ($0.25\text{ mm}$ radial rotating clearance).
-  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 13.5\text{ mm}$) featuring a **6 o'clock (Bottom) Slide-In Gate** ($Z \le 8.0\text{ mm}$, $X \ge -2.0\text{ mm}$).
-  - **100% Solid Top Arch (9-to-3 o'clock)**: Solid $180^\circ$ top roof provides high upward stiffness when lifting heavy garments ($0^\circ \to 90^\circ$).
+  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 13.5\text{ mm}$) featuring a **$3.2\text{ mm}$ Precision Bottom Blade Slide Slit** ($Z \le 8.0\text{ mm}$, $X \in [-1.6, +1.6\text{ mm}]$) flanked by **$5.15\text{ mm}$ Solid Lateral Cradle Shelves** on both sides.
+  - **Captive Axle Support (Cannot Drop Down)**: Because the bottom slit is only $3.2\text{ mm}$ wide and the solid axle is $\varnothing 13.0\text{ mm}$, the axle is fully cradled and physically trapped by the solid bottom shelves—making it impossible for the axle to drop or slide downwards even when the robot is lifted off the table.
   - **Tabletop Physical Lock**: When the robot rests on the table, the table surface physically seals the bottom opening, completely preventing any downward displacement while the $1.5\text{ mm}$ air gap guarantees zero ground drag.
   - **Toolless Axial Installation Flow**:
     1. Hold frame inverted or in hand, point flap blade downwards (6 o'clock) and slide the axle forward in $+Y$.
