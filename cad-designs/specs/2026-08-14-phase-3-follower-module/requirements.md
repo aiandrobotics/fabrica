@@ -48,14 +48,14 @@ Axis   |  |     [Organic Gradient Circular Cutouts]     |   |
   - Open inner side ($X = 0$) allowing the flap to swing unobstructed across the $0^\circ \to 180^\circ$ range.
 - **Dual Hinge Pivot Knuckles (Left Rail $X = 0$)**:
   - **Hinge Center Axis**: Centered at $Z = 8.0\text{ mm}$, providing **$1.5\text{ mm}$ Ground Clearance** (8 solid print layers) beneath the $\varnothing 13.0\text{ mm}$ solid drive axle ($Z \in [1.5, 14.5\text{ mm}]$), with the flap top surface perfectly flush at $Z = 15.0\text{ mm}$.
-  - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel housing the $\varnothing 13.0\text{ mm}$ axle with zero top slit ($0.25\text{ mm}$ radial rotating clearance).
-  - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: Cylindrical bearing tunnel ($\varnothing 13.5\text{ mm}$) featuring a **$3.2\text{ mm}$ Precision Bottom Blade Slide Slit** ($Z \le 8.0\text{ mm}$, $X \in [-1.6, +1.6\text{ mm}]$) flanked by **$5.15\text{ mm}$ Solid Lateral Cradle Shelves** on both sides.
-  - **Captive Axle Support (Cannot Drop Down)**: Because the bottom slit is only $3.2\text{ mm}$ wide and the solid axle is $\varnothing 13.0\text{ mm}$, the axle is fully cradled and physically trapped by the solid bottom shelves—making it impossible for the axle to drop or slide downwards even when the robot is lifted off the table.
-  - **Tabletop Physical Lock**: When the robot rests on the table, the table surface physically seals the bottom opening, completely preventing any downward displacement while the $1.5\text{ mm}$ air gap guarantees zero ground drag.
-  - **Toolless Axial Installation Flow**:
-    1. Hold frame inverted or in hand, point flap blade downwards (6 o'clock) and slide the axle forward in $+Y$.
-    2. The top axle tip docks into the **Top 360° Closed Knuckle Tunnel**.
-    3. Rotate flap to $0^\circ$ (horizontal resting position) and insert the modular Part 11 Hex Coupler Pin at $Y = 0$.
+  - **Dual 100% Solid 360° Closed Knuckle Tunnels**:
+    - **Top Knuckle ($Y \in [225, 240\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel ($\varnothing 13.5\text{ mm}$).
+    - **Bottom Knuckle ($Y \in [0, 15\text{ mm}]$)**: $360^\circ$ continuous solid cylindrical bearing tunnel ($\varnothing 13.5\text{ mm}$).
+    - **Maximum Torsional & Hoop Strength**: Zero slits, zero cutouts—provides continuous $360^\circ$ hoop strength and bearing rigidity for lifting heavy garments ($0^\circ \to 90^\circ$).
+  - **Vertical Drop-In Assembly Flow**:
+    1. Drop the follower flap into the frame cavity from above between the knuckles ($Y \in [16.0, 224.0\text{ mm}]$) with zero clearance interference.
+    2. Slide the modular **Part 11 Hex Coupler Pin** through the $15.0\text{ mm}$ knuckle into the flap's female hex socket ($10.5\text{ mm}$ engagement).
+    3. Connect adjacent module with the **Part 10 Sliding Dovetail Joiner**, physically trapping the coupler pin between modules with zero axial play.
   - **100% Planar Flat Underside**: Both knuckles trimmed coplanar at $Z = 0.0\text{ mm}$ for zero-support 3D printing and rock-solid tabletop stability.
 - **TPU Landing Dampers**: $1.5\text{ mm}$ recessed pockets on the inner floor ledge to cushion the flap on return.
 - **True Sliding Dovetail System (`part_10_frame_joiner.py`)**: Symmetrical double flared dovetail key ($12.0\text{ mm}$ neck flaring to $18.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play and high bending moment resistance.

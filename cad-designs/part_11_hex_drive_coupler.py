@@ -38,8 +38,8 @@ def construct_hex_drive_coupler():
     """
     pivot_z = 8.0 * SCALE
     hex_size = HEX_COUPLER_SIZE - (0.3 * SCALE) # 7.7mm flat-to-flat
-    peg_len = 10.5 * SCALE                      # 10.5mm insertion depth into each socket
-    flange_d = DRIVE_SHAFT_DIAMETER - (0.2 * SCALE) # 13.8mm
+    peg_len = 26.5 * SCALE                      # 26.5mm length (15.0mm knuckle bridge + 1.0mm gap + 10.5mm flap socket engagement)
+    flange_d = DRIVE_SHAFT_DIAMETER - (0.2 * SCALE) # 12.8mm
     flange_t = 1.0 * SCALE                      # 1.0mm center stop flange
     flange_r = flange_d / 2.0
 

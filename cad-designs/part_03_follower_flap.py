@@ -99,34 +99,22 @@ def create_follower_flap():
     
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 3. Continuous Ø14.0mm Solid Heavy-Duty Drive Axle (from Y = 0 to Y = 240mm across both knuckles)
-    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 7.0mm
-    axle_start_y = 0.0                    # Bottom knuckle interface
-    axle_end_y = 240.0 * SCALE            # Top knuckle interface (240.0mm)
-    axle_total_len = axle_end_y - axle_start_y # 240.0mm
+    # 3. Drop-In Solid Heavy-Duty Drive Axle (from Y = 16.0mm to Y = 224.0mm between frame knuckles)
+    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm
+    axle_start_y = 16.0 * SCALE           # 1.0mm axial clearance from bottom knuckle (Y = 15.0mm)
+    axle_end_y = 224.0 * SCALE            # 1.0mm axial clearance from top knuckle (Y = 225.0mm)
+    axle_total_len = axle_end_y - axle_start_y # 208.0mm
     
     axle_solid = Part.makeCylinder(shaft_r, axle_total_len, App.Vector(0, axle_start_y, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Top End Female 8.0mm Hex Torque Socket (at Y = 240.0mm, depth 12.0mm in -Y)
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)
-    hex_socket_top_face = Part.Face(hex_socket_top_wire)
-    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH - 0.1, 0))
-    axle_solid = axle_solid.cut(hex_socket_top_cutter).removeSplitter()
-
-    # 5. Bottom End Female 8.0mm Hex Torque Socket (at Y = 0.0mm, depth 12.0mm in +Y)
-    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_start_y - 0.1)
-    hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
-    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, HEX_COUPLER_DEPTH + 0.1, 0))
-    axle_solid = axle_solid.cut(hex_socket_bot_cutter).removeSplitter()
-
-    # 6. Bottom Structural Reinforcing Fillet Gusset (Underneath hinge joint for 3x torsional stiffness)
-    # Smooth curved transition from Ø14mm axle underside up to flap panel floor between knuckles
+    # 4. Bottom Structural Reinforcing Fillet Gusset (Underneath hinge joint for 3x torsional stiffness)
+    # Smooth curved transition from Ø13mm axle underside up to flap panel floor between knuckles
     gusset_start_y = 16.0 * SCALE
     gusset_len = 208.0 * SCALE
     gusset_pts = [
         App.Vector(0, gusset_start_y, pivot_z),                   # (0, 8.0)
-        App.Vector(3.5 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE), # (3.5, 5.0) lower axle contour
-        App.Vector(7.0 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE), # (7.0, 7.0)
+        App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE), # (3.25, 5.0) lower axle contour
+        App.Vector(6.5 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE),  # (6.5, 7.0)
         App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),    # (14.0, 12.6) panel floor
         App.Vector(0, gusset_start_y, panel_z_min),               # (0, 12.6)
         App.Vector(0, gusset_start_y, pivot_z),                   # Close loop
@@ -137,6 +125,17 @@ def create_follower_flap():
 
     # Fuse flap panel with continuous drive axle and reinforcing gusset
     flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid])).removeSplitter()
+
+    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (Cleanly cuts through axle & gusset core)
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_end_y + 0.1)
+    hex_socket_top_face = Part.Face(hex_socket_top_wire)
+    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -HEX_COUPLER_DEPTH - 0.1, 0))
+
+    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_start_y - 0.1)
+    hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
+    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, HEX_COUPLER_DEPTH + 0.1, 0))
+
+    flap = flap.cut(Part.makeCompound([hex_socket_top_cutter, hex_socket_bot_cutter])).removeSplitter()
 
     # 6. Multi-Tiered Organic Gradient Circular Cutouts (matching reference images)
     hole_specs = [
