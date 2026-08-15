@@ -76,7 +76,7 @@ All part and assembly Python scripts must be visually and analytically validated
 
 ```
 cad-designs/
-├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md)
+├── spec/                           ← project constitution (mission.md, tech-stack.md, roadmap.md)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
 ├── base_module.py                  ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
 ├── follower_frame.py               ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
@@ -88,7 +88,7 @@ cad-designs/
 ├── controller_case.py              ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
 ├── frame_joiner.py                 ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── hex_drive_coupler.py            ← modular double-male 8.0mm hex torque drive coupler pin
-├── assembly_follower_module.py     ← follower module sub-assembly (Frame + Flap + Joiners + Hex Coupler)
+├── assembly.py                     ← follower module sub-assembly (Frame + Flap + Joiners + Hex Coupler)
 ├── assembly_motorized_module.py    ← motorized module sub-assembly (Frame + Snap Cover + Active Flap + Joiners + Hex Coupler)
 ├── assembly_interface_module.py    ← interface module sub-assembly (Case + 15° Faceplate)
 ├── assembly_4x3_grid.py            ← full 4x3 grid assembly model (2 Base + 4 Follower + 6 Motorized + Interface)

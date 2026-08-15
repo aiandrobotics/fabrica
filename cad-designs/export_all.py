@@ -54,8 +54,8 @@ def main():
     all_py = sorted(glob.glob(os.path.join(CURRENT_DIR, "*.py")))
     excluded = {"params.py", "export_all.py"}
     
-    part_files = [f for f in all_py if os.path.basename(f) not in excluded and not os.path.basename(f).startswith("assembly_")]
-    assembly_files = [f for f in all_py if os.path.basename(f).startswith("assembly_")]
+    part_files = [f for f in all_py if os.path.basename(f) not in excluded and not os.path.basename(f).startswith("assembly")]
+    assembly_files = [f for f in all_py if os.path.basename(f).startswith("assembly")]
     all_scripts = part_files + assembly_files
     
     if not all_scripts:
