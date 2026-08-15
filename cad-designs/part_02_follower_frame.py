@@ -178,16 +178,7 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 7. Filleted Wire Pass-Through Ports with Zip-Tie Saddles
-    wire_port_w = 10.0 * SCALE
-    wire_port_h = 5.5 * SCALE
-    wp_top = Part.makeBox(wire_port_w, rail_w + 0.2, wire_port_h)
-    wp_top.translate(App.Vector(w / 2.0 - wire_port_w / 2.0, h - rail_w - 0.1, bottom_thick))
-    wp_bot = Part.makeBox(wire_port_w, rail_w + 0.2, wire_port_h)
-    wp_bot.translate(App.Vector(w / 2.0 - wire_port_w / 2.0, -0.1, bottom_thick))
-    frame = frame.cut(Part.makeCompound([wp_top, wp_bot])).removeSplitter()
-
-    # 8. Debossed Poka-Yoke Directional Arrow ("FRONT ➔" on front outer wall)
+    # 7. Debossed Poka-Yoke Directional Arrow ("FRONT ➔" on front outer wall)
     arrow_shaft = Part.makeBox(12.0 * SCALE, 0.6 * SCALE, 2.0 * SCALE)
     arrow_shaft.translate(App.Vector(w / 2.0 - 6.0 * SCALE, -0.1, t - 3.5 * SCALE))
     arrow_head_poly = Part.makePolygon([
