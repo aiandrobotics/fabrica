@@ -55,60 +55,78 @@ def create_follower_frame():
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
 
-    # 2. Open U-Frame Cavity (Cut through inner swing side at X=0 to X=w-rail_w)
-    # Cavity extends from X = -0.1 to X = w - rail_w, Y = rail_w to Y = h - rail_w
-    cav_w = w - rail_w + 0.1
-    cav_h = h - 2 * rail_w
-    cavity = Part.makeBox(cav_w, cav_h, t - bottom_thick + 0.5)
-    cavity.translate(App.Vector(-0.1, rail_w, bottom_thick))
-    
-    # Axle floor clearance trough along X=0 for Ø14mm continuous drive axle (Z=1.0 to 3.0mm)
-    axle_trough = Part.makeBox(8.0 * SCALE, cav_h, bottom_thick + 0.2)
-    axle_trough.translate(App.Vector(-0.1, rail_w, -0.1))
-    
-    # 2b. 3-Rail Landing Steps (2.4mm depth at Z=12.6mm for Full-Deck Overlapping Flap hard-stop rest)
-    blade_t = 2.4 * SCALE
-    landing_z = t - blade_t
-    step_bot = Part.makeBox(w - 10.0 * SCALE + 0.2, rail_w + 0.1, blade_t + 0.5)
-    step_bot.translate(App.Vector(10.0 * SCALE, -0.1, landing_z))
-    step_top = Part.makeBox(w - 10.0 * SCALE + 0.2, rail_w + 0.1, blade_t + 0.5)
-    step_top.translate(App.Vector(10.0 * SCALE, h - rail_w, landing_z))
-    step_right = Part.makeBox(rail_w + 0.2, h + 0.2, blade_t + 0.5)
-    step_right.translate(App.Vector(w - rail_w, -0.1, landing_z))
-
-    frame = outer_box.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
-
-    # 3. Knuckle Extension Barrels & Smooth Organic Transition Ramps (Y = 0 to 15mm and Y = 225 to 240mm)
+    # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps (Y = 0 to 15mm and Y = 225 to 240mm)
     # Heavy-duty knuckles housing Ø13.0mm drive axle with reinforced 2.75mm top crown (Z = 17.5mm)
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w
     pivot_z = 8.0 * SCALE  # Axle center (1.5mm ground clearance & reinforced top crown at Z = 17.5mm)
-    crown_z = pivot_z + knuckle_r  # 17.5mm (solid 2.75mm roof over Ø13.5mm bearing bore)
     
     # Bottom Knuckle Barrel (+Y facing)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
     # Top Knuckle Barrel (-Y facing)
     k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
 
-    # Smooth Organic Tangent Transition Ramp (flows from Z = 17.5mm crown down to Z = 15.0mm frame top deck)
-    # Extruded across bottom knuckle (Y = 0 to 15mm) and top knuckle (Y = 225 to 240mm)
-    ramp_pts = [
-        App.Vector(-knuckle_r, 0, pivot_z),
-        App.Vector(-knuckle_r, 0, 0),
-        App.Vector(rail_w + 10.0 * SCALE, 0, 0),
-        App.Vector(rail_w + 10.0 * SCALE, 0, t),
-        App.Vector(rail_w, 0, t),
-        App.Vector(knuckle_r * 0.6, 0, t + (crown_z - t) * 0.65),
-        App.Vector(0, 0, crown_z),
-        App.Vector(-knuckle_r, 0, pivot_z),
-    ]
+    # Smooth C1-Continuous Tangent Concave Blend Ramp (flows directly from Ø19mm cylinder to Z = 15.0mm frame top deck)
+    rf = 12.0 * SCALE  # 12.0mm concave blend radius
+    xc = math.sqrt((knuckle_r + rf)**2 - (t - pivot_z + rf)**2) # ~10.06mm
+    zc = t + rf                                                 # 27.0mm
+    touch_theta = math.atan2(zc - pivot_z, xc)
+
+    ramp_pts = [App.Vector(-knuckle_r, 0, 0)] # bottom left
+    # Outer circle arch from -X up around crown to touch_theta
+    num_arch = 16
+    for i in range(num_arch):
+        th = math.pi - i * (math.pi - touch_theta) / float(num_arch - 1)
+        ramp_pts.append(App.Vector(knuckle_r * math.cos(th), 0, pivot_z + knuckle_r * math.sin(th)))
+
+    # Concave sweeping fillet arc from touch point down to horizontal deck (X = xc, Z = 15.0)
+    num_fillet = 16
+    for i in range(1, num_fillet):
+        alpha = (touch_theta - math.pi) + i * (-math.pi / 2.0 - (touch_theta - math.pi)) / float(num_fillet - 1)
+        ramp_pts.append(App.Vector(xc + rf * math.cos(alpha), 0, zc + rf * math.sin(alpha)))
+
+    ramp_pts.append(App.Vector(rail_w, 0, t))
+    ramp_pts.append(App.Vector(rail_w, 0, 0))
+    ramp_pts.append(App.Vector(-knuckle_r, 0, 0))
+
     ramp_wire = Part.makePolygon(ramp_pts)
     ramp_face = Part.Face(ramp_wire)
     ramp_bot = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    frame = frame.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
+    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
+
+    # 3. Open U-Frame Cavity & Inner Landing Ledges
+    cav_w = w - rail_w + 0.1
+    cav_h = h - 2 * rail_w
+    cavity = Part.makeBox(cav_w, cav_h, t - bottom_thick + 0.5)
+    cavity.translate(App.Vector(-0.1, rail_w, bottom_thick))
+    
+    # Axle floor clearance trough along X=0 for Ø13mm continuous drive axle
+    axle_trough = Part.makeBox(8.0 * SCALE, cav_h, bottom_thick + 0.2)
+    axle_trough.translate(App.Vector(-0.1, rail_w, -0.1))
+
+    # 3-Rail Landing Ledges (2.4mm depth at Z=12.6mm, 4.0mm width along inner rail boundaries)
+    # Flap rests on the inner 4.0mm recessed step while outer rail perimeter remains solid full-height at Z=15.0mm
+    # This completely protects the dovetail sockets at Y=0, Y=h, and X=w from any chips or notches!
+    blade_t = 2.4 * SCALE
+    landing_z = t - blade_t
+    ledge_w = 4.0 * SCALE
+
+    # Bottom inner ledge (at Y = rail_w - ledge_w to rail_w)
+    step_bot = Part.makeBox(w - rail_w + ledge_w + 0.2, ledge_w + 0.1, blade_t + 0.5)
+    step_bot.translate(App.Vector(-0.1, rail_w - ledge_w, landing_z))
+
+    # Top inner ledge (at Y = h - rail_w to h - rail_w + ledge_w)
+    step_top = Part.makeBox(w - rail_w + ledge_w + 0.2, ledge_w + 0.1, blade_t + 0.5)
+    step_top.translate(App.Vector(-0.1, h - rail_w, landing_z))
+
+    # Right inner ledge (at X = w - rail_w to w - rail_w + ledge_w)
+    step_right = Part.makeBox(ledge_w + 0.1, cav_h + 2 * ledge_w, blade_t + 0.5)
+    step_right.translate(App.Vector(w - rail_w, rail_w - ledge_w, landing_z))
+
+    frame = frame.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
 
     # 4. Hinge Bearing Bores: Dual 100% Solid 360° Closed Cylindrical Tunnels (Top & Bottom)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)

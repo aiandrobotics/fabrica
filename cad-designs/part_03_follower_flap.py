@@ -53,29 +53,28 @@ def create_follower_flap():
     7. 0.6mm Debossed Diamond Micro-Grip Texture for non-slip garment traction.
     8. 100% Supportless FDM Printability.
     """
-    w = 239.0 * SCALE          # Full-Deck Width extending across right rail
-    h = 238.0 * SCALE          # Full-Deck Length extending from Y=1.0 to Y=239.0mm
+    w = 228.0 * SCALE          # Flap width seated on 4.0mm right inner landing ledge (1.0mm clearance from outer wall)
+    h = 216.0 * SCALE          # Flap length seated on 4.0mm top/bottom inner landing ledges (Y = 12.0 to 228.0mm)
     t = PADDLE_THICKNESS       # 2.4mm panel thickness (optimal 12-layer rigidity & 40% weight reduction)
-    y_offset = 1.0 * SCALE     # 1.0mm margin on top and bottom
+    y_offset = 12.0 * SCALE    # 12.0mm start (1.0mm clearance from bottom solid rail wall at Y = 11.0mm)
     total_z = BASE_PANEL_THICKNESS # 15.0mm
     pivot_z = 8.0 * SCALE      # 8.0mm (1.5mm ground clearance; Ø13mm axle extends from Z=1.5mm to Z=14.5mm)
     panel_z_min = total_z - t  # 12.6mm (top of panel sits at 12.6 + 2.4 = 15.0mm flush with top deck)
 
-    # 1. Base solid full-deck flap slab (Extends from X=0 to X=239mm, Y=1 to Y=239mm, Z=12.6 to Z=15.0mm)
+    # 1. Base solid flap slab (Extends from X=0 to X=228mm, Y=12 to Y=228mm, Z=12.6 to Z=15.0mm)
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, y_offset, panel_z_min))
 
-    # Knuckle clearance corner cutouts at X=0 to 25.5mm for bottom and top knuckle ramps
-    cut_bot = Part.makeBox(26.0 * SCALE, 16.0 * SCALE, t + 5.0 * SCALE)
-    cut_bot.translate(App.Vector(-0.5, y_offset - 0.5, panel_z_min - 0.1))
+    # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle ramps
+    cut_bot = Part.makeBox(13.0 * SCALE, 4.5 * SCALE, t + 5.0 * SCALE)
+    cut_bot.translate(App.Vector(-0.5, y_offset - 0.2, panel_z_min - 0.1))
 
-    cut_top = Part.makeBox(26.0 * SCALE, 16.0 * SCALE, t + 5.0 * SCALE)
-    cut_top.translate(App.Vector(-0.5, y_offset + h - 15.5 * SCALE, panel_z_min - 0.1))
+    cut_top = Part.makeBox(13.0 * SCALE, 4.5 * SCALE, t + 5.0 * SCALE)
+    cut_top.translate(App.Vector(-0.5, y_offset + h - 4.2 * SCALE, panel_z_min - 0.1))
 
     flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
 
-    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=239, Bottom Y=1)
-    # Hinge side (X <= 25.5mm) is left completely solid and flat at Z=15.0mm with zero bevel gap
+    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=y_offset+h, Bottom Y=y_offset)
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
     bevel_w = 3.0 * SCALE
     top_z = total_z  # 15.0mm
@@ -88,13 +87,13 @@ def create_follower_flap():
     bevel_cuts.append(b_right)
     
     # Bottom edge bevel (at Y = y_offset to y_offset + bevel_w)
-    b_bot = Part.makeBox(w - 25.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(25.5 * SCALE, y_offset - 0.1, top_z - bevel_d))
+    b_bot = Part.makeBox(w - 12.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(12.0 * SCALE, y_offset - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
     
     # Top edge bevel (at Y = y_offset + h - bevel_w to y_offset + h)
-    b_top = Part.makeBox(w - 25.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(25.5 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
+    b_top = Part.makeBox(w - 12.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(12.0 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
     
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
