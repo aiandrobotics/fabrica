@@ -39,7 +39,7 @@ def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
     ]
     return Part.makePolygon(pts)
 
-def create_follower_flap():
+def construct_follower_flap():
     """
     Constructs the Full-Size Lightweight Follower Folding Flap with Integrated Full-Length Axle.
     Features:
@@ -182,27 +182,24 @@ def create_follower_flap():
         tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
         flap = flap.cut(tex_compound).removeSplitter()
 
-    return flap
-
-def export_part():
-    """Exports STEP and STL files to EXPORT_DIR and adds shape to FreeCAD document."""
-    os.makedirs(EXPORT_DIR, exist_ok=True)
-    shape = create_follower_flap()
-
-    doc = App.ActiveDocument or App.newDocument("FollowerFlap")
-    obj = doc.addObject("Part::Feature", "FollowerFlap")
-    obj.Shape = shape
-    doc.recompute()
-
+    # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "follower_flap.step")
     stl_path  = os.path.join(EXPORT_DIR, "follower_flap.stl")
-
+    os.makedirs(EXPORT_DIR, exist_ok=True)
     for path in (step_path, stl_path):
         if os.path.exists(path):
             os.remove(path)
 
-    shape.exportStep(step_path)
-    shape.exportStl(stl_path)
-    print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+    flap.exportStep(step_path)
+    flap.exportStl(stl_path)
+    print(f"Exported to {step_path} and {stl_path}")
+    return flap
 
-export_part()
+def main():
+    doc = App.newDocument("FollowerFlap")
+    shape = construct_follower_flap()
+    feature = doc.addObject("Part::Feature", "FollowerFlap")
+    feature.Shape = shape
+
+if __name__ == "__main__":
+    main()

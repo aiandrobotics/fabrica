@@ -140,28 +140,24 @@ def construct_frame_joiner():
     except Exception:
         pass
 
-    return joiner_solid
-
-def export_part():
-    """Exports STEP and STL files to EXPORT_DIR and adds shape to FreeCAD document."""
-    os.makedirs(EXPORT_DIR, exist_ok=True)
-    shape = construct_frame_joiner()
-
-    doc = App.ActiveDocument or App.newDocument("Doc")
-    obj = doc.addObject("Part::Feature", "FrameJoiner")
-    obj.Shape = shape
-    doc.recompute()
-
+    # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "frame_joiner.step")
     stl_path  = os.path.join(EXPORT_DIR, "frame_joiner.stl")
-
+    os.makedirs(EXPORT_DIR, exist_ok=True)
     for path in (step_path, stl_path):
         if os.path.exists(path):
             os.remove(path)
 
-    shape.exportStep(step_path)
-    shape.exportStl(stl_path)
+    joiner_solid.exportStep(step_path)
+    joiner_solid.exportStl(stl_path)
+    print(f"Exported to {step_path} and {stl_path}")
+    return joiner_solid
 
-    print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+def main():
+    doc = App.newDocument("FrameJoiner")
+    shape = construct_frame_joiner()
+    feature = doc.addObject("Part::Feature", "FrameJoiner")
+    feature.Shape = shape
 
-export_part()
+if __name__ == "__main__":
+    main()

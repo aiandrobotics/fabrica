@@ -33,7 +33,7 @@ from params import (
 
 BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
-def create_follower_frame():
+def construct_follower_frame():
     """
     Constructs the Passive Follower Frame with Clean Solid Through-Dovetail Joint.
     
@@ -244,27 +244,24 @@ def create_follower_frame():
     except Exception:
         pass
 
-    return frame
-
-def export_part():
-    """Exports STEP and STL files to EXPORT_DIR and adds shape to FreeCAD document."""
-    os.makedirs(EXPORT_DIR, exist_ok=True)
-    shape = create_follower_frame()
-
-    doc = App.ActiveDocument or App.newDocument("FollowerFrame")
-    obj = doc.addObject("Part::Feature", "FollowerFrame")
-    obj.Shape = shape
-    doc.recompute()
-
+    # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "follower_frame.step")
     stl_path  = os.path.join(EXPORT_DIR, "follower_frame.stl")
-
+    os.makedirs(EXPORT_DIR, exist_ok=True)
     for path in (step_path, stl_path):
         if os.path.exists(path):
             os.remove(path)
 
-    shape.exportStep(step_path)
-    shape.exportStl(stl_path)
-    print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+    frame.exportStep(step_path)
+    frame.exportStl(stl_path)
+    print(f"Exported to {step_path} and {stl_path}")
+    return frame
 
-export_part()
+def main():
+    doc = App.newDocument("FollowerFrame")
+    shape = construct_follower_frame()
+    feature = doc.addObject("Part::Feature", "FollowerFrame")
+    feature.Shape = shape
+
+if __name__ == "__main__":
+    main()

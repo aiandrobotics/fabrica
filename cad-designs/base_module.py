@@ -219,28 +219,24 @@ def construct_base_module():
     except Exception as e:
         print(f"Warning: Elephant foot chamfer skipped on base module: {e}")
 
-    return main_shell
-
-def export_part():
-    """Exports STEP and STL files to EXPORT_DIR and adds shape to FreeCAD document."""
-    os.makedirs(EXPORT_DIR, exist_ok=True)
-    shape = construct_base_module()
-
-    doc = App.ActiveDocument or App.newDocument("Doc")
-    obj = doc.addObject("Part::Feature", "BaseModule")
-    obj.Shape = shape
-    doc.recompute()
-
+    # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "base_module.step")
     stl_path  = os.path.join(EXPORT_DIR, "base_module.stl")
-
+    os.makedirs(EXPORT_DIR, exist_ok=True)
     for path in (step_path, stl_path):
         if os.path.exists(path):
             os.remove(path)
 
-    shape.exportStep(step_path)
-    shape.exportStl(stl_path)
+    main_shell.exportStep(step_path)
+    main_shell.exportStl(stl_path)
+    print(f"Exported to {step_path} and {stl_path}")
+    return main_shell
 
-    print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+def main():
+    doc = App.newDocument("BaseModule")
+    shape = construct_base_module()
+    feature = doc.addObject("Part::Feature", "BaseModule")
+    feature.Shape = shape
 
-export_part()
+if __name__ == "__main__":
+    main()

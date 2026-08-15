@@ -20,8 +20,8 @@ from params import (
     MODULE_GAP,
     EXPORT_DIR,
 )
-from follower_frame import create_follower_frame
-from follower_flap import create_follower_flap, PADDLE_THICKNESS
+from follower_frame import construct_follower_frame
+from follower_flap import construct_follower_flap, PADDLE_THICKNESS
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
 
@@ -43,7 +43,7 @@ def build_follower_assembly():
     bottom_thick = 3.0 * SCALE
 
     # 1. Base Follower Chassis Frame (Color: Green #2ecc71)
-    frame_shape = create_follower_frame()
+    frame_shape = construct_follower_frame()
     frame_obj = doc.addObject("Part::Feature", "FollowerFrame")
     frame_obj.Shape = frame_shape
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
@@ -51,7 +51,7 @@ def build_follower_assembly():
 
     # 2. Full-Size Follower Flap with Dual Female Hex Sockets (Color: Orange #e67e22)
     # Flap axle is centered along hinge axis at X = 0, Z = 8.0mm
-    flap_shape = create_follower_flap()
+    flap_shape = construct_follower_flap()
     flap_obj = doc.addObject("Part::Feature", "FollowerFlap")
     flap_obj.Shape = flap_shape
     flap_obj.Placement = App.Placement(
