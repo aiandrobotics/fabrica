@@ -69,7 +69,7 @@ SERVO_HOLE_SPACING_Y = 10.0 * SCALE
 SERVO_SCREW_RADIUS   = 2.0 * SCALE
 
 # Standard 4x3 Folding Grid Assembly Layout & Inter-Module Gap
-MODULE_GAP        = 20.0 * SCALE  # 20mm fabric relief and cable raceway bridge gap
+MODULE_GAP        = 10.0 * SCALE  # 10mm fabric relief and cable raceway bridge gap
 GRID_ROWS         = 4
 GRID_COLS         = 3
 TOTAL_GRID_WIDTH  = (PANEL_WIDTH * GRID_COLS) + (MODULE_GAP * (GRID_COLS - 1))
