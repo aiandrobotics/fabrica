@@ -25,6 +25,7 @@ from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
+    TPU_BUMPER_DEPTH,
     EXPORT_DIR,
 )
 
@@ -198,7 +199,7 @@ def construct_motorized_frame():
     # Re-apply bottom trim to guarantee 100% planar base at Z=0.0mm
     frame = frame.cut(trim_bot).removeSplitter()
 
-    # 5. Dovetails on Outer Rails
+    # 5. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Rails (Front Y=0, Right X=W) matching Follower Frame
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
@@ -219,16 +220,11 @@ def construct_motorized_frame():
     push_hole = Part.makeCylinder(3.0 * SCALE, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
     dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
-    # Front Wall (Y=0)
+    # Front Wall (Y=0) -> cuts into +Y
     c_front = dt_cutter_with_hole.copy()
     c_front.translate(App.Vector(w / 2.0, 0, 0))
 
-    # Back Wall (Y=H)
-    c_back = dt_cutter_with_hole.copy()
-    c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
-    c_back.translate(App.Vector(w / 2.0, h, 0))
-
-    # Right Wall (X=W)
+    # Right Wall (X=W) -> cuts into -X
     c_right = dt_cutter_with_hole.copy()
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
@@ -261,7 +257,7 @@ def construct_motorized_frame():
     dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
     dt4_cutter.translate(App.Vector(0, 0, -1.0))
 
-    for dt in [c_front, c_back, c_right, dt4_cutter]:
+    for dt in [c_front, c_right, dt4_cutter]:
         frame = frame.cut(dt).removeSplitter()
 
     # 6. Anti-Slip Rubber Foot Sockets
@@ -277,20 +273,17 @@ def construct_motorized_frame():
         fc = Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
         frame = frame.cut(fc).removeSplitter()
 
-    # 7. Silent-Flip TPU Bumper Slots
-    bumper_w = 4.0 * SCALE
-    bumper_l = 25.0 * SCALE
-    bumper_d = 1.5 * SCALE
-    bumpers = [
-        Part.makeBox(bumper_l, bumper_w, bumper_d + 0.2),
-        Part.makeBox(bumper_w, bumper_l, bumper_d + 0.2),
-        Part.makeBox(bumper_l, bumper_w, bumper_d + 0.2),
-    ]
-    bumpers[0].translate(App.Vector(w / 2.0 - bumper_l / 2.0, rail_w / 2.0 - bumper_w / 2.0, t - bumper_d))
-    bumpers[1].translate(App.Vector(w - rail_w / 2.0 - bumper_w / 2.0, h / 2.0 - bumper_l / 2.0, t - bumper_d))
-    bumpers[2].translate(App.Vector(w / 2.0 - bumper_l / 2.0, h - rail_w / 2.0 - bumper_w / 2.0, t - bumper_d))
-    for bmp in bumpers:
-        frame = frame.cut(bmp).removeSplitter()
+    # 7. Silent-Flip TPU Landing Bumper Slots (recessed into right landing rail at X = w - rail_w/2)
+    tpu_cutters = []
+    tpu_w = 5.0 * SCALE
+    tpu_l = 14.0 * SCALE
+    tpu_h = TPU_BUMPER_DEPTH # 1.5mm
+    for py in [h * 0.25, h * 0.75]:
+        b = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
+        b.translate(App.Vector(w - (rail_w / 2.0) - (tpu_w / 2.0), py - (tpu_l / 2.0), t - tpu_h))
+        tpu_cutters.append(b)
+
+    frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")

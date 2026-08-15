@@ -226,7 +226,7 @@ def construct_follower_frame():
     tpu_w = 5.0 * SCALE
     tpu_l = 14.0 * SCALE
     tpu_h = TPU_BUMPER_DEPTH # 1.5mm
-    for py in [h * 0.25, h * 0.5, h * 0.75]:
+    for py in [h * 0.25, h * 0.75]:
         b = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
         b.translate(App.Vector(w - (rail_w / 2.0) - (tpu_w / 2.0), py - (tpu_l / 2.0), t - tpu_h))
         tpu_cutters.append(b)
@@ -258,8 +258,14 @@ def construct_follower_frame():
     print(f"Exported to {step_path} and {stl_path}")
     return frame
 
+def main():
+    doc = App.ActiveDocument or App.newDocument("FollowerFrame")
+    shape = construct_follower_frame()
+    feature = doc.addObject("Part::Feature", "FollowerFrame")
+    feature.Shape = shape
+
 def export_part():
-    construct_follower_frame()
+    main()
 
 export_part()
 
