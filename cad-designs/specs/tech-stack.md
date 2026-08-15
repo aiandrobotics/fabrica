@@ -82,12 +82,12 @@ cad-designs/
 ├── part_02_follower_frame.py       ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
 ├── part_03_follower_flap.py        ← passive follower flap (continuous Ø13mm axle, dual 8mm hex sockets, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
 ├── part_04_motorized_frame.py      ← active motorized 4-sided frame (servo mounting bay, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, dovetail sockets)
+├── part_05_active_flap.py          ← monolithic active folding flap (integrated Ø13mm axle, 25T servo horn pocket, 8mm hex output socket, ~45% mass cutouts, micro-grip texture)
 ├── part_06_servo_cover.py          ← toolless snap-latch servo housing cover with wire strain relief
-├── part_07_active_flap.py          ← monolithic active folding flap (integrated Ø13mm axle, 25T servo horn pocket, 8mm hex output socket, ~45% mass cutouts, micro-grip texture)
-├── part_08_interface_panel.py      ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status bar window, hole chamfers, micro-grip texture)
-├── part_09_controller_case.py      ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
-├── part_10_frame_joiner.py         ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
-├── part_11_hex_drive_coupler.py    ← modular double-male 8.0mm hex torque drive coupler pin
+├── part_07_interface_panel.py      ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status bar window, hole chamfers, micro-grip texture)
+├── part_08_controller_case.py      ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
+├── part_09_frame_joiner.py         ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
+├── part_10_hex_drive_coupler.py    ← modular double-male 8.0mm hex torque drive coupler pin
 ├── assembly_follower_module.py     ← follower module sub-assembly (Frame + Flap + Joiners + Hex Coupler)
 ├── assembly_motorized_module.py    ← motorized module sub-assembly (Frame + Snap Cover + Active Flap + Joiners + Hex Coupler)
 ├── assembly_interface_module.py    ← interface module sub-assembly (Case + 15° Faceplate)

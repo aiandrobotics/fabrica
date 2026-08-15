@@ -9,8 +9,8 @@ Validation specification and acceptance criteria for the Passive Follower Module
 ### 1. Headless Build Verification (`export_all.py` / `run.sh`)
 - Execute `./run.sh part_02_follower_frame.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
 - Execute `./run.sh part_03_follower_flap.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
-- Execute `./run.sh part_10_frame_joiner.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
-- Execute `./run.sh part_11_hex_drive_coupler.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
+- Execute `./run.sh part_09_frame_joiner.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
+- Execute `./run.sh part_10_hex_drive_coupler.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
 - Execute `./run.sh assembly_follower_module.py` -> exit code `0`, valid `assembly_follower_module.step` and `.stl` generated in `exports/`.
 - Run `./run.sh export_all` -> all 6 scripts build without warnings or boolean topology errors.
 

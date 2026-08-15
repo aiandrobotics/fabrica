@@ -13,8 +13,8 @@
 10. Apply 0.4 mm × 45° Elephant's Foot relief chamfer along all bottom bed-contacting edges.
 11. Model tapered female dovetail joiner sockets with 0.3 mm detent locking dimples on all 4 outer walls.
 
-## Task Group 2: Click-Lock Hollow Dovetail Frame Joiner (`parts/part_10_frame_joiner.py`)
-1. Create `parts/part_10_frame_joiner.py` referencing single source of truth parameters from `params.py`.
+## Task Group 2: Click-Lock Hollow Dovetail Frame Joiner (`part_09_frame_joiner.py`)
+1. Create `part_09_frame_joiner.py` referencing single source of truth parameters from `params.py`.
 2. Model tapered male dovetail key matching base chassis female sockets with 0.2 mm press-fit clearance.
 3. Model 0.3 mm flex-detent bump for tactile click-lock retention.
 4. Model hollow internal wire conduit tunnel running through the center of the joiner.
@@ -24,4 +24,4 @@
 1. Execute headless FreeCAD script build to generate STEP and STL outputs in `exports/`.
 2. Perform FreeCAD MCP Visual Validation using `render_freecad_script` (Isometric, Front, Top, Right multi-view burst).
 3. Perform cross-section topology inspection using `section_freecad_model` (XZ and YZ section cuts).
-4. Perform interference verification using `check_interference` between `part_01_base_module` and `part_10_frame_joiner` (`overlap_volume_mm3 <= 0.001`).
+4. Perform interference verification using `check_interference` between `part_01_base_module` and `part_09_frame_joiner` (`overlap_volume_mm3 <= 0.001`).

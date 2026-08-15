@@ -22,13 +22,13 @@ from params import (
 )
 from part_02_follower_frame import create_follower_frame
 from part_03_follower_flap import create_follower_flap, PADDLE_THICKNESS
-from part_10_frame_joiner import construct_frame_joiner
-from part_11_hex_drive_coupler import construct_hex_drive_coupler
+from part_09_frame_joiner import construct_frame_joiner
+from part_10_hex_drive_coupler import construct_hex_drive_coupler
 
 def build_follower_assembly():
     """
     Assembles the Passive Follower Module:
-    1. Follower 3-Sided U-Frame (Green #2ecc71).
+    1. Follower Chassis Frame (Green #2ecc71).
     2. Full-Size Rotating Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
     3. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
     4. Modular Double-Male Hex Drive Coupler Pin (Purple #9b59b6) at bottom hinge port (Y=0).
@@ -63,7 +63,7 @@ def build_follower_assembly():
 
     # 3. Front Interlocking Bridge Joiner (Color: Blue #3498db)
     joiner_shape = construct_frame_joiner()
-    joiner_front = doc.addObject("Part::Feature", "Part10FrameJoiner_Front")
+    joiner_front = doc.addObject("Part::Feature", "Part09FrameJoiner_Front")
     joiner_front.Shape = joiner_shape.copy()
     joiner_front.Placement = App.Placement(
         App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick),
@@ -73,7 +73,7 @@ def build_follower_assembly():
         joiner_front.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
     # 4. Right Interlocking Bridge Joiner (Color: Blue #3498db)
-    joiner_right = doc.addObject("Part::Feature", "Part10FrameJoiner_Right")
+    joiner_right = doc.addObject("Part::Feature", "Part09FrameJoiner_Right")
     joiner_right.Shape = joiner_shape.copy()
     joiner_right.Placement = App.Placement(
         App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick),
@@ -84,7 +84,7 @@ def build_follower_assembly():
 
     # 5. Modular Double-Male Hex Drive Coupler Pin (Color: Purple #9b59b6)
     coupler_shape = construct_hex_drive_coupler()
-    coupler_obj = doc.addObject("Part::Feature", "Part11HexDriveCoupler")
+    coupler_obj = doc.addObject("Part::Feature", "Part10HexDriveCoupler")
     coupler_obj.Shape = coupler_shape
     coupler_obj.Placement = App.Placement(
         App.Vector(0, 0, 0),
