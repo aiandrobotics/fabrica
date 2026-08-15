@@ -6,7 +6,7 @@
 - Run `python3 params.py` to confirm single source of truth dimensions load cleanly with 0 errors.
 
 ### 2. Headless FreeCAD CAD Export Build
-- Execute FreeCAD Python API scripts for `part_01_base_module.py` and `part_09_frame_joiner.py` using `freecadcmd`.
+- Execute FreeCAD Python API scripts for `base_module.py` and `frame_joiner.py` using `freecadcmd`.
 - Verify STEP (`.step`) and binary STL (`.stl`) files generate in `exports/`.
 - Verify manifold solid geometry pass across all exported STL files (zero non-manifold edges, zero unclosed shells).
 
@@ -15,7 +15,7 @@
 - Run `section_freecad_model` to inspect cross-section cuts (`XZ` and `YZ` planes) to verify internal 3.0mm hex lattice wall thickness and hollow joiner wire conduit clearance.
 
 ### 4. Precision Clearance & Interference Check
-- Run `check_interference` on `part_01_base_module` and `part_09_frame_joiner` mating pairs.
+- Run `check_interference` on `base_module` and `frame_joiner` mating pairs.
 - **Pass Threshold**: `overlap_volume_mm3 <= 0.001`. Overlap > 0.001 mm³ on sliding joints indicates a clearance design error.
 
 ## Manual Review

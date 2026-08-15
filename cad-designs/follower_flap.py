@@ -1,5 +1,5 @@
 """
-part_03_follower_flap.py — Full-Size Follower Flap with Integrated Full-Length Axle
+follower_flap.py — Full-Size Follower Flap with Integrated Full-Length Axle
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -190,12 +190,12 @@ def export_part():
     shape = create_follower_flap()
 
     doc = App.ActiveDocument or App.newDocument("FollowerFlap")
-    obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
+    obj = doc.addObject("Part::Feature", "FollowerFlap")
     obj.Shape = shape
     doc.recompute()
 
-    step_path = os.path.join(EXPORT_DIR, "part_03_follower_flap.step")
-    stl_path  = os.path.join(EXPORT_DIR, "part_03_follower_flap.stl")
+    step_path = os.path.join(EXPORT_DIR, "follower_flap.step")
+    stl_path  = os.path.join(EXPORT_DIR, "follower_flap.stl")
 
     for path in (step_path, stl_path):
         if os.path.exists(path):

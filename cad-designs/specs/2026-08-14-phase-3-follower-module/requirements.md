@@ -40,7 +40,7 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 
 ## 2. Component Specifications
 
-### 2.1 Follower Outer Chassis Frame (`part_02_follower_frame.py`)
+### 2.1 Follower Outer Chassis Frame (`follower_frame.py`)
 - **Overall Dimensions**: $240.0\text{ mm} \text{ (W)} \times 240.0\text{ mm} \text{ (H)} \times 15.0\text{ mm} \text{ (T)}$.
 - **4-Sided Rigid Chassis Geometry**:
   - Top rail ($Y = 240\text{ mm}$), bottom rail ($Y = 0$), and outer side rail ($X = 240\text{ mm}$).
@@ -59,14 +59,14 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
     - **C1-Continuous Concave Blend Ramps**: Smooth $R_f = 12.0\text{ mm}$ tangent concave filleted ramps transitioning seamlessly from $\varnothing 19.0\text{ mm}$ knuckle barrels into the $Z = 15.0\text{ mm}$ frame top deck.
   - **100% Planar Flat Underside**: Both knuckles trimmed coplanar at $Z = 0.0\text{ mm}$ for zero-support 3D printing and rock-solid tabletop stability.
 - **TPU Landing Dampers**: 3x $1.5\text{ mm}$ recessed silent-flip TPU bumper slots along the top landing rail at $X = 232.5\text{ mm}$.
-- **True Sliding Dovetail System (`part_09_frame_joiner.py`)**: Symmetrical double flared dovetail key ($8.0\text{ mm}$ neck flaring to $12.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play.
+- **True Sliding Dovetail System (`frame_joiner.py`)**: Symmetrical double flared dovetail key ($8.0\text{ mm}$ neck flaring to $12.0\text{ mm}$ at $12.0\text{ mm}$ depth with $0.15\text{ mm}$ sliding clearance) that drops in vertically from the top, physically locking adjacent modules together with zero horizontal pull-apart play.
 - **Through-Floor Access Holes**: $\varnothing 6.0\text{ mm}$ push-out access holes through the bottom floor under each dovetail socket for toolless finger disassembly.
 - **Anti-Slip Rubber Feet**: 4x bottom corner sockets ($\varnothing 12.0 \times 2.0\text{ mm}$) for press-fitting anti-slip silicone/rubber grip pads.
 - **Relief Chamfers**: $0.4\text{ mm}$ bottom Elephant's Foot relief chamfers along outer bed-contacting edges.
 
 ---
 
-## 2.2 Follower Folding Flap (`part_03_follower_flap.py`)
+## 2.2 Follower Folding Flap (`follower_flap.py`)
 - **Overall Dimensions**: $239.0\text{ mm} \text{ (W)} \times 238.0\text{ mm} \text{ (L)} \times 2.4\text{ mm} \text{ (T)}$ full-deck overlapping paddle fused to a continuous $\varnothing 13.0\text{ mm}$ solid-core drive axle.
 - **Full-Deck 3-Rail Overlap ("Lid" Architecture)**:
   - Spans across the entire module footprint, completely covering the 3 chassis frame rails (Bottom, Top, Right).
@@ -91,7 +91,7 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 
 ---
 
-## 2.3 Modular Double-Male Hex Drive Coupler Pin (`part_10_hex_drive_coupler.py`)
+## 2.3 Modular Double-Male Hex Drive Coupler Pin (`hex_drive_coupler.py`)
 - **Overall Dimensions**: $8.0\text{ mm} \text{ (Hex)} \times 22.0\text{ mm} \text{ (Total Length)}$.
 - **Double-Ended Hex Keys**: $7.7\text{ mm}$ Flat-to-Flat ($0.15\text{ mm}$ sliding fit clearance per side) with $1.5\text{ mm} \times 45^\circ$ self-aligning lead-in entry chamfers on both ends.
 - **Center Stop Flange**: $\varnothing 13.8\text{ mm} \times 1.0\text{ mm}$ collar that keeps the coupler centered across the module seam.
@@ -104,8 +104,8 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 - **Components**:
   1. Follower Frame (Green `#2ecc71`).
   2. Follower Flap with $\varnothing 13\text{ mm}$ Axle (Orange `#e67e22`).
-  3. 2× Part 09 Flush Bridge Frame Joiners (Blue `#3498db`) mounted in outer frame sockets.
-  4. 1× Part 10 Compact Hex Drive Coupler (Purple `#9b59b6`) mated in axle hex socket.
+  3. 2× Frame Joiners (Blue `#3498db`) mounted in outer frame sockets.
+  4. 1× Hex Drive Coupler (Purple `#9b59b6`) mated in axle hex socket.
 - **Kinematic Travel Verification**:
   - Unobstructed $0^\circ \text{ (flat rest)} \to 90^\circ \text{ (vertical)} \to 180^\circ \text{ (folded onto center base module)}$ sweep.
   - Zero collision (`overlap_volume_mm3 == 0.00000 mm³`) between all mating pairs throughout the rotation arc.

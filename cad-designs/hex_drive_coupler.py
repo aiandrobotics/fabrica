@@ -1,5 +1,5 @@
 """
-part_10_hex_drive_coupler.py — Compact 10mm Bridge Modular Hex Drive Coupler Pin
+hex_drive_coupler.py — Compact 10mm Bridge Modular Hex Drive Coupler Pin
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -80,12 +80,12 @@ def export_part():
     shape = construct_hex_drive_coupler()
 
     doc = App.ActiveDocument or App.newDocument("Doc")
-    obj = doc.addObject("Part::Feature", "Part10HexDriveCoupler")
+    obj = doc.addObject("Part::Feature", "HexDriveCoupler")
     obj.Shape = shape
     doc.recompute()
 
-    step_path = os.path.join(EXPORT_DIR, "part_10_hex_drive_coupler.step")
-    stl_path  = os.path.join(EXPORT_DIR, "part_10_hex_drive_coupler.stl")
+    step_path = os.path.join(EXPORT_DIR, "hex_drive_coupler.step")
+    stl_path  = os.path.join(EXPORT_DIR, "hex_drive_coupler.stl")
 
     for path in (step_path, stl_path):
         if os.path.exists(path):

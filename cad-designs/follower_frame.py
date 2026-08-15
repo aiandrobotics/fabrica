@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower Frame with Clean Solid Through-Dovetail Joint
+follower_frame.py — Passive Follower Frame with Clean Solid Through-Dovetail Joint
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -252,12 +252,12 @@ def export_part():
     shape = create_follower_frame()
 
     doc = App.ActiveDocument or App.newDocument("FollowerFrame")
-    obj = doc.addObject("Part::Feature", "Part02FollowerFrame")
+    obj = doc.addObject("Part::Feature", "FollowerFrame")
     obj.Shape = shape
     doc.recompute()
 
-    step_path = os.path.join(EXPORT_DIR, "part_02_follower_frame.step")
-    stl_path  = os.path.join(EXPORT_DIR, "part_02_follower_frame.stl")
+    step_path = os.path.join(EXPORT_DIR, "follower_frame.step")
+    stl_path  = os.path.join(EXPORT_DIR, "follower_frame.stl")
 
     for path in (step_path, stl_path):
         if os.path.exists(path):

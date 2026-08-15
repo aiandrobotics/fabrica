@@ -1,11 +1,11 @@
 # Requirements — Phase 2: Modular Base Module & Interlocking Joiners
 
 ## Scope
-Implement `parts/part_01_base_module.py` and `parts/part_09_frame_joiner.py` to create the stationary central chassis column and toolless interlocking frame joiners for the Fabrica Cloth Folding Robot 4×3 grid architecture.
+Implement `base_module.py` and `frame_joiner.py` to create the stationary central chassis column and toolless interlocking frame joiners for the Fabrica Cloth Folding Robot 4×3 grid architecture.
 
 ## Decisions
-- **Monolithic 1-Piece Base Chassis**: Consolidate the base top plate and outer frame box into 1 single solid chassis script (`part_01_base_module.py`) for maximum structural backbone rigidity and zero assembly effort.
-- **Click-Lock Hollow Dovetail Joiners**: Eliminate magnets in favor of 100% 3D-printed tapered dovetail keys (`part_09_frame_joiner.py`) featuring 0.3 mm detent bumps and internal wire conduits.
+- **Monolithic 1-Piece Base Chassis**: Consolidate the base top plate and outer frame box into 1 single solid chassis script (`base_module.py`) for maximum structural backbone rigidity and zero assembly effort.
+- **Click-Lock Hollow Dovetail Joiners**: Eliminate magnets in favor of 100% 3D-printed tapered dovetail keys (`frame_joiner.py`) featuring 0.3 mm detent bumps and internal wire conduits.
 - **Parametric Single Source of Truth**: All dimensions, clearances, chamfers, and wall thicknesses must strictly import from `params.py`.
 
 ## Constraints

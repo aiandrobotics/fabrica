@@ -1,5 +1,5 @@
 """
-part_01_base_module.py — Monolithic Stationary Base Chassis Module
+base_module.py — Monolithic Stationary Base Chassis Module
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -227,12 +227,16 @@ def export_part():
     shape = construct_base_module()
 
     doc = App.ActiveDocument or App.newDocument("Doc")
-    obj = doc.addObject("Part::Feature", "Part01BaseModule")
+    obj = doc.addObject("Part::Feature", "BaseModule")
     obj.Shape = shape
     doc.recompute()
 
-    step_path = os.path.join(EXPORT_DIR, "part_01_base_module.step")
-    stl_path  = os.path.join(EXPORT_DIR, "part_01_base_module.stl")
+    step_path = os.path.join(EXPORT_DIR, "base_module.step")
+    stl_path  = os.path.join(EXPORT_DIR, "base_module.stl")
+
+    for path in (step_path, stl_path):
+        if os.path.exists(path):
+            os.remove(path)
 
     shape.exportStep(step_path)
     shape.exportStl(stl_path)

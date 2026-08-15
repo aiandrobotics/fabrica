@@ -20,10 +20,10 @@ from params import (
     MODULE_GAP,
     EXPORT_DIR,
 )
-from part_02_follower_frame import create_follower_frame
-from part_03_follower_flap import create_follower_flap, PADDLE_THICKNESS
-from part_09_frame_joiner import construct_frame_joiner
-from part_10_hex_drive_coupler import construct_hex_drive_coupler
+from follower_frame import create_follower_frame
+from follower_flap import create_follower_flap, PADDLE_THICKNESS
+from frame_joiner import construct_frame_joiner
+from hex_drive_coupler import construct_hex_drive_coupler
 
 def build_follower_assembly():
     """
@@ -44,7 +44,7 @@ def build_follower_assembly():
 
     # 1. Base Follower Chassis Frame (Color: Green #2ecc71)
     frame_shape = create_follower_frame()
-    frame_obj = doc.addObject("Part::Feature", "Part02FollowerFrame")
+    frame_obj = doc.addObject("Part::Feature", "FollowerFrame")
     frame_obj.Shape = frame_shape
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
         frame_obj.ViewObject.ShapeColor = (0.18, 0.8, 0.44)
@@ -52,7 +52,7 @@ def build_follower_assembly():
     # 2. Full-Size Follower Flap with Dual Female Hex Sockets (Color: Orange #e67e22)
     # Flap axle is centered along hinge axis at X = 0, Z = 8.0mm
     flap_shape = create_follower_flap()
-    flap_obj = doc.addObject("Part::Feature", "Part03FollowerFlap")
+    flap_obj = doc.addObject("Part::Feature", "FollowerFlap")
     flap_obj.Shape = flap_shape
     flap_obj.Placement = App.Placement(
         App.Vector(0, 0, 0),
@@ -63,7 +63,7 @@ def build_follower_assembly():
 
     # 3. Front Interlocking Bridge Joiner (Color: Blue #3498db)
     joiner_shape = construct_frame_joiner()
-    joiner_front = doc.addObject("Part::Feature", "Part09FrameJoiner_Front")
+    joiner_front = doc.addObject("Part::Feature", "FrameJoiner_Front")
     joiner_front.Shape = joiner_shape.copy()
     joiner_front.Placement = App.Placement(
         App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick),
@@ -73,7 +73,7 @@ def build_follower_assembly():
         joiner_front.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
     # 4. Right Interlocking Bridge Joiner (Color: Blue #3498db)
-    joiner_right = doc.addObject("Part::Feature", "Part09FrameJoiner_Right")
+    joiner_right = doc.addObject("Part::Feature", "FrameJoiner_Right")
     joiner_right.Shape = joiner_shape.copy()
     joiner_right.Placement = App.Placement(
         App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick),
@@ -84,7 +84,7 @@ def build_follower_assembly():
 
     # 5. Modular Double-Male Hex Drive Coupler Pin (Color: Purple #9b59b6)
     coupler_shape = construct_hex_drive_coupler()
-    coupler_obj = doc.addObject("Part::Feature", "Part10HexDriveCoupler")
+    coupler_obj = doc.addObject("Part::Feature", "HexDriveCoupler")
     coupler_obj.Shape = coupler_shape
     coupler_obj.Placement = App.Placement(
         App.Vector(0, 0, 0),

@@ -7,10 +7,10 @@ Validation specification and acceptance criteria for the Passive Follower Module
 ## Required Checks
 
 ### 1. Headless Build Verification (`export_all.py` / `run.sh`)
-- Execute `./run.sh part_02_follower_frame.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
-- Execute `./run.sh part_03_follower_flap.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
-- Execute `./run.sh part_09_frame_joiner.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
-- Execute `./run.sh part_10_hex_drive_coupler.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
+- Execute `./run.sh follower_frame.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
+- Execute `./run.sh follower_flap.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
+- Execute `./run.sh frame_joiner.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
+- Execute `./run.sh hex_drive_coupler.py` -> exit code `0`, valid `.step` and `.stl` generated in `exports/`.
 - Execute `./run.sh assembly_follower_module.py` -> exit code `0`, valid `assembly_follower_module.step` and `.stl` generated in `exports/`.
 - Run `./run.sh export_all` -> all 6 scripts build without warnings or boolean topology errors.
 
@@ -23,7 +23,7 @@ Validation specification and acceptance criteria for the Passive Follower Module
   - Boolean overlap volume check (`check_interference`): `overlap_volume_mm3 == 0.00000 mm³` across all 5 assembly pairs.
 
 ### 3. Visual Validation (`freecad-visual-validation`)
-- Execute multi-view burst (`render_freecad_script`) on `part_02_follower_frame.py`, `part_03_follower_flap.py`, and `assembly_follower_module.py`:
+- Execute multi-view burst (`render_freecad_script`) on `follower_frame.py`, `follower_flap.py`, and `assembly_follower_module.py`:
   - `Isometric`, `Front`, `Top`, `Right`, `Back`, `Bottom` views.
 - Confirm checks:
   - [x] No floating geometry.

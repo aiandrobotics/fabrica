@@ -1,5 +1,5 @@
 """
-part_09_frame_joiner.py — True Sliding Dovetail Bridge Frame Joiner
+frame_joiner.py — True Sliding Dovetail Bridge Frame Joiner
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -148,12 +148,12 @@ def export_part():
     shape = construct_frame_joiner()
 
     doc = App.ActiveDocument or App.newDocument("Doc")
-    obj = doc.addObject("Part::Feature", "Part09FrameJoiner")
+    obj = doc.addObject("Part::Feature", "FrameJoiner")
     obj.Shape = shape
     doc.recompute()
 
-    step_path = os.path.join(EXPORT_DIR, "part_09_frame_joiner.step")
-    stl_path  = os.path.join(EXPORT_DIR, "part_09_frame_joiner.stl")
+    step_path = os.path.join(EXPORT_DIR, "frame_joiner.step")
+    stl_path  = os.path.join(EXPORT_DIR, "frame_joiner.stl")
 
     for path in (step_path, stl_path):
         if os.path.exists(path):
