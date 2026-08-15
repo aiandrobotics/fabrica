@@ -34,9 +34,18 @@ def construct_servo_cad_reference():
     Loads and positions the real MG996R STEP solid reference model in horizontal orientation.
     Spline output aligns directly with flap hinge axis at (X=0, Z=8.0mm), protruding into flap at Y=185.0mm.
     """
-    step_file = os.path.join(SCRIPT_DIR, "exports", "reference-models", "mg996r.step")
+    step_paths = [
+        os.path.join(SCRIPT_DIR, "..", "specs", "reference-images", "mg996r.step"),
+        os.path.join(SCRIPT_DIR, "exports", "reference-models", "mg996r.step"),
+    ]
+    step_file = None
+    for sp in step_paths:
+        if os.path.exists(sp):
+            step_file = sp
+            break
+
     raw_servo = Part.Shape()
-    if os.path.exists(step_file):
+    if step_file:
         raw_servo.read(step_file)
         p1 = App.Placement(App.Vector(-30.25 * SCALE, -9.75 * SCALE, -14.19 * SCALE), App.Rotation(0,0,0,1))
         r1 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(1,0,0), 90))
