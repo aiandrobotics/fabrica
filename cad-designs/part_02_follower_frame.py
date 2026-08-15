@@ -97,7 +97,7 @@ def create_follower_frame():
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
-    # 3. Open U-Frame Cavity & Inner Landing Ledges
+    # 3. Open U-Frame Cavity & Axle Floor Clearance Trough
     cav_w = w - rail_w + 0.1
     cav_h = h - 2 * rail_w
     cavity = Part.makeBox(cav_w, cav_h, t - bottom_thick + 0.5)
@@ -107,26 +107,7 @@ def create_follower_frame():
     axle_trough = Part.makeBox(8.0 * SCALE, cav_h, bottom_thick + 0.2)
     axle_trough.translate(App.Vector(-0.1, rail_w, -0.1))
 
-    # 3-Rail Landing Ledges (2.4mm depth at Z=12.6mm, 4.0mm width along inner rail boundaries)
-    # Flap rests on the inner 4.0mm recessed step while outer rail perimeter remains solid full-height at Z=15.0mm
-    # This completely protects the dovetail sockets at Y=0, Y=h, and X=w from any chips or notches!
-    blade_t = 2.4 * SCALE
-    landing_z = t - blade_t
-    ledge_w = 4.0 * SCALE
-
-    # Bottom inner ledge (at Y = rail_w - ledge_w to rail_w)
-    step_bot = Part.makeBox(w - rail_w + ledge_w + 0.2, ledge_w + 0.1, blade_t + 0.5)
-    step_bot.translate(App.Vector(-0.1, rail_w - ledge_w, landing_z))
-
-    # Top inner ledge (at Y = h - rail_w to h - rail_w + ledge_w)
-    step_top = Part.makeBox(w - rail_w + ledge_w + 0.2, ledge_w + 0.1, blade_t + 0.5)
-    step_top.translate(App.Vector(-0.1, h - rail_w, landing_z))
-
-    # Right inner ledge (at X = w - rail_w to w - rail_w + ledge_w)
-    step_right = Part.makeBox(ledge_w + 0.1, cav_h + 2 * ledge_w, blade_t + 0.5)
-    step_right.translate(App.Vector(w - rail_w, rail_w - ledge_w, landing_z))
-
-    frame = frame.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cavity, axle_trough])).removeSplitter()
 
     # 4. Hinge Bearing Bores: Dual 100% Solid 360° Closed Cylindrical Tunnels (Top & Bottom)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)

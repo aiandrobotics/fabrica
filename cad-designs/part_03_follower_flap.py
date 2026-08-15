@@ -53,26 +53,17 @@ def create_follower_flap():
     7. 0.6mm Debossed Diamond Micro-Grip Texture for non-slip garment traction.
     8. 100% Supportless FDM Printability.
     """
-    w = 228.0 * SCALE          # Flap width seated on 4.0mm right inner landing ledge (1.0mm clearance from outer wall)
-    h = 216.0 * SCALE          # Flap length seated on 4.0mm top/bottom inner landing ledges (Y = 12.0 to 228.0mm)
+    w = 224.0 * SCALE          # Flap width (1.0mm clearance from right inner rail wall at X = 225.0mm)
+    h = 208.0 * SCALE          # Flap length (Y = 16.0 to 224.0mm, 1.0mm axial clearance from bottom & top knuckles)
     t = PADDLE_THICKNESS       # 2.4mm panel thickness (optimal 12-layer rigidity & 40% weight reduction)
-    y_offset = 12.0 * SCALE    # 12.0mm start (1.0mm clearance from bottom solid rail wall at Y = 11.0mm)
+    y_offset = 16.0 * SCALE    # 16.0mm start (1.0mm axial clearance from bottom knuckle at Y = 15.0mm)
     total_z = BASE_PANEL_THICKNESS # 15.0mm
     pivot_z = 8.0 * SCALE      # 8.0mm (1.5mm ground clearance; Ø13mm axle extends from Z=1.5mm to Z=14.5mm)
     panel_z_min = total_z - t  # 12.6mm (top of panel sits at 12.6 + 2.4 = 15.0mm flush with top deck)
 
-    # 1. Base solid flap slab (Extends from X=0 to X=228mm, Y=12 to Y=228mm, Z=12.6 to Z=15.0mm)
-    flap_box = Part.makeBox(w, h, t)
-    flap_box.translate(App.Vector(0, y_offset, panel_z_min))
-
-    # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle ramps
-    cut_bot = Part.makeBox(13.0 * SCALE, 4.5 * SCALE, t + 5.0 * SCALE)
-    cut_bot.translate(App.Vector(-0.5, y_offset - 0.2, panel_z_min - 0.1))
-
-    cut_top = Part.makeBox(13.0 * SCALE, 4.5 * SCALE, t + 5.0 * SCALE)
-    cut_top.translate(App.Vector(-0.5, y_offset + h - 4.2 * SCALE, panel_z_min - 0.1))
-
-    flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
+    # 1. Base solid flap slab (Extends from X=0 to X=224mm, Y=16 to Y=224mm, Z=12.6 to Z=15.0mm)
+    flap = Part.makeBox(w, h, t)
+    flap.translate(App.Vector(0, y_offset, panel_z_min))
 
     # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=y_offset+h, Bottom Y=y_offset)
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
