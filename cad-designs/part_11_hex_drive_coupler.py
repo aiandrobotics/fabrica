@@ -65,13 +65,6 @@ def construct_hex_drive_coupler():
     hex_neg_peg = hex_neg_peg.cut(c_neg).removeSplitter()
 
     coupler = flange.fuse(Part.makeCompound([hex_pos_peg, hex_neg_peg])).removeSplitter()
-
-    # 4. Ø3.2mm Center Through-Hole
-    total_len = peg_len * 2.0 + flange_t + 2.0
-    bore_r = 1.6 * SCALE
-    bore = Part.makeCylinder(bore_r, total_len, App.Vector(0, -peg_len - flange_t - 1.0, pivot_z), App.Vector(0, 1, 0))
-    coupler = coupler.cut(bore).removeSplitter()
-
     return coupler
 
 def export_part():
