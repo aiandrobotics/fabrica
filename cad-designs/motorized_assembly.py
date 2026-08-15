@@ -150,13 +150,17 @@ def export_part():
         if os.path.exists(path):
             os.remove(path)
 
-    shapes = [obj.Shape for obj in doc.Objects if hasattr(obj, "Shape")]
+    shapes = []
+    for obj in doc.Objects:
+        if hasattr(obj, "Shape"):
+            s = obj.Shape.copy()
+            if hasattr(obj, "Placement"):
+                s.transformGeometry(obj.Placement.toMatrix())
+            shapes.append(s)
+
     compound = Part.makeCompound(shapes)
     compound.exportStep(step_path)
     compound.exportStl(stl_path)
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
 
-def main():
-    build_motorized_assembly()
-
-main()
+export_part()
