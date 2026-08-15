@@ -1,5 +1,5 @@
 """
-base_module.py — Monolithic Stationary Base Chassis Module
+base_module.py — Monolithic Stationary Base Chassis Module (4-Wall Frame Architecture)
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -37,135 +37,149 @@ from params import (
     EXPORT_DIR,
 )
 
+TOP_PLATE_THICKNESS = 2.4 * SCALE
+BOTTOM_FLOOR_THICKNESS = 3.0 * SCALE
+
 def construct_base_module():
     """
-    Constructs the 1-piece Monolithic Base Chassis Module shape using FreeCAD's Part API.
+    Constructs the 4-Wall Monolithic Base Chassis Module with open-bottom interior,
+    garment alignment reticles, silent-flip TPU bumper slots, sliding dovetails, and anti-slip feet.
     """
-    w = PANEL_WIDTH
-    h = PANEL_HEIGHT
-    t = BASE_PANEL_THICKNESS
-    wall = WALL_THICKNESS
+    w = PANEL_WIDTH          # 240.0mm
+    h = PANEL_HEIGHT         # 240.0mm
+    t = BASE_PANEL_THICKNESS # 15.0mm
+    rail_w = 15.0 * SCALE    # 15.0mm perimeter rails on all 4 sides
+    top_t = TOP_PLATE_THICKNESS # 2.4mm top deck plate
+    bottom_floor = BOTTOM_FLOOR_THICKNESS # 3.0mm
 
-    # 1. Main outer solid box
+    # 1. Main outer solid box (240 x 240 x 15mm)
     base_box = Part.makeBox(w, h, t, App.Vector(0, 0, 0))
 
-    # 2. Hollow open-bottom cavity (leaves outer perimeter wall & top surface plate)
-    top_plate_thick = wall
-    cavity_w = w - (2.0 * wall)
-    cavity_h = h - (2.0 * wall)
-    cavity_z = t - top_plate_thick
-    cavity = Part.makeBox(cavity_w, cavity_h, cavity_z, App.Vector(wall, wall, 0))
-    main_shell = base_box.cut(cavity)
+    # 2. Open-Bottom 4-Wall Cavity (leaves 15mm perimeter rails and 2.4mm top deck plate)
+    cavity_w = w - (2.0 * rail_w) # 210mm
+    cavity_h = h - (2.0 * rail_w) # 210mm
+    cavity_z = t - top_t          # 12.6mm (Z = 0 to 12.6mm)
+    cavity = Part.makeBox(cavity_w, cavity_h, cavity_z + 0.1, App.Vector(rail_w, rail_w, -0.1))
+    main_shell = base_box.cut(cavity).removeSplitter()
 
-    # 3. Internal Hexagonal Web Lattice Ribbing inside bottom cavity (Wall-to-Wall Coverage)
-    ribs = []
-    hex_radius = 16.0 * SCALE
-    hex_wall = 2.0 * SCALE
-    dx = hex_radius * 1.5
-    dy = hex_radius * math.sqrt(3)
+    # 3. Garment Alignment Reticles (0.4mm debossed crosshairs and collar guides on top surface)
+    reticle_d = RETICLE_DEBOSS_DEPTH # 0.4mm
+    reticle_w = 1.2 * SCALE
+    reticle_cutters = []
 
-    cols = int(math.ceil(cavity_w / dx)) + 2
-    rows = int(math.ceil(cavity_h / dy)) + 2
+    # Center vertical alignment line (X = w/2)
+    v_line = Part.makeBox(reticle_w, h - 2.0 * rail_w, reticle_d + 0.1)
+    v_line.translate(App.Vector(w / 2.0 - reticle_w / 2.0, rail_w, t - reticle_d))
+    reticle_cutters.append(v_line)
 
-    cavity_bounds = Part.makeBox(cavity_w, cavity_h, cavity_z, App.Vector(wall, wall, 0))
+    # Center horizontal alignment line (Y = h/2)
+    h_line = Part.makeBox(w - 2.0 * rail_w, reticle_w, reticle_d + 0.1)
+    h_line.translate(App.Vector(rail_w, h / 2.0 - reticle_w / 2.0, t - reticle_d))
+    reticle_cutters.append(h_line)
 
-    # Store valid internal hex cell center coordinates for top cutouts
-    internal_hex_centers = []
+    # Collar centering guide arc / chevron at top (Y = h - 45mm)
+    chevron_l = 30.0 * SCALE
+    c1 = Part.makeBox(reticle_w, chevron_l, reticle_d + 0.1)
+    c1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 30)
+    c1.translate(App.Vector(w / 2.0, h - 45.0 * SCALE, t - reticle_d))
+    c2 = Part.makeBox(reticle_w, chevron_l, reticle_d + 0.1)
+    c2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -30)
+    c2.translate(App.Vector(w / 2.0, h - 45.0 * SCALE, t - reticle_d))
+    reticle_cutters.extend([c1, c2])
 
-    for col in range(-1, cols):
-        for row in range(-1, rows):
-            cx = wall + (col * dx)
-            cy = wall + (row * dy) + (0.5 * dy if (col % 2 != 0) else 0.0)
+    # Poka-Yoke Directional Arrow ("FRONT ➔" / arrow indicator at front edge Y = 25mm)
+    arrow_w = 14.0 * SCALE
+    arrow_pts = [
+        App.Vector(w / 2.0, 20.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0 - arrow_w / 2.0, 30.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0 - arrow_w / 4.0, 30.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0 - arrow_w / 4.0, 38.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0 + arrow_w / 4.0, 38.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0 + arrow_w / 4.0, 30.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0 + arrow_w / 2.0, 30.0 * SCALE, t - reticle_d - 0.1),
+        App.Vector(w / 2.0, 20.0 * SCALE, t - reticle_d - 0.1),
+    ]
+    arrow_wire = Part.makePolygon(arrow_pts)
+    arrow_face = Part.Face(arrow_wire)
+    arrow_solid = arrow_face.extrude(App.Vector(0, 0, reticle_d + 0.2))
+    reticle_cutters.append(arrow_solid)
 
-            outer_hex = Part.makePolygon([
-                App.Vector(cx + hex_radius * math.cos(a), cy + hex_radius * math.sin(a), 0)
-                for a in [i * math.pi / 3 for i in range(7)]
-            ])
-            inner_hex = Part.makePolygon([
-                App.Vector(cx + (hex_radius - hex_wall) * math.cos(a), cy + (hex_radius - hex_wall) * math.sin(a), 0)
-                for a in [i * math.pi / 3 for i in range(7)]
-            ])
-            outer_face = Part.Face(outer_hex)
-            inner_face = Part.Face(inner_hex)
-            rib_face = outer_face.cut(inner_face)
-            rib_solid = rib_face.extrude(App.Vector(0, 0, cavity_z))
-            
-            # Crop hex cell cleanly within cavity boundary
-            cropped = rib_solid.common(cavity_bounds)
-            if cropped.Volume > 0.001:
-                ribs.append(cropped)
+    if reticle_cutters:
+        main_shell = main_shell.cut(Part.makeCompound(reticle_cutters)).removeSplitter()
 
-            # Collect internal hex centers (margin check for clean top cutouts)
-            margin = wall + hex_radius + (15.0 * SCALE)
-            if (margin < cx < w - margin) and (margin < cy < h - margin):
-                internal_hex_centers.append((col, row, cx, cy))
-
-    if ribs:
-        lattice_compound = Part.makeCompound(ribs)
-        main_shell = main_shell.fuse(lattice_compound)
-
-    # 4. Aligned Organic Generative Hexagonal Cutouts (Matching User Attached Pattern)
-    top_hex_cutters = []
-    top_hex_r = hex_radius - hex_wall - (0.5 * SCALE)
-
-    # User's chosen organic hex cluster pattern (14 open hex cells matching attached image)
-    selected_centers = [
-        (col, row, cx, cy) for col, row, cx, cy in internal_hex_centers
-        if (col * 3 + row * 7 + 2) % 5 in (0, 1) and not (col == 2 and row == 2)
+    # 4. Multi-Tiered Organic Circular Weight-Reduction Cutouts through top plate (~35% mass saving)
+    hole_specs = [
+        (w * 0.30, h * 0.32, 16.0 * SCALE),
+        (w * 0.70, h * 0.32, 16.0 * SCALE),
+        (w * 0.30, h * 0.68, 16.0 * SCALE),
+        (w * 0.70, h * 0.68, 16.0 * SCALE),
+        (w * 0.50, h * 0.50, 18.0 * SCALE),
+        (w * 0.50, h * 0.26, 11.0 * SCALE),
+        (w * 0.50, h * 0.74, 11.0 * SCALE),
+        (w * 0.24, h * 0.50, 12.0 * SCALE),
+        (w * 0.76, h * 0.50, 12.0 * SCALE),
+        (w * 0.18, h * 0.18, 8.5 * SCALE),
+        (w * 0.82, h * 0.18, 8.5 * SCALE),
+        (w * 0.18, h * 0.82, 8.5 * SCALE),
+        (w * 0.82, h * 0.82, 8.5 * SCALE),
     ]
 
-    for col, row, cx, cy in selected_centers:
-        hex_poly = Part.makePolygon([
-            App.Vector(cx + top_hex_r * math.cos(a), cy + top_hex_r * math.sin(a), t - top_plate_thick - 0.1)
-            for a in [i * math.pi / 3 for i in range(7)]
-        ])
-        hex_face = Part.Face(hex_poly)
-        hex_prism = hex_face.extrude(App.Vector(0, 0, top_plate_thick + 0.2))
-        top_hex_cutters.append(hex_prism)
+    cutters = []
+    top_z = t
+    panel_z_min = t - top_t
+    for cx, cy, hr in hole_specs:
+        cyl = Part.makeCylinder(hr, top_t + 1.0, App.Vector(cx, cy, panel_z_min - 0.5))
+        c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, top_z - HOLE_CHAMFER))
+        c_bot = Part.makeCone(hr, hr + HOLE_CHAMFER, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, panel_z_min - 0.1))
+        cutters.extend([cyl, c_top, c_bot])
 
-    if top_hex_cutters:
-        top_hex_compound = Part.makeCompound(top_hex_cutters)
-        main_shell = main_shell.cut(top_hex_compound)
+    if cutters:
+        main_shell = main_shell.cut(Part.makeCompound(cutters)).removeSplitter()
 
-    # Apply 0.8mm Snag-Free Chamfers to all top hex cutout edges
-    try:
-        top_hex_edges = []
-        for edge in main_shell.Edges:
-            bb = edge.BoundBox
-            if abs(bb.ZMin - t) < 0.001 and abs(bb.ZMax - t) < 0.001:
-                # Identify short hex segment edges on top surface
-                if 5.0 * SCALE < bb.XLength < 20.0 * SCALE or 5.0 * SCALE < bb.YLength < 20.0 * SCALE:
-                    if abs(bb.XMin - wall) > 5.0 and abs(bb.XMax - (w - wall)) > 5.0:
-                        top_hex_edges.append(edge)
-        if top_hex_edges:
-            main_shell = main_shell.makeChamfer(HOLE_CHAMFER, top_hex_edges)
-    except Exception as e:
-        print(f"Warning: Top hex chamfer skipped on base module: {e}")
+    # 5. 0.6mm Diamond Micro-Grip Surface Texture
+    tex_cutters = []
+    tex_spacing = 14.0 * SCALE
+    tex_w = 0.8 * SCALE
+    tex_d = TEXTURE_HEIGHT
+    
+    for i in range(-int(w), int(w + h), int(tex_spacing)):
+        g1 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
+        g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
+        g1.translate(App.Vector(i, 0, top_z - tex_d))
+        g2 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
+        g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
+        g2.translate(App.Vector(i, h, top_z - tex_d))
+        tex_cutters.extend([g1, g2])
 
-    # 4. Anti-Slip Foot Pad Recess Sockets (Bottom 4 corners)
-    foot_radius = FOOT_PAD_DIA / 2.0
-    foot_offset = wall + foot_radius + (2.0 * SCALE)
-    foot_positions = [
-        App.Vector(foot_offset, foot_offset, 0),
-        App.Vector(w - foot_offset, foot_offset, 0),
-        App.Vector(w - foot_offset, h - foot_offset, 0),
-        App.Vector(foot_offset, h - foot_offset, 0),
-    ]
-    foot_cuts = []
-    for pos in foot_positions:
-        cylinder = Part.makeCylinder(foot_radius, FOOT_PAD_DEPTH, pos, App.Vector(0, 0, 1))
-        foot_cuts.append(cylinder)
-    foot_compound = Part.makeCompound(foot_cuts)
-    main_shell = main_shell.cut(foot_compound)
-    # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
-    # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
+    if tex_cutters:
+        tex_bound = Part.makeBox(w - 2 * 3.0 * SCALE, h - 2 * 3.0 * SCALE, top_t + 2.0)
+        tex_bound.translate(App.Vector(3.0 * SCALE, 3.0 * SCALE, panel_z_min - 1.0))
+        tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
+        main_shell = main_shell.cut(tex_compound).removeSplitter()
+
+    # 6. Silent-Flip TPU Bumper Slots (1.5mm recessed into Left and Right landing rails)
+    tpu_cutters = []
+    tpu_w = 5.0 * SCALE
+    tpu_l = 14.0 * SCALE
+    tpu_h = TPU_BUMPER_DEPTH # 1.5mm
+    for py in [h * 0.25, h * 0.5, h * 0.75]:
+        # Left landing rail (X = rail_w/2)
+        b_left = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
+        b_left.translate(App.Vector(rail_w / 2.0 - tpu_w / 2.0, py - tpu_l / 2.0, t - tpu_h))
+        # Right landing rail (X = w - rail_w/2)
+        b_right = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
+        b_right.translate(App.Vector(w - rail_w / 2.0 - tpu_w / 2.0, py - tpu_l / 2.0, t - tpu_h))
+        tpu_cutters.extend([b_left, b_right])
+
+    if tpu_cutters:
+        main_shell = main_shell.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
+
+    # 7. Female Open-Top True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
-    bottom_floor = 3.0 * SCALE
-    dt_cut_h = t - bottom_floor + 0.5  # Cuts all the way to top surface
+    dt_cut_h = t - bottom_floor + 0.5
 
-    # Create master open-top dovetail cutter
     poly_pts = [
         App.Vector(-dt_neck_w / 2.0, -0.1, 0),
         App.Vector(dt_neck_w / 2.0, -0.1, 0),
@@ -178,44 +192,72 @@ def construct_base_module():
     dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_cut_h))
     dt_cutter.translate(App.Vector(0, 0, bottom_floor))
 
-    # Master bottom push-out finger access hole (Ø6.0mm through bottom floor: Z = -0.5 to Z = bottom_floor + 0.5)
+    # Master bottom push-out finger access hole (Ø6.0mm through bottom floor)
     push_hole = Part.makeCylinder(3.0 * SCALE, bottom_floor + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
     dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
-    # Place dovetail cutters on 4 side walls (Pointing INTO each wall)
     dovetail_cuts = []
     # Front wall (Y=0) -> cuts in +Y direction
-    dt_front = dt_cutter_with_hole.copy()
-    dt_front.Placement = App.Placement(App.Vector(w / 2.0, 0, 0), App.Rotation(0, 0, 0))
-    dovetail_cuts.append(dt_front)
+    c_front = dt_cutter_with_hole.copy()
+    c_front.translate(App.Vector(w / 2.0, 0, 0))
+    dovetail_cuts.append(c_front)
 
     # Back wall (Y=h) -> cuts in -Y direction
-    dt_back = dt_cutter_with_hole.copy()
-    dt_back.Placement = App.Placement(App.Vector(w / 2.0, h, 0), App.Rotation(App.Vector(0, 0, 1), 180))
-    dovetail_cuts.append(dt_back)
+    c_back = dt_cutter_with_hole.copy()
+    c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
+    c_back.translate(App.Vector(w / 2.0, h, 0))
+    dovetail_cuts.append(c_back)
 
     # Left wall (X=0) -> cuts in +X direction
-    dt_left = dt_cutter_with_hole.copy()
-    dt_left.Placement = App.Placement(App.Vector(0, h / 2.0, 0), App.Rotation(App.Vector(0, 0, 1), -90))
-    dovetail_cuts.append(dt_left)
+    c_left = dt_cutter_with_hole.copy()
+    c_left.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -90)
+    c_left.translate(App.Vector(0, h / 2.0, 0))
+    dovetail_cuts.append(c_left)
 
     # Right wall (X=w) -> cuts in -X direction
-    dt_right = dt_cutter_with_hole.copy()
-    dt_right.Placement = App.Placement(App.Vector(w, h / 2.0, 0), App.Rotation(App.Vector(0, 0, 1), 90))
-    dovetail_cuts.append(dt_right)
+    c_right = dt_cutter_with_hole.copy()
+    c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
+    c_right.translate(App.Vector(w, h / 2.0, 0))
+    dovetail_cuts.append(c_right)
 
-    dovetail_compound = Part.makeCompound(dovetail_cuts)
-    main_shell = main_shell.cut(dovetail_compound).removeSplitter()
+    # Internal Wire Pass-Through Ports (Routing cables from dovetail joiners into central cavity)
+    wire_ports = [
+        Part.makeBox(12.0 * SCALE, rail_w + 2.0, 7.0 * SCALE), # Front Y=0
+        Part.makeBox(12.0 * SCALE, rail_w + 2.0, 7.0 * SCALE), # Back Y=H
+        Part.makeBox(rail_w + 2.0, 12.0 * SCALE, 7.0 * SCALE), # Left X=0
+        Part.makeBox(rail_w + 2.0, 12.0 * SCALE, 7.0 * SCALE), # Right X=W
+    ]
+    wire_ports[0].translate(App.Vector(w / 2.0 - 6.0 * SCALE, -1.0, bottom_floor))
+    wire_ports[1].translate(App.Vector(w / 2.0 - 6.0 * SCALE, h - rail_w - 1.0, bottom_floor))
+    wire_ports[2].translate(App.Vector(-1.0, h / 2.0 - 6.0 * SCALE, bottom_floor))
+    wire_ports[3].translate(App.Vector(w - rail_w - 1.0, h / 2.0 - 6.0 * SCALE, bottom_floor))
 
-    # 8. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
+    main_shell = main_shell.cut(Part.makeCompound(dovetail_cuts + wire_ports)).removeSplitter()
+
+    # 8. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of outer rails for Ø12mm x 2.0mm rubber feet)
+    foot_r = 6.0 * SCALE
+    foot_d = 2.0 * SCALE
+    foot_locs = [
+        (rail_w / 2.0, rail_w / 2.0),
+        (w - rail_w / 2.0, rail_w / 2.0),
+        (w - rail_w / 2.0, h - rail_w / 2.0),
+        (rail_w / 2.0, h - rail_w / 2.0),
+    ]
+    foot_cutters = [
+        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
+        for fx, fy in foot_locs
+    ]
+    main_shell = main_shell.cut(Part.makeCompound(foot_cutters)).removeSplitter()
+
+    # 9. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
     try:
-        bottom_edges = []
-        for edge in main_shell.Edges:
-            bb = edge.BoundBox
-            if abs(bb.ZMin) < 0.001 and abs(bb.ZMax) < 0.001:
-                bottom_edges.append(edge)
-        if bottom_edges:
-            main_shell = main_shell.makeChamfer(ELEPHANTS_FOOT_CHAMFER, bottom_edges)
+        base_edges = [
+            e for e in main_shell.Edges
+            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 10.0 * SCALE
+        ]
+        if base_edges:
+            main_shell = main_shell.makeChamfer(ELEPHANTS_FOOT_CHAMFER, base_edges)
+            main_shell = main_shell.removeSplitter()
     except Exception as e:
         print(f"Warning: Elephant foot chamfer skipped on base module: {e}")
 
@@ -223,10 +265,6 @@ def construct_base_module():
     step_path = os.path.join(EXPORT_DIR, "base_module.step")
     stl_path  = os.path.join(EXPORT_DIR, "base_module.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
-    for path in (step_path, stl_path):
-        if os.path.exists(path):
-            os.remove(path)
-
     main_shell.exportStep(step_path)
     main_shell.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
