@@ -124,10 +124,57 @@ def construct_motorized_frame():
 
     frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
-    # 2. Cut open interior cavities while preserving inner enclosure wall at X in [39.0, 48.0mm], Y in [185.0, 240.0mm]
-    # Lower main cavity (Y = 15 to 170mm, X = 25 to 225mm)
-    cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 155.0 * SCALE, t + 2.0)
-    cav_main_lower.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
+    # 2. Cut open interior cavities with Smooth Curved 4th Wall (Y in [15.0, 170.0mm], Z in [0, 3mm])
+    # The 4th wall curves from X = [11, 26mm] at knuckles (Y=15 & Y=170mm) to X = [13, 32mm] at center seam (Y=120mm)
+    y_seam = h / 2.0 # 120.0mm
+    num_pts = 33
+    y_vals = [knuckle_len + i * (k_top_start_y - knuckle_len) / float(num_pts - 1) for i in range(num_pts)]
+
+    def x_inner_func(y):
+        if y <= y_seam:
+            s = (y - y_seam) / (y_seam - knuckle_len)
+        else:
+            s = (y - y_seam) / (k_top_start_y - y_seam)
+        return (13.0 - 2.0 * (s**2)) * SCALE
+
+    def x_outer_func(y):
+        if y <= y_seam:
+            s = (y - y_seam) / (y_seam - knuckle_len)
+        else:
+            s = (y - y_seam) / (k_top_start_y - y_seam)
+        return (32.0 - 6.0 * (s**2)) * SCALE
+
+    # A. Left Hinge Cavity (X in [-0.5, x_inner(y)], Y in [15, 170mm], Z in [-1, t+2mm])
+    pts_left = [App.Vector(-0.5, knuckle_len, 0)]
+    for y in y_vals:
+        pts_left.append(App.Vector(x_inner_func(y), y, 0))
+    pts_left.append(App.Vector(-0.5, k_top_start_y, 0))
+    pts_left.append(App.Vector(-0.5, knuckle_len, 0))
+    cav_left_face = Part.Face(Part.makePolygon(pts_left))
+    cav_left = cav_left_face.extrude(App.Vector(0, 0, t + 2.0))
+    cav_left.translate(App.Vector(0, 0, -1.0))
+
+    # B. Lower Main Center Cavity (X in [x_outer(y), w - rail_w], Y in [15, 170mm], Z in [-1, t+2mm])
+    pts_main = []
+    for y in y_vals:
+        pts_main.append(App.Vector(x_outer_func(y), y, 0))
+    pts_main.append(App.Vector(w - rail_w, k_top_start_y, 0))
+    pts_main.append(App.Vector(w - rail_w, knuckle_len, 0))
+    pts_main.append(App.Vector(x_outer_func(y_vals[0]), knuckle_len, 0))
+    cav_main_face = Part.Face(Part.makePolygon(pts_main))
+    cav_main_lower = cav_main_face.extrude(App.Vector(0, 0, t + 2.0))
+    cav_main_lower.translate(App.Vector(0, 0, -1.0))
+
+    # C. Top space above the 4th curved wall (Z in [tie_h, t+2mm])
+    pts_wall = []
+    for y in y_vals:
+        pts_wall.append(App.Vector(x_inner_func(y) - 0.5, y, 0))
+    for y in reversed(y_vals):
+        pts_wall.append(App.Vector(x_outer_func(y) + 0.5, y, 0))
+    pts_wall.append(App.Vector(x_inner_func(y_vals[0]) - 0.5, y_vals[0], 0))
+    cav_tie_face = Part.Face(Part.makePolygon(pts_wall))
+    cav_tie = cav_tie_face.extrude(App.Vector(0, 0, t - tie_h + 2.0))
+    cav_tie.translate(App.Vector(0, 0, tie_h))
 
     # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
@@ -140,14 +187,6 @@ def construct_motorized_frame():
     # Front-Left Screw Access Pocket (X = -18.5 to -6.5mm, Y = 170.0 to 185.5mm, Z = 0.0 to 25.0mm) — opens front face of left tower down to base floor
     cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
     cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, 0.0))
-
-    # Left rail interior cavity
-    cav_left = Part.makeBox(tie_x + 0.5, k_top_start_y - knuckle_len, t + 2.0)
-    cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
-
-    # Tie bar pocket
-    cav_tie = Part.makeBox(tie_w + 2.0 * SCALE, k_top_start_y - knuckle_len, t - tie_h + 2.0)
-    cav_tie.translate(App.Vector(tie_x - 1.0 * SCALE, knuckle_len, tie_h))
 
     for cav in [cav_main_lower, cav_main_upper, cut_screw_access_right, cut_screw_access_left, cav_left, cav_tie]:
         frame = frame.cut(cav).removeSplitter()
@@ -237,15 +276,15 @@ def construct_motorized_frame():
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
 
-    # 4th Wall Joint on Tie-Bar
-    dt_lk_neck = 4.0 * SCALE
-    dt_lk_flare = 8.0 * SCALE
+    # 4th Wall Joint on Curved Arch at Centerline (Y = 120.0mm)
+    dt_lk_neck = 5.0 * SCALE
+    dt_lk_flare = 9.0 * SCALE
     dt_lk_depth = 8.0 * SCALE
     gap = 0.25 * SCALE
-    x_left = tie_x - (1.0 * SCALE)
-    x_right = tie_x + tie_w + (1.0 * SCALE)
-    center_x = tie_x + (tie_w / 2.0)
-    y_seam = (k_top_start_y + knuckle_len) / 2.0  # 92.5mm
+    center_x = (13.0 + 32.0) / 2.0 * SCALE # 22.5mm
+    x_left = 12.0 * SCALE
+    x_right = 33.0 * SCALE
+    y_seam = h / 2.0  # 120.0mm
 
     dt4_poly_pts = [
         App.Vector(x_right, y_seam + gap, 0),
