@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower Frame with Stepped Z-Captive Dovetail Joint
+part_02_follower_frame.py — Passive Follower Frame with Clean Solid Through-Dovetail Joint
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -35,18 +35,16 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
     """
-    Constructs the Passive Follower Frame with Stepped Z-Captive Dovetail Joint.
+    Constructs the Passive Follower Frame with Clean Solid Through-Dovetail Joint.
     
     Features:
     1. 4-Sided Rigid Chassis (240x240x15mm):
        - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
        - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm) with 20mm reinforced center boss at Y=120mm.
-       - Stepped Z-Captive Interlocking Dovetail:
-         * Lower Layer (Z=0 to 1.5mm): Flared Male Dovetail Tab (8mm neck -> 14mm flare x 12mm depth) locks lateral X-movement.
-         * Upper Layer (Z=1.5 to 3.0mm): Overhanging Top Shelf on +Y half extends over the lower male tab, physically
-           trapping it from lifting or popping out vertically in Z.
-         * 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
-         * Zero floating slivers or detached geometry.
+       - Clean Solid Through-Dovetail Joint (8mm neck -> 14mm flare x 12mm depth, 0.25mm clearance)
+         continuous from Z=0 to Z=3.0mm with 100% flat bed printing, zero overhangs, zero internal
+         slits, zero supports, and zero floating geometry.
+       - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
     2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
     3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
     4. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240)
@@ -65,7 +63,6 @@ def create_follower_frame():
     tie_x = 11.0 * SCALE
     center_x = tie_x + (tie_w / 2.0) # 18.0mm
     boss_w = 20.0 * SCALE
-    z_split = tie_h / 2.0 # 1.5mm
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -187,7 +184,7 @@ def create_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. Stepped Z-Captive Dovetail Joint on 4th Wall (Locks X, Y, and Z with Zero Floating Slivers)
+    # 6. Clean Solid Through-Dovetail Joint on 4th Wall (100% Support-Free, Zero Internal Slits, Zero Overhangs)
     dt_lk_neck = 8.0 * SCALE
     dt_lk_flare = 14.0 * SCALE
     dt_lk_depth = 12.0 * SCALE
@@ -197,8 +194,7 @@ def create_follower_frame():
     x_min = center_x - (boss_w / 2.0) - (2.0 * SCALE)
     x_max = center_x + (boss_w / 2.0) + (2.0 * SCALE)
 
-    # A. Lower Layer Cutter (Z in [-0.5, z_split + gap]): Cuts flared dovetail on bottom layer
-    dt_cut_pts = [
+    dt4_poly_pts = [
         # Top edge of female pocket (in +Y half)
         App.Vector(x_max, y_seam + gap, 0),
         App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_seam + gap, 0),
@@ -217,26 +213,9 @@ def create_follower_frame():
         
         App.Vector(x_max, y_seam + gap, 0),
     ]
-    lower_cutter = Part.Face(Part.makePolygon(dt_cut_pts)).extrude(App.Vector(0, 0, z_split + gap + 0.5))
-    lower_cutter.translate(App.Vector(0, 0, -0.5))
-
-    # B. Upper Layer Cutter (Z in [z_split, tie_h + 1.0]): Straight seam across Y = 120mm
-    # Leaves the solid upper shelf on +Y half covering the lower male tab (trapping it in Z)
-    upper_seam_pts = [
-        App.Vector(x_min, y_seam + gap, 0),
-        App.Vector(x_max, y_seam + gap, 0),
-        App.Vector(x_max, y_seam, 0),
-        App.Vector(x_min, y_seam, 0),
-        App.Vector(x_min, y_seam + gap, 0),
-    ]
-    upper_cutter = Part.Face(Part.makePolygon(upper_seam_pts)).extrude(App.Vector(0, 0, z_split + 1.0))
-    upper_cutter.translate(App.Vector(0, 0, z_split))
-
-    # C. Horizontal Shelf Clearance Cut (0.2mm gap at Z = z_split so the lower tab slides smoothly under the top shelf)
-    shelf_cut = Part.makeBox(boss_w + (2.0 * SCALE), dt_lk_depth + (2.0 * SCALE), gap)
-    shelf_cut.translate(App.Vector(center_x - (boss_w + (2.0 * SCALE)) / 2.0, y_seam - (0.5 * SCALE), z_split - (gap / 2.0)))
-
-    dt_cutters.extend([lower_cutter, upper_cutter, shelf_cut])
+    dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    dt4_cutter.translate(App.Vector(0, 0, -1.0))
+    dt_cutters.append(dt4_cutter)
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
