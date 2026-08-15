@@ -96,25 +96,17 @@ def construct_motorized_flap():
 
     flap = flap.cut(Part.makeCompound([outer_trim, bot_trim])).removeSplitter()
 
-    # 3. Symmetrical 8.0mm Female Hex Sockets at Both Axle Ends (10.5mm depth)
-    hex_r = (HEX_COUPLER_SIZE / 2.0) / math.cos(math.radians(30)) + PRESS_FIT_CLEARANCE
-    hex_depth = 10.5 * SCALE
+    # 3. Top & Bottom End Female 8.0mm Hex Torque Sockets (Matching follower_flap.py)
+    socket_d = 10.5 * SCALE
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, 178.0 * SCALE + 0.1)
+    hex_socket_top_face = Part.Face(hex_socket_top_wire)
+    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
 
-    # Top Socket at Y = 178.0mm (Receiving motorized_servo_adapter peg extending from Y=178.0 to 167.5mm)
-    hex_wire_top = make_hexagon_wire(HEX_COUPLER_SIZE + 2 * PRESS_FIT_CLEARANCE, 0, pivot_z, 178.0 * SCALE + 0.1)
-    hex_face_top = Part.Face(hex_wire_top)
-    hex_socket_top = hex_face_top.extrude(App.Vector(0, -hex_depth - 0.2, 0))
-    chamfer_top = Part.makeCone(hex_r, hex_r + 1.0 * SCALE, 1.5 * SCALE, App.Vector(0, 178.0 * SCALE - 1.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
-    hex_cutter_top = hex_socket_top.fuse(chamfer_top)
+    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, -0.1)
+    hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
+    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
 
-    # Bottom Socket at Y = 0.5mm (Receiving HexDriveCoupler peg extending from Y=0.5 to 11.0mm)
-    hex_wire_bot = make_hexagon_wire(HEX_COUPLER_SIZE + 2 * PRESS_FIT_CLEARANCE, 0, pivot_z, 0.4 * SCALE)
-    hex_face_bot = Part.Face(hex_wire_bot)
-    hex_socket_bot = hex_face_bot.extrude(App.Vector(0, hex_depth + 0.2, 0))
-    chamfer_bot = Part.makeCone(hex_r + 1.0 * SCALE, hex_r, 1.5 * SCALE, App.Vector(0, 0.4 * SCALE, pivot_z), App.Vector(0, 1, 0))
-    hex_cutter_bot = hex_socket_bot.fuse(chamfer_bot)
-
-    flap = flap.cut(Part.makeCompound([hex_cutter_top, hex_cutter_bot])).removeSplitter()
+    flap = flap.cut(Part.makeCompound([hex_socket_top_cutter, hex_socket_bot_cutter])).removeSplitter()
 
     # 4. Perimeter Accent Shadow Bevel (1.2mm depth, 4.0mm width on outer free edges)
     bevel_d = ACCENT_BEVEL_DEPTH             # 1.2mm
