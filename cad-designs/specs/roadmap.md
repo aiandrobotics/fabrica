@@ -33,25 +33,24 @@ Build, validate, and commit before moving to the next phase.
 - **Follower Folding Flap** (`follower_flap.py`): Model rotating full-size follower flap panel (orange) resting on frame rails ($Z=15.0$ to $17.4\text{ mm}$) with integrated continuous full-length $\varnothing 13.0\text{ mm}$ solid drive axle ($Y=0$ to $240\text{ mm}$, centered at $X=0, Z=8.0\text{ mm}$) rotating directly in closed knuckles, dual $8.0\text{ mm}$ female hex torque sockets ($12.0\text{ mm}$ deep), $0.6\text{ mm}$ micro-grip diamond surface texture, $0.8\text{ mm}$ hole edge chamfers, $1.2\text{ mm}$ recessed perimeter shadow bevel, and gradient circular weight-reduction cutouts (~45% mass reduction).
 - **Hex Drive Coupler Pin** (`hex_drive_coupler.py`): Model modular double-male $8.0\text{ mm}$ hex torque coupler with central locating stop collar and self-aligning chamfers.
 - **Follower Sub-Assembly** (`follower_assembly.py`): Assemble Follower Frame + Follower Flap + Frame Joiners + Compact Hex Drive Coupler. Toolless assembly with 0.000 mm³ interference.
-- **Visual & Kinematic Validation**: FreeCAD MCP multi-view verification and interference check confirming PASS across all components.
+- **Visual & Kinematic Validation**: FreeCAD MCP multi-view verification and interference check confirming PASS report.
 
 ---
 
 ## Phase 4 — Active Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_cover.py`, `motorized_assembly.py`) ✅
 - **Specs**: [plan.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/plan.md) | [requirements.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/requirements.md) | [validation.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/validation.md)
-- **Motorized Outer Frame** (`motorized_frame.py`): Model rigid 4-sided motorized module chassis (yellow) sharing the standardized Follower chassis architecture:
-  - $240 \times 240 \times 15\text{ mm}$ outer envelope with $15.0\text{ mm}$ rigid outer perimeter rails, open-bottom interior saving ~120g PLA, and integrated 4th stiffener tie-bar ($X \in [11, 25\text{ mm}]$, $Z \in [0, 3.0\text{ mm}]$) with clean solid continuous through-dovetail joint at $Y=120\text{ mm}$ ($4.0\text{ mm}$ neck $\to 8.0\text{ mm}$ flare $\times 8.0\text{ mm}$ depth, $3.0\text{ mm}$ solid outer walls) for $100\%$ flush rotation clearance.
-  - Dual 100% solid 360° closed cylindrical bearing knuckles centered at $Z = 8.0\text{ mm}$ with $1.5\text{ mm}$ ground clearance and C1-continuous concave blend ramps ($R_f = 12.0\text{ mm}$).
-  - Integrated reinforced MG996R / standard metal-gear servo mounting bay with mounting screw bosses, $1.5\text{ mm}$ filleted wire pass-through conduit, and snap-cover interface.
+- **Motorized Outer Frame** (`motorized_frame.py`): Model rigid 4-sided motorized module chassis (yellow) with horizontal inline MG996R servo mounting bay:
+  - $240 \times 240 \times 15\text{ mm}$ outer envelope with $15.0\text{ mm}$ perimeter rails, open-bottom interior saving ~120g PLA, and integrated 4th stiffener tie-bar ($X \in [11, 25\text{ mm}]$, $Z \in [0, 3.0\text{ mm}]$) with clean through-dovetail joint at $Y=120\text{ mm}$.
+  - Dual solid 360° closed cylindrical bearing knuckles centered at $(X=0, Z=8.0\text{ mm})$ with C1-continuous concave blend ramps ($R_f = 12.0\text{ mm}$).
+  - Integrated horizontal inline servo bay along rear rail ($Y = 186\text{..}238\text{ mm}$) mounting the MG996R flat on its $20\text{ mm}$ side, centering spline directly at $(X=0, Z=8.0\text{ mm})$ for **100% flush top surface ($Z = 15.0\text{..}17.5\text{ mm}$)**.
   - 4x bottom anti-slip rubber foot sockets ($\varnothing 12.0 \times 2.0\text{ mm}$), 3x top rail silent-flip TPU bumper slots ($1.5\text{ mm}$), 0.4mm bottom Elephant's Foot relief chamfers, and true open-top sliding dovetail joiner sockets with $\varnothing 6.0\text{ mm}$ push-out access holes.
-- **Monolithic Motorized Folding Flap** (`motorized_flap.py`): Model 1-piece active folding flap panel (red) with integrated continuous solid-core $\varnothing 13.0\text{ mm}$ drive axle (zero rotational play):
-  - Resting on frame rails ($Z = 15.0$ to $17.4\text{ mm}$) with corner clearance cutout for the servo housing.
-  - **Driven End ($Y = 240\text{ mm}$)**: Integrated press-fit 25T metal servo horn socket for direct 1-piece drive without separate couplers.
+- **Monolithic Motorized Folding Flap** (`motorized_flap.py`): Model 1-piece active folding flap panel (red) with integrated continuous solid-core $\varnothing 13.0\text{ mm}$ drive axle:
+  - Full-size blade ($239 \times 238 \times 2.4\text{ mm}$) resting flush on frame rails ($Z = 15.0$ to $17.4\text{ mm}$) with zero protruding bumps.
+  - **Driven End ($Y = 185\text{ mm}$)**: Integrated press-fit 25T metal servo horn socket with M3 central retention counterbore.
   - **Output End ($Y = 0\text{ mm}$)**: Standardized $8.0\text{ mm}$ female hex torque socket to transmit synchronous rotational torque downward to the Follower Module column via the Hex Coupler Pin.
-  - $0.6\text{ mm}$ micro-grip diamond surface texture, $0.8\text{ mm}$ hole edge chamfers, $1.2\text{ mm}$ recessed perimeter shadow bevel, and gradient circular weight-reduction cutouts (~45% mass reduction, reducing blade weight to ~75g and minimizing rotational inertia on the servo).
-- **Toolless Snap-Latch Servo Cover** (`motorized_servo_cover.py`): Model protective housing cover (black) with a toolless snap-latch mechanism and wire strain relief routing for 5-second motor swap outs.
-- **Motorized Sub-Assembly** (`motorized_assembly.py`): Assemble Motorized Frame + Snap Cover + Monolithic Active Flap + Frame Joiners + Hex Coupler.
-- **Visual & Kinematic Validation**: Apply `freecad-visual-validation` skill using `render_freecad_script` (detail close-ups of integrated servo horn socket & motor bay) and `check_interference` confirming `0.00000 mm³` overlap across all driven interfaces.
+  - Multi-tiered organic circular cutouts (~45% mass reduction), $0.6\text{ mm}$ diamond knurling, $0.8\text{ mm}$ hole chamfers, and $1.2\text{ mm}$ perimeter shadow bevel.
+- **Flush Low-Profile Servo Cover** (`motorized_servo_cover.py`): Model flush slide-in protective lid (slate black) resting coplanar with the top deck ($Z = 15.0\text{..}17.5\text{ mm}$) with side retention guide tongues, push-pull grip texture, rear cable exit notch, and passive heat dissipation gills.
+- **Motorized Sub-Assembly** (`motorized_assembly.py`): Multi-body sub-assembly verifying $0.00000\text{ mm}^3$ interference across all 9 mating component pairs.
 
 ---
 

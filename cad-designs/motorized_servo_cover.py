@@ -1,11 +1,10 @@
 """
-motorized_servo_cover.py — Toolless Snap-Latch Servo Enclosure Cover
+motorized_servo_cover.py — Flush Low-Profile Slide-In Servo Cover with Ventilation Gills
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
 import os
 import sys
-import math
 import FreeCAD as App
 import Part
 
@@ -13,90 +12,66 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
-from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
-    WALL_THICKNESS,
-    PRESS_FIT_CLEARANCE,
-    EXPORT_DIR,
-)
+from params import SCALE, EXPORT_DIR
 
 def construct_motorized_servo_cover():
     """
-    Constructs the Toolless Snap-Latch Protective Servo Cover for MG996R.
+    Constructs the Flush Low-Profile Slide-In Servo Cover.
+    Rests coplanar with the top deck / flap crown at Z = 15.0..17.5mm with 0 protruding bumps.
     """
-    wall = 2.0 * SCALE
-    deck_z = BASE_PANEL_THICKNESS # 15.0mm
-    cover_l = 50.0 * SCALE        # along Y (Y = 184 to 234mm)
-    cover_w = 24.0 * SCALE        # along X (X = -2.0 to 22.0mm)
-    cover_h = 22.0 * SCALE        # Z = 15.0 to 37.0mm
-    start_y = 184.0 * SCALE
-    start_x = -2.0 * SCALE
+    cover_w = 41.0 * SCALE   # 41.0mm along X (X = 1.5 to 42.5mm)
+    cover_l = 49.0 * SCALE   # 49.0mm along Y (Y = 187.0 to 236.0mm)
+    z_base = 15.0 * SCALE    # 15.0mm (rests on top of frame rails)
+    z_max = 17.5 * SCALE     # 17.5mm (flush with knuckle top crown)
+    cover_t = z_max - z_base # 2.5mm
 
-    # 1. Main outer shell box
-    outer_box = Part.makeBox(cover_w, cover_l, cover_h)
-    outer_box.translate(App.Vector(start_x, start_y, deck_z))
+    # 1. Main flat flush top plate (Z = 15.0 to 17.5mm)
+    top_plate = Part.makeBox(cover_w, cover_l, cover_t)
+    top_plate.translate(App.Vector(1.5 * SCALE, 187.0 * SCALE, z_base))
 
-    # Outer top edge chamfers / fillets for ergonomic aesthetic
-    try:
-        top_edges = [
-            e for e in outer_box.Edges
-            if abs(e.BoundBox.ZMin - (deck_z + cover_h)) < 0.001 and e.Length > 5.0 * SCALE
-        ]
-        if top_edges:
-            outer_box = outer_box.makeChamfer(1.5 * SCALE, top_edges).removeSplitter()
-    except Exception:
-        pass
+    # 2. Side Retention Guide Tongues (slides into frame grooves at Z = 13.4mm, clear of front collar at Y < 193mm)
+    tongue_w = 1.4 * SCALE
+    tongue_h = 1.3 * SCALE
+    t_left = Part.makeBox(tongue_w, cover_l - 7.0 * SCALE, tongue_h)
+    t_left.translate(App.Vector(0.0 * SCALE, 193.0 * SCALE, 13.4 * SCALE))
 
-    # 2. Inner hollow cavity (wall thickness = 2.0mm)
-    cav_w = cover_w - (2 * wall)
-    cav_l = cover_l - (2 * wall)
-    cav_h = cover_h - wall + 1.0
-    inner_cav = Part.makeBox(cav_w, cav_l, cav_h)
-    inner_cav.translate(App.Vector(start_x + wall, start_y + wall, deck_z - 0.5))
+    t_right = Part.makeBox(tongue_w, cover_l - 4.0 * SCALE, tongue_h)
+    t_right.translate(App.Vector(cover_w + 1.6 * SCALE, 189.0 * SCALE, 13.4 * SCALE))
 
-    cover = outer_box.cut(inner_cav).removeSplitter()
+    cover = top_plate.fuse(Part.makeCompound([t_left, t_right])).removeSplitter()
 
-    # 3. Cable Exit Relief Notch (X = start_x + cover_w - wall to start_x + cover_w, Y = 210mm)
-    wire_notch = Part.makeBox(wall + 1.0, 10.0 * SCALE, 8.0 * SCALE)
-    wire_notch.translate(App.Vector(start_x + cover_w - wall - 0.5, 209.0 * SCALE, deck_z - 0.5))
+    # 3. Internal Underside Cavity (Clearance pocket over the horizontal servo motor body and flange)
+    cav_w = 40.0 * SCALE
+    cav_l = 51.0 * SCALE
+    cav_h = 2.1 * SCALE
+    cav_pocket = Part.makeBox(cav_w, cav_l, cav_h)
+    cav_pocket.translate(App.Vector(1.0 * SCALE, 186.0 * SCALE, z_base - 0.1))
 
-    # 4. Shaft Clearance Arch on Front Face (Y = start_y, X centered around X=0)
-    shaft_arch = Part.makeCylinder(7.5 * SCALE, wall + 2.0, App.Vector(0, start_y - 1.0, 8.0 * SCALE), App.Vector(0, 1, 0))
+    cover = cover.cut(cav_pocket).removeSplitter()
 
-    # 5. Passive Cooling Ventilation Gills on Top Face (Z = deck_z + cover_h - wall)
-    gill_cutters = []
+    # 4. Passive Heat Dissipation Ventilation Gills (Angled slots along top surface)
+    gills = []
     gill_w = 2.0 * SCALE
-    gill_l = 16.0 * SCALE
-    gill_h = wall + 2.0
-    for gy in [start_y + 10.0 * SCALE, start_y + 18.0 * SCALE, start_y + 26.0 * SCALE, start_y + 34.0 * SCALE, start_y + 42.0 * SCALE]:
-        g = Part.makeBox(gill_l, gill_w, gill_h)
-        g.translate(App.Vector(start_x + 4.0 * SCALE, gy - (gill_w / 2.0), deck_z + cover_h - wall - 0.5))
-        gill_cutters.append(g)
+    gill_l = 24.0 * SCALE
+    for gy in range(int(194 * SCALE), int(228 * SCALE), int(6 * SCALE)):
+        slot = Part.makeBox(gill_l, gill_w, cover_t + 2.0)
+        slot.translate(App.Vector(10.0 * SCALE, float(gy), z_base - 1.0))
+        gills.append(slot)
 
-    cover = cover.cut(Part.makeCompound([wire_notch, shaft_arch] + gill_cutters)).removeSplitter()
+    # 5. Push-Pull Finger Grip Texture (0.5mm debossed ribs for easy toolless sliding)
+    grips = []
+    grip_w = 1.5 * SCALE
+    grip_l = 20.0 * SCALE
+    for gy in [231.0 * SCALE, 233.5 * SCALE]:
+        g = Part.makeBox(grip_l, grip_w, 0.5 * SCALE)
+        g.translate(App.Vector(12.0 * SCALE, gy, z_max - 0.5 * SCALE))
+        grips.append(g)
 
-    # 6. Snap-Latch Flex Tabs (extending down from Z = deck_z to Z = 10.0mm at X = 22.0mm)
-    tab_w = 6.0 * SCALE
-    tab_thick = 1.4 * SCALE
-    tab_len = 5.0 * SCALE
-    detent_bump = 0.4 * SCALE
+    # 6. Rear Cable Exit Notch
+    cable_notch = Part.makeBox(8.0 * SCALE, 6.0 * SCALE, cover_t + 2.0)
+    cable_notch.translate(App.Vector(18.0 * SCALE, 232.0 * SCALE, z_base - 1.0))
 
-    tabs = []
-    for ty in [195.5 * SCALE, 225.5 * SCALE]:
-        # Flex arm (X in [22.0, 23.4mm])
-        arm = Part.makeBox(tab_thick, tab_w, tab_len)
-        arm.translate(App.Vector(start_x + cover_w, ty - (tab_w / 2.0), deck_z - tab_len))
-        
-        # Detent catch bump (protrudes outward in +X: X in [23.4, 23.8mm])
-        bump = Part.makeBox(detent_bump, tab_w, 1.5 * SCALE)
-        bump.translate(App.Vector(start_x + cover_w + tab_thick, ty - (tab_w / 2.0), deck_z - tab_len + 0.8 * SCALE))
-        
-        tabs.extend([arm, bump])
-
-    cover = cover.fuse(Part.makeCompound(tabs)).removeSplitter()
+    cover = cover.cut(Part.makeCompound(gills + grips + [cable_notch])).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_servo_cover.step")
@@ -106,8 +81,6 @@ def construct_motorized_servo_cover():
     cover.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
     return cover
-
-construct_servo_cover = construct_motorized_servo_cover
 
 def main():
     doc = App.newDocument("MotorizedServoCover")

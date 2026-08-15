@@ -1,6 +1,9 @@
 # Changelog
 
 ## 2026-08-15
+- Re-architected Active Motorized Module (`cad-designs/motorized_frame.py`, `motorized_flap.py`, `motorized_servo_cover.py`, `motorized_assembly.py`) with a **horizontal inline direct-drive servo mount**, eliminating the $+22\text{ mm}$ top motor bump and creating a **100% flush, coplanar top deck ($Z = 15.0\text{..}17.5\text{ mm}$)** across the entire module with $0.00000\text{ mm}^3$ interference across all 9 mating pairs.
+- Updated Active Flap (`motorized_flap.py`) to a full rectangular blade with integrated continuous $\varnothing 13.0\text{ mm}$ drive axle, 25T metal horn socket, bottom $8.0\text{ mm}$ hex torque socket, and gradient mass-reduction cutouts.
+- Designed flush low-profile slide-in servo lid (`motorized_servo_cover.py`) with side retention tongues and passive cooling gills.
 - Updated Base Module chassis (`cad-designs/base_module.py`) to the clean 4-wall open-bottom frame architecture, removing debossed directional reticles/lines and top TPU bumper slots for a completely flat and uniform top deck, while retaining circular mass-reduction cutouts, diamond knurling, sliding dovetails, and anti-slip feet.
 - Synchronized all CAD specs in `cad-designs/specs/` (`requirements.md`, `plan.md`, `roadmap.md`, `tech-stack.md`) to match the latest 4-wall open-bottom chassis architecture and standardized `motorized_` / `follower_` naming conventions.
 - Standardized CAD naming conventions with `motorized_` and `follower_` prefixes (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_cover.py`, `motorized_assembly.py`, `follower_frame.py`, `follower_flap.py`, `follower_assembly.py`).

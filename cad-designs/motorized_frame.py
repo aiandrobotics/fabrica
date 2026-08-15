@@ -1,5 +1,5 @@
 """
-motorized_frame.py — Active Motorized Module Frame with MG996R Servo Bay
+motorized_frame.py — Active Motorized Module Frame with Horizontal Inline MG996R Servo Bay
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -28,12 +28,6 @@ from params import (
     DOVETAIL_HEIGHT,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
-    SERVO_MOUNT_WIDTH,
-    SERVO_MOUNT_DEPTH,
-    SERVO_MOUNT_HEIGHT,
-    SERVO_HOLE_SPACING_X,
-    SERVO_HOLE_SPACING_Y,
-    SERVO_SCREW_RADIUS,
     EXPORT_DIR,
 )
 
@@ -41,7 +35,8 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def construct_motorized_frame():
     """
-    Constructs the Active Motorized Frame with integrated MG996R servo mounting bay.
+    Constructs the Active Motorized Frame with horizontal inline MG996R servo mounting bay.
+    Top deck is 100% flush (Z=15.0..17.5mm) with zero protruding motor bumps.
     """
     w = PANEL_WIDTH          # 240.0mm
     h = PANEL_HEIGHT         # 240.0mm
@@ -53,21 +48,21 @@ def construct_motorized_frame():
     tie_x = 11.0 * SCALE
     center_x = tie_x + (tie_w / 2.0) # 18.0mm
     y_seam = h / 2.0                 # 120.0mm
+    pivot_z = 8.0 * SCALE            # Hinge axis at Z = 8.0mm
 
-    # 1. Main outer shell block
+    # 1. Main outer shell block (240 x 240 x 15mm)
     outer_box = Part.makeBox(w, h, t)
 
     # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w                                      # 15.0mm
-    pivot_z = 8.0 * SCALE                                     # Hinge axis at Z = 8.0mm
     
     # Bottom Knuckle Barrel (Y = 0 to 15mm)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
     
-    # Top Knuckle Barrel (Y = 165 to 178mm)
-    k_top_start_y = 165.0 * SCALE
-    k_top_len = 13.0 * SCALE
+    # Top Knuckle Barrel (Y = 170 to 185.5mm)
+    k_top_start_y = 170.0 * SCALE
+    k_top_len = 15.5 * SCALE
     k_top = Part.makeCylinder(knuckle_r, k_top_len, App.Vector(0, k_top_start_y, pivot_z), App.Vector(0, 1, 0))
 
     # Smooth C1-Continuous Tangent Concave Blend Ramp
@@ -97,15 +92,15 @@ def construct_motorized_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
     ramp_top.translate(App.Vector(0, k_top_start_y, 0))
 
-    # Top-Left Servo Bay Structural Housing Block (X = -knuckle_r to 48mm, Y = 178 to 240mm, Z = 0 to 15mm)
-    servo_housing_w = 57.5 * SCALE
-    servo_housing_l = 62.0 * SCALE
+    # Top-Left Horizontal Motor Housing Solid Box (X = -knuckle_r to 44mm, Y = 185.5 to 240mm, Z = 0 to 15mm)
+    servo_housing_w = 44.0 * SCALE + knuckle_r # 53.5mm
+    servo_housing_l = (h - 185.5 * SCALE)      # 54.5mm
     servo_housing_box = Part.makeBox(servo_housing_w, servo_housing_l, t)
-    servo_housing_box.translate(App.Vector(-knuckle_r, h - servo_housing_l, 0))
+    servo_housing_box.translate(App.Vector(-knuckle_r, 185.5 * SCALE, 0))
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top, servo_housing_box])).removeSplitter()
 
-    # 3. Open Interior Cavities (preserving tie-bar at X in [11, 25mm], Z in [0, 3mm])
+    # 3. Open Interior Cavities (preserving 4th tie-bar at X in [11, 25mm], Z in [0, 3mm])
     cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 4.0 * SCALE)
     cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -2.0 * SCALE))
 
@@ -117,7 +112,7 @@ def construct_motorized_frame():
 
     frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
 
-    # 4. Hinge Bearing Bores (Bottom Y=0..15mm, Top Y=165..178mm)
+    # 4. Hinge Bearing Bores (Bottom Y=0..15mm, Top Y=170..185.5mm)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
@@ -129,45 +124,38 @@ def construct_motorized_frame():
 
     frame = frame.cut(Part.makeCompound([bot_bore, top_bore, trim_bot])).removeSplitter()
 
-    # 5. MG996R Servo Bay Cavity & Mounting Features (Y = 178 to 240mm)
-    servo_cav_l = 41.5 * SCALE  # 41.5mm along Y (Y = 188.0 to 229.5mm)
-    servo_cav_w = 21.0 * SCALE  # 21.0mm along X (X = -10.5 to 10.5mm)
-    
-    # Motor body well through frame deck
-    servo_well = Part.makeBox(servo_cav_w, servo_cav_l, t + 2.0)
-    servo_well.translate(App.Vector(-servo_cav_w / 2.0, 188.0 * SCALE, -1.0))
+    # 5. Horizontal Inline MG996R Servo Bay Cavity (Y = 185.5 to 238mm, lying flat on 20mm side)
+    # Motor body pocket: X = 3.0 to 42.0mm, Y = 192.0 to 234.0mm, Z = -3.0 to 18.5mm
+    motor_pocket = Part.makeBox(39.0 * SCALE, 42.0 * SCALE, t + 6.0)
+    motor_pocket.translate(App.Vector(3.0 * SCALE, 192.0 * SCALE, -3.0 * SCALE))
 
-    # Servo Flange Recess Ledge at Z = 10.0mm (Flange size: 55.0mm Y x 21.0mm X)
-    flange_recess = Part.makeBox(servo_cav_w, 55.0 * SCALE, 6.0 * SCALE)
-    flange_recess.translate(App.Vector(-servo_cav_w / 2.0, 181.0 * SCALE, 10.0 * SCALE))
+    # Output Spline & Shaft Clearance Tunnel (along X=0, Z=8.0mm from Y=185.0 to 192.5mm)
+    spline_tunnel = Part.makeCylinder(8.5 * SCALE, 7.6 * SCALE, App.Vector(0, 185.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # 4x M3 Servo Mounting Screw Holes
-    screw_r = 1.6 * SCALE  # M3 clearance
-    screw_h = 20.0 * SCALE
+    # Flange Mounting Ears Recesses (for M3 screws at X = 28.0 to 32.5mm, Y = 188.5 to 237.5mm)
+    flange_recess = Part.makeBox(6.0 * SCALE, 50.0 * SCALE, t + 6.0)
+    flange_recess.translate(App.Vector(27.5 * SCALE, 188.0 * SCALE, -3.0 * SCALE))
+
+    # 2x M3 Mounting Screw Holes
+    screw_r = 1.6 * SCALE
     screws = [
-        Part.makeCylinder(screw_r, screw_h, App.Vector(-5.0 * SCALE, 184.0 * SCALE, -2.0 * SCALE)),
-        Part.makeCylinder(screw_r, screw_h, App.Vector(5.0 * SCALE, 184.0 * SCALE, -2.0 * SCALE)),
-        Part.makeCylinder(screw_r, screw_h, App.Vector(-5.0 * SCALE, 233.0 * SCALE, -2.0 * SCALE)),
-        Part.makeCylinder(screw_r, screw_h, App.Vector(5.0 * SCALE, 233.0 * SCALE, -2.0 * SCALE)),
+        Part.makeCylinder(screw_r, 20.0 * SCALE, App.Vector(30.5 * SCALE, 190.0 * SCALE, -2.0 * SCALE), App.Vector(0, 0, 1)),
+        Part.makeCylinder(screw_r, 20.0 * SCALE, App.Vector(30.5 * SCALE, 236.0 * SCALE, -2.0 * SCALE), App.Vector(0, 0, 1)),
     ]
 
-    # Servo Output Shaft Clearance Pocket (Y = 177.5 to 188.5mm, X = -12.0 to 12.0mm, Z = 0 to 16.0mm)
-    shaft_clearance = Part.makeBox(24.0 * SCALE, 11.0 * SCALE, t + 2.0)
-    shaft_clearance.translate(App.Vector(-12.0 * SCALE, 177.8 * SCALE, -1.0))
-
-    # Wire Pass-Through Conduit (Routing servo cable into main frame cavity)
-    wire_conduit = Part.makeBox(12.0 * SCALE, 8.0 * SCALE, 12.0 * SCALE)
+    # Cable Pass-Through Conduit (routing servo wire from rear into central open cavity)
+    wire_conduit = Part.makeBox(14.0 * SCALE, 10.0 * SCALE, 10.0 * SCALE)
     wire_conduit.translate(App.Vector(tie_x + tie_w - 2.0 * SCALE, 210.0 * SCALE, 0))
 
-    # Snap-Latch Retention Slots for Toolless Servo Cover (X in [21.5, 25.5mm], Y in [192..200] and [222..230])
-    snap_notch_1 = Part.makeBox(4.0 * SCALE, 9.0 * SCALE, 7.0 * SCALE)
-    snap_notch_1.translate(App.Vector(21.5 * SCALE, 191.0 * SCALE, 9.0 * SCALE))
+    # Flush Cover Slide-In Retention Grooves at Z = 13.2mm (along Y in [186.0..238.0mm])
+    cover_groove_l = Part.makeBox(2.0 * SCALE, 52.0 * SCALE, 2.0 * SCALE)
+    cover_groove_l.translate(App.Vector(-0.5 * SCALE, 186.0 * SCALE, 13.2 * SCALE))
     
-    snap_notch_2 = Part.makeBox(4.0 * SCALE, 9.0 * SCALE, 7.0 * SCALE)
-    snap_notch_2.translate(App.Vector(21.5 * SCALE, 221.0 * SCALE, 9.0 * SCALE))
+    cover_groove_r = Part.makeBox(2.0 * SCALE, 52.0 * SCALE, 2.0 * SCALE)
+    cover_groove_r.translate(App.Vector(42.5 * SCALE, 186.0 * SCALE, 13.2 * SCALE))
 
     frame = frame.cut(Part.makeCompound([
-        servo_well, flange_recess, shaft_clearance, wire_conduit, snap_notch_1, snap_notch_2
+        motor_pocket, spline_tunnel, flange_recess, wire_conduit, cover_groove_l, cover_groove_r
     ] + screws)).removeSplitter()
 
     # 6. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
@@ -251,7 +239,7 @@ def construct_motorized_frame():
         (w - (rail_w / 2.0), rail_w / 2.0),          # Bottom Right
         (w - (rail_w / 2.0), h - (rail_w / 2.0)),      # Top Right
         (25.0 * SCALE, rail_w / 2.0),                  # Bottom Left (along front rail)
-        (45.0 * SCALE, h - (rail_w / 2.0)),            # Top Left (along back rail)
+        (55.0 * SCALE, h - (rail_w / 2.0)),            # Top Left (along back rail)
     ]
     foot_cutters = [
         Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))

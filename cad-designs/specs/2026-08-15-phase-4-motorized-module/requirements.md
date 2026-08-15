@@ -1,6 +1,6 @@
-# Requirements — Phase 4: Active Motorized Module
+# Requirements — Phase 4: Active Motorized Module (Horizontal Direct-Drive Architecture)
 
-Requirements specification for the Active Motorized Module of the Fabrica Cloth Folding Robot, featuring **Integrated MG996R Servo Bay**, **Heavy-Duty $\varnothing 13\text{ mm}$ Monolithic Active Flap Axle**, **Direct Press-Fit 25T Metal Servo Horn Socket with M3 Retention**, **Toolless Snap-Latch Motor Cover**, and **Synchronous Column Hex Torque Transmission**.
+Requirements specification for the Active Motorized Module of the Fabrica Cloth Folding Robot, featuring **Horizontal Inline MG996R Servo Bay**, **100% Flush Bump-Free Top Deck ($Z = 15.0\text{..}17.5\text{ mm}$)**, **Heavy-Duty $\varnothing 13\text{ mm}$ Monolithic Active Flap Axle**, **Direct Press-Fit 25T Metal Servo Horn Socket with M3 Retention**, **Flush Low-Profile Slide-In Servo Lid with Cooling Gills**, and **Synchronous Column Hex Torque Transmission**.
 
 ---
 
@@ -8,23 +8,24 @@ Requirements specification for the Active Motorized Module of the Fabrica Cloth 
 
 In the Fabrica $4 \times 3$ modular folding grid:
 - The **Active Motorized Module** ($240.0 \times 240.0\text{ mm}$) is positioned in **Row 1 (Top)** of the outer folding columns (Left & Right columns).
-- It houses a standard high-torque MG996R (or compatible metal-gear coreless/brushless standard servo, 15–35 kg-cm) that directly drives the active flap.
-- **Direct 1-Piece Drive**: The active flap features an integrated continuous $\varnothing 13.0\text{ mm}$ drive axle with a direct press-fit 25T servo horn pocket at $Y = 240\text{ mm}$, eliminating backlash from separate coupler adapters.
+- It houses a standard high-torque MG996R (or compatible metal-gear coreless/brushless standard servo, 15–35 kg-cm) mounted **horizontally flat on its $20.0\text{ mm}$ side** along the rear rail ($Y = 188\text{..}238\text{ mm}$).
+- **100% Flush Top Surface**: Eliminates all vertical protrusions/bumps above the $Z = 17.5\text{ mm}$ deck plane, providing a smooth, snag-free surface for garment placement and rapid folding cycles.
+- **Direct 1-Piece Drive**: The active flap features an integrated continuous $\varnothing 13.0\text{ mm}$ drive axle with a direct press-fit 25T servo horn pocket at $Y = 185\text{ mm}$, eliminating backlash from separate coupler adapters.
 - **Synchronous Column Torque Transmission**:
   - The single servo in Row 1 powers the entire column.
-  - Rotational torque is transmitted from the servo horn at $Y = 240\text{ mm}$ through the monolithic $\varnothing 13.0\text{ mm}$ active flap axle down to the $8.0\text{ mm}$ hex socket at $Y = 0\text{ mm}$.
+  - Rotational torque is transmitted from the servo horn at $Y = 185\text{ mm}$ through the monolithic active flap axle down to the $8.0\text{ mm}$ hex socket at $Y = 0\text{ mm}$.
   - Via the **Part 11 Hex Drive Coupler Pin**, torque enters the Follower Module below, causing all flaps in the column to flip in perfect synchrony.
 
 ```
                     [Row 1 Top Frame Boundary]
                                  │
-                     ┌───────────────────────┐
-                     │ MG996R Standard Servo │
-                     │   (Direct 25T Spline) │
-                     └───────────┬───────────┘
+           ┌───────────────────────────────────────────┐
+           │ Horizontal MG996R Servo (Flat on 20mm side)│
+           │ Output Spline centered at (X=0, Z=8.0mm)  │
+           └─────────────────────┬─────────────────────┘
                                  ▼ (Direct 25T Horn Socket + M3 Screw)
          +=================[ 240mm Top Rail ]=================+
-         | [MG996R Bay + Snap Cover]   [Ø13.5mm Top Knuckle]  | [Dovetail Socket]
+         | [Flush Slide-In Lid]        [Ø13.5mm Top Knuckle]  | [Dovetail Socket]
          |                                                    |
          |  ===============================================   |
          |  |                                             |   |

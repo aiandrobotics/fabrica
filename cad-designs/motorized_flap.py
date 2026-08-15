@@ -1,5 +1,5 @@
 """
-motorized_flap.py — Monolithic Active Motorized Folding Flap with Integrated 25T Servo Horn Socket & Drive Axle
+motorized_flap.py — Monolithic Active Folding Flap (Full Blade with Integrated Drive Axle)
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -17,166 +17,130 @@ from params import (
     SCALE,
     PANEL_WIDTH,
     PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
-    DRIVE_SHAFT_DIAMETER,
-    HEX_COUPLER_SIZE,
-    HEX_COUPLER_DEPTH,
-    ACCENT_BEVEL_DEPTH,
+    PANEL_THICKNESS,
     TEXTURE_HEIGHT,
     HOLE_CHAMFER,
-    ELEPHANTS_FOOT_CHAMFER,
+    ACCENT_BEVEL_DEPTH,
+    DRIVE_SHAFT_DIAMETER,
+    PRESS_FIT_CLEARANCE,
     EXPORT_DIR,
 )
 
-PADDLE_THICKNESS = 2.4 * SCALE
-
-def make_hexagon_wire(flat_to_flat, center_x, center_z, y_pos):
-    """Generates a regular hexagon wire in the XZ plane at a given Y position."""
-    r = (flat_to_flat / math.sqrt(3.0))
-    pts = [
-        App.Vector(center_x + r * math.cos(i * math.pi / 3.0), y_pos, center_z + r * math.sin(i * math.pi / 3.0))
-        for i in range(7)
-    ]
-    return Part.makePolygon(pts)
+FLAP_THICKNESS = 2.4 * SCALE
 
 def construct_motorized_flap():
     """
-    Constructs the Monolithic Active Motorized Folding Flap with Integrated 25T Servo Horn Socket.
+    Constructs the Monolithic Active Folding Flap with integrated continuous drive axle,
+    integrated 25T metal servo horn socket, female hex torque output socket,
+    full rectangular blade geometry, circular cutouts, and micro-grip texture.
     """
-    w = PANEL_WIDTH          # 240.0mm full module width
-    h = PANEL_HEIGHT         # 240.0mm full module length
-    t = PADDLE_THICKNESS     # 2.4mm panel thickness
-    total_z = BASE_PANEL_THICKNESS # 15.0mm (frame top rail height)
-    pivot_z = 8.0 * SCALE    # 8.0mm
-    panel_z_min = total_z    # 15.0mm (rests directly on top of frame rails)
-    top_z = panel_z_min + t  # 17.4mm (flush with knuckle top crown at 17.5mm)
-    axle_end_y = 186.0 * SCALE # Axle spans from Y=0 to Y=186mm (boss at Y=178 to 186mm)
+    w = PANEL_WIDTH - (1.0 * SCALE)          # 239.0mm
+    h = PANEL_HEIGHT - (2.0 * SCALE)         # 238.0mm
+    flap_t = FLAP_THICKNESS                  # 2.4mm (Z = 15.0 to 17.4mm)
+    z_deck = 15.0 * SCALE
+    pivot_z = 8.0 * SCALE                    # Hinge axis at X=0, Z=8.0mm
+    axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - (0.05 * SCALE) # 6.45mm radius (Ø12.9mm solid core)
+    axle_len = 185.0 * SCALE                 # Reaches from Y=0.5 to Y=185.0mm (engages 25T horn at Y=185mm)
 
-    # 1. Base solid flap slab (Extends from X=0 to X=240mm, Y=0 to Y=240mm, Z=15.0 to Z=17.4mm)
-    flap_box = Part.makeBox(w, h, t)
-    flap_box.translate(App.Vector(0, 0, panel_z_min))
+    # 1. Main full-size rectangular blade (X = 0 to 239mm, Y = 1 to 239mm, Z = 15.0 to 17.4mm)
+    blade = Part.makeBox(w, h, flap_t)
+    blade.translate(App.Vector(0, 1.0 * SCALE, z_deck))
 
-    # Knuckle clearance corner cutout for bottom knuckle (Y <= 15.8mm)
-    cut_bot = Part.makeBox(11.5 * SCALE, 15.8 * SCALE, t + 2.0)
-    cut_bot.translate(App.Vector(-0.5, -0.5, panel_z_min - 0.5))
+    # Knuckle and Motor Corner Relief Cutouts
+    cut_bot = Part.makeBox(11.5 * SCALE, 15.5 * SCALE, flap_t + 2.0)
+    cut_bot.translate(App.Vector(-0.5 * SCALE, 0.5 * SCALE, z_deck - 1.0))
 
-    # Top-Left Knuckle & Servo Bay Corner Relief Cutout (X in [0, 52.0mm], Y in [164.0, 240.0mm])
-    servo_cut_w = 52.0 * SCALE
-    servo_cut_l = h - (164.0 * SCALE) + 0.5 # 76.5mm (Y = 164.0 to 240.0mm)
-    cut_servo = Part.makeBox(servo_cut_w + 0.5, servo_cut_l + 1.0, t + 2.0)
-    cut_servo.translate(App.Vector(-0.5, 164.0 * SCALE, panel_z_min - 0.5))
+    cut_mid_k = Part.makeBox(11.5 * SCALE, 16.5 * SCALE, flap_t + 2.0)
+    cut_mid_k.translate(App.Vector(-0.5 * SCALE, 169.5 * SCALE, z_deck - 1.0))
 
-    flap = flap_box.cut(Part.makeCompound([cut_bot, cut_servo])).removeSplitter()
+    cut_motor = Part.makeBox(44.5 * SCALE, 55.0 * SCALE, flap_t + 2.0)
+    cut_motor.translate(App.Vector(-0.5 * SCALE, 185.5 * SCALE, z_deck - 1.0))
 
-    # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on outer free edges)
-    bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
-    bevel_w = 3.0 * SCALE
+    blade = blade.cut(Part.makeCompound([cut_bot, cut_mid_k, cut_motor])).removeSplitter()
+
+    # 2. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to 185.0mm)
+    axle = Part.makeCylinder(axle_r, axle_len - 0.5 * SCALE, App.Vector(0, 0.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
+
+    # Structural Gusset Web bridging axle into blade between knuckles (X = 0 to 11mm, Y = 15.5 to 169.5mm, Z = 8.0 to 15.0mm)
+    gusset = Part.makeBox(11.0 * SCALE, 154.0 * SCALE, z_deck - pivot_z + flap_t)
+    gusset.translate(App.Vector(0, 15.5 * SCALE, pivot_z))
+
+    flap = blade.fuse(Part.makeCompound([axle, gusset])).removeSplitter()
+
+    # Smooth Outer Tangent Profile (Trimming outside cylinder arc X < 0)
+    outer_trim = Part.makeBox(axle_r * 4.0, h + 4.0 * SCALE, z_deck + flap_t + 4.0)
+    outer_trim.translate(App.Vector(-axle_r * 4.0, -2.0 * SCALE, -2.0 * SCALE))
     
-    bevel_cuts = []
-    # Right edge bevel
-    b_right = Part.makeBox(bevel_w + 0.2, h + 0.2, bevel_d + 0.1)
-    b_right.translate(App.Vector(w - bevel_w, -0.1, top_z - bevel_d))
-    bevel_cuts.append(b_right)
-    
-    # Bottom edge bevel (for X >= 12mm)
-    b_bot = Part.makeBox(w - 11.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(11.5 * SCALE, -0.1, top_z - bevel_d))
-    bevel_cuts.append(b_bot)
-    
-    # Top edge bevel (for X >= 52mm)
-    b_top = Part.makeBox(w - servo_cut_w, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(servo_cut_w, h - bevel_w, top_z - bevel_d))
-    bevel_cuts.append(b_top)
-    
-    # Inner corner shadow bevel step along the servo notch
-    b_corner_x = Part.makeBox(bevel_w + 0.1, servo_cut_l, bevel_d + 0.1)
-    b_corner_x.translate(App.Vector(servo_cut_w - bevel_w, 164.0 * SCALE, top_z - bevel_d))
-    bevel_cuts.append(b_corner_x)
+    cyl_keep = Part.makeCylinder(axle_r, axle_len + 0.2, App.Vector(0, 0.4 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    outer_trim = outer_trim.cut(cyl_keep)
 
-    flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
+    # Bottom clearance trim (Z < 0)
+    bot_trim = Part.makeBox(w + 10.0, h + 10.0, 10.0)
+    bot_trim.translate(App.Vector(-5.0, -5.0, -10.0))
 
-    # 3. Continuous Solid Drive Axle (Y = 0.0 to 178.0mm with shaft_r=6.5mm, boss at Y=178 to 186mm)
-    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm (Ø13.0mm in Ø13.5mm knuckle bores)
-    axle_solid = Part.makeCylinder(shaft_r, 178.0 * SCALE, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
+    flap = flap.cut(Part.makeCompound([outer_trim, bot_trim])).removeSplitter()
 
-    # Top Driven End Enlarged Boss for 25T Servo Horn Pocket (Y = 178 to 186mm, Outer Ø17.0mm in Ø24mm pocket)
-    boss_r = 8.5 * SCALE
-    boss_len = 8.0 * SCALE
-    servo_boss = Part.makeCylinder(boss_r, boss_len, App.Vector(0, 178.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    # 3. Rear 25T Metal Servo Horn Drive Socket (at Y = 185.0mm)
+    horn_od = 7.0 * SCALE + PRESS_FIT_CLEARANCE   # 7.2mm outer spline receiver radius (Ø14.4mm)
+    horn_pocket_depth = 8.0 * SCALE
+    horn_pocket = Part.makeCylinder(horn_od, horn_pocket_depth + 0.1, App.Vector(0, axle_len - horn_pocket_depth, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Under-Flap Structural Reinforcing Gusset (Y = 15.8mm to 164.0mm between knuckles)
-    gusset_start_y = 15.8 * SCALE
-    gusset_len = (164.0 - 15.8) * SCALE # 148.2mm (ends at Y = 164.0mm before top knuckle)
-    gusset_pts = [
-        App.Vector(0, gusset_start_y, pivot_z),
-        App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),
-        App.Vector(6.5 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE),
-        App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),
-        App.Vector(0, gusset_start_y, panel_z_min),
-        App.Vector(0, gusset_start_y, pivot_z),
-    ]
-    gusset_wire = Part.makePolygon(gusset_pts)
-    gusset_face = Part.Face(gusset_wire)
-    gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
+    # M3 Central Retention Screw Access Counterbore (through axle to lock horn onto servo)
+    screw_hole = Part.makeCylinder(1.6 * SCALE, 20.0 * SCALE, App.Vector(0, axle_len - horn_pocket_depth - 15.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    screw_head_cb = Part.makeCylinder(3.2 * SCALE, 10.0 * SCALE, App.Vector(0, axle_len - horn_pocket_depth - 15.0 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # Fuse flap panel with continuous drive axle, servo boss, and reinforcing gusset
-    flap = flap.fuse(Part.makeCompound([axle_solid, servo_boss, gusset_solid])).removeSplitter()
+    # 4. Front Female Hex Torque Output Socket (at Y = 0.5mm, for HexDriveCoupler)
+    hex_r = 4.62 * SCALE + PRESS_FIT_CLEARANCE  # 4.62mm radius for 8.0mm hex flats
+    hex_depth = 10.5 * SCALE
+    hex_pts = []
+    for i in range(6):
+        ang = math.radians(i * 60.0)
+        hex_pts.append(App.Vector(hex_r * math.cos(ang), 0.4 * SCALE, pivot_z + hex_r * math.sin(ang)))
+    hex_pts.append(hex_pts[0])
+    hex_wire = Part.makePolygon(hex_pts)
+    hex_face = Part.Face(hex_wire)
+    hex_socket = hex_face.extrude(App.Vector(0, hex_depth + 0.1, 0))
 
-    # 5. Output End (Y = 0) Female 8.0mm Hex Torque Socket
-    socket_d = 10.5 * SCALE
-    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, -0.1)
-    hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
-    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
+    # Lead-in Chamfer for smooth hex coupler alignment
+    chamfer_cone = Part.makeCone(hex_r + 1.0 * SCALE, hex_r, 1.5 * SCALE, App.Vector(0, 0.4 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    hex_cutter = hex_socket.fuse(chamfer_cone)
 
-    # 6. Driven End (Y = 186mm) 25T Servo Horn Pocket & M3 Screw Retention Holes
-    # 25T spline pocket: Ø6.0mm bore, 4.0mm deep entering into -Y from Y=186mm
-    spline_bore = Part.makeCylinder(3.0 * SCALE, 4.2 * SCALE, App.Vector(0, axle_end_y - 4.1 * SCALE, pivot_z), App.Vector(0, 1, 0))
-    
-    # M3 Central Retention Screw Through-Hole (Ø3.2mm) through Y = 175 to 186mm
-    m3_hole = Part.makeCylinder(1.6 * SCALE, 12.0 * SCALE, App.Vector(0, axle_end_y - 11.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
-    
-    # M3 Screw Head Counterbore (Ø6.0mm x 2.5mm deep) entering from Y=175mm
-    m3_counterbore = Part.makeCylinder(3.0 * SCALE, 2.6 * SCALE, App.Vector(0, axle_end_y - 11.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    flap = flap.cut(Part.makeCompound([horn_pocket, screw_hole, screw_head_cb, hex_cutter])).removeSplitter()
 
-    flap = flap.cut(Part.makeCompound([hex_socket_bot_cutter, spline_bore, m3_hole, m3_counterbore])).removeSplitter()
-
-    # 7. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction)
-    hole_specs = [
-        (w * 0.48, h * 0.45, 18.0 * SCALE),
-        (w * 0.28, h * 0.30, 15.0 * SCALE),
-        (w * 0.72, h * 0.35, 16.0 * SCALE),
-        (w * 0.32, h * 0.58, 16.5 * SCALE),
-        (w * 0.70, h * 0.68, 15.5 * SCALE),
-        (w * 0.52, h * 0.20, 12.0 * SCALE),
-        (w * 0.52, h * 0.72, 12.5 * SCALE),
-        (w * 0.22, h * 0.46, 11.0 * SCALE),
-        (w * 0.84, h * 0.50, 11.5 * SCALE),
-        (w * 0.22, h * 0.15, 8.5 * SCALE),
-        (w * 0.82, h * 0.18, 9.0 * SCALE),
-        (w * 0.75, h * 0.85, 9.5 * SCALE),
-        (w * 0.85, h * 0.82, 8.5 * SCALE),
-        (w * 0.37, h * 0.12, 7.0 * SCALE),
-        (w * 0.67, h * 0.12, 7.0 * SCALE),
-        (w * 0.58, h * 0.88, 7.0 * SCALE),
-        (w * 0.40, h * 0.70, 9.5 * SCALE),
+    # 5. Multi-Tiered Organic Circular Weight-Reduction Cutouts (~45% mass reduction)
+    cutout_specs = [
+        # Center large circular windows
+        (w * 0.40, h * 0.35, 18.0 * SCALE),
+        (w * 0.70, h * 0.35, 18.0 * SCALE),
+        (w * 0.40, h * 0.65, 18.0 * SCALE),
+        (w * 0.70, h * 0.65, 18.0 * SCALE),
+        (w * 0.55, h * 0.50, 20.0 * SCALE),
+        # Intermediate perimeter windows
+        (w * 0.22, h * 0.20, 12.0 * SCALE),
+        (w * 0.55, h * 0.20, 13.0 * SCALE),
+        (w * 0.85, h * 0.20, 12.0 * SCALE),
+        (w * 0.55, h * 0.80, 13.0 * SCALE),
+        (w * 0.85, h * 0.80, 12.0 * SCALE),
+        (w * 0.22, h * 0.50, 13.0 * SCALE),
+        (w * 0.88, h * 0.50, 13.0 * SCALE),
     ]
 
     cutters = []
-    for cx, cy, hr in hole_specs:
-        cyl = Part.makeCylinder(hr, t + 1.0, App.Vector(cx, cy, panel_z_min - 0.5))
-        c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, top_z - HOLE_CHAMFER))
-        c_bot = Part.makeCone(hr, hr + HOLE_CHAMFER, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, panel_z_min - 0.1))
+    for cx, cy, hr in cutout_specs:
+        cyl = Part.makeCylinder(hr, flap_t + 1.0, App.Vector(cx, cy, z_deck - 0.5))
+        c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, z_deck + flap_t - HOLE_CHAMFER))
+        c_bot = Part.makeCone(hr, hr + HOLE_CHAMFER, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, z_deck - 0.1))
         cutters.extend([cyl, c_top, c_bot])
 
-    if cutters:
-        flap = flap.cut(Part.makeCompound(cutters)).removeSplitter()
+    flap = flap.cut(Part.makeCompound(cutters)).removeSplitter()
 
-    # 8. 0.6mm Diamond Micro-Grip Surface Texture
+    # 6. Micro-Grip Diamond Surface Texture (0.6mm debossed grip knurling on top surface)
     tex_cutters = []
     tex_spacing = 14.0 * SCALE
     tex_w = 0.8 * SCALE
-    tex_d = TEXTURE_HEIGHT
-    
+    tex_d = TEXTURE_HEIGHT # 0.6mm
+    top_z = z_deck + flap_t
+
     for i in range(-int(w), int(w + h), int(tex_spacing)):
         g1 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
         g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
@@ -187,10 +151,21 @@ def construct_motorized_flap():
         tex_cutters.extend([g1, g2])
 
     if tex_cutters:
-        tex_bound = Part.makeBox(w - 2 * bevel_w, h - 2 * bevel_w, t + 2.0)
-        tex_bound.translate(App.Vector(bevel_w, bevel_w, panel_z_min - 1.0))
+        tex_bound = Part.makeBox(w - 2 * 3.0 * SCALE, h - 2 * 3.0 * SCALE, flap_t + 2.0)
+        tex_bound.translate(App.Vector(3.0 * SCALE, 4.0 * SCALE, z_deck - 1.0))
         tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
         flap = flap.cut(tex_compound).removeSplitter()
+
+    # 7. Perimeter Accent Shadow Bevel (1.2mm recessed aesthetic border)
+    bevel_w = 1.2 * SCALE
+    b1 = Part.makeBox(w + 2.0, bevel_w, ACCENT_BEVEL_DEPTH + 0.1)
+    b1.translate(App.Vector(-1.0, 1.0 * SCALE, top_z - ACCENT_BEVEL_DEPTH))
+    b2 = Part.makeBox(w + 2.0, bevel_w, ACCENT_BEVEL_DEPTH + 0.1)
+    b2.translate(App.Vector(-1.0, h - bevel_w + 1.0 * SCALE, top_z - ACCENT_BEVEL_DEPTH))
+    b3 = Part.makeBox(bevel_w, h + 2.0, ACCENT_BEVEL_DEPTH + 0.1)
+    b3.translate(App.Vector(w - bevel_w, 0, top_z - ACCENT_BEVEL_DEPTH))
+
+    flap = flap.cut(Part.makeCompound([b1, b2, b3])).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_flap.step")
@@ -200,8 +175,6 @@ def construct_motorized_flap():
     flap.exportStl(stl_path)
     print(f"Exported to {step_path} and {stl_path}")
     return flap
-
-construct_active_flap = construct_motorized_flap
 
 def main():
     doc = App.newDocument("MotorizedFlap")
