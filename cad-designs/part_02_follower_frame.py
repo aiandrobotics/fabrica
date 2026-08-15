@@ -178,19 +178,7 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 7. Debossed Poka-Yoke Directional Arrow ("FRONT ➔" on front outer wall)
-    arrow_shaft = Part.makeBox(12.0 * SCALE, 0.6 * SCALE, 2.0 * SCALE)
-    arrow_shaft.translate(App.Vector(w / 2.0 - 6.0 * SCALE, -0.1, t - 3.5 * SCALE))
-    arrow_head_poly = Part.makePolygon([
-        App.Vector(w / 2.0 + 6.0 * SCALE, -0.1, t - 4.5 * SCALE),
-        App.Vector(w / 2.0 + 10.0 * SCALE, -0.1, t - 2.5 * SCALE),
-        App.Vector(w / 2.0 + 6.0 * SCALE, -0.1, t - 0.5 * SCALE),
-        App.Vector(w / 2.0 + 6.0 * SCALE, -0.1, t - 4.5 * SCALE),
-    ])
-    arrow_head = Part.Face(arrow_head_poly).extrude(App.Vector(0, 0.6 * SCALE, 0))
-    frame = frame.cut(Part.makeCompound([arrow_shaft, arrow_head])).removeSplitter()
-
-    # 9. Elephant's Foot Relief Chamfer along outer bottom bed edges
+    # 7. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
         base_edges = [
             e for e in frame.Edges
