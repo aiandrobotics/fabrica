@@ -1,5 +1,5 @@
 """
-part_02_follower_frame.py — Passive Follower Chassis 3-Sided U-Frame
+part_02_follower_frame.py — Passive Follower Chassis Open-Bottom U-Frame
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -35,16 +35,17 @@ BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def create_follower_frame():
     """
-    Constructs the Passive Follower 3-Sided U-Frame Module.
+    Constructs the Passive Follower Open-Bottom 3-Sided U-Frame Module.
     Features:
-    1. 3-Sided U-Frame Chassis (240x240x15mm) with open inner side (X=0) for 180° flap sweep.
-    2. Top Knuckle (X=0, Y=240): 360° Closed Bearing Bore (Ø5.6mm) for axial pin retention.
-    3. Bottom Knuckle (X=0, Y=0): Flex C-Snap Socket with 0.5mm lead-in funnel for toolless insertion.
-    4. 1.5mm recessed silent-flip TPU bumper landing pockets on the inner ledge.
-    5. Dovetail Joiner Sockets on the 3 outer walls (Y=0, Y=240, X=240).
-    6. Filleted internal wire pass-through ports and under-frame cable routing clips.
-    7. 0.5mm debossed Poka-Yoke directional alignment arrow ("FRONT ➔").
-    8. 0.4mm bottom Elephant's Foot relief chamfers.
+    1. Open-Bottom 3-Sided U-Frame Chassis (240x240x15mm) with 15mm rigid perimeter rails.
+       100% open interior eliminates lint/dust traps and saves ~120g of plastic.
+    2. 4x Bottom Anti-Slip Grip Foot Sockets (Ø12mm x 2.0mm) for high-traction silicone/TPU rubber pads.
+    3. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing Ø13.0mm drive axle.
+    4. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
+    5. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240)
+       with 3.0mm bottom floor drop stops and Ø6.0mm true through-floor push-out access holes.
+    6. 3x Silent-Flip TPU Bumper Slots (1.5mm depth) recessed into the top landing rail.
+    7. 0.4mm bottom Elephant's Foot relief chamfers.
     """
     w = PANEL_WIDTH          # 240.0mm
     h = PANEL_HEIGHT         # 240.0mm
@@ -56,7 +57,6 @@ def create_follower_frame():
     outer_box = Part.makeBox(w, h, t)
 
     # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps (Y = 0 to 15mm and Y = 225 to 240mm)
-    # Heavy-duty knuckles housing Ø13.0mm drive axle with reinforced 2.75mm top crown (Z = 17.5mm)
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w
     pivot_z = 8.0 * SCALE  # Axle center (1.5mm ground clearance & reinforced top crown at Z = 17.5mm)
@@ -97,25 +97,18 @@ def create_follower_frame():
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
-    # 3. Open U-Frame Cavity & Axle Floor Clearance Trough
-    cav_w = w - rail_w + 0.1
+    # 3. 100% Open Interior Through-Cavity (Cuts completely from Z = -0.5mm to Z = t + 0.5mm)
+    cav_w = w - rail_w + 1.0
     cav_h = h - 2 * rail_w
-    cavity = Part.makeBox(cav_w, cav_h, t - bottom_thick + 0.5)
-    cavity.translate(App.Vector(-0.1, rail_w, bottom_thick))
+    cavity = Part.makeBox(cav_w, cav_h, t + 2.0)
+    cavity.translate(App.Vector(-0.5, rail_w, -1.0))
     
-    # Axle floor clearance trough along X=0 for Ø13mm continuous drive axle
-    axle_trough = Part.makeBox(8.0 * SCALE, cav_h, bottom_thick + 0.2)
-    axle_trough.translate(App.Vector(-0.1, rail_w, -0.1))
-
-    frame = frame.cut(Part.makeCompound([cavity, axle_trough])).removeSplitter()
+    frame = frame.cut(cavity).removeSplitter()
 
     # 4. Hinge Bearing Bores: Dual 100% Solid 360° Closed Cylindrical Tunnels (Top & Bottom)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
-    # Top Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = h - knuckle_len - 0.1 to h + 0.1)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
-
-    # Bottom Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = -0.1 to knuckle_len + 0.1)
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
     # Knuckle planar bottom trim: 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
@@ -125,7 +118,6 @@ def create_follower_frame():
     frame = frame.cut(Part.makeCompound([top_bore, bot_bore, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
-    # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
@@ -167,23 +159,38 @@ def create_follower_frame():
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
-    # 6. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into floor ledge)
+    # 6. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
+    foot_r = 6.0 * SCALE
+    foot_d = 2.0 * SCALE
+    foot_locs = [
+        (w - (rail_w / 2.0), rail_w / 2.0),          # Bottom Right
+        (w - (rail_w / 2.0), h - (rail_w / 2.0)),      # Top Right
+        (25.0 * SCALE, rail_w / 2.0),                  # Bottom Left (along front rail)
+        (25.0 * SCALE, h - (rail_w / 2.0)),            # Top Left (along back rail)
+    ]
+    foot_cutters = [
+        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
+        for fx, fy in foot_locs
+    ]
+    frame = frame.cut(Part.makeCompound(foot_cutters)).removeSplitter()
+
+    # 7. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into top landing rail at X = w - rail_w/2)
     tpu_cutters = []
-    tpu_w = 14.0 * SCALE
-    tpu_d = 5.0 * SCALE
-    tpu_h = TPU_BUMPER_DEPTH
+    tpu_w = 5.0 * SCALE
+    tpu_l = 14.0 * SCALE
+    tpu_h = TPU_BUMPER_DEPTH # 1.5mm
     for py in [h * 0.25, h * 0.5, h * 0.75]:
-        b = Part.makeBox(tpu_w, tpu_d, tpu_h + 0.1)
-        b.translate(App.Vector(w - rail_w - tpu_w - 5.0 * SCALE, py - tpu_d / 2.0, bottom_thick - 0.05))
+        b = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
+        b.translate(App.Vector(w - (rail_w / 2.0) - (tpu_w / 2.0), py - (tpu_l / 2.0), t - tpu_h))
         tpu_cutters.append(b)
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 7. Elephant's Foot Relief Chamfer along outer bottom bed edges
+    # 8. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
         base_edges = [
             e for e in frame.Edges
-            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 20.0 * SCALE
+            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 10.0 * SCALE
         ]
         if base_edges:
             frame = frame.makeChamfer(ELEPHANTS_FOOT_CHAMFER, base_edges)
@@ -215,6 +222,3 @@ def export_part():
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
 
 export_part()
-
-
-
