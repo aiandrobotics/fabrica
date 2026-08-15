@@ -65,17 +65,17 @@ def create_follower_flap():
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, y_offset, panel_z_min))
 
-    # Knuckle clearance corner cutouts at X=0 to 10.5mm for bottom and top knuckle barrels
-    cut_bot = Part.makeBox(11.0 * SCALE, 15.5 * SCALE, t + 0.5)
+    # Knuckle clearance corner cutouts at X=0 to 25.5mm for bottom and top knuckle ramps
+    cut_bot = Part.makeBox(26.0 * SCALE, 16.0 * SCALE, t + 5.0 * SCALE)
     cut_bot.translate(App.Vector(-0.5, y_offset - 0.5, panel_z_min - 0.1))
 
-    cut_top = Part.makeBox(11.0 * SCALE, 15.5 * SCALE, t + 0.5)
-    cut_top.translate(App.Vector(-0.5, y_offset + h - 15.0 * SCALE, panel_z_min - 0.1))
+    cut_top = Part.makeBox(26.0 * SCALE, 16.0 * SCALE, t + 5.0 * SCALE)
+    cut_top.translate(App.Vector(-0.5, y_offset + h - 15.5 * SCALE, panel_z_min - 0.1))
 
     flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
 
     # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=239, Bottom Y=1)
-    # Hinge side (X <= 10.5mm) is left completely solid and flat at Z=15.0mm with zero bevel gap
+    # Hinge side (X <= 25.5mm) is left completely solid and flat at Z=15.0mm with zero bevel gap
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
     bevel_w = 3.0 * SCALE
     top_z = total_z  # 15.0mm
@@ -88,13 +88,13 @@ def create_follower_flap():
     bevel_cuts.append(b_right)
     
     # Bottom edge bevel (at Y = y_offset to y_offset + bevel_w)
-    b_bot = Part.makeBox(w - 10.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(10.5 * SCALE, y_offset - 0.1, top_z - bevel_d))
+    b_bot = Part.makeBox(w - 25.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(25.5 * SCALE, y_offset - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
     
     # Top edge bevel (at Y = y_offset + h - bevel_w to y_offset + h)
-    b_top = Part.makeBox(w - 10.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(10.5 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
+    b_top = Part.makeBox(w - 25.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(25.5 * SCALE, y_offset + h - bevel_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
     
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()

@@ -78,17 +78,37 @@ def create_follower_frame():
 
     frame = outer_box.cut(Part.makeCompound([cavity, axle_trough, step_bot, step_top, step_right])).removeSplitter()
 
-    # 3. Knuckle Extension Barrels along Hinge Axis (at X = 0, Y = 0 to 15mm and Y = 225 to 240mm)
-    # Heavy-duty knuckles housing Ø13.0mm drive axle centered at Z=8.0mm (1.5mm ground clearance & 100% flush tabletop)
+    # 3. Knuckle Extension Barrels & Smooth Organic Transition Ramps (Y = 0 to 15mm and Y = 225 to 240mm)
+    # Heavy-duty knuckles housing Ø13.0mm drive axle with reinforced 2.75mm top crown (Z = 17.5mm)
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w
-    pivot_z = 8.0 * SCALE  # Axle center (1.5mm ground clearance & top at Z = 8.0 + 6.5 = 14.5mm)
+    pivot_z = 8.0 * SCALE  # Axle center (1.5mm ground clearance & reinforced top crown at Z = 17.5mm)
+    crown_z = pivot_z + knuckle_r  # 17.5mm (solid 2.75mm roof over Ø13.5mm bearing bore)
     
     # Bottom Knuckle Barrel (+Y facing)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
     # Top Knuckle Barrel (-Y facing)
     k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
-    frame = frame.fuse(Part.makeCompound([k_bot, k_top])).removeSplitter()
+
+    # Smooth Organic Tangent Transition Ramp (flows from Z = 17.5mm crown down to Z = 15.0mm frame top deck)
+    # Extruded across bottom knuckle (Y = 0 to 15mm) and top knuckle (Y = 225 to 240mm)
+    ramp_pts = [
+        App.Vector(-knuckle_r, 0, pivot_z),
+        App.Vector(-knuckle_r, 0, 0),
+        App.Vector(rail_w + 10.0 * SCALE, 0, 0),
+        App.Vector(rail_w + 10.0 * SCALE, 0, t),
+        App.Vector(rail_w, 0, t),
+        App.Vector(knuckle_r * 0.6, 0, t + (crown_z - t) * 0.65),
+        App.Vector(0, 0, crown_z),
+        App.Vector(-knuckle_r, 0, pivot_z),
+    ]
+    ramp_wire = Part.makePolygon(ramp_pts)
+    ramp_face = Part.Face(ramp_wire)
+    ramp_bot = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
+    ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
+    ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
+
+    frame = frame.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
     # 4. Hinge Bearing Bores: Dual 100% Solid 360° Closed Cylindrical Tunnels (Top & Bottom)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
@@ -99,14 +119,11 @@ def create_follower_frame():
     # Bottom Knuckle: 360° Closed Cylindrical Bore (along Y axis from Y = -0.1 to knuckle_len + 0.1)
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Knuckle planar bounding trims: top flush at Z=15.0mm, bottom 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
-    trim_top = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
-    trim_top.translate(App.Vector(-knuckle_r * 2.0, -1.0, t))
-    
+    # Knuckle planar bottom trim: 100% flat at Z=0.0mm (Zero wobble / Zero 3D print supports)
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, trim_top, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([top_bore, bot_bore, trim_bot])).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (Front Y=0, Back Y=H, Right X=W)
     # Open at top deck for vertical drop-in assembly with 3.0mm bottom floor drop stop and push-out hole
