@@ -76,7 +76,7 @@ All part and assembly Python scripts must be visually and analytically validated
 
 ```
 cad-designs/
-├── spec/                           ← project constitution (mission.md, tech-stack.md, roadmap.md)
+├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
 ├── base_module.py                  ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
 ├── follower_frame.py               ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
