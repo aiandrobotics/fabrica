@@ -81,16 +81,15 @@ cad-designs/
 ├── part_01_base_module.py          ← monolithic base chassis (3.0mm hex lattice, anti-slip foot sockets, reticles, Poka-Yoke arrow, TPU bumpers, filleted wire ports, micro-grip texture, dovetail sockets)
 ├── part_02_follower_frame.py       ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
 ├── part_03_follower_flap.py        ← passive follower flap (continuous Ø13mm axle, dual 8mm hex sockets, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
-├── part_04_motorized_frame.py      ← active motorized U-frame (servo mounting pocket, TPU bumpers, Poka-Yoke arrow, filleted wire ports, dovetail sockets)
-├── part_05_motorized_shaft.py      ← active drive shaft with integrated metal servo horn pocket (direct drive, 0 rotational slop)
+├── part_04_motorized_frame.py      ← active motorized 4-sided frame (servo mounting bay, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, dovetail sockets)
 ├── part_06_servo_cover.py          ← toolless snap-latch servo housing cover with wire strain relief
-├── part_07_active_flap.py          ← active folding flap panel (servo clearance cutout, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture)
+├── part_07_active_flap.py          ← monolithic active folding flap (integrated Ø13mm axle, 25T servo horn pocket, 8mm hex output socket, ~45% mass cutouts, micro-grip texture)
 ├── part_08_interface_panel.py      ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status bar window, hole chamfers, micro-grip texture)
 ├── part_09_controller_case.py      ← electronics enclosure case (11.5mm DC power jack port, zip-tie saddles, cooling chimneys, Poka-Yoke arrow, dovetail sockets)
 ├── part_10_frame_joiner.py         ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── part_11_hex_drive_coupler.py    ← modular double-male 8.0mm hex torque drive coupler pin
 ├── assembly_follower_module.py     ← follower module sub-assembly (Frame + Flap + Joiners + Hex Coupler)
-├── assembly_motorized_module.py    ← motorized module sub-assembly (Frame + Shaft + Cover + Active Flap + Joiners)
+├── assembly_motorized_module.py    ← motorized module sub-assembly (Frame + Snap Cover + Active Flap + Joiners + Hex Coupler)
 ├── assembly_interface_module.py    ← interface module sub-assembly (Case + 15° Faceplate)
 ├── assembly_4x3_grid.py            ← full 4x3 grid assembly model (2 Base + 4 Follower + 6 Motorized + Interface)
 ├── export_all.py                   ← batch script to export all STEP and STL models
