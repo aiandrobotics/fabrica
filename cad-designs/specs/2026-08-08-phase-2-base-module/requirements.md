@@ -14,7 +14,6 @@ Implement `base_module.py` and `frame_joiner.py` to create the stationary centra
 - **Bed Relief**: 0.4 mm × 45° Elephant's Foot relief chamfer on all bottom print edges.
 - **Garment Surface**: 0.6 mm micro-grip diamond texture and 0.8 mm circular hole edge chamfers to prevent fabric slipping and thread snagging.
 - **Recoil Stability**: Ø12.0 × 2.0 mm bottom sockets for press-fitting anti-slip silicone/rubber feet.
-- **Landing Protection**: 1.5 mm recessed silent-flip TPU bumper slots on side landing rails.
 
 ## Non-goals
 - Actuator mounting pockets (servo pockets are scoped to Phase 4).

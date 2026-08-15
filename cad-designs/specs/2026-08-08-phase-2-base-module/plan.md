@@ -5,11 +5,10 @@
 2. Model monolithic 1-piece 4-wall base chassis box (240 × 240 × 15 mm scaled) with 15.0 mm outer perimeter rails.
 3. Model open-bottom interior underside cavity (Z = 0 to 12.6 mm) saving ~150g PLA and eliminating warping.
 4. Model Ø12.0 × 2.0 mm bottom corner sockets for press-fitting anti-slip silicone/rubber feet.
-5. Model 1.5 mm recessed silent-flip TPU bumper landing slots on Left and Right landing rails.
-6. Model 1.5 mm filleted internal wire pass-through ports into the open central cavity.
-7. Apply 0.8 mm × 45° chamfers on circular weight-reduction cutouts and 0.6 mm micro-grip diamond texture on top deck.
-8. Apply 0.4 mm × 45° Elephant's Foot relief chamfer along all bottom bed-contacting edges.
-9. Model open-top female sliding dovetail joiner sockets with 3.0 mm bottom stops and Ø6.0 mm push-out access holes on all 4 outer walls.
+5. Model 1.5 mm filleted internal wire pass-through ports into the open central cavity.
+6. Apply 0.8 mm × 45° chamfers on circular weight-reduction cutouts and 0.6 mm micro-grip diamond texture on top deck.
+7. Apply 0.4 mm × 45° Elephant's Foot relief chamfer along all bottom bed-contacting edges.
+8. Model open-top female sliding dovetail joiner sockets with 3.0 mm bottom stops and Ø6.0 mm push-out access holes on all 4 outer walls.
 
 ## Task Group 2: Click-Lock Hollow Dovetail Frame Joiner (`frame_joiner.py`)
 1. Create `frame_joiner.py` referencing single source of truth parameters from `params.py`.

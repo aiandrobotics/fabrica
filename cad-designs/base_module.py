@@ -112,24 +112,7 @@ def construct_base_module():
         tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
         main_shell = main_shell.cut(tex_compound).removeSplitter()
 
-    # 6. Silent-Flip TPU Bumper Slots (1.5mm recessed into Left and Right landing rails)
-    tpu_cutters = []
-    tpu_w = 5.0 * SCALE
-    tpu_l = 14.0 * SCALE
-    tpu_h = TPU_BUMPER_DEPTH # 1.5mm
-    for py in [h * 0.25, h * 0.5, h * 0.75]:
-        # Left landing rail (X = rail_w/2)
-        b_left = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
-        b_left.translate(App.Vector(rail_w / 2.0 - tpu_w / 2.0, py - tpu_l / 2.0, t - tpu_h))
-        # Right landing rail (X = w - rail_w/2)
-        b_right = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
-        b_right.translate(App.Vector(w - rail_w / 2.0 - tpu_w / 2.0, py - tpu_l / 2.0, t - tpu_h))
-        tpu_cutters.extend([b_left, b_right])
-
-    if tpu_cutters:
-        main_shell = main_shell.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
-
-    # 7. Female Open-Top True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
+    # 5. Female Open-Top True Sliding Dovetail Joiner Sockets (All 4 outer side walls)
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH

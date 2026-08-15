@@ -78,7 +78,7 @@ All part and assembly Python scripts must be visually and analytically validated
 cad-designs/
 ├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md, and phase specs)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
-├── base_module.py                  ← monolithic base chassis (4-wall frame, open-bottom cavity, TPU bumpers, wire ports, micro-grip texture, circular cutouts, dovetail sockets)
+├── base_module.py                  ← monolithic base chassis (4-wall frame, open-bottom cavity, wire ports, micro-grip texture, circular cutouts, dovetail sockets)
 ├── follower_frame.py               ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
 ├── follower_flap.py                ← passive follower flap (continuous Ø13mm axle, dual 8mm hex sockets, gradient ~45% mass cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
 ├── follower_assembly.py            ← follower module sub-assembly (FollowerFrame + FollowerFlap + FrameJoiners + HexCoupler)
