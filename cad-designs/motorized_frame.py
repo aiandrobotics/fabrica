@@ -1,5 +1,5 @@
 """
-motorized_frame.py — Motorized Outer Frame Chassis with Real MG996R Step Servo Bay
+motorized_frame.py — Motorized Outer Frame Chassis with Solid Mounting Towers, Hex Screw Housings, and Rear Slide-in Servo Bay
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -27,11 +27,27 @@ from params import (
     EXPORT_DIR,
 )
 
+def make_hex_prism(r_af, depth, center, axis):
+    """Creates a regular hexagonal prism aligned with given axis for M3 nut/screw housing."""
+    r_corner = r_af / math.cos(math.radians(30))
+    pts = []
+    for i in range(6):
+        ang = math.radians(60 * i + 30)
+        pts.append(App.Vector(center.x + r_corner * math.cos(ang), center.y, center.z + r_corner * math.sin(ang)))
+    pts.append(pts[0])
+    wire = Part.makePolygon(pts)
+    face = Part.Face(wire)
+    solid = face.extrude(axis * depth)
+    return solid
+
 def construct_motorized_frame():
     """
     Constructs the 4-sided outer perimeter chassis for the Active Motorized Module.
-    Houses the real MG996R standard servo horizontally along the rear rail with zero top protrusions.
-    Open-bottom 4-wall frame architecture matching follower_frame.
+    Features:
+      1. Solid front mounting towers (Y in [185.0, 195.5mm]) with M3 through-holes and hex nut housings.
+      2. Open rear slot (Y=240mm) allowing the MG996R servo to slide directly in horizontally from the back.
+      3. Open 4-wall perimeter chassis with interlocking 4th wall tie-bar puzzle joint.
+      4. Integrated lateral slide rails for the full enclosure motor hood cover.
     """
     w = PANEL_WIDTH          # 240.0mm
     h = PANEL_HEIGHT         # 240.0mm
@@ -87,22 +103,19 @@ def construct_motorized_frame():
     servo_box = Part.makeBox(62.0 * SCALE, h - 185.0 * SCALE, t)
     servo_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0))
 
-    # Knuckle-to-Housing Gusset Bridge (X = -18.0 to 11.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
+    # Knuckle-to-Housing Support Gusset (X = -18.0 to 11.0mm, Y = 170.0 to 185.0mm, Z = 0 to 15.0mm)
     knuckle_bridge = Part.makeBox(29.0 * SCALE, 15.0 * SCALE, t)
     knuckle_bridge.translate(App.Vector(-18.0 * SCALE, k_top_start_y, 0))
 
     frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, servo_box, knuckle_bridge]).removeSplitter()
 
     # 2. Cut open interior cavity (leaving 15mm perimeter rails and 4th tie-bar floor Z=0..3mm)
-    # Main open interior cavity (Z = -1 to t+1, completely open top and bottom)
     cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
-    # Left rail interior gap (between bottom knuckle Y=15mm and top knuckle Y=170mm)
     cav_left = Part.makeBox(tie_x + 0.5, k_top_start_y - knuckle_len, t + 2.0)
     cav_left.translate(App.Vector(-0.5, knuckle_len, -1.0))
 
-    # Tie-bar top cutout (leaving Z=0..3mm floor for tie-bar at X in [11, 25mm], Y in [15, 170mm])
     cav_tie = Part.makeBox(tie_w + 2.0 * SCALE, k_top_start_y - knuckle_len, t - tie_h + 2.0)
     cav_tie.translate(App.Vector(tie_x - 1.0 * SCALE, knuckle_len, tie_h))
 
@@ -119,38 +132,46 @@ def construct_motorized_frame():
     for b in [bot_bore, top_bore, trim_bot]:
         frame = frame.cut(b).removeSplitter()
 
-    # 4. Servo Bay Cavity specifically tailored for Real MG996R STEP Solid:
-    # Main motor body pocket (X in [-11.0, 31.0mm], Y in [185.0, 230.5mm])
-    pocket_body = Part.makeBox(42.0 * SCALE, 45.5 * SCALE, t + 6.0)
+    # 4. Slide-in Servo Bay Cavity with Solid Front Towers and Open Rear Slot (Y=240mm):
+    # Main motor body pocket opening through rear wall at Y=240mm (X in [-11.0, 31.0mm], Y in [185.0, 242.0mm])
+    pocket_body = Part.makeBox(42.0 * SCALE, 57.0 * SCALE, t + 6.0)
     pocket_body.translate(App.Vector(-11.0 * SCALE, 185.0 * SCALE, -3.0 * SCALE))
 
-    # Outer ear lower casing pocket (X in [-17.5, -10.5mm], Y in [196.0, 225.0mm], Z in [-3.0, 6.0mm])
-    pocket_outer_ear_low = Part.makeBox(7.0 * SCALE, 29.0 * SCALE, 9.0 * SCALE)
-    pocket_outer_ear_low.translate(App.Vector(-17.5 * SCALE, 196.0 * SCALE, -3.0 * SCALE))
+    # Mounting Ear Recess Bay behind the solid towers (X in [-17.5, 38.0mm], Y in [195.5, 242.0mm], Z in [-3.0, 18.0mm])
+    # Solid towers are preserved in front at Y in [185.0, 195.5mm]
+    pocket_ears_slide = Part.makeBox(55.5 * SCALE, 46.5 * SCALE, t + 6.0)
+    pocket_ears_slide.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, -3.0 * SCALE))
 
-    # Mounting Ear Shelf Recesses (covers ears and top housing flange from Y=194 to 226mm)
-    pocket_ears = Part.makeBox(56.0 * SCALE, 32.0 * SCALE, t - 5.5 * SCALE + 2.0)
-    pocket_ears.translate(App.Vector(-17.5 * SCALE, 194.0 * SCALE, 5.5 * SCALE))
+    # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing through the solid towers along Y-axis:
+    screw_r = 1.7 * SCALE
+    screw_holes = [
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
+    ]
 
-    # Wire exit tunnel at rear right into central cavity
+    # 4x M3 Hex Nut / Screw Head Housing Pockets on the front face of the towers (Y in [185.0, 188.0mm]):
+    hex_nut_housings = [
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(34.95 * SCALE, 184.8 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 2.75 * SCALE), App.Vector(0, 1, 0)),
+        make_hex_prism(2.9 * SCALE, 3.2 * SCALE, App.Vector(-14.45 * SCALE, 184.8 * SCALE, 13.25 * SCALE), App.Vector(0, 1, 0)),
+    ]
+
+    # Slide-in lid retention channels along side walls
+    groove_l = Part.makeBox(2.5 * SCALE, 56.0 * SCALE, 2.0 * SCALE)
+    groove_l.translate(App.Vector(-18.5 * SCALE, 185.0 * SCALE, 13.4 * SCALE))
+    groove_r = Part.makeBox(2.5 * SCALE, 56.0 * SCALE, 2.0 * SCALE)
+    groove_r.translate(App.Vector(42.0 * SCALE, 185.0 * SCALE, 13.4 * SCALE))
+
+    # Wire exit conduit into interior cavity
     pocket_wire = Part.makeBox(14.0 * SCALE, 12.0 * SCALE, 12.0 * SCALE)
     pocket_wire.translate(App.Vector(28.0 * SCALE, 219.0 * SCALE, -1.0 * SCALE))
 
-    # M3 Screw Holes through mounting shelf
-    screw_r = 1.4 * SCALE # 2.8mm tap hole for M3 thread
-    screws = [
-        Part.makeCylinder(screw_r, 12.0 * SCALE, App.Vector(34.95 * SCALE, 196.8 * SCALE, 0.0), App.Vector(0, 0, 1)),
-        Part.makeCylinder(screw_r, 12.0 * SCALE, App.Vector(-14.45 * SCALE, 196.8 * SCALE, 0.0), App.Vector(0, 0, 1)),
-    ]
-
-    # Slide-in lid retention grooves (widened to 45.5mm on right and -19.0mm on left to cleanly fit tongues)
-    groove_l = Part.makeBox(3.0 * SCALE, 52.0 * SCALE, 2.0 * SCALE)
-    groove_l.translate(App.Vector(-19.0 * SCALE, 186.0 * SCALE, 13.4 * SCALE))
-    groove_r = Part.makeBox(3.5 * SCALE, 52.0 * SCALE, 2.0 * SCALE)
-    groove_r.translate(App.Vector(42.0 * SCALE, 186.0 * SCALE, 13.4 * SCALE))
-
-    for p in [pocket_body, pocket_outer_ear_low, pocket_ears, pocket_wire, groove_l, groove_r] + screws:
-        frame = frame.cut(p).removeSplitter()
+    cutters = [pocket_body, pocket_ears_slide, pocket_wire, groove_l, groove_r] + screw_holes + hex_nut_housings
+    for c in cutters:
+        frame = frame.cut(c).removeSplitter()
 
     # 5. Dovetails on Outer Rails
     dt_neck_w = DOVETAIL_NECK_WIDTH
