@@ -108,26 +108,21 @@ def construct_motorized_frame():
     frame = frame.cut(Part.makeCompound([bot_bore, top_bore, trim_bot])).removeSplitter()
 
     # 5. Servo Bay Cavity specifically matched to the real MG996R STEP solid:
-    # Main motor body pocket (with 0.5mm clearance around real body):
     pocket_body = Part.makeBox(41.5 * SCALE, 46.0 * SCALE, t + 6.0)
     pocket_body.translate(App.Vector(-10.5 * SCALE, 185.0 * SCALE, -3.0 * SCALE))
 
-    # Mounting ears pocket (X in [-17.5, 38.0mm], Y in [195.5, 200.5mm]):
     pocket_ears = Part.makeBox(56.0 * SCALE, 5.5 * SCALE, t + 6.0)
     pocket_ears.translate(App.Vector(-17.5 * SCALE, 195.5 * SCALE, -3.0 * SCALE))
 
-    # Wire exit channel routing to open interior cavity:
     pocket_wire = Part.makeBox(14.0 * SCALE, 10.0 * SCALE, t + 6.0)
     pocket_wire.translate(App.Vector(28.0 * SCALE, 220.0 * SCALE, -3.0 * SCALE))
 
-    # M3 mounting screw holes:
     screw_r = 1.6 * SCALE
     screws = [
         Part.makeCylinder(screw_r, 20.0 * SCALE, App.Vector(34.95 * SCALE, 196.8 * SCALE, -2.0 * SCALE), App.Vector(0, 0, 1)),
         Part.makeCylinder(screw_r, 20.0 * SCALE, App.Vector(-14.45 * SCALE, 196.8 * SCALE, -2.0 * SCALE), App.Vector(0, 0, 1)),
     ]
 
-    # Slide-in cover retention grooves at Z = 13.4mm:
     groove_l = Part.makeBox(2.0 * SCALE, 52.0 * SCALE, 2.0 * SCALE)
     groove_l.translate(App.Vector(-18.5 * SCALE, 186.0 * SCALE, 13.4 * SCALE))
     groove_r = Part.makeBox(2.0 * SCALE, 52.0 * SCALE, 2.0 * SCALE)
@@ -135,84 +130,95 @@ def construct_motorized_frame():
 
     frame = frame.cut(Part.makeCompound([pocket_body, pocket_ears, pocket_wire, groove_l, groove_r] + screws)).removeSplitter()
 
-    # 6. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
+    # 6. Standardized Dovetails on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH
     dt_flare_w = DOVETAIL_FLARE_WIDTH
     dt_depth = DOVETAIL_DEPTH
     dt_cut_h = t - bottom_thick + 0.5
 
-    # Front Wall Socket (Y = 0, open to top Z=15mm, solid bottom floor Z=0..3mm)
-    dt_pts_front = [
-        App.Vector(-dt_flare_w / 2.0, -0.1, 0),
-        App.Vector(-dt_neck_w / 2.0, dt_depth, 0),
-        App.Vector(dt_neck_w / 2.0, dt_depth, 0),
-        App.Vector(dt_flare_w / 2.0, -0.1, 0),
+    dt_pts = [
+        App.Vector(-dt_neck_w / 2.0, -0.1, 0),
+        App.Vector(dt_neck_w / 2.0, -0.1, 0),
+        App.Vector(dt_flare_w / 2.0, dt_depth, 0),
+        App.Vector(-dt_flare_w / 2.0, dt_depth, 0),
+        App.Vector(-dt_neck_w / 2.0, -0.1, 0),
     ]
-    dt_wire_f = Part.makePolygon(dt_pts_front)
-    dt_face_f = Part.Face(dt_wire_f)
-    dt_solid_f = dt_face_f.extrude(App.Vector(0, 0, dt_cut_h + 1.0))
-    dt_solid_f.translate(App.Vector(w / 2.0, 0, bottom_thick))
+    dt_poly = Part.makePolygon(dt_pts)
+    dt_face = Part.Face(dt_poly)
+    dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_cut_h))
+    dt_cutter.translate(App.Vector(0, 0, bottom_thick))
 
-    # Push-out access hole (Ø6mm through floor at Z=0..3mm)
-    hole_f = Part.makeCylinder(3.0 * SCALE, bottom_thick + 2.0, App.Vector(w / 2.0, dt_depth / 2.0, -1.0), App.Vector(0, 0, 1))
+    push_hole = Part.makeCylinder(3.0 * SCALE, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
+    dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
-    # Back Wall Socket (Y = H)
-    dt_pts_back = [
-        App.Vector(-dt_flare_w / 2.0, 0.1, 0),
-        App.Vector(-dt_neck_w / 2.0, -dt_depth, 0),
-        App.Vector(dt_neck_w / 2.0, -dt_depth, 0),
-        App.Vector(dt_flare_w / 2.0, 0.1, 0),
+    dt_cutters = []
+    # Front Wall (Y=0)
+    c_front = dt_cutter_with_hole.copy()
+    c_front.translate(App.Vector(w / 2.0, 0, 0))
+    dt_cutters.append(c_front)
+
+    # Back Wall (Y=H)
+    c_back = dt_cutter_with_hole.copy()
+    c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
+    c_back.translate(App.Vector(w / 2.0, h, 0))
+    dt_cutters.append(c_back)
+
+    # Right Wall (X=W)
+    c_right = dt_cutter_with_hole.copy()
+    c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
+    c_right.translate(App.Vector(w, h / 2.0, 0))
+    dt_cutters.append(c_right)
+
+    # 4th Wall Clean Joint on Tie-Bar:
+    dt_lk_neck = 4.0 * SCALE
+    dt_lk_flare = 8.0 * SCALE
+    dt_lk_depth = 8.0 * SCALE
+    gap = 0.25 * SCALE
+    x_left = tie_x - (1.0 * SCALE)
+    x_right = tie_x + tie_w + (1.0 * SCALE)
+    center_x = tie_x + (tie_w / 2.0)
+    y_seam = h / 2.0
+
+    dt4_poly_pts = [
+        App.Vector(x_right, y_seam + gap, 0),
+        App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_seam + gap, 0),
+        App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_seam + dt_lk_depth + gap, 0),
+        App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_seam + dt_lk_depth + gap, 0),
+        App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_seam + gap, 0),
+        App.Vector(x_left, y_seam + gap, 0),
+        App.Vector(x_left, y_seam, 0),
+        App.Vector(center_x - dt_lk_neck / 2.0, y_seam, 0),
+        App.Vector(center_x - dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
+        App.Vector(center_x + dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
+        App.Vector(center_x + dt_lk_neck / 2.0, y_seam, 0),
+        App.Vector(x_right, y_seam, 0),
+        App.Vector(x_right, y_seam + gap, 0),
     ]
-    dt_wire_b = Part.makePolygon(dt_pts_back)
-    dt_face_b = Part.Face(dt_wire_b)
-    dt_solid_b = dt_face_b.extrude(App.Vector(0, 0, dt_cut_h + 1.0))
-    dt_solid_b.translate(App.Vector(w / 2.0, h, bottom_thick))
-    hole_b = Part.makeCylinder(3.0 * SCALE, bottom_thick + 2.0, App.Vector(w / 2.0, h - dt_depth / 2.0, -1.0), App.Vector(0, 0, 1))
+    dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    dt4_cutter.translate(App.Vector(0, 0, -1.0))
+    dt_cutters.append(dt4_cutter)
 
-    # Right Wall Socket (X = W)
-    dt_pts_right = [
-        App.Vector(0.1, -dt_flare_w / 2.0, 0),
-        App.Vector(-dt_depth, -dt_neck_w / 2.0, 0),
-        App.Vector(-dt_depth, dt_neck_w / 2.0, 0),
-        App.Vector(0.1, dt_flare_w / 2.0, 0),
-    ]
-    dt_wire_r = Part.makePolygon(dt_pts_right)
-    dt_face_r = Part.Face(dt_wire_r)
-    dt_solid_r = dt_face_r.extrude(App.Vector(0, 0, dt_cut_h + 1.0))
-    dt_solid_r.translate(App.Vector(w, h / 2.0, bottom_thick))
-    hole_r = Part.makeCylinder(3.0 * SCALE, bottom_thick + 2.0, App.Vector(w - dt_depth / 2.0, h / 2.0, -1.0), App.Vector(0, 0, 1))
+    frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
-    # 4th Wall Continuous Through-Dovetail Joint (Y = 120mm on left rail)
-    dt_joint = Part.makePolygon([
-        App.Vector(0.1, -dt_flare_w / 2.0, 0),
-        App.Vector(-dt_depth, -dt_neck_w / 2.0, 0),
-        App.Vector(-dt_depth, dt_neck_w / 2.0, 0),
-        App.Vector(0.1, dt_flare_w / 2.0, 0),
-    ])
-    dt_face_j = Part.Face(dt_joint)
-    dt_solid_j = dt_face_j.extrude(App.Vector(0, 0, tie_h + 2.0))
-    dt_solid_j.translate(App.Vector(tie_x + tie_w, h / 2.0, -1.0))
-
-    frame = frame.cut(Part.makeCompound([dt_solid_f, hole_f, dt_solid_b, hole_b, dt_solid_r, hole_r, dt_solid_j])).removeSplitter()
-
-    # 7. Anti-Slip Rubber Foot Sockets on Bottom Face (4 corners, Ø12 x 2.0mm)
+    # 7. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
     foot_r = 6.0 * SCALE
-    foot_depth = 2.0 * SCALE
-    foot_margin = 7.5 * SCALE
-
-    feet = [
-        Part.makeCylinder(foot_r, foot_depth + 0.1, App.Vector(foot_margin, foot_margin, -0.05), App.Vector(0, 0, 1)),
-        Part.makeCylinder(foot_r, foot_depth + 0.1, App.Vector(w - foot_margin, foot_margin, -0.05), App.Vector(0, 0, 1)),
-        Part.makeCylinder(foot_r, foot_depth + 0.1, App.Vector(w - foot_margin, h - foot_margin, -0.05), App.Vector(0, 0, 1)),
-        Part.makeCylinder(foot_r, foot_depth + 0.1, App.Vector(foot_margin, h - foot_margin, -0.05), App.Vector(0, 0, 1)),
+    foot_d = 2.0 * SCALE
+    foot_locs = [
+        (w - (rail_w / 2.0), rail_w / 2.0),
+        (w - (rail_w / 2.0), h - (rail_w / 2.0)),
+        (25.0 * SCALE, rail_w / 2.0),
+        (25.0 * SCALE, h - (rail_w / 2.0)),
     ]
-    frame = frame.cut(Part.makeCompound(feet)).removeSplitter()
+    foot_cutters = [
+        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
+        for fx, fy in foot_locs
+    ]
+    frame = frame.cut(Part.makeCompound(foot_cutters)).removeSplitter()
 
     # 8. Silent-Flip TPU Bumper Recessed Slots on Top Deck (1.5mm deep)
     bumper_w = 4.0 * SCALE
     bumper_l = 25.0 * SCALE
     bumper_d = 1.5 * SCALE
-
     bumpers = [
         Part.makeBox(bumper_l, bumper_w, bumper_d + 0.2),
         Part.makeBox(bumper_w, bumper_l, bumper_d + 0.2),
@@ -221,7 +227,6 @@ def construct_motorized_frame():
     bumpers[0].translate(App.Vector(w / 2.0 - bumper_l / 2.0, rail_w / 2.0 - bumper_w / 2.0, t - bumper_d))
     bumpers[1].translate(App.Vector(w - rail_w / 2.0 - bumper_w / 2.0, h / 2.0 - bumper_l / 2.0, t - bumper_d))
     bumpers[2].translate(App.Vector(w / 2.0 - bumper_l / 2.0, h - rail_w / 2.0 - bumper_w / 2.0, t - bumper_d))
-
     frame = frame.cut(Part.makeCompound(bumpers)).removeSplitter()
 
     # 9. Bottom Elephant's Foot Relief Chamfer (0.4mm x 45°)
