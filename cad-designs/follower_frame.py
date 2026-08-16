@@ -179,7 +179,7 @@ def construct_follower_frame():
     dt_lk_neck = 3.5 * SCALE
     dt_lk_flare = 7.0 * SCALE
     dt_lk_depth = 7.0 * SCALE
-    gap = 0.25 * SCALE
+    gap = 0.35 * SCALE  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
 
     x_left = -knuckle_r - 1.0 * SCALE
     x_right = 1.0 * SCALE

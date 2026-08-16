@@ -49,7 +49,7 @@ DOVETAIL_FLOOR_THICKNESS = 3.0 * SCALE  # 3.0mm bottom floor drop stop
 DOVETAIL_NECK_WIDTH      = 12.0 * SCALE  # Width at frame seam
 DOVETAIL_FLARE_WIDTH     = 18.0 * SCALE  # Flared width inside pocket (locks horizontally)
 DOVETAIL_DEPTH           = 12.0 * SCALE  # 12mm deep insertion into frame for high moment stiffness
-DOVETAIL_CLEARANCE       = 0.15 * SCALE  # Precision sliding tolerance per side (smooth vertical slide, zero play)
+DOVETAIL_CLEARANCE       = 0.20 * SCALE  # 0.20mm sliding tolerance per side (0.40mm total clearance for smooth FDM assembly)
 DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
 # Heavy-Duty Drive Axle & Hex Torque Coupler (Column Synchronous Folding)
