@@ -37,37 +37,37 @@ def construct_motorized_servo_cover():
     top_plate = Part.makeBox(w_top, l_top, t_top)
     top_plate.translate(App.Vector(-23.5 * SCALE, 195.7 * SCALE, z_top_min))
 
-    # 2. Continuous Rear Interlocking Tongue (Extending +3.5mm into the frame back wall slot under the solid bar)
-    tongue_w = 56.0 * SCALE
-    tongue_l = 3.5 * SCALE
+    # 2. Continuous Rear Interlocking Tongue with 5.0mm Solid Under-Plate Overlap (Total 10.0mm length: 5mm overlap under plate + 5mm rear locking tongue)
+    tongue_w = 53.5 * SCALE # X in [-17.0, 36.5mm] cleanly inside bay cavity and slot
+    tongue_l = 10.0 * SCALE
     tongue_t = 1.5 * SCALE
     tongue = Part.makeBox(tongue_w, tongue_l, tongue_t)
-    tongue.translate(App.Vector(-19.5 * SCALE, 234.5 * SCALE, z_top_min - tongue_t))
+    tongue.translate(App.Vector(-17.0 * SCALE, 229.5 * SCALE, z_top_min - tongue_t))
 
-    # 3. Dual Heavy-Duty Side Cantilever Snap Legs with 30° lead-in ramps and 90° locking shoulders
+    # 3. Dual Heavy-Duty Side Cantilever Snap Legs with 3.0mm locking anchors and 9.0mm deflection length
     def make_side_snap_leg(is_left):
-        leg_l = 8.0 * SCALE  # Y-length
-        leg_t = 1.8 * SCALE  # X-thickness
-        leg_h = 5.5 * SCALE  # Z-height
+        leg_l = 8.0 * SCALE   # Y-length
+        leg_t = 1.8 * SCALE   # X-thickness
+        leg_h = 9.0 * SCALE   # Z-height
         y_start = 205.0 * SCALE
         
         if is_left:
             x_pos = -17.0 * SCALE
-            # Barb projects in -X direction by 0.9mm
+            # 3.0mm wide outward locking barb anchor in -X direction
             pts = [
                 App.Vector(x_pos, y_start, z_top_min - leg_h),
-                App.Vector(x_pos - 0.9 * SCALE, y_start, z_top_min - leg_h + 2.0 * SCALE),
-                App.Vector(x_pos, y_start, z_top_min - leg_h + 2.5 * SCALE),
+                App.Vector(x_pos - 3.0 * SCALE, y_start, z_top_min - leg_h + 3.0 * SCALE),
+                App.Vector(x_pos, y_start, z_top_min - leg_h + 3.8 * SCALE),
                 App.Vector(x_pos, y_start, z_top_min - leg_h),
             ]
             x_ext = leg_t
         else:
             x_pos = 38.4 * SCALE
-            # Barb projects in +X direction by 0.9mm
+            # 3.0mm wide outward locking barb anchor in +X direction
             pts = [
                 App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h),
-                App.Vector(x_pos + leg_t + 0.9 * SCALE, y_start, z_top_min - leg_h + 2.0 * SCALE),
-                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h + 2.5 * SCALE),
+                App.Vector(x_pos + leg_t + 3.0 * SCALE, y_start, z_top_min - leg_h + 3.0 * SCALE),
+                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h + 3.8 * SCALE),
                 App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h),
             ]
             x_ext = leg_t
