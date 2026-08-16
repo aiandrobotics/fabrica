@@ -201,11 +201,11 @@ def construct_motorized_frame():
         Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
     ]
 
-    # Internal wire routing conduit through inner wall into main chassis cavity (Z in [0.0, 6.0mm])
-    pocket_wire = Part.makeBox(12.0 * SCALE, 10.0 * SCALE, 6.0 * SCALE)
-    pocket_wire.translate(App.Vector(37.0 * SCALE, 218.0 * SCALE, 0.0))
+    # External motor wire exit conduit through OUTER LEFT WALL at X = -18.0mm (Y in [218.0, 228.0mm], Z in [0.0, 6.0mm])
+    pocket_wire_left = Part.makeBox(10.0 * SCALE, 10.0 * SCALE, 6.0 * SCALE)
+    pocket_wire_left.translate(App.Vector(-20.0 * SCALE, 218.0 * SCALE, 0.0))
 
-    cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire] + screw_holes
+    cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire_left] + screw_holes
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 
@@ -273,14 +273,14 @@ def construct_motorized_frame():
     for dt in [c_front, c_right, dt4_cutter]:
         frame = frame.cut(dt).removeSplitter()
 
-    # 6. Anti-Slip Rubber Foot Sockets
+    # 6. Anti-Slip Rubber Foot Sockets on Standard Frame Rails (Ø12mm x 2.0mm)
     foot_r = 6.0 * SCALE
     foot_d = 2.0 * SCALE
     foot_locs = [
-        (w - (rail_w / 2.0), rail_w / 2.0),
-        (w - (rail_w / 2.0), h - (rail_w / 2.0)),
-        (25.0 * SCALE, rail_w / 2.0),
-        (25.0 * SCALE, h - (rail_w / 2.0)),
+        (w - (rail_w / 2.0), rail_w / 2.0),                # Bottom Right
+        (w - (rail_w / 2.0), h - (rail_w / 2.0)),          # Top Right
+        (25.0 * SCALE, rail_w / 2.0),                      # Bottom Left
+        (55.0 * SCALE, h - (rail_w / 2.0)),                # Top Rail (clears motor housing, under main frame)
     ]
     for fx, fy in foot_locs:
         fc = Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
