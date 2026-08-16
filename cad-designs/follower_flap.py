@@ -116,8 +116,43 @@ def construct_follower_flap():
     gusset_face = Part.Face(gusset_wire)
     gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
 
-    # Fuse flap panel with continuous drive axle and reinforcing gusset
-    flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid])).removeSplitter()
+    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 15.5mm to 224.5mm between knuckles)
+    # Smoothly blends the flat top surface of the flap (Z = 17.4mm) over the top of the axle and tangentially into the axle cylinder curve
+    theta_t = math.radians(135.0)
+    xt = shaft_r * math.cos(theta_t)
+    zt = pivot_z + shaft_r * math.sin(theta_t)
+    xs = 4.0 * SCALE
+    zs = top_z
+    scale_t = 6.0 * SCALE
+    ts_x = -scale_t
+    ts_z = 0.0
+    tt_x = -scale_t * math.sin(theta_t)
+    tt_z = scale_t * math.cos(theta_t)
+
+    num_curve = 24
+    curve_pts = []
+    for i in range(num_curve):
+        u = float(i) / float(num_curve - 1)
+        h00 = 2 * u**3 - 3 * u**2 + 1
+        h10 = u**3 - 2 * u**2 + u
+        h01 = -2 * u**3 + 3 * u**2
+        h11 = u**3 - u**2
+        px = h00 * xs + h10 * ts_x + h01 * xt + h11 * tt_x
+        pz = h00 * zs + h10 * ts_z + h01 * zt + h11 * tt_z
+        curve_pts.append(App.Vector(px, 0, pz))
+
+    bridge_pts = list(curve_pts)
+    bridge_pts.append(App.Vector(0, 0, pivot_z))
+    bridge_pts.append(App.Vector(xs, 0, panel_z_min))
+    bridge_pts.append(App.Vector(xs, 0, top_z))
+    bridge_pts.append(curve_pts[0])
+
+    bridge_face = Part.Face(Part.makePolygon(bridge_pts))
+    bridge_solid = bridge_face.extrude(App.Vector(0, gusset_len, 0))
+    bridge_solid.translate(App.Vector(0, gusset_start_y, 0))
+
+    # Fuse flap panel with continuous drive axle, reinforcing gusset, and smooth top transition bridge
+    flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid, bridge_solid])).removeSplitter()
 
     # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 0 and Y = 240 outer axle ends)
     socket_d = 10.5 * SCALE
