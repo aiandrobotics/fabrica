@@ -122,47 +122,29 @@ def construct_motorized_frame():
     rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo)
     rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, 0.0))
 
-    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
+    # Axial Cradle Wall Solid (running along hinge axis at X in [-knuckle_r, 12mm], Y in [15, 170mm], Z in [0, pivot_z])
+    cradle_outer_box = Part.makeBox(knuckle_r + 12.0 * SCALE, k_top_start_y - knuckle_len, pivot_z)
+    cradle_outer_box.translate(App.Vector(-knuckle_r, knuckle_len, 0))
 
-    # 2. Cut open interior cavities (preserving 4th wall at X in [11, 25mm], Z in [0, 3mm] with smooth curved knuckle support fillets)
-    # A. Lower Main Center Cavity (Straight, rectangular: X in [25, 225mm], Y in [15, 170mm])
-    cav_main_lower = Part.makeBox(w - rail_w - tie_x - tie_w, 155.0 * SCALE, t + 2.0)
-    cav_main_lower.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
+    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_box, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
-    # B. Left Hinge Cavity with Smooth Curved Knuckle Support Fillets (R=15mm at knuckle transitions)
-    # Adds a solid continuous curved gusset transitioning from 4th wall (X=11mm) into the 360° knuckle barrels (X=0mm)
-    num_curve = 16
-    r_fillet = 15.0 * SCALE
-    pts_left = [App.Vector(-0.5, knuckle_len, 0)]
-    
-    # Bottom concave blend into 4th wall
-    for i in range(num_curve):
-        frac = float(i) / float(num_curve - 1)
-        y_p = knuckle_len + frac * r_fillet
-        x_p = tie_x * (1.0 - math.cos(frac * math.pi / 2.0))
-        pts_left.append(App.Vector(x_p, y_p, 0))
+    # 2. Cut open interior cavities & Axial Cradle Trough (Wall shaped like axial for resting flap axle)
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
-    # Straight along 4th wall
-    pts_left.append(App.Vector(tie_x, k_top_start_y - r_fillet, 0))
+    # A. Lower Main Center Cavity (Straight, rectangular: X in [12, 225mm], Y in [15, 170mm])
+    cav_main_lower = Part.makeBox(w - rail_w - 12.0 * SCALE, 155.0 * SCALE, t + 2.0)
+    cav_main_lower.translate(App.Vector(12.0 * SCALE, rail_w, -1.0))
 
-    # Top concave blend from 4th wall into top knuckle pedestal
-    for i in range(num_curve):
-        frac = float(i) / float(num_curve - 1)
-        y_p = k_top_start_y - r_fillet + frac * r_fillet
-        x_p = tie_x * math.cos(frac * math.pi / 2.0)
-        pts_left.append(App.Vector(x_p, y_p, 0))
+    # B. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
+    cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    pts_left.append(App.Vector(-0.5, k_top_start_y, 0))
-    pts_left.append(App.Vector(-0.5, knuckle_len, 0))
+    # C. Upper Flap Sweep Cut above Z=10.0mm (X in [-knuckle_r-1, 13mm], Z in [10, 16mm])
+    cav_cradle_top = Part.makeBox(knuckle_r + 14.0 * SCALE, k_top_start_y - knuckle_len, t - pivot_z + 2.0)
+    cav_cradle_top.translate(App.Vector(-knuckle_r - 1.0 * SCALE, knuckle_len, pivot_z))
 
-    poly_left = Part.makePolygon(pts_left)
-    cav_left_face = Part.Face(poly_left)
-    cav_left = cav_left_face.extrude(App.Vector(0, 0, t + 2.0))
-    cav_left.translate(App.Vector(0, 0, -1.0))
-
-    # C. Full 100% kinematic flap blade sweep clearance above 4th wall & knuckle gussets (Z in [tie_h, t+2mm], X in [-0.5, 26mm])
-    cav_flap_sweep = Part.makeBox(tie_x + tie_w + 1.0 * SCALE + 0.5, k_top_start_y - knuckle_len, t - tie_h + 2.0)
-    cav_flap_sweep.translate(App.Vector(-0.5, knuckle_len, tie_h))
+    # D. Right lip trim so rotating flap blade at Z in [3.0, 10.0mm] has full sweep clearance into chassis
+    cav_lip_right = Part.makeBox(13.0 * SCALE - bore_r + 0.5, k_top_start_y - knuckle_len, pivot_z - 3.0 * SCALE)
+    cav_lip_right.translate(App.Vector(bore_r - 0.2, knuckle_len, 3.0 * SCALE))
 
     # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
@@ -176,7 +158,7 @@ def construct_motorized_frame():
     cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
     cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, 0.0))
 
-    for cav in [cav_main_lower, cav_main_upper, cut_screw_access_right, cut_screw_access_left, cav_left, cav_flap_sweep]:
+    for cav in [cav_main_lower, cav_main_upper, cradle_trough, cav_cradle_top, cav_lip_right, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Adapter Disk Rotating Clearance Pocket
@@ -264,14 +246,14 @@ def construct_motorized_frame():
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
 
-    # 4th Wall Joint on Tie-Bar at Centerline (Y = 120.0mm)
+    # Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = 120.0mm
     dt_lk_neck = 4.0 * SCALE
     dt_lk_flare = 8.0 * SCALE
     dt_lk_depth = 8.0 * SCALE
     gap = 0.25 * SCALE
-    x_left = tie_x - (1.0 * SCALE)
-    x_right = tie_x + tie_w + (1.0 * SCALE)
-    center_x = tie_x + (tie_w / 2.0)
+    x_left = -knuckle_r - 1.0 * SCALE
+    x_right = 13.0 * SCALE
+    center_x = (x_left + x_right) / 2.0
     y_seam = h / 2.0  # 120.0mm
 
     dt4_poly_pts = [
@@ -289,7 +271,7 @@ def construct_motorized_frame():
         App.Vector(x_right, y_seam, 0),
         App.Vector(x_right, y_seam + gap, 0),
     ]
-    dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, tie_h + 2.0))
+    dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, pivot_z + 2.0))
     dt4_cutter.translate(App.Vector(0, 0, -1.0))
 
     for dt in [c_front, c_right, dt4_cutter]:
