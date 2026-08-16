@@ -201,9 +201,9 @@ def construct_motorized_frame():
         Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
     ]
 
-    # External motor wire exit conduit through OUTER LEFT WALL at X = -18.0mm (Y in [218.0, 228.0mm], Z in [0.0, 6.0mm])
-    pocket_wire_left = Part.makeBox(10.0 * SCALE, 10.0 * SCALE, 6.0 * SCALE)
-    pocket_wire_left.translate(App.Vector(-20.0 * SCALE, 218.0 * SCALE, 0.0))
+    # External motor wire exit conduit through OUTER LEFT WALL at X = -18.0mm matching MG996R cable grommet (Y in [196.0, 212.0mm], Z in [0.0, 7.0mm])
+    pocket_wire_left = Part.makeBox(10.0 * SCALE, 16.0 * SCALE, 7.0 * SCALE)
+    pocket_wire_left.translate(App.Vector(-20.0 * SCALE, 196.0 * SCALE, 0.0))
 
     cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire_left] + screw_holes
     for c in cutters:
