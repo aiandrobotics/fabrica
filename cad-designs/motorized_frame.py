@@ -205,7 +205,26 @@ def construct_motorized_frame():
     pocket_wire_left = Part.makeBox(10.0 * SCALE, 12.0 * SCALE, 13.0 * SCALE)
     pocket_wire_left.translate(App.Vector(-20.0 * SCALE, 216.0 * SCALE, 3.0 * SCALE))
 
-    cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire_left] + screw_holes
+    # Rear Tongue Locking Slot in Back Wall (X in [-15.0, 37.0mm], Y in [236.8, 239.5mm], Z in [18.0, 20.0mm])
+    slot_rear_tongue = Part.makeBox(52.0 * SCALE, 3.0 * SCALE, 2.2 * SCALE)
+    slot_rear_tongue.translate(App.Vector(-15.0 * SCALE, 236.8 * SCALE, 17.9 * SCALE))
+
+    # Side Snap Barb Catch Undercuts in Frame Sidewalls (Y in [204.0, 214.0mm])
+    # Left Side: vertical leg channel + barb undercut below Z=17.2mm
+    chan_l = Part.makeBox(2.5 * SCALE, 10.0 * SCALE, 6.0 * SCALE)
+    chan_l.translate(App.Vector(-17.2 * SCALE, 204.0 * SCALE, 14.0 * SCALE))
+    undercut_l = Part.makeBox(1.5 * SCALE, 10.0 * SCALE, 3.2 * SCALE)
+    undercut_l.translate(App.Vector(-18.5 * SCALE, 204.0 * SCALE, 14.0 * SCALE))
+    catch_snap_left = chan_l.fuse(undercut_l).removeSplitter()
+
+    # Right Side: vertical leg channel + barb undercut below Z=17.2mm
+    chan_r = Part.makeBox(2.5 * SCALE, 10.0 * SCALE, 6.0 * SCALE)
+    chan_r.translate(App.Vector(38.0 * SCALE, 204.0 * SCALE, 14.0 * SCALE))
+    undercut_r = Part.makeBox(1.8 * SCALE, 10.0 * SCALE, 3.2 * SCALE)
+    undercut_r.translate(App.Vector(39.8 * SCALE, 204.0 * SCALE, 14.0 * SCALE))
+    catch_snap_right = chan_r.fuse(undercut_r).removeSplitter()
+
+    cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire_left, slot_rear_tongue, catch_snap_left, catch_snap_right] + screw_holes
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 

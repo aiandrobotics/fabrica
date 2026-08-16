@@ -21,11 +21,12 @@ from params import (
 
 def construct_motorized_servo_cover():
     """
-    Constructs the Flush Top Drop-In Enclosure Lid (Part 8) for the Motorized Module.
+    Constructs the Flush Top Snap-Lock Enclosure Lid (Part 8) for the Motorized Module.
     Features:
       1. Main flush top plate (1.4mm thick, spanning X in [-17.5, 40.2mm], Y in [195.7, 236.8mm], Z in [19.8, 21.2mm]).
-      2. Rear corner downward alignment tabs (extending Z in [18.0, 19.8mm]) for friction lock.
-      3. Rear-left corner finger pry notch for toolless removal.
+      2. Full-width Rear Interlocking Tongue (Y in [236.8, 239.0mm], Z in [18.3, 19.8mm]) sliding into the frame back wall.
+      3. Dual Heavy-Duty Front Cantilever Snap Legs with 30° insertion ramps and 90° locking shoulders (Y=195.7mm).
+      4. Rear-left corner finger/tool pry notch for easy toolless maintenance.
     """
     # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 19.8 to 21.2mm, clearing servo top at Z=19.75mm)
     w_top = 57.7 * SCALE # X in [-17.5, 40.2mm]
@@ -36,16 +37,55 @@ def construct_motorized_servo_cover():
     top_plate = Part.makeBox(w_top, l_top, t_top)
     top_plate.translate(App.Vector(-17.5 * SCALE, 195.7 * SCALE, z_top_min))
 
-    # 2. Downward Alignment Tabs at Rear Corners (behind/beside the servo motor)
-    tab_l = Part.makeBox(3.0 * SCALE, 3.5 * SCALE, 1.8 * SCALE)
-    tab_l.translate(App.Vector(-17.0 * SCALE, 231.0 * SCALE, z_top_min - 1.8 * SCALE))
+    # 2. Continuous Rear Interlocking Tongue (Extending +2.2mm into the frame back wall slot)
+    tongue_w = 51.0 * SCALE
+    tongue_l = 2.2 * SCALE
+    tongue_t = 1.5 * SCALE
+    tongue = Part.makeBox(tongue_w, tongue_l, tongue_t)
+    tongue.translate(App.Vector(-14.5 * SCALE, 236.8 * SCALE, z_top_min - tongue_t))
 
-    tab_r = Part.makeBox(3.0 * SCALE, 3.5 * SCALE, 1.8 * SCALE)
-    tab_r.translate(App.Vector(35.0 * SCALE, 231.0 * SCALE, z_top_min - 1.8 * SCALE))
+    # 3. Dual Heavy-Duty Side Cantilever Snap Legs with 30° lead-in ramps and 90° locking shoulders
+    def make_side_snap_leg(is_left):
+        leg_l = 8.0 * SCALE  # Y-length
+        leg_t = 1.8 * SCALE  # X-thickness
+        leg_h = 5.5 * SCALE  # Z-height
+        y_start = 205.0 * SCALE
+        
+        if is_left:
+            x_pos = -17.0 * SCALE
+            # Barb projects in -X direction by 0.9mm
+            pts = [
+                App.Vector(x_pos, y_start, z_top_min - leg_h),
+                App.Vector(x_pos - 0.9 * SCALE, y_start, z_top_min - leg_h + 2.0 * SCALE),
+                App.Vector(x_pos, y_start, z_top_min - leg_h + 2.5 * SCALE),
+                App.Vector(x_pos, y_start, z_top_min - leg_h),
+            ]
+            x_ext = leg_t
+        else:
+            x_pos = 38.4 * SCALE
+            # Barb projects in +X direction by 0.9mm
+            pts = [
+                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h),
+                App.Vector(x_pos + leg_t + 0.9 * SCALE, y_start, z_top_min - leg_h + 2.0 * SCALE),
+                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h + 2.5 * SCALE),
+                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h),
+            ]
+            x_ext = leg_t
+            
+        leg_box = Part.makeBox(x_ext, leg_l, leg_h)
+        leg_box.translate(App.Vector(x_pos, y_start, z_top_min - leg_h))
+        
+        barb_wire = Part.makePolygon(pts)
+        barb_face = Part.Face(barb_wire)
+        barb_solid = barb_face.extrude(App.Vector(0, leg_l, 0))
+        return leg_box.fuse(barb_solid).removeSplitter()
 
-    lid = top_plate.fuse([tab_l, tab_r]).removeSplitter()
+    leg_left = make_side_snap_leg(True)
+    leg_right = make_side_snap_leg(False)
 
-    # 3. Finger Pry Notch at Rear-Left Corner
+    lid = top_plate.fuse([tongue, leg_left, leg_right]).removeSplitter()
+
+    # 4. Finger / Tool Pry Notch at Rear-Left Corner
     notch = Part.makeCylinder(3.5 * SCALE, 3.0 * SCALE, App.Vector(-17.5 * SCALE, 236.8 * SCALE, z_top_min - 1.0))
     lid = lid.cut(notch).removeSplitter()
 
