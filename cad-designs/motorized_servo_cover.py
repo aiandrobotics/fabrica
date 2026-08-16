@@ -30,19 +30,19 @@ def construct_motorized_servo_cover():
     """
     # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 19.8 to 21.2mm, clearing servo top at Z=19.75mm)
     w_top = 57.7 * SCALE # X in [-17.5, 40.2mm]
-    l_top = 41.1 * SCALE # Y in [195.7, 236.8mm]
+    l_top = 38.8 * SCALE # Y in [195.7, 234.5mm]
     t_top = 1.4 * SCALE
     z_top_min = 19.8 * SCALE
 
     top_plate = Part.makeBox(w_top, l_top, t_top)
     top_plate.translate(App.Vector(-17.5 * SCALE, 195.7 * SCALE, z_top_min))
 
-    # 2. Continuous Rear Interlocking Tongue (Extending +2.2mm into the frame back wall slot)
+    # 2. Continuous Rear Interlocking Tongue (Extending +3.5mm into the frame back wall slot under the solid bar)
     tongue_w = 51.0 * SCALE
-    tongue_l = 2.2 * SCALE
+    tongue_l = 3.5 * SCALE
     tongue_t = 1.5 * SCALE
     tongue = Part.makeBox(tongue_w, tongue_l, tongue_t)
-    tongue.translate(App.Vector(-14.5 * SCALE, 236.8 * SCALE, z_top_min - tongue_t))
+    tongue.translate(App.Vector(-14.5 * SCALE, 234.5 * SCALE, z_top_min - tongue_t))
 
     # 3. Dual Heavy-Duty Side Cantilever Snap Legs with 30° lead-in ramps and 90° locking shoulders
     def make_side_snap_leg(is_left):
@@ -86,7 +86,7 @@ def construct_motorized_servo_cover():
     lid = top_plate.fuse([tongue, leg_left, leg_right]).removeSplitter()
 
     # 4. Finger / Tool Pry Notch at Rear-Left Corner
-    notch = Part.makeCylinder(3.5 * SCALE, 3.0 * SCALE, App.Vector(-17.5 * SCALE, 236.8 * SCALE, z_top_min - 1.0))
+    notch = Part.makeCylinder(3.5 * SCALE, 3.0 * SCALE, App.Vector(-17.5 * SCALE, 234.5 * SCALE, z_top_min - 1.0))
     lid = lid.cut(notch).removeSplitter()
 
     # Export STEP and STL

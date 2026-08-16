@@ -188,8 +188,9 @@ def construct_motorized_frame():
     pocket_bay = Part.makeBox(56.3 * SCALE, 39.5 * SCALE, 25.0 * SCALE)
     pocket_bay.translate(App.Vector(-17.8 * SCALE, 195.5 * SCALE, 0.0))
 
-    # Top Lid Seating Rebate (1.8mm depth at Z in [19.4, 21.3mm], X in [-17.8, 40.5mm], Y in [195.5, 237.0mm])
-    pocket_rebate = Part.makeBox(58.3 * SCALE, 41.5 * SCALE, 2.0 * SCALE)
+    # Top Lid Seating Rebate (1.8mm depth at Z in [19.4, 21.3mm], X in [-17.8, 40.5mm], Y in [195.5, 234.8mm])
+    # Stops at Y = 234.8mm to leave a solid 5.2mm horizontal retention bar across the rear wall (Y in [234.8, 240.0mm])
+    pocket_rebate = Part.makeBox(58.3 * SCALE, 39.3 * SCALE, 2.0 * SCALE)
     pocket_rebate.translate(App.Vector(-17.8 * SCALE, 195.5 * SCALE, 19.4 * SCALE))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing cleanly through the solid towers along Y-axis:
@@ -205,9 +206,9 @@ def construct_motorized_frame():
     pocket_wire_left = Part.makeBox(10.0 * SCALE, 12.0 * SCALE, 13.0 * SCALE)
     pocket_wire_left.translate(App.Vector(-20.0 * SCALE, 216.0 * SCALE, 3.0 * SCALE))
 
-    # Rear Tongue Locking Slot in Back Wall (X in [-15.0, 37.0mm], Y in [236.8, 239.5mm], Z in [18.0, 20.0mm])
-    slot_rear_tongue = Part.makeBox(52.0 * SCALE, 3.0 * SCALE, 2.2 * SCALE)
-    slot_rear_tongue.translate(App.Vector(-15.0 * SCALE, 236.8 * SCALE, 17.9 * SCALE))
+    # Rear Tongue Locking Slot underneath the solid horizontal retention bar (X in [-15.0, 37.0mm], Y in [234.5, 238.5mm], Z in [18.0, 20.0mm])
+    slot_rear_tongue = Part.makeBox(52.0 * SCALE, 4.0 * SCALE, 2.0 * SCALE)
+    slot_rear_tongue.translate(App.Vector(-15.0 * SCALE, 234.5 * SCALE, 18.0 * SCALE))
 
     # Side Snap Barb Catch Undercuts in Frame Sidewalls (Y in [204.0, 214.0mm])
     # Left Side: vertical leg channel + barb undercut below Z=17.2mm
