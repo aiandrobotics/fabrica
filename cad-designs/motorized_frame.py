@@ -127,12 +127,40 @@ def construct_motorized_frame():
 
     frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_cyl, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
-    # 2. Cut open interior cavities & Axial Cradle Trough (Pure organic half-pipe with curvy smooth borders)
+    # 2. Cut open interior cavities & Seamless Axial Cradle Trough (Continuous smooth slope into base floor, zero separation line)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
-    # A. Lower Main Center Cavity with Curvy Rounded Corners (R=12mm smooth transitions into front and knuckle pedestal)
+    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
+    cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+
+    # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
+    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, k_top_start_y - knuckle_len, 20.0 * SCALE)
+    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
+
+    # C. Seamless Right Downward Slope Cutter:
+    # Slopes smoothly from cradle bottom (X=0, Z=3.25mm) down to base floor (Z=0.0mm) at X=6.0mm with a continuous curve, eliminating thin walls or separation lines
+    num_slope = 16
+    x_blend = 6.0 * SCALE
+    slope_pts = [
+        App.Vector(0, 0, pivot_z - bore_r),
+    ]
+    for i in range(1, num_slope):
+        frac = float(i) / float(num_slope - 1)
+        zz = (pivot_z - bore_r) * 0.5 * (1.0 + math.cos(frac * math.pi)) - 0.1
+        xx = frac * x_blend
+        slope_pts.append(App.Vector(xx, 0, zz))
+
+    slope_pts.append(App.Vector(25.0 * SCALE, 0, -0.2))
+    slope_pts.append(App.Vector(25.0 * SCALE, 0, pivot_z + 1.0))
+    slope_pts.append(App.Vector(0, 0, pivot_z + 1.0))
+    slope_pts.append(App.Vector(0, 0, pivot_z - bore_r))
+
+    slope_face = Part.Face(Part.makePolygon(slope_pts))
+    cav_slope = slope_face.extrude(App.Vector(0, k_top_start_y - knuckle_len, 0))
+    cav_slope.translate(App.Vector(0, knuckle_len, 0))
+
+    # D. Lower Main Center Cavity with Curvy Rounded Corners (starting at X = x_blend = 6.0mm, with R=12mm smooth transitions)
     fillet_r = 12.0 * SCALE
-    x_start = 5.0 * SCALE
     num_pts = 16
 
     pts_cav_lower = [
@@ -143,15 +171,15 @@ def construct_motorized_frame():
 
     for i in range(1, num_pts):
         ang = (float(i) / float(num_pts - 1)) * (math.pi / 2.0)
-        xx = x_start + (rail_w - x_start) * (1.0 - math.sin(ang))
+        xx = x_blend + (rail_w - x_blend) * (1.0 - math.sin(ang))
         yy = k_top_start_y - fillet_r * (1.0 - math.cos(ang))
         pts_cav_lower.append(App.Vector(xx, yy, 0))
 
-    pts_cav_lower.append(App.Vector(x_start, knuckle_len + fillet_r, 0))
+    pts_cav_lower.append(App.Vector(x_blend, knuckle_len + fillet_r, 0))
 
     for i in range(1, num_pts):
         ang = (float(i) / float(num_pts - 1)) * (math.pi / 2.0)
-        xx = x_start + (rail_w - x_start) * (1.0 - math.cos(ang))
+        xx = x_blend + (rail_w - x_blend) * (1.0 - math.cos(ang))
         yy = knuckle_len + fillet_r * (1.0 - math.sin(ang))
         pts_cav_lower.append(App.Vector(xx, yy, 0))
 
@@ -161,25 +189,6 @@ def construct_motorized_frame():
     cav_main_lower_face = Part.Face(Part.makePolygon(pts_cav_lower))
     cav_main_lower = cav_main_lower_face.extrude(App.Vector(0, 0, t + 2.0))
     cav_main_lower.translate(App.Vector(0, 0, -1.0))
-
-    # B. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
-    cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
-
-    # C. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
-    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, k_top_start_y - knuckle_len, 20.0 * SCALE)
-    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
-
-    # D. Curvy Right Lip Cutter: Removes extra height on right lip (X in [4.5, 16mm], Z in [4.0, 10mm])
-    lip_pts = [
-        App.Vector(4.5 * SCALE, 0, 4.0 * SCALE),
-        App.Vector(16.0 * SCALE, 0, 4.0 * SCALE),
-        App.Vector(16.0 * SCALE, 0, pivot_z + 1.0),
-        App.Vector(4.5 * SCALE, 0, pivot_z + 1.0),
-        App.Vector(4.5 * SCALE, 0, 4.0 * SCALE),
-    ]
-    lip_face = Part.Face(Part.makePolygon(lip_pts))
-    cav_lip_right = lip_face.extrude(App.Vector(0, k_top_start_y - knuckle_len, 0))
-    cav_lip_right.translate(App.Vector(0, knuckle_len, 0))
 
     # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
@@ -193,7 +202,7 @@ def construct_motorized_frame():
     cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
     cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, 0.0))
 
-    for cav in [cav_main_lower, cav_main_upper, cradle_trough, cav_cradle_top, cav_lip_right, cut_screw_access_right, cut_screw_access_left]:
+    for cav in [cav_main_lower, cav_main_upper, cradle_trough, cav_cradle_top, cav_slope, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Adapter Disk Rotating Clearance Pocket

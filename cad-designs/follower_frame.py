@@ -111,12 +111,40 @@ def construct_follower_frame():
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, cradle_outer_cyl, ramp_bot, ramp_top])).removeSplitter()
 
-    # 3. Open Interior Cavities & Axial Cradle Trough (Pure organic half-pipe with curvy smooth borders)
+    # 3. Open Interior Cavities & Seamless Axial Cradle Trough (Continuous smooth slope into base floor, zero separation line)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
-    # A. Main Center Cavity with Curvy Rounded Corners (R=12mm smooth transitions into front and back rails)
+    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
+    cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+
+    # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
+    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, h - 2 * knuckle_len, 20.0 * SCALE)
+    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
+
+    # C. Seamless Right Downward Slope Cutter:
+    # Slopes smoothly from cradle bottom (X=0, Z=3.25mm) down to base floor (Z=0.0mm) at X=6.0mm with a continuous curve, eliminating thin walls or separation lines
+    num_slope = 16
+    x_blend = 6.0 * SCALE
+    slope_pts = [
+        App.Vector(0, 0, pivot_z - bore_r),
+    ]
+    for i in range(1, num_slope):
+        frac = float(i) / float(num_slope - 1)
+        zz = (pivot_z - bore_r) * 0.5 * (1.0 + math.cos(frac * math.pi)) - 0.1
+        xx = frac * x_blend
+        slope_pts.append(App.Vector(xx, 0, zz))
+
+    slope_pts.append(App.Vector(25.0 * SCALE, 0, -0.2))
+    slope_pts.append(App.Vector(25.0 * SCALE, 0, pivot_z + 1.0))
+    slope_pts.append(App.Vector(0, 0, pivot_z + 1.0))
+    slope_pts.append(App.Vector(0, 0, pivot_z - bore_r))
+
+    slope_face = Part.Face(Part.makePolygon(slope_pts))
+    cav_slope = slope_face.extrude(App.Vector(0, h - 2 * knuckle_len, 0))
+    cav_slope.translate(App.Vector(0, knuckle_len, 0))
+
+    # D. Main Center Cavity with Curvy Rounded Corners (starting at X = x_blend = 6.0mm, with R=12mm smooth transitions into rails)
     fillet_r = 12.0 * SCALE
-    x_start = 5.0 * SCALE
     num_pts = 16
 
     pts_cav = [
@@ -127,15 +155,15 @@ def construct_follower_frame():
 
     for i in range(1, num_pts):
         ang = (float(i) / float(num_pts - 1)) * (math.pi / 2.0)
-        xx = x_start + (rail_w - x_start) * (1.0 - math.sin(ang))
+        xx = x_blend + (rail_w - x_blend) * (1.0 - math.sin(ang))
         yy = h - knuckle_len - fillet_r * (1.0 - math.cos(ang))
         pts_cav.append(App.Vector(xx, yy, 0))
 
-    pts_cav.append(App.Vector(x_start, knuckle_len + fillet_r, 0))
+    pts_cav.append(App.Vector(x_blend, knuckle_len + fillet_r, 0))
 
     for i in range(1, num_pts):
         ang = (float(i) / float(num_pts - 1)) * (math.pi / 2.0)
-        xx = x_start + (rail_w - x_start) * (1.0 - math.cos(ang))
+        xx = x_blend + (rail_w - x_blend) * (1.0 - math.cos(ang))
         yy = knuckle_len + fillet_r * (1.0 - math.sin(ang))
         pts_cav.append(App.Vector(xx, yy, 0))
 
@@ -146,25 +174,6 @@ def construct_follower_frame():
     cav_main = cav_main_face.extrude(App.Vector(0, 0, t + 2.0))
     cav_main.translate(App.Vector(0, 0, -1.0))
 
-    # B. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
-    cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
-
-    # C. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
-    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, h - 2 * knuckle_len, 20.0 * SCALE)
-    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
-
-    # D. Curvy Right Lip Cutter: Removes extra height on right lip (X in [4.5, 16mm], Z in [4.0, 10mm])
-    lip_pts = [
-        App.Vector(4.5 * SCALE, 0, 4.0 * SCALE),
-        App.Vector(16.0 * SCALE, 0, 4.0 * SCALE),
-        App.Vector(16.0 * SCALE, 0, pivot_z + 1.0),
-        App.Vector(4.5 * SCALE, 0, pivot_z + 1.0),
-        App.Vector(4.5 * SCALE, 0, 4.0 * SCALE),
-    ]
-    lip_face = Part.Face(Part.makePolygon(lip_pts))
-    cav_lip_right = lip_face.extrude(App.Vector(0, h - 2 * knuckle_len, 0))
-    cav_lip_right.translate(App.Vector(0, knuckle_len, 0))
-
     # E. Knuckle Bearing Bores (Top & Bottom: 100% Solid 360° closed rings)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
@@ -173,7 +182,7 @@ def construct_follower_frame():
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, cav_cradle_top, cav_lip_right, top_bore, bot_bore, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, cav_cradle_top, cav_slope, top_bore, bot_bore, trim_bot])).removeSplitter()
 
     # 4. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH
