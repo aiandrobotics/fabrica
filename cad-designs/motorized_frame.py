@@ -122,29 +122,64 @@ def construct_motorized_frame():
     rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo)
     rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, 0.0))
 
-    # Axial Cradle Wall Solid (running along hinge axis at X in [-knuckle_r, 12mm], Y in [15, 170mm], Z in [0, pivot_z])
-    cradle_outer_box = Part.makeBox(knuckle_r + 12.0 * SCALE, k_top_start_y - knuckle_len, pivot_z)
-    cradle_outer_box.translate(App.Vector(-knuckle_r, knuckle_len, 0))
+    # Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, 170mm])
+    cradle_outer_cyl = Part.makeCylinder(knuckle_r, k_top_start_y - knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
 
-    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_box, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_cyl, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
-    # 2. Cut open interior cavities & Axial Cradle Trough (Wall shaped like axial for resting flap axle)
+    # 2. Cut open interior cavities & Axial Cradle Trough (Pure organic half-pipe with curvy smooth borders)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
 
-    # A. Lower Main Center Cavity (Straight, rectangular: X in [12, 225mm], Y in [15, 170mm])
-    cav_main_lower = Part.makeBox(w - rail_w - 12.0 * SCALE, 155.0 * SCALE, t + 2.0)
-    cav_main_lower.translate(App.Vector(12.0 * SCALE, rail_w, -1.0))
+    # A. Lower Main Center Cavity with Curvy Rounded Corners (R=12mm smooth transitions into front and knuckle pedestal)
+    fillet_r = 12.0 * SCALE
+    x_start = 5.0 * SCALE
+    num_pts = 16
+
+    pts_cav_lower = [
+        App.Vector(w - rail_w, knuckle_len, 0),
+        App.Vector(w - rail_w, k_top_start_y, 0),
+        App.Vector(rail_w, k_top_start_y, 0),
+    ]
+
+    for i in range(1, num_pts):
+        ang = (float(i) / float(num_pts - 1)) * (math.pi / 2.0)
+        xx = x_start + (rail_w - x_start) * (1.0 - math.sin(ang))
+        yy = k_top_start_y - fillet_r * (1.0 - math.cos(ang))
+        pts_cav_lower.append(App.Vector(xx, yy, 0))
+
+    pts_cav_lower.append(App.Vector(x_start, knuckle_len + fillet_r, 0))
+
+    for i in range(1, num_pts):
+        ang = (float(i) / float(num_pts - 1)) * (math.pi / 2.0)
+        xx = x_start + (rail_w - x_start) * (1.0 - math.cos(ang))
+        yy = knuckle_len + fillet_r * (1.0 - math.sin(ang))
+        pts_cav_lower.append(App.Vector(xx, yy, 0))
+
+    pts_cav_lower.append(App.Vector(rail_w, knuckle_len, 0))
+    pts_cav_lower.append(App.Vector(w - rail_w, knuckle_len, 0))
+
+    cav_main_lower_face = Part.Face(Part.makePolygon(pts_cav_lower))
+    cav_main_lower = cav_main_lower_face.extrude(App.Vector(0, 0, t + 2.0))
+    cav_main_lower.translate(App.Vector(0, 0, -1.0))
 
     # B. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
     cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # C. Upper Flap Sweep Cut above Z=10.0mm (X in [-knuckle_r-1, 13mm], Z in [10, 16mm])
-    cav_cradle_top = Part.makeBox(knuckle_r + 14.0 * SCALE, k_top_start_y - knuckle_len, t - pivot_z + 2.0)
-    cav_cradle_top.translate(App.Vector(-knuckle_r - 1.0 * SCALE, knuckle_len, pivot_z))
+    # C. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
+    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, k_top_start_y - knuckle_len, 20.0 * SCALE)
+    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
 
-    # D. Right lip trim so rotating flap blade at Z in [3.0, 10.0mm] has full sweep clearance into chassis
-    cav_lip_right = Part.makeBox(13.0 * SCALE - bore_r + 0.5, k_top_start_y - knuckle_len, pivot_z - 3.0 * SCALE)
-    cav_lip_right.translate(App.Vector(bore_r - 0.2, knuckle_len, 3.0 * SCALE))
+    # D. Curvy Right Lip Cutter: Removes extra height on right lip (X in [4.5, 16mm], Z in [4.0, 10mm])
+    lip_pts = [
+        App.Vector(4.5 * SCALE, 0, 4.0 * SCALE),
+        App.Vector(16.0 * SCALE, 0, 4.0 * SCALE),
+        App.Vector(16.0 * SCALE, 0, pivot_z + 1.0),
+        App.Vector(4.5 * SCALE, 0, pivot_z + 1.0),
+        App.Vector(4.5 * SCALE, 0, 4.0 * SCALE),
+    ]
+    lip_face = Part.Face(Part.makePolygon(lip_pts))
+    cav_lip_right = lip_face.extrude(App.Vector(0, k_top_start_y - knuckle_len, 0))
+    cav_lip_right.translate(App.Vector(0, knuckle_len, 0))
 
     # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
@@ -247,12 +282,12 @@ def construct_motorized_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
 
     # Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = 120.0mm
-    dt_lk_neck = 4.0 * SCALE
-    dt_lk_flare = 8.0 * SCALE
-    dt_lk_depth = 8.0 * SCALE
+    dt_lk_neck = 3.5 * SCALE
+    dt_lk_flare = 7.0 * SCALE
+    dt_lk_depth = 7.0 * SCALE
     gap = 0.25 * SCALE
     x_left = -knuckle_r - 1.0 * SCALE
-    x_right = 13.0 * SCALE
+    x_right = 7.0 * SCALE
     center_x = (x_left + x_right) / 2.0
     y_seam = h / 2.0  # 120.0mm
 
