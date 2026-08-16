@@ -108,54 +108,47 @@ def construct_follower_frame():
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, ramp_bot, ramp_top])).removeSplitter()
 
-    # 3. Open Interior Cavities (preserving curved 4th wall at Z in [0, 3mm])
-    # The 4th wall follows a smooth structural arch between Y = 15mm and Y = 225mm:
-    # Inner edge curves from X = 11.0mm (at knuckles) to X = 13.0mm (at center Y=120mm)
-    # Outer edge curves from X = 26.0mm (at knuckles) to X = 32.0mm (at center Y=120mm)
-    num_pts = 33
-    y_vals = [knuckle_len + i * (h - 2 * knuckle_len) / float(num_pts - 1) for i in range(num_pts)]
-    
-    def x_inner_func(y):
-        s = (y - y_seam) / (y_seam - knuckle_len)
-        return (13.0 - 2.0 * (s**2)) * SCALE
-        
-    def x_outer_func(y):
-        s = (y - y_seam) / (y_seam - knuckle_len)
-        return (32.0 - 6.0 * (s**2)) * SCALE
+    # 3. Open Interior Cavities (preserving 4th wall at X in [11, 25mm], Z in [0, 3mm] with smooth curved knuckle support fillets)
+    # A. Main Center Cavity (Straight, rectangular: X in [25, 225mm], Y in [15, 225mm])
+    cav_main = Part.makeBox(w - rail_w - tie_x - tie_w, h - 2 * rail_w, t + 2.0)
+    cav_main.translate(App.Vector(tie_x + tie_w, rail_w, -1.0))
 
-    # A. Left Hinge Cavity (X in [-0.5, x_inner(y)], Y in [15, 225mm], Z in [-1, t+2mm])
+    # B. Left Hinge Cavity with Smooth Curved Knuckle Support Fillets (R=15mm at knuckle transitions)
+    # Adds a solid continuous curved gusset transitioning from 4th wall (X=11mm) into the 360° knuckle barrels (X=0mm)
+    num_curve = 16
+    r_fillet = 15.0 * SCALE
     pts_left = [App.Vector(-0.5, knuckle_len, 0)]
-    for y in y_vals:
-        pts_left.append(App.Vector(x_inner_func(y), y, 0))
+    
+    # Bottom concave blend into 4th wall
+    for i in range(num_curve):
+        frac = float(i) / float(num_curve - 1)
+        y_p = knuckle_len + frac * r_fillet
+        x_p = tie_x * (1.0 - math.cos(frac * math.pi / 2.0))
+        pts_left.append(App.Vector(x_p, y_p, 0))
+
+    # Straight along 4th wall
+    pts_left.append(App.Vector(tie_x, h - knuckle_len - r_fillet, 0))
+
+    # Top concave blend from 4th wall into top knuckle
+    for i in range(num_curve):
+        frac = float(i) / float(num_curve - 1)
+        y_p = h - knuckle_len - r_fillet + frac * r_fillet
+        x_p = tie_x * math.cos(frac * math.pi / 2.0)
+        pts_left.append(App.Vector(x_p, y_p, 0))
+
     pts_left.append(App.Vector(-0.5, h - knuckle_len, 0))
     pts_left.append(App.Vector(-0.5, knuckle_len, 0))
-    cav_left_face = Part.Face(Part.makePolygon(pts_left))
+
+    poly_left = Part.makePolygon(pts_left)
+    cav_left_face = Part.Face(poly_left)
     cav_left = cav_left_face.extrude(App.Vector(0, 0, t + 2.0))
     cav_left.translate(App.Vector(0, 0, -1.0))
 
-    # B. Main Center Cavity (X in [x_outer(y), w - rail_w], Y in [15, 225mm], Z in [-1, t+2mm])
-    pts_main = []
-    for y in y_vals:
-        pts_main.append(App.Vector(x_outer_func(y), y, 0))
-    pts_main.append(App.Vector(w - rail_w, h - knuckle_len, 0))
-    pts_main.append(App.Vector(w - rail_w, knuckle_len, 0))
-    pts_main.append(App.Vector(x_outer_func(y_vals[0]), knuckle_len, 0))
-    cav_main_face = Part.Face(Part.makePolygon(pts_main))
-    cav_main = cav_main_face.extrude(App.Vector(0, 0, t + 2.0))
-    cav_main.translate(App.Vector(0, 0, -1.0))
+    # C. Full 100% kinematic flap blade sweep clearance above 4th wall & knuckle gusset (Z in [tie_h, t+2mm], X in [-0.5, 26mm])
+    cav_flap_sweep = Part.makeBox(tie_x + tie_w + 1.0 * SCALE + 0.5, h - 2 * knuckle_len, t - tie_h + 2.0)
+    cav_flap_sweep.translate(App.Vector(-0.5, knuckle_len, tie_h))
 
-    # C. Top space above the 4th curved wall (Z in [tie_h, t+2mm])
-    pts_wall = []
-    for y in y_vals:
-        pts_wall.append(App.Vector(x_inner_func(y) - 0.5, y, 0))
-    for y in reversed(y_vals):
-        pts_wall.append(App.Vector(x_outer_func(y) + 0.5, y, 0))
-    pts_wall.append(App.Vector(x_inner_func(y_vals[0]) - 0.5, y_vals[0], 0))
-    cav_tie_face = Part.Face(Part.makePolygon(pts_wall))
-    cav_tie_top = cav_tie_face.extrude(App.Vector(0, 0, t - tie_h + 2.0))
-    cav_tie_top.translate(App.Vector(0, 0, tie_h))
-
-    frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_tie_top])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cav_left, cav_flap_sweep])).removeSplitter()
 
     # 4. Hinge Bearing Bores: Dual 100% Solid 360° Closed Cylindrical Tunnels (Top & Bottom)
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
@@ -209,15 +202,14 @@ def construct_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 6. Clean Solid Through-Dovetail Joint on Curved 4th Wall (3.0mm solid outer walls, 0 floating pieces, 0 supports)
-    dt_lk_neck = 5.0 * SCALE
-    dt_lk_flare = 9.0 * SCALE
+    # 6. Clean Solid Through-Dovetail Joint on 4th Wall (3.0mm solid outer walls, 0 floating pieces, 0 supports)
+    dt_lk_neck = 4.0 * SCALE
+    dt_lk_flare = 8.0 * SCALE
     dt_lk_depth = 8.0 * SCALE
     gap = 0.25 * SCALE
 
-    center_x = (13.0 + 32.0) / 2.0 * SCALE # 22.5mm
-    x_left = 12.0 * SCALE
-    x_right = 33.0 * SCALE
+    x_left = tie_x - (1.0 * SCALE)
+    x_right = tie_x + tie_w + (1.0 * SCALE)
 
     dt4_poly_pts = [
         # Top edge of female pocket (in +Y half)
