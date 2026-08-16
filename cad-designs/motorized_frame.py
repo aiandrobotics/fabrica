@@ -109,18 +109,18 @@ def construct_motorized_frame():
     module_base_floor = Part.makeBox(66.0 * SCALE, h - 170.0 * SCALE, floor_t)
     module_base_floor.translate(App.Vector(-18.0 * SCALE, 170.0 * SCALE, -floor_t))
 
-    # Knuckle Solid Vertical Pedestal (X in [-6.5, 6.5mm], Y in [170.0, 185.0mm], Z in [0.0, 10.0mm]) anchoring knuckle to base floor
-    knuckle_pedestal = Part.makeBox(13.0 * SCALE, 15.0 * SCALE, 10.0 * SCALE)
-    knuckle_pedestal.translate(App.Vector(-6.5 * SCALE, k_top_start_y, 0.0))
+    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [170.0, 185.0mm], Z in [-2.0, 10.0mm]) anchoring knuckle to base floor
+    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0 * SCALE, 12.0 * SCALE)
+    knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, -floor_t))
 
     # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=0.0 to 21.2mm, sitting on base floor)
     t_servo = 21.2 * SCALE
-    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo)
-    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, 0.0))
+    towers_box = Part.makeBox(66.0 * SCALE, 10.5 * SCALE, t_servo + floor_t)
+    towers_box.translate(App.Vector(-18.0 * SCALE, 185.0 * SCALE, -floor_t))
 
     # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=0.0 to 21.2mm, sitting on base floor)
-    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo)
-    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, 0.0))
+    rear_box = Part.makeBox(66.0 * SCALE, h - 195.5 * SCALE, t_servo + floor_t)
+    rear_box.translate(App.Vector(-18.0 * SCALE, 195.5 * SCALE, -floor_t))
 
     # Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, 170mm])
     cradle_outer_cyl = Part.makeCylinder(knuckle_r, k_top_start_y - knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
@@ -128,9 +128,9 @@ def construct_motorized_frame():
     frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_cyl, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
     # 2. Cut open interior cavities & Axial Cradle (Clean straight vertical wall from cradle apex at X=0.0mm)
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.95mm radius (Ø13.9mm)
 
-    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
+    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.95mm centered at X=0, Z=10mm)
     cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
     # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
@@ -145,24 +145,25 @@ def construct_motorized_frame():
     cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
     cav_main_upper.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -1.0))
 
-    # Front-Right Screw Access Pocket (X = 6.5 to 48.5mm, Y = 170.0 to 185.5mm, Z = 0.0 to 25.0mm) — opens front face of right tower down to base floor
-    cut_screw_access_right = Part.makeBox(42.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
-    cut_screw_access_right.translate(App.Vector(6.5 * SCALE, k_top_start_y, 0.0))
+    # Front-Right Screw Access Pocket (X in [11.0, 48.5mm], Y in [170.0, 185.0mm], Z in [0.0, 25.0mm]) — completely clear of knuckle barrel (X <= 9.5mm)
+    cut_screw_access_right = Part.makeBox(37.5 * SCALE, 15.0 * SCALE, 25.0 * SCALE)
+    cut_screw_access_right.translate(App.Vector(11.0 * SCALE, k_top_start_y, 0.0))
 
-    # Front-Left Screw Access Pocket (X = -18.5 to -6.5mm, Y = 170.0 to 185.5mm, Z = 0.0 to 25.0mm) — opens front face of left tower down to base floor
-    cut_screw_access_left = Part.makeBox(12.0 * SCALE, 15.5 * SCALE, 25.0 * SCALE)
+    # Front-Left Screw Access Pocket (X in [-18.5, -11.0mm], Y in [170.0, 185.0mm], Z in [0.0, 25.0mm]) — completely clear of knuckle barrel (X >= -9.5mm)
+    cut_screw_access_left = Part.makeBox(7.5 * SCALE, 15.0 * SCALE, 25.0 * SCALE)
     cut_screw_access_left.translate(App.Vector(-18.5 * SCALE, k_top_start_y, 0.0))
 
     for cav in [cav_main_lower, cav_main_upper, cradle_trough, cav_cradle_top, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
-    # 3. Hinge Bearing Bores & Adapter Disk Rotating Clearance Pocket
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE
+    # 3. Hinge Bearing Bores & Knuckle Bore
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
-    top_bore = Part.makeCylinder(bore_r, k_top_len + 0.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
+    # Top knuckle bore spanning Y in [169.9, 179.0mm] (SOLID 360 degree closed cylinder barrel):
+    top_bore = Part.makeCylinder(bore_r, 9.2 * SCALE, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # 6mm Adapter Disk Clearance Counterbore (Ø20.0mm for Ø19.0mm disk spanning Y=178.5 to 185.1mm)
-    adapter_bore = Part.makeCylinder(10.0 * SCALE, 6.6 * SCALE, App.Vector(0, 178.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    # Adapter Disk Clearance Pocket at Y in [178.5, 185.1mm] (X in [-11.0, 11.0mm], Z in [0.0, 20.0mm])
+    adapter_pocket = Part.makeBox(22.0 * SCALE, 6.6 * SCALE, 20.0 * SCALE)
+    adapter_pocket.translate(App.Vector(-11.0 * SCALE, 178.5 * SCALE, 0.0))
 
     # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor module zone Y=170-240mm)
     trim_bot_main = Part.makeBox(w + 50.0, 170.0 * SCALE + 25.0, 20.0)
@@ -174,7 +175,7 @@ def construct_motorized_frame():
     trim_under_motor = Part.makeBox(w + 50.0, h + 50.0, 20.0)
     trim_under_motor.translate(App.Vector(-25.0, -25.0, -22.0 * SCALE))
 
-    for b in [bot_bore, top_bore, adapter_bore, trim_bot_main, trim_bot_right, trim_under_motor]:
+    for b in [bot_bore, top_bore, adapter_pocket, trim_bot_main, trim_bot_right, trim_under_motor]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with 2.0mm Solid Closed Base Floor (Z in [-2.0, 0.0mm]), Solid Closed Rear Wall (5.0mm thick at Y=235-240mm), and Solid Front Towers:
