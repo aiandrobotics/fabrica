@@ -62,12 +62,12 @@ def construct_motorized_flap():
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, 1.0 * SCALE, panel_z_min))
 
-    # Knuckle and Motor Corner Relief Cutouts
+    # Knuckle and Motor Corner Relief Cutouts (1.0mm axial gap from 360 circle knuckle and tower)
     cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
     cut_bot.translate(App.Vector(-0.5 * SCALE, 0.0, panel_z_min - 1.0))
 
     cut_mid_k = Part.makeBox(14.0 * SCALE, 16.5 * SCALE, t + 2.0)
-    cut_mid_k.translate(App.Vector(-0.5 * SCALE, 169.5 * SCALE, panel_z_min - 1.0))
+    cut_mid_k.translate(App.Vector(-0.5 * SCALE, 169.0 * SCALE, panel_z_min - 1.0))
 
     cut_motor = Part.makeBox(49.0 * SCALE, 56.0 * SCALE, t + 10.0)
     cut_motor.translate(App.Vector(-0.5 * SCALE, 184.8 * SCALE, panel_z_min - 1.0))
@@ -99,9 +99,9 @@ def construct_motorized_flap():
     # 3. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to 179.0mm)
     axle_solid = Part.makeCylinder(axle_r, axle_len, App.Vector(0, 0.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Smooth Under-Flap Reinforcing Gusset (Y = 15.5 to 169.5mm) matching follower_flap.py
-    gusset_start_y = 15.5 * SCALE
-    gusset_len = 154.0 * SCALE
+    # 4. Smooth Under-Flap Reinforcing Gusset (Y = 16.0 to 169.0mm) matching follower_flap.py
+    gusset_start_y = 16.0 * SCALE
+    gusset_len = 153.0 * SCALE
     gusset_pts = [
         App.Vector(0, gusset_start_y, pivot_z),
         App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),

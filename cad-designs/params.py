@@ -58,7 +58,7 @@ DRIVE_SHAFT_DIAMETER      = 13.0 * SCALE  # Ø13mm outer axle diameter (3.5mm gr
 DRIVE_SHAFT_BORE          = 8.0 * SCALE   # Ø8mm inner weight-relief bore
 HEX_COUPLER_SIZE          = 8.0 * SCALE   # 8.0mm Flat-to-Flat standard hex drive interface
 HEX_COUPLER_DEPTH         = 12.0 * SCALE  # 12.0mm engagement depth for zero slip under 35kg-cm servo load
-BEARING_ROTATING_CLEARANCE = 0.25 * SCALE  # 0.25mm radial clearance (Ø13.5mm frame knuckle bore)
+BEARING_ROTATING_CLEARANCE = 0.45 * SCALE  # 0.45mm radial clearance (Ø13.9mm frame knuckle bore for friction-free FDM 3D printing rotation)
 
 
 # Servo Motor Footprint (Standard MG996R PWM Servo)

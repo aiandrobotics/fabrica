@@ -66,12 +66,12 @@ def construct_follower_flap():
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, 0, panel_z_min))
 
-    # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle barrels
+    # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle barrels (1.0mm axial gap)
     cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
     cut_bot.translate(App.Vector(-0.5 * SCALE, -0.5 * SCALE, panel_z_min - 0.5))
 
     cut_top = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
-    cut_top.translate(App.Vector(-0.5 * SCALE, h - 15.5 * SCALE, panel_z_min - 0.5))
+    cut_top.translate(App.Vector(-0.5 * SCALE, h - 16.0 * SCALE, panel_z_min - 0.5))
 
     flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
 
@@ -98,12 +98,12 @@ def construct_follower_flap():
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
     # 3. Continuous Full-Length Solid Drive Axle (Full 240mm: Y = 0.0 to 240.0mm)
-    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm (Ø13.0mm in Ø13.5mm knuckle bores)
+    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm (Ø13.0mm in Ø13.9mm knuckle bores)
     axle_solid = Part.makeCylinder(shaft_r, h, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Under-Flap Structural Reinforcing Gusset (Y = 15.5mm to 224.5mm between knuckles)
-    gusset_start_y = 15.5 * SCALE
-    gusset_len = h - (31.0 * SCALE) # 209.0mm
+    # 4. Under-Flap Structural Reinforcing Gusset (Y = 16.0mm to 224.0mm between knuckles)
+    gusset_start_y = 16.0 * SCALE
+    gusset_len = h - (32.0 * SCALE) # 208.0mm
     gusset_pts = [
         App.Vector(0, gusset_start_y, pivot_z),
         App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),
