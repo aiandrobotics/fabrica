@@ -13,8 +13,6 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    BASE_PANEL_THICKNESS,
     MODULE_GAP,
     DOVETAIL_NECK_WIDTH,
     DOVETAIL_FLARE_WIDTH,
@@ -55,7 +53,6 @@ def construct_frame_joiner():
     
     total_tip_y = gap_half + dt_depth                     # 21.85mm from center
     center_z    = dt_height / 2.0
-    c_tip       = 1.2                                     # 1.2mm 45° nose lead-in chamfer
 
     # 1. Fully Symmetrical Double Flared Dovetail Body (XY Polygon)
     poly_pts = [

@@ -5,7 +5,6 @@ Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 
 import os
 import sys
-import math
 import FreeCAD as App
 import Part
 
@@ -14,12 +13,8 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
     PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
     MODULE_GAP,
-    DOVETAIL_DEPTH,
     PIVOT_Z,
     EXPORT_DIR,
 )
@@ -83,7 +78,6 @@ def build_motorized_assembly():
     import params
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
-    t = params.BASE_PANEL_THICKNESS
     bottom_thick = 3.0
 
     # 1. Base Motorized Chassis Frame

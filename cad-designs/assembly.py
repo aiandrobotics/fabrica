@@ -20,7 +20,6 @@ Kinematic Architecture:
 
 import os
 import sys
-import math
 import FreeCAD as App
 import Part
 
@@ -29,10 +28,6 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
     MODULE_GAP,
     PIVOT_Z,
     EXPORT_DIR,

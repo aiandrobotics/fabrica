@@ -5,7 +5,6 @@ Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 
 import sys
 import os
-import math
 
 # Ensure cad-designs root is in Python path for importing params.py
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -16,24 +15,12 @@ import FreeCAD as App
 import Part
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
-    WALL_THICKNESS,
     ELEPHANTS_FOOT_CHAMFER,
-    FOOT_PAD_DIA,
-    FOOT_PAD_DEPTH,
-    RETICLE_DEBOSS_DEPTH,
-    TPU_BUMPER_DEPTH,
     TEXTURE_HEIGHT,
     HOLE_CHAMFER,
-    JOINER_DETENT,
-    WIRE_PORT_FILLET,
     DOVETAIL_NECK_WIDTH,
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
-    DOVETAIL_HEIGHT,
     EXPORT_DIR,
 )
 

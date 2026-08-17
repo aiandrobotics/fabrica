@@ -14,25 +14,16 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
-    WALL_THICKNESS,
-    PRESS_FIT_CLEARANCE,
     TPU_BUMPER_DEPTH,
     ELEPHANTS_FOOT_CHAMFER,
     DOVETAIL_NECK_WIDTH,
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
-    DOVETAIL_FLOOR_THICKNESS,
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
     EXPORT_DIR,
 )
-
-BOTTOM_SHELL_THICKNESS = 3.0 * SCALE
 
 def construct_follower_frame():
     """
@@ -62,7 +53,6 @@ def construct_follower_frame():
     rail_w = 15.0
     bottom_thick = 3.0
     tie_w = 14.0
-    tie_h = 3.0
     tie_x = 11.0
     center_x = tie_x + (tie_w / 2.0) # 18.0mm
     y_seam = h / 2.0                 # h/2

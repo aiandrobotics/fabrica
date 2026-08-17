@@ -13,10 +13,6 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
-    PIVOT_Z,
     EXPORT_DIR,
 )
 

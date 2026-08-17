@@ -13,12 +13,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import FreeCAD as App
 import Part
 from params import (
-    SCALE,
     MODULE_GAP,
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
-    HEX_COUPLER_DEPTH,
     EXPORT_DIR,
 )
 

@@ -13,15 +13,11 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
     MODULE_GAP,
     EXPORT_DIR,
 )
 from follower_frame import construct_follower_frame
-from follower_flap import construct_follower_flap, PADDLE_THICKNESS
+from follower_flap import construct_follower_flap
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
 
@@ -39,8 +35,6 @@ def build_follower_assembly():
     import params
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
-    t = params.BASE_PANEL_THICKNESS
-    rail_w = 15.0
     bottom_thick = 3.0
 
     # 1. Base Follower Chassis Frame (Color: Green #2ecc71)

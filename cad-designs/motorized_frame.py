@@ -14,11 +14,6 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
-    MODULE_GAP,
     DOVETAIL_NECK_WIDTH,
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
@@ -69,13 +64,8 @@ def construct_motorized_frame():
     k_top_start_y = h - 70.0
     k_top_len = 15.0 # Knuckle barrel spans Y in [h - 70.0, h - 55.0]
     towers_start_y = h - 55.0 # Towers span Y in [h - 55.0, h - 44.5]
-    towers_len = 10.5
     bay_start_y = h - 44.5 # Motor bay spans Y in [h - 44.5, h]
     bay_len = 44.5
-
-    tie_x = 11.0
-    tie_w = 14.0
-    tie_h = 3.0
 
     # 1. Base 4-Wall Perimeter Frame
     outer_box = Part.makeBox(w, h, t)

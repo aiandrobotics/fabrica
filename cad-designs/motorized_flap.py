@@ -14,10 +14,6 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from params import (
-    SCALE,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    BASE_PANEL_THICKNESS,
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
@@ -26,8 +22,6 @@ from params import (
     ACCENT_BEVEL_DEPTH,
     EXPORT_DIR,
 )
-
-FLAP_THICKNESS = 2.4 * SCALE
 
 def make_hexagon_wire(size_af, center_x, center_z, y_pos):
     """Generates an explicit closed hexagon wire in the XZ plane."""
