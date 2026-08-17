@@ -165,29 +165,30 @@ def construct_motorized_flap():
     flap = flap.cut(Part.makeCompound([hex_socket_top_cutter, hex_socket_bot_cutter])).removeSplitter()
 
     # 6. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction) matching follower_flap
+    scale_geo = min(w, h) / 220.0
     hole_specs = [
-        (w * 0.48, h * 0.50, 18.0 * SCALE),
-        (w * 0.28, h * 0.32, 15.0 * SCALE),
-        (w * 0.72, h * 0.35, 16.0 * SCALE),
-        (w * 0.32, h * 0.70, 17.0 * SCALE),
-        (w * 0.70, h * 0.68, 15.5 * SCALE),
-        (w * 0.52, h * 0.22, 12.0 * SCALE),
-        (w * 0.52, h * 0.78, 12.5 * SCALE),
-        (w * 0.22, h * 0.52, 11.0 * SCALE),
-        (w * 0.84, h * 0.50, 11.5 * SCALE),
-        (w * 0.22, h * 0.15, 8.5 * SCALE),
-        (w * 0.82, h * 0.18, 9.0 * SCALE),
-        (w * 0.20, h * 0.85, 8.0 * SCALE),
-        (w * 0.84, h * 0.82, 8.5 * SCALE),
-        (w * 0.37, h * 0.12, 7.0 * SCALE),
-        (w * 0.67, h * 0.12, 7.0 * SCALE),
-        (w * 0.37, h * 0.88, 7.0 * SCALE),
-        (w * 0.67, h * 0.88, 7.0 * SCALE),
+        (w * 0.48, h * 0.50, 18.0 * scale_geo),
+        (w * 0.28, h * 0.32, 15.0 * scale_geo),
+        (w * 0.72, h * 0.35, 16.0 * scale_geo),
+        (w * 0.32, h * 0.70, 17.0 * scale_geo),
+        (w * 0.70, h * 0.68, 15.5 * scale_geo),
+        (w * 0.52, h * 0.22, 12.0 * scale_geo),
+        (w * 0.52, h * 0.78, 12.5 * scale_geo),
+        (w * 0.22, h * 0.52, 11.0 * scale_geo),
+        (w * 0.84, h * 0.50, 11.5 * scale_geo),
+        (w * 0.22, h * 0.15, 8.5 * scale_geo),
+        (w * 0.82, h * 0.18, 9.0 * scale_geo),
+        (w * 0.20, h * 0.85, 8.0 * scale_geo),
+        (w * 0.84, h * 0.82, 8.5 * scale_geo),
+        (w * 0.37, h * 0.12, 7.0 * scale_geo),
+        (w * 0.67, h * 0.12, 7.0 * scale_geo),
+        (w * 0.37, h * 0.88, 7.0 * scale_geo),
+        (w * 0.67, h * 0.88, 7.0 * scale_geo),
     ]
 
     cutters = []
     for cx, cy, hr in hole_specs:
-        if cx - hr < 49.0 * SCALE and cy + hr > 184.0 * SCALE:
+        if cx - hr < 49.0 and cy + hr > h - 55.0:
             continue
         cyl = Part.makeCylinder(hr, t + 1.0, App.Vector(cx, cy, panel_z_min - 0.5))
         c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, top_z - HOLE_CHAMFER))

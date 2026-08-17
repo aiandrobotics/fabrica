@@ -8,9 +8,13 @@ BUILD_PLATE_Y = 256.0 * SCALE
 BUILD_PLATE_Z = 256.0 * SCALE
 SCALE_180     = 180.0 / 256.0
 
-# Modular Panel Dimensions (Millimetres)
-PANEL_WIDTH              = 220.0 * SCALE
-PANEL_HEIGHT             = 238.0 * SCALE
+# ==============================================================================
+# SIZING PROFILES:
+# Profile 1 (Default): 256mm Build Plate -> 220mm True Squares (Max part: 244mm <= 245mm)
+# Profile 2 (Compact): 180mm Build Plate -> 145mm True Squares (Max part: 169mm <= 170mm)
+# ==============================================================================
+PANEL_WIDTH              = 220.0 * SCALE  # 220mm True Square
+PANEL_HEIGHT             = 220.0 * SCALE  # 220mm True Square
 PANEL_THICKNESS          = 12.0 * SCALE
 FOLLOWER_PANEL_THICKNESS = 10.0 * SCALE
 BASE_PANEL_THICKNESS     = 15.0 * SCALE

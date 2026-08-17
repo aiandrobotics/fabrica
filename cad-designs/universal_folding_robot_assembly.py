@@ -3,19 +3,19 @@ universal_folding_robot_assembly.py — Full-Scale 6-Module Universal Garment Fo
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 
 Kinematic Architecture:
-  1. Left Active Folding Wing (486mm long):
+  1. Left Active Folding Wing (450mm long):
      - Top-Left: Motorized Module with MG996R Direct-Drive Servo
      - Bottom-Left: Follower Module synchronously driven via Modular Hex Drive Coupler
      - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=0.0mm, Z=10.0mm)
-  2. Center Stationary Base Platform (486mm x 220mm):
+  2. Center Stationary Base Platform (450mm x 220mm):
      - 2x Monolithic Base Modules with Garment Alignment Reticles and Silent-Flip TPU Dampers
      - Provides rigid static torso/body support
-  3. Right Active Folding Wing (486mm long):
+  3. Right Active Folding Wing (450mm long):
      - Top-Right: Motorized Module with MG996R Direct-Drive Servo (Mirrored Inward Fold)
      - Bottom-Right: Follower Module synchronously driven via Modular Hex Drive Coupler (Mirrored)
      - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=680.0mm, Z=10.0mm)
   4. 7x Heavy-Duty Sliding Dovetail Bridge Joiners:
-     - Rigidly locks the 6 modules into a monolithic 680mm x 486mm chassis.
+     - Rigidly locks the 6 modules into a monolithic 680mm x 450mm chassis.
 
 # @joint Left_Motorized_Flap.Axle -> Left_Motorized_Frame.Bore type=revolute axis=(0,1,0) center=(0,0,10)
 # @joint Left_Follower_Flap.Axle -> Left_Follower_Frame.Bore type=revolute axis=(0,1,0) center=(0,0,10)

@@ -64,20 +64,21 @@ def construct_base_module():
     main_shell = base_box.cut(cavity).removeSplitter()
 
     # 3. Multi-Tiered Organic Circular Weight-Reduction Cutouts through top plate (~35% mass saving)
+    scale_geo = min(w, h) / 220.0
     hole_specs = [
-        (w * 0.30, h * 0.32, 16.0 * SCALE),
-        (w * 0.70, h * 0.32, 16.0 * SCALE),
-        (w * 0.30, h * 0.68, 16.0 * SCALE),
-        (w * 0.70, h * 0.68, 16.0 * SCALE),
-        (w * 0.50, h * 0.50, 18.0 * SCALE),
-        (w * 0.50, h * 0.26, 11.0 * SCALE),
-        (w * 0.50, h * 0.74, 11.0 * SCALE),
-        (w * 0.24, h * 0.50, 12.0 * SCALE),
-        (w * 0.76, h * 0.50, 12.0 * SCALE),
-        (w * 0.18, h * 0.18, 8.5 * SCALE),
-        (w * 0.82, h * 0.18, 8.5 * SCALE),
-        (w * 0.18, h * 0.82, 8.5 * SCALE),
-        (w * 0.82, h * 0.82, 8.5 * SCALE),
+        (w * 0.30, h * 0.32, 16.0 * scale_geo),
+        (w * 0.70, h * 0.32, 16.0 * scale_geo),
+        (w * 0.30, h * 0.68, 16.0 * scale_geo),
+        (w * 0.70, h * 0.68, 16.0 * scale_geo),
+        (w * 0.50, h * 0.50, 18.0 * scale_geo),
+        (w * 0.50, h * 0.26, 11.0 * scale_geo),
+        (w * 0.50, h * 0.74, 11.0 * scale_geo),
+        (w * 0.24, h * 0.50, 12.0 * scale_geo),
+        (w * 0.76, h * 0.50, 12.0 * scale_geo),
+        (w * 0.18, h * 0.18, 8.5 * scale_geo),
+        (w * 0.82, h * 0.18, 8.5 * scale_geo),
+        (w * 0.18, h * 0.82, 8.5 * scale_geo),
+        (w * 0.82, h * 0.82, 8.5 * scale_geo),
     ]
 
     cutters = []
