@@ -9,8 +9,8 @@ BUILD_PLATE_Z = 256.0 * SCALE
 SCALE_180     = 180.0 / 256.0
 
 # Modular Panel Dimensions (Millimetres)
-PANEL_WIDTH              = 240.0 * SCALE
-PANEL_HEIGHT             = 240.0 * SCALE
+PANEL_WIDTH              = 220.0 * SCALE
+PANEL_HEIGHT             = 238.0 * SCALE
 PANEL_THICKNESS          = 12.0 * SCALE
 FOLLOWER_PANEL_THICKNESS = 10.0 * SCALE
 BASE_PANEL_THICKNESS     = 15.0 * SCALE
