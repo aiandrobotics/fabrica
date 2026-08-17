@@ -35,6 +35,7 @@ def build_follower_assembly():
     """
     for doc_name in list(App.listDocuments().keys()):
         App.closeDocument(doc_name)
+    doc = App.newDocument("FollowerAssembly")
     import params
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
