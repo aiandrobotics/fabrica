@@ -54,9 +54,10 @@ def construct_motorized_frame():
       4. 100% Flat Base Plane at Z=0.0mm matching the follower frame base.
       5. Hinge pivot axis at PIVOT_Z = 10.0mm identically matching all follower modules.
     """
-    w = PANEL_WIDTH          # 240.0mm
-    h = PANEL_HEIGHT         # 240.0mm
-    t = BASE_PANEL_THICKNESS # 15.0mm
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
+    t = params.BASE_PANEL_THICKNESS
     rail_w = 15.0 * SCALE
     bottom_thick = 3.0 * SCALE
     pivot_z = PIVOT_Z        # 10.0mm
@@ -64,7 +65,14 @@ def construct_motorized_frame():
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0 * SCALE # 9.5mm radius
     knuckle_len = 15.0 * SCALE
     k_top_len = 15.0 * SCALE
-    k_top_start_y = 170.0 * SCALE
+    # MG996R Motor Module Fixed Hardware Zone (anchored at top edge Y = h):
+    # Total motor module length = 70.0mm (never scaled, fits physical MG996R servo)
+    k_top_start_y = h - 70.0
+    k_top_len = 15.0 # Knuckle barrel spans Y in [h - 70.0, h - 55.0]
+    towers_start_y = h - 55.0 # Towers span Y in [h - 55.0, h - 44.5]
+    towers_len = 10.5
+    bay_start_y = h - 44.5 # Motor bay spans Y in [h - 44.5, h]
+    bay_len = 44.5
 
     tie_x = 11.0 * SCALE
     tie_w = 14.0 * SCALE
@@ -73,7 +81,7 @@ def construct_motorized_frame():
     # 1. Base 4-Wall Perimeter Frame
     outer_box = Part.makeBox(w, h, t)
 
-    # Knuckles: Bottom (Y=0..15mm) and Top (Y=170..185mm)
+    # Knuckles: Bottom (Y=0..15mm) and Top (Y = h - 70.0 to h - 55.0mm)
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
     k_top = Part.makeCylinder(knuckle_r, k_top_len, App.Vector(0, k_top_start_y, pivot_z), App.Vector(0, 1, 0))
 
@@ -104,25 +112,25 @@ def construct_motorized_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
     ramp_top.translate(App.Vector(0, k_top_start_y, 0))
 
-    # Solid 2.0mm Bottom Base Floor under entire motor module zone (Y in [170.0, 240.0mm], X in [-24.0, 48.0mm], Z in [-2.0, 0.0mm])
-    floor_t = 2.0 * SCALE
-    module_base_floor = Part.makeBox(72.0 * SCALE, h - 170.0 * SCALE, floor_t)
-    module_base_floor.translate(App.Vector(-24.0 * SCALE, 170.0 * SCALE, -floor_t))
+    # Solid 2.0mm Bottom Base Floor under entire motor module zone (Y in [h - 70.0, h], X in [-24.0, 48.0mm], Z in [-2.0, 0.0mm])
+    floor_t = 2.0
+    module_base_floor = Part.makeBox(72.0, 70.0, floor_t)
+    module_base_floor.translate(App.Vector(-24.0, k_top_start_y, -floor_t))
 
-    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [170.0, 185.0mm], Z in [-2.0, 10.0mm]) anchoring knuckle to base floor
-    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0 * SCALE, 12.0 * SCALE)
+    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [h - 70.0, h - 55.0mm], Z in [-2.0, 10.0mm]) anchoring knuckle to base floor
+    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, 12.0)
     knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, -floor_t))
 
-    # Solid Mounting Towers at Y in [185.0, 195.5mm] (height Z=0.0 to 21.2mm, sitting on base floor)
-    t_servo = 21.2 * SCALE
-    towers_box = Part.makeBox(72.0 * SCALE, 10.5 * SCALE, t_servo + floor_t)
-    towers_box.translate(App.Vector(-24.0 * SCALE, 185.0 * SCALE, -floor_t))
+    # Solid Mounting Towers at Y in [h - 55.0, h - 44.5mm] (height Z=0.0 to 21.2mm, sitting on base floor)
+    t_servo = 21.2
+    towers_box = Part.makeBox(72.0, 10.5, t_servo + floor_t)
+    towers_box.translate(App.Vector(-24.0, towers_start_y, -floor_t))
 
-    # Rear motor housing perimeter at Y in [195.5, 240.0mm] (height Z=0.0 to 21.2mm, sitting on base floor)
-    rear_box = Part.makeBox(72.0 * SCALE, h - 195.5 * SCALE, t_servo + floor_t)
-    rear_box.translate(App.Vector(-24.0 * SCALE, 195.5 * SCALE, -floor_t))
+    # Rear motor housing perimeter at Y in [h - 44.5, h] (height Z=0.0 to 21.2mm, sitting on base floor)
+    rear_box = Part.makeBox(72.0, bay_len, t_servo + floor_t)
+    rear_box.translate(App.Vector(-24.0, bay_start_y, -floor_t))
 
-    # Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, 170mm])
+    # Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, h - 70mm])
     cradle_outer_cyl = Part.makeCylinder(knuckle_r, k_top_start_y - knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
 
     frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_cyl, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
@@ -134,95 +142,91 @@ def construct_motorized_frame():
     cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
     # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
-    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, k_top_start_y - knuckle_len, 20.0 * SCALE)
+    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, k_top_start_y - knuckle_len, 20.0)
     cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
 
     # C. Lower Main Center Cavity (Straight rectangular window starting right at X=0.0mm):
-    cav_main_lower = Part.makeBox(w - rail_w, 155.0 * SCALE, t + 2.0)
+    cav_main_lower = Part.makeBox(w - rail_w, k_top_start_y - rail_w, t + 2.0)
     cav_main_lower.translate(App.Vector(0.0, rail_w, -1.0))
 
-    # Upper main cavity (Y = 170 to 225mm, X = 48 to 225mm) — preserves solid inner motor enclosure wall
-    cav_main_upper = Part.makeBox(w - rail_w - 48.0 * SCALE, 55.0 * SCALE, t + 2.0)
-    cav_main_upper.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -1.0))
+    # Upper main cavity (Y = h - 70.0 to h - 15.0mm, X = 48 to W - 15mm) — preserves solid inner motor enclosure wall
+    cav_main_upper = Part.makeBox(w - rail_w - 48.0, 55.0, t + 2.0)
+    cav_main_upper.translate(App.Vector(48.0, k_top_start_y, -1.0))
 
-    # Front-Right Screw Access Pocket (X in [11.0, 48.5mm], Y in [170.0, 185.0mm], Z in [0.0, 25.0mm]) — completely clear of knuckle barrel (X <= 9.5mm)
-    cut_screw_access_right = Part.makeBox(37.5 * SCALE, 15.0 * SCALE, 25.0 * SCALE)
-    cut_screw_access_right.translate(App.Vector(11.0 * SCALE, k_top_start_y, 0.0))
+    # Front-Right Screw Access Pocket (X in [11.0, 48.5mm], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 25.0mm])
+    cut_screw_access_right = Part.makeBox(37.5, 15.0, 25.0)
+    cut_screw_access_right.translate(App.Vector(11.0, k_top_start_y, 0.0))
 
-    # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [170.0, 185.0mm], Z in [0.0, 25.0mm]) — completely clear of knuckle barrel (X >= -9.5mm)
-    cut_screw_access_left = Part.makeBox(13.5 * SCALE, 15.0 * SCALE, 25.0 * SCALE)
-    cut_screw_access_left.translate(App.Vector(-24.5 * SCALE, k_top_start_y, 0.0))
+    # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 25.0mm])
+    cut_screw_access_left = Part.makeBox(13.5, 15.0, 25.0)
+    cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, 0.0))
 
     for cav in [cav_main_lower, cav_main_upper, cradle_trough, cav_cradle_top, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Knuckle Bore
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
-    # Top knuckle bore spanning Y in [169.9, 179.0mm] (SOLID 360 degree closed cylinder barrel):
-    top_bore = Part.makeCylinder(bore_r, 9.2 * SCALE, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
+    # Top knuckle bore spanning Y in [h - 70.1, h - 60.9mm] (SOLID 360 degree closed cylinder barrel):
+    top_bore = Part.makeCylinder(bore_r, 9.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # Adapter Disk Clearance Pocket at Y in [178.5, 185.1mm] (X in [-11.0, 11.0mm], Z in [0.0, 20.0mm])
-    adapter_pocket = Part.makeBox(22.0 * SCALE, 6.6 * SCALE, 20.0 * SCALE)
-    adapter_pocket.translate(App.Vector(-11.0 * SCALE, 178.5 * SCALE, 0.0))
+    # Adapter Disk Clearance Pocket at Y in [h - 61.5, h - 54.9mm] (X in [-11.0, 11.0mm], Z in [0.0, 20.0mm])
+    adapter_pocket = Part.makeBox(22.0, 6.6, 20.0)
+    adapter_pocket.translate(App.Vector(-11.0, k_top_start_y + 8.5, 0.0))
 
-    # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor module zone Y=170-240mm)
-    trim_bot_main = Part.makeBox(w + 50.0, 170.0 * SCALE + 25.0, 20.0)
+    # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor module zone)
+    trim_bot_main = Part.makeBox(w + 50.0, k_top_start_y + 25.0, 20.0)
     trim_bot_main.translate(App.Vector(-25.0, -25.0, -20.0))
 
-    trim_bot_right = Part.makeBox(w - 48.0 * SCALE + 25.0, h - 170.0 * SCALE + 25.0, 20.0)
-    trim_bot_right.translate(App.Vector(48.0 * SCALE, 170.0 * SCALE, -20.0))
+    trim_bot_right = Part.makeBox(w - 48.0 + 25.0, 70.0 + 25.0, 20.0)
+    trim_bot_right.translate(App.Vector(48.0, k_top_start_y, -20.0))
 
     trim_under_motor = Part.makeBox(w + 50.0, h + 50.0, 20.0)
-    trim_under_motor.translate(App.Vector(-25.0, -25.0, -22.0 * SCALE))
+    trim_under_motor.translate(App.Vector(-25.0, -25.0, -22.0))
 
     for b in [bot_bore, top_bore, adapter_pocket, trim_bot_main, trim_bot_right, trim_under_motor]:
         frame = frame.cut(b).removeSplitter()
 
-    # 4. Top Drop-In Servo Bay Cavity with 2.0mm Solid Closed Base Floor (Z in [-2.0, 0.0mm]), Solid Closed Rear Wall (5.0mm thick at Y=235-240mm), and Solid Front Towers:
-    # Front gearhead pass-through pocket through towers (X in [-11.5, 32.5mm], Y in [185.0, 195.5mm], Z in [0.0, 25.0mm])
-    pocket_body = Part.makeBox(44.0 * SCALE, 10.5 * SCALE, 25.0 * SCALE)
-    pocket_body.translate(App.Vector(-11.5 * SCALE, 185.0 * SCALE, 0.0))
+    # 4. Top Drop-In Servo Bay Cavity with 2.0mm Solid Closed Base Floor (Z in [-2.0, 0.0mm]), Solid Closed Rear Wall (5.0mm thick at Y = h - 5.0 to h), and Solid Front Towers:
+    # Front gearhead pass-through pocket through towers (X in [-11.5, 32.5mm], Y in [h - 55.0, h - 44.5mm], Z in [0.0, 25.0mm])
+    pocket_body = Part.makeBox(44.0, 10.5, 25.0)
+    pocket_body.translate(App.Vector(-11.5, towers_start_y, 0.0))
 
-    # Main Top Drop-In Motor Bay (X in [-17.8, 38.5mm], Y in [195.5, 235.0mm], Z in [0.0, 25.0mm])
-    # Solid 2.0mm bottom floor preserved at Z in [-2.0, 0.0mm], solid 5.0mm back wall preserved at Y in [235.0, 240.0mm]
-    pocket_bay = Part.makeBox(56.3 * SCALE, 39.5 * SCALE, 25.0 * SCALE)
-    pocket_bay.translate(App.Vector(-17.8 * SCALE, 195.5 * SCALE, 0.0))
+    # Main Top Drop-In Motor Bay (X in [-17.8, 38.5mm], Y in [h - 44.5, h - 5.0mm], Z in [0.0, 25.0mm])
+    pocket_bay = Part.makeBox(56.3, 39.5, 25.0)
+    pocket_bay.translate(App.Vector(-17.8, bay_start_y, 0.0))
 
-    # Top Lid Seating Rebate (1.8mm depth at Z in [19.4, 21.3mm], X in [-23.8, 40.5mm], Y in [195.5, 234.8mm])
-    # Stops at Y = 234.8mm to leave a solid 5.2mm horizontal retention bar across the rear wall (Y in [234.8, 240.0mm])
-    pocket_rebate = Part.makeBox(64.3 * SCALE, 39.3 * SCALE, 2.0 * SCALE)
-    pocket_rebate.translate(App.Vector(-23.8 * SCALE, 195.5 * SCALE, 19.4 * SCALE))
+    # Top Lid Seating Rebate (1.8mm depth at Z in [19.4, 21.3mm], X in [-23.8, 40.5mm], Y in [h - 44.5, h - 5.2mm])
+    pocket_rebate = Part.makeBox(64.3, 39.3, 2.0)
+    pocket_rebate.translate(App.Vector(-23.8, bay_start_y, 19.4))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing cleanly through the solid towers along Y-axis:
-    screw_r = 1.7 * SCALE
+    screw_r = 1.7
     screw_holes = [
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(34.95 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 4.75 * SCALE), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0 * SCALE, App.Vector(-14.45 * SCALE, 184.0 * SCALE, 15.25 * SCALE), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(34.95, towers_start_y - 1.0, 4.75), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(34.95, towers_start_y - 1.0, 15.25), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, 4.75), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, 15.25), App.Vector(0, 1, 0)),
     ]
 
-    # External motor wire exit conduit through OUTER LEFT WALL at X = -24.0mm matching MG996R cable grommet (Y in [216.0, 228.0mm], Z in [3.0, 16.0mm])
-    pocket_wire_left = Part.makeBox(14.0 * SCALE, 12.0 * SCALE, 13.0 * SCALE)
-    pocket_wire_left.translate(App.Vector(-26.0 * SCALE, 216.0 * SCALE, 3.0 * SCALE))
+    # External motor wire exit conduit through OUTER LEFT WALL at X = -24.0mm matching MG996R cable grommet (Y in [h - 24.0, h - 12.0mm], Z in [3.0, 16.0mm])
+    pocket_wire_left = Part.makeBox(14.0, 12.0, 13.0)
+    pocket_wire_left.translate(App.Vector(-26.0, h - 24.0, 3.0))
 
-    # Rear Tongue Locking Slot underneath the solid horizontal retention bar (5.3mm depth at X in [-20.0, 37.0mm], Y in [234.3, 239.6mm], Z in [18.0, 20.0mm])
-    slot_rear_tongue = Part.makeBox(57.0 * SCALE, 5.3 * SCALE, 2.0 * SCALE)
-    slot_rear_tongue.translate(App.Vector(-20.0 * SCALE, 234.3 * SCALE, 18.0 * SCALE))
+    # Rear Tongue Locking Slot underneath the solid horizontal retention bar (5.3mm depth at X in [-20.0, 37.0mm], Y in [h - 5.7, h - 0.4mm], Z in [18.0, 20.0mm])
+    slot_rear_tongue = Part.makeBox(57.0, 5.3, 2.0)
+    slot_rear_tongue.translate(App.Vector(-20.0, h - 5.7, 18.0))
 
-    # Side Snap Barb Catch Undercuts in Frame Sidewalls (3.5mm deep pockets, Y in [204.0, 214.0mm])
-    # Left Side: 10mm tall vertical leg channel + 3.5mm deep barb undercut at Z in [10.5, 15.5mm]
-    chan_l = Part.makeBox(2.5 * SCALE, 10.0 * SCALE, 10.0 * SCALE)
-    chan_l.translate(App.Vector(-17.4 * SCALE, 204.0 * SCALE, 10.5 * SCALE))
-    undercut_l = Part.makeBox(3.5 * SCALE, 10.0 * SCALE, 5.0 * SCALE)
-    undercut_l.translate(App.Vector(-20.5 * SCALE, 204.0 * SCALE, 10.5 * SCALE))
+    # Side Snap Barb Catch Undercuts in Frame Sidewalls (3.5mm deep pockets, Y in [h - 36.0, h - 26.0mm])
+    chan_l = Part.makeBox(2.5, 10.0, 10.0)
+    chan_l.translate(App.Vector(-17.4, h - 36.0, 10.5))
+    undercut_l = Part.makeBox(3.5, 10.0, 5.0)
+    undercut_l.translate(App.Vector(-20.5, h - 36.0, 10.5))
     catch_snap_left = chan_l.fuse(undercut_l).removeSplitter()
 
-    # Right Side: 10mm tall vertical leg channel + 3.5mm deep barb undercut at Z in [10.5, 15.5mm]
-    chan_r = Part.makeBox(2.5 * SCALE, 10.0 * SCALE, 10.0 * SCALE)
-    chan_r.translate(App.Vector(38.0 * SCALE, 204.0 * SCALE, 10.5 * SCALE))
-    undercut_r = Part.makeBox(3.5 * SCALE, 10.0 * SCALE, 5.0 * SCALE)
-    undercut_r.translate(App.Vector(40.0 * SCALE, 204.0 * SCALE, 10.5 * SCALE))
+    chan_r = Part.makeBox(2.5, 10.0, 10.0)
+    chan_r.translate(App.Vector(38.0, h - 36.0, 10.5))
+    undercut_r = Part.makeBox(3.5, 10.0, 5.0)
+    undercut_r.translate(App.Vector(40.0, h - 36.0, 10.5))
     catch_snap_right = chan_r.fuse(undercut_r).removeSplitter()
 
     cutters = [pocket_body, pocket_bay, pocket_rebate, pocket_wire_left, slot_rear_tongue, catch_snap_left, catch_snap_right] + screw_holes

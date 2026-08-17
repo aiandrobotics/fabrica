@@ -54,8 +54,9 @@ def construct_follower_flap():
     7. 0.6mm Debossed Diamond Micro-Grip Texture for fabric traction.
     8. 100% Supportless FDM Printability.
     """
-    w = PANEL_WIDTH          # 240.0mm full module width
-    h = PANEL_HEIGHT         # 240.0mm full module length
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
     t = PADDLE_THICKNESS     # 2.4mm panel thickness
     total_z = BASE_PANEL_THICKNESS # 15.0mm (frame top rail height)
     pivot_z = PIVOT_Z        # 10.0mm

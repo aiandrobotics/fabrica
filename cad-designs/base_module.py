@@ -45,9 +45,10 @@ def construct_base_module():
     Constructs the 4-Wall Monolithic Base Chassis Module with open-bottom interior,
     garment alignment reticles, silent-flip TPU bumper slots, sliding dovetails, and anti-slip feet.
     """
-    w = PANEL_WIDTH          # 240.0mm
-    h = PANEL_HEIGHT         # 240.0mm
-    t = BASE_PANEL_THICKNESS # 15.0mm
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
+    t = params.BASE_PANEL_THICKNESS
     rail_w = 15.0 * SCALE    # 15.0mm perimeter rails on all 4 sides
     top_t = TOP_PLATE_THICKNESS # 2.4mm top deck plate
     bottom_floor = BOTTOM_FLOOR_THICKNESS # 3.0mm

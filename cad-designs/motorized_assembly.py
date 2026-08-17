@@ -46,13 +46,14 @@ def construct_servo_cad_reference():
             step_file = sp
             break
 
+    h = PANEL_HEIGHT
     raw_servo = Part.Shape()
     if step_file:
         raw_servo.read(step_file)
-        p1 = App.Placement(App.Vector(-30.25 * SCALE, -9.75 * SCALE, -14.19 * SCALE), App.Rotation(0,0,0,1))
+        p1 = App.Placement(App.Vector(-30.25, -9.75, -14.19), App.Rotation(0,0,0,1))
         r1 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(1,0,0), 90))
         r2 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(0,1,0), 180))
-        p2 = App.Placement(App.Vector(0.0, 185.0 * SCALE, PIVOT_Z), App.Rotation(0,0,0,1))
+        p2 = App.Placement(App.Vector(0.0, h - 55.0, PIVOT_Z), App.Rotation(0,0,0,1))
 
         full_placement = p2.multiply(r2).multiply(r1).multiply(p1)
         servo_solid = raw_servo.copy()
@@ -60,8 +61,8 @@ def construct_servo_cad_reference():
         return servo_solid
     else:
         # Fallback to parametric box if file missing
-        body = Part.makeBox(36.0 * SCALE, 40.5 * SCALE, 16.8 * SCALE)
-        body.translate(App.Vector(4.5 * SCALE, 192.5 * SCALE, -2.0 * SCALE))
+        body = Part.makeBox(36.0, 40.5, 16.8)
+        body.translate(App.Vector(4.5, h - 47.5, -2.0))
         return body
 
 def build_motorized_assembly():

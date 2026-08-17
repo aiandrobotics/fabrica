@@ -49,14 +49,15 @@ def construct_motorized_flap():
       4. Output Bottom End (Y=0.5mm): Standard 8.0mm female hex socket transmitting column torque via hex_drive_coupler.
       5. Full-size blade with organic circular cutouts (~45% mass reduction) and diamond micro-grip knurling matching follower_flap.
     """
-    w = PANEL_WIDTH - (1.0 * SCALE)          # 239.0mm
-    h = PANEL_HEIGHT - (2.0 * SCALE)         # 238.0mm
-    t = FLAP_THICKNESS                       # 2.4mm (Z = 15.0 to 17.4mm)
-    panel_z_min = BASE_PANEL_THICKNESS       # 15.0mm
+    import params
+    w = params.PANEL_WIDTH - (1.0 * SCALE)
+    h = params.PANEL_HEIGHT - (2.0 * SCALE)
+    t = params.PADDLE_THICKNESS
+    panel_z_min = params.BASE_PANEL_THICKNESS
     top_z = panel_z_min + t                  # 17.4mm
     pivot_z = PIVOT_Z                        # 10.0mm
     axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - (0.05 * SCALE) # 6.45mm radius (Ø12.9mm solid core)
-    axle_len = 178.5 * SCALE                 # Axle spans from Y=0.5 to Y=179.0mm
+    axle_len = h - 61.0                      # Axle spans from Y=0.5 to Y = h - 60.5mm
 
     # 1. Main full-size rectangular blade (X = 0 to 239mm, Y = 1 to 239mm, Z = 15.0 to 17.4mm)
     flap_box = Part.makeBox(w, h, t)
@@ -66,11 +67,11 @@ def construct_motorized_flap():
     cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
     cut_bot.translate(App.Vector(-0.5 * SCALE, 0.0, panel_z_min - 1.0))
 
-    cut_mid_k = Part.makeBox(14.0 * SCALE, 16.5 * SCALE, t + 2.0)
-    cut_mid_k.translate(App.Vector(-0.5 * SCALE, 169.0 * SCALE, panel_z_min - 1.0))
+    cut_mid_k = Part.makeBox(14.0, 16.5, t + 2.0)
+    cut_mid_k.translate(App.Vector(-0.5, h - 71.0, panel_z_min - 1.0))
 
-    cut_motor = Part.makeBox(49.0 * SCALE, 56.0 * SCALE, t + 10.0)
-    cut_motor.translate(App.Vector(-0.5 * SCALE, 184.8 * SCALE, panel_z_min - 1.0))
+    cut_motor = Part.makeBox(49.0, 75.0, t + 10.0)
+    cut_motor.translate(App.Vector(-0.5, h - 55.2, panel_z_min - 1.0))
 
     flap = flap_box.cut(Part.makeCompound([cut_bot, cut_mid_k, cut_motor])).removeSplitter()
 
@@ -90,18 +91,18 @@ def construct_motorized_flap():
     bevel_cuts.append(b_bot)
 
     # Top edge bevel (for X >= 49mm)
-    b_top = Part.makeBox(w - 49.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(49.0 * SCALE, h - bevel_w + 1.0 * SCALE, top_z - bevel_d))
+    b_top = Part.makeBox(w - 49.0, bevel_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(49.0, h - bevel_w + 1.0 * SCALE, top_z - bevel_d))
     bevel_cuts.append(b_top)
 
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 3. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to 179.0mm)
+    # 3. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to h - 60.5mm)
     axle_solid = Part.makeCylinder(axle_r, axle_len, App.Vector(0, 0.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Smooth Under-Flap Reinforcing Gusset (Y = 16.0 to 169.0mm) matching follower_flap.py
+    # 4. Smooth Under-Flap Reinforcing Gusset (Y = 16.0 to h - 71.0mm) matching follower_flap.py
     gusset_start_y = 16.0 * SCALE
-    gusset_len = 153.0 * SCALE
+    gusset_len = h - 71.0 - gusset_start_y
     gusset_pts = [
         App.Vector(0, gusset_start_y, pivot_z),
         App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),
@@ -114,8 +115,7 @@ def construct_motorized_flap():
     gusset_face = Part.Face(gusset_wire)
     gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
 
-    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 15.5 to 169.5mm)
-    # Smoothly blends the flat top surface of the flap (Z = 17.4mm) over the top of the axle and tangentially into the axle cylinder curve
+    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 15.5 to h - 70.5mm)
     theta_t = math.radians(135.0)
     xt = axle_r * math.cos(theta_t)
     zt = pivot_z + axle_r * math.sin(theta_t)
@@ -153,8 +153,8 @@ def construct_motorized_flap():
     flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid, bridge_solid])).removeSplitter()
 
     # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (Matching follower_flap.py)
-    socket_d = 10.5 * SCALE
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, 179.0 * SCALE + 0.1)
+    socket_d = 10.5
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, (h - 60.5) + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
     hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
 

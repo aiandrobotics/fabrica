@@ -14,6 +14,8 @@ PANEL_HEIGHT             = 238.0 * SCALE
 PANEL_THICKNESS          = 12.0 * SCALE
 FOLLOWER_PANEL_THICKNESS = 10.0 * SCALE
 BASE_PANEL_THICKNESS     = 15.0 * SCALE
+FLAP_THICKNESS           = 2.4 * SCALE
+PADDLE_THICKNESS         = 2.4 * SCALE
 
 INTERFACE_PANEL_WIDTH     = 240.0 * SCALE
 INTERFACE_PANEL_HEIGHT    = 120.0 * SCALE
@@ -61,13 +63,22 @@ HEX_COUPLER_DEPTH         = 12.0 * SCALE  # 12.0mm engagement depth for zero sli
 BEARING_ROTATING_CLEARANCE = 0.45 * SCALE  # 0.45mm radial clearance (Ø13.9mm frame knuckle bore for friction-free FDM 3D printing rotation)
 
 
-# Servo Motor Footprint (Standard MG996R PWM Servo)
-SERVO_MOUNT_WIDTH    = 40.5 * SCALE
-SERVO_MOUNT_DEPTH    = 20.0 * SCALE
-SERVO_MOUNT_HEIGHT   = 36.0 * SCALE
-SERVO_HOLE_SPACING_X = 48.0 * SCALE
-SERVO_HOLE_SPACING_Y = 10.0 * SCALE
-SERVO_SCREW_RADIUS   = 2.0 * SCALE
+# ==============================================================================
+# MG996R SERVO HARDWARE CONSTANTS (Fixed Physical Dimensions - Never Scaled)
+# ==============================================================================
+SERVO_MODULE_LENGTH    = 70.0  # Total motor module zone length along Y
+SERVO_MODULE_WIDTH     = 72.0  # Enclosure outer width (X = -24.0 to +48.0mm)
+SERVO_SPLINE_Y_OFFSET  = 55.0  # Servo spline output axis offset from frame top edge (Y = H - 55.0mm)
+SERVO_HORN_ADAPTER_DIA = 19.0  # Ø19mm flange disk for standard MG996R round horn
+SERVO_HORN_ADAPTER_LEN = 16.5  # Total adapter length (7mm flange + 9.5mm hex)
+SERVO_COVER_WIDTH      = 63.7  # Top snap lid width
+SERVO_COVER_LENGTH     = 38.8  # Top snap lid length
+SERVO_MOUNT_WIDTH      = 40.5  # MG996R body length
+SERVO_MOUNT_DEPTH      = 20.0  # MG996R body width
+SERVO_MOUNT_HEIGHT     = 38.0  # MG996R body height
+SERVO_HOLE_SPACING_X   = 48.0  # Flange mounting screw pitch
+SERVO_HOLE_SPACING_Y   = 10.0
+SERVO_SCREW_RADIUS     = 1.7   # M3 screw clearance (Ø3.4mm)
 
 # Standard 4x3 Folding Grid Assembly Layout & Inter-Module Gap
 MODULE_GAP        = 10.0 * SCALE  # 10mm fabric relief and cable raceway bridge gap

@@ -55,9 +55,10 @@ def construct_follower_frame():
     6. 3x Silent-Flip TPU Bumper Slots (1.5mm depth) recessed into the top landing rail.
     7. 0.4mm bottom Elephant's Foot relief chamfers.
     """
-    w = PANEL_WIDTH          # 240.0mm
-    h = PANEL_HEIGHT         # 240.0mm
-    t = BASE_PANEL_THICKNESS # 15.0mm
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
+    t = params.BASE_PANEL_THICKNESS
     rail_w = 15.0 * SCALE
     bottom_thick = BOTTOM_SHELL_THICKNESS
     tie_w = 14.0 * SCALE
