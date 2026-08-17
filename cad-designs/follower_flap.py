@@ -49,8 +49,8 @@ def construct_follower_flap():
     import params
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
-    t = PADDLE_THICKNESS     # 2.4mm panel thickness
-    total_z = BASE_PANEL_THICKNESS # 15.0mm (frame top rail height)
+    t = params.PADDLE_THICKNESS
+    total_z = params.BASE_PANEL_THICKNESS
     pivot_z = PIVOT_Z        # 10.0mm
     panel_z_min = total_z    # 15.0mm (rests directly on top of frame rails)
     top_z = panel_z_min + t  # 17.4mm (flush with knuckle top crown at 17.5mm)

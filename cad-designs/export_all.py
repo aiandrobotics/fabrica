@@ -34,10 +34,14 @@ def run_script(script_path):
             check=False
         )
         print(result.stdout)
-        if result.stderr:
-            print(result.stderr)
-        sys.stdout.flush()
-        if result.returncode == 0:
+        has_error = (
+            result.returncode != 0 or
+            "Exception while processing file:" in result.stdout or
+            "Traceback (most recent call last):" in result.stdout or
+            "Error:" in result.stderr or
+            "Exception:" in result.stderr
+        )
+        if not has_error:
             print(f"  [SUCCESS] {rel_path}")
             return True
         else:
