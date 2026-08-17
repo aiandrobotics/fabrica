@@ -58,7 +58,7 @@ from base_module import construct_base_module
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
 
-def construct_servo_cad_reference():
+def construct_servo_cad_reference(h=220.0):
     """Loads and positions the real MG996R STEP solid reference model in horizontal orientation."""
     step_paths = [
         os.path.join(SCRIPT_DIR, "..", "specs", "reference-images", "mg996r.step"),
@@ -73,18 +73,18 @@ def construct_servo_cad_reference():
     raw_servo = Part.Shape()
     if step_file:
         raw_servo.read(step_file)
-        p1 = App.Placement(App.Vector(-30.25 * SCALE, -9.75 * SCALE, -14.19 * SCALE), App.Rotation(0,0,0,1))
+        p1 = App.Placement(App.Vector(-30.25, -9.75, -14.19), App.Rotation(0,0,0,1))
         r1 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(1,0,0), 90))
         r2 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(0,1,0), 180))
-        p2 = App.Placement(App.Vector(0.0, 185.0 * SCALE, PIVOT_Z), App.Rotation(0,0,0,1))
+        p2 = App.Placement(App.Vector(0.0, h - 55.0, PIVOT_Z), App.Rotation(0,0,0,1))
 
         full_placement = p2.multiply(r2).multiply(r1).multiply(p1)
         servo_solid = raw_servo.copy()
         servo_solid.Placement = full_placement
         return servo_solid
     else:
-        body = Part.makeBox(36.0 * SCALE, 40.5 * SCALE, 16.8 * SCALE)
-        body.translate(App.Vector(4.5 * SCALE, 192.5 * SCALE, -2.0 * SCALE))
+        body = Part.makeBox(36.0, 40.5, 16.8)
+        body.translate(App.Vector(4.5, h - 47.5, -2.0))
         return body
 
 def build_universal_folding_robot_assembly():
@@ -93,12 +93,13 @@ def build_universal_folding_robot_assembly():
         App.closeDocument(doc_name)
     doc = App.newDocument("UniversalFoldingRobotAssembly")
 
-    w = PANEL_WIDTH          # 240.0mm
-    h = PANEL_HEIGHT         # 240.0mm
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
     gap = MODULE_GAP         # 10.0mm
-    pitch_x = w + gap        # 250.0mm
-    pitch_y = h + gap        # 250.0mm
-    bottom_thick = 3.0 * SCALE
+    pitch_x = w + gap
+    pitch_y = h + gap
+    bottom_thick = 3.0
 
     # Master parts dictionary for STEP compound export
     export_shapes = []
@@ -306,12 +307,21 @@ def build_universal_folding_robot_assembly():
     # 5. STEP and STL Export
     # ==========================================
     comp = Part.makeCompound(export_shapes)
-    step_path = os.path.join(EXPORT_DIR, "universal_folding_robot_assembly.step")
-    stl_path  = os.path.join(EXPORT_DIR, "universal_folding_robot_assembly.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
+    
+    # Primary assembly export
+    step_path = os.path.join(EXPORT_DIR, "assembly.step")
+    stl_path  = os.path.join(EXPORT_DIR, "assembly.stl")
     comp.exportStep(step_path)
     comp.exportStl(stl_path)
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
+
+    # Universal compatibility alias
+    step_alias = os.path.join(EXPORT_DIR, "universal_folding_robot_assembly.step")
+    stl_alias  = os.path.join(EXPORT_DIR, "universal_folding_robot_assembly.stl")
+    comp.exportStep(step_alias)
+    comp.exportStl(stl_alias)
+
     return doc
 
 def export_part():
