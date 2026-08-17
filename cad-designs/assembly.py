@@ -306,12 +306,6 @@ def build_universal_folding_robot_assembly():
     comp.exportStl(stl_path)
     print(f"Successfully exported {os.path.basename(step_path)} and {os.path.basename(stl_path)}")
 
-    # Universal compatibility alias
-    step_alias = os.path.join(EXPORT_DIR, "universal_folding_robot_assembly.step")
-    stl_alias  = os.path.join(EXPORT_DIR, "universal_folding_robot_assembly.stl")
-    comp.exportStep(step_alias)
-    comp.exportStl(stl_alias)
-
     return doc
 
 def export_part():
