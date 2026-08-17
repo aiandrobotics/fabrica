@@ -16,16 +16,6 @@ Kinematic Architecture:
      - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=680.0mm, Z=10.0mm)
   4. 7x Heavy-Duty Sliding Dovetail Bridge Joiners:
      - Rigidly locks the 6 modules into a monolithic 680mm x 450mm chassis.
-
-# @joint Left_Motorized_Flap.Axle -> Left_Motorized_Frame.Bore type=revolute axis=(0,1,0) center=(0,0,10)
-# @joint Left_Follower_Flap.Axle -> Left_Follower_Frame.Bore type=revolute axis=(0,1,0) center=(0,0,10)
-# @joint Left_HexCoupler -> Left_Motorized_Flap type=rigid
-# @joint Left_HexCoupler -> Left_Follower_Flap type=rigid
-# @joint Right_Motorized_Flap.Axle -> Right_Motorized_Frame.Bore type=revolute axis=(0,1,0) center=(680,0,10)
-# @joint Right_Follower_Flap.Axle -> Right_Follower_Frame.Bore type=revolute axis=(0,1,0) center=(680,0,10)
-# @joint Right_HexCoupler -> Right_Motorized_Flap type=rigid
-# @joint Right_HexCoupler -> Right_Follower_Flap type=rigid
-# @joint FrameJoiners -> Chassis_Frames type=rigid
 """
 
 import os
