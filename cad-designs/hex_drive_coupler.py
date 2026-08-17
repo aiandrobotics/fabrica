@@ -38,10 +38,10 @@ def construct_hex_drive_coupler():
     Connects adjacent flap drive shafts across column joints.
     """
     pivot_z = PIVOT_Z
-    hex_size = HEX_COUPLER_SIZE - (0.3 * SCALE)       # 7.7mm flat-to-flat
-    socket_depth = 10.5 * SCALE                       # 10.5mm hex engagement depth into flap
+    hex_size = HEX_COUPLER_SIZE - 0.3                 # 7.7mm flat-to-flat
+    socket_depth = 10.5                               # 10.5mm hex engagement depth into flap
     bridge_len = MODULE_GAP                           # 10.0mm inter-module seam gap
-    bridge_d = DRIVE_SHAFT_DIAMETER - (0.2 * SCALE)   # 12.8mm cylinder
+    bridge_d = DRIVE_SHAFT_DIAMETER - 0.2             # 12.8mm cylinder
     bridge_r = bridge_d / 2.0                         # 6.4mm
 
     # 1. 10.0mm Inter-Module Smooth Bridge Cylinder (spanning Y = -bridge_len to Y = 0.0mm)
@@ -53,7 +53,7 @@ def construct_hex_drive_coupler():
     hex_pos_peg = hex_pos_face.extrude(App.Vector(0, socket_depth, 0))
     
     # 45° Lead-in nose chamfer on +Y tip
-    c_pos = Part.makeCone(bridge_r, bridge_r - 2.0 * SCALE, 2.0 * SCALE, App.Vector(0, socket_depth, pivot_z), App.Vector(0, 1, 0))
+    c_pos = Part.makeCone(bridge_r, bridge_r - 2.0, 2.0, App.Vector(0, socket_depth, pivot_z), App.Vector(0, 1, 0))
     hex_pos_peg = hex_pos_peg.cut(c_pos).removeSplitter()
 
     # 3. -Y Hex Drive Peg (inserts into bottom flap axle hex socket at Y = -10.0mm to Y = -20.5mm)
@@ -62,7 +62,7 @@ def construct_hex_drive_coupler():
     hex_neg_peg = hex_neg_face.extrude(App.Vector(0, -socket_depth, 0))
 
     # 45° Lead-in nose chamfer on -Y tip
-    c_neg = Part.makeCone(bridge_r, bridge_r - 2.0 * SCALE, 2.0 * SCALE, App.Vector(0, -bridge_len - socket_depth, pivot_z), App.Vector(0, -1, 0))
+    c_neg = Part.makeCone(bridge_r, bridge_r - 2.0, 2.0, App.Vector(0, -bridge_len - socket_depth, pivot_z), App.Vector(0, -1, 0))
     hex_neg_peg = hex_neg_peg.cut(c_neg).removeSplitter()
 
     # Fuse into a smooth, 100% solid, compact coupler pin

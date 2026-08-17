@@ -55,27 +55,27 @@ def construct_frame_joiner():
     
     total_tip_y = gap_half + dt_depth                     # 21.85mm from center
     center_z    = dt_height / 2.0
-    c_tip       = 1.2 * SCALE                             # 1.2mm 45° nose lead-in chamfer
+    c_tip       = 1.2                                     # 1.2mm 45° nose lead-in chamfer
 
     # 1. Fully Symmetrical Double Flared Dovetail Body (XY Polygon)
     poly_pts = [
         # +Y Bridge side right & flare
         App.Vector(-bridge_w / 2.0, 0, 0),
-        App.Vector(-bridge_w / 2.0, gap_half - (2.0 * SCALE), 0),
+        App.Vector(-bridge_w / 2.0, gap_half - 2.0, 0),
         App.Vector(-neck_w / 2.0, gap_half, 0),
         App.Vector(-flare_w / 2.0, total_tip_y, 0),
         App.Vector(flare_w / 2.0, total_tip_y, 0),
         App.Vector(neck_w / 2.0, gap_half, 0),
-        App.Vector(bridge_w / 2.0, gap_half - (2.0 * SCALE), 0),
+        App.Vector(bridge_w / 2.0, gap_half - 2.0, 0),
         # Center seam right edge
         App.Vector(bridge_w / 2.0, 0, 0),
         # -Y Bridge side left & flare
-        App.Vector(bridge_w / 2.0, -gap_half + (2.0 * SCALE), 0),
+        App.Vector(bridge_w / 2.0, -gap_half + 2.0, 0),
         App.Vector(neck_w / 2.0, -gap_half, 0),
         App.Vector(flare_w / 2.0, -total_tip_y, 0),
         App.Vector(-flare_w / 2.0, -total_tip_y, 0),
         App.Vector(-neck_w / 2.0, -gap_half, 0),
-        App.Vector(-bridge_w / 2.0, -gap_half + (2.0 * SCALE), 0),
+        App.Vector(-bridge_w / 2.0, -gap_half + 2.0, 0),
         App.Vector(-bridge_w / 2.0, 0, 0),
     ]
     dovetail_wire = Part.makePolygon(poly_pts)
@@ -83,14 +83,14 @@ def construct_frame_joiner():
     joiner_solid = dovetail_face.extrude(App.Vector(0, 0, dt_height))
 
     # 2. High-Capacity Internal Wire Raceway (6.8mm x 8.6mm with 1.0mm Fillets)
-    raceway_w = 6.8 * SCALE
-    raceway_h = 8.6 * SCALE
-    raceway_d = (total_tip_y * 2.0) + (4.0 * SCALE)
+    raceway_w = 6.8
+    raceway_h = 8.6
+    raceway_d = (total_tip_y * 2.0) + 4.0
     raceway_box = Part.makeBox(
         raceway_w,
         raceway_d,
         raceway_h,
-        App.Vector(-raceway_w / 2.0, -(total_tip_y + 2.0 * SCALE), center_z - (raceway_h / 2.0))
+        App.Vector(-raceway_w / 2.0, -(total_tip_y + 2.0), center_z - (raceway_h / 2.0))
     )
     try:
         y_edges = [
@@ -98,7 +98,7 @@ def construct_frame_joiner():
             if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.ZMin - e.BoundBox.ZMax) < 0.001
         ]
         if y_edges:
-            raceway_box = raceway_box.makeFillet(1.0 * SCALE, y_edges)
+            raceway_box = raceway_box.makeFillet(1.0, y_edges)
     except Exception:
         pass
 
@@ -106,8 +106,8 @@ def construct_frame_joiner():
 
     # 3. Top & Bottom 45° Lead-in Chamfers at insertion tips
     chamfer_box_w = flare_w + 4.0
-    chamfer_box_d = 2.0 * SCALE
-    chamfer_box_h = 2.0 * SCALE
+    chamfer_box_d = 2.0
+    chamfer_box_h = 2.0
     
     # +Y Chamfers
     c_pos_top = Part.makeBox(chamfer_box_w, chamfer_box_d, chamfer_box_h)
@@ -132,7 +132,7 @@ def construct_frame_joiner():
     try:
         base_edges = [
             e for e in joiner_solid.Edges
-            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 2.0 * SCALE
+            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 2.0
         ]
         if base_edges:
             joiner_solid = joiner_solid.makeChamfer(ELEPHANTS_FOOT_CHAMFER, base_edges)

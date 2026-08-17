@@ -35,12 +35,12 @@ def build_follower_assembly():
     """
     for doc_name in list(App.listDocuments().keys()):
         App.closeDocument(doc_name)
-    doc = App.newDocument("FollowerAssembly")
-    w = PANEL_WIDTH          # 240.0mm
-    h = PANEL_HEIGHT         # 240.0mm
-    t = BASE_PANEL_THICKNESS # 15.0mm
-    rail_w = 15.0 * SCALE
-    bottom_thick = 3.0 * SCALE
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
+    t = params.BASE_PANEL_THICKNESS
+    rail_w = 15.0
+    bottom_thick = 3.0
 
     # 1. Base Follower Chassis Frame (Color: Green #2ecc71)
     frame_shape = construct_follower_frame()

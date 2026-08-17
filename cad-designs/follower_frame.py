@@ -59,19 +59,19 @@ def construct_follower_frame():
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
     t = params.BASE_PANEL_THICKNESS
-    rail_w = 15.0 * SCALE
-    bottom_thick = BOTTOM_SHELL_THICKNESS
-    tie_w = 14.0 * SCALE
-    tie_h = 3.0 * SCALE
-    tie_x = 11.0 * SCALE
+    rail_w = 15.0
+    bottom_thick = 3.0
+    tie_w = 14.0
+    tie_h = 3.0
+    tie_x = 11.0
     center_x = tie_x + (tie_w / 2.0) # 18.0mm
-    y_seam = h / 2.0                 # 120.0mm
+    y_seam = h / 2.0                 # h/2
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
 
-    # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps (Y = 0 to 15mm and Y = 225 to 240mm)
-    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + (3.0 * SCALE)  # 9.5mm radius (Ø19.0mm outer barrel)
+    # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps (Y = 0 to 15mm and Y = h-15 to h mm)
+    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0  # 9.5mm radius (Ø19.0mm outer barrel)
     knuckle_len = rail_w
     pivot_z = PIVOT_Z  # Axle center (10.0mm above tabletop for 100% flat bottom across all frames)
     
@@ -81,7 +81,7 @@ def construct_follower_frame():
     k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
 
     # Smooth C1-Continuous Tangent Concave Blend Ramp (flows directly from Ø19mm cylinder to Z = 15.0mm frame top deck)
-    rf = 12.0 * SCALE  # 12.0mm concave blend radius
+    rf = 12.0  # 12.0mm concave blend radius
     xc = math.sqrt((knuckle_r + rf)**2 - (t - pivot_z + rf)**2) # ~10.06mm
     zc = t + rf                                                 # 27.0mm
     touch_theta = math.atan2(zc - pivot_z, xc)
@@ -107,19 +107,19 @@ def construct_follower_frame():
     ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
     ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
 
-    # 2b. Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, 225mm])
+    # 2b. Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, h-15mm])
     cradle_outer_cyl = Part.makeCylinder(knuckle_r, h - 2 * knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
 
     frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, cradle_outer_cyl, ramp_bot, ramp_top])).removeSplitter()
 
     # 3. Open Interior Cavities & Axial Cradle (Clean straight vertical wall from cradle apex at X=0.0mm)
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.75mm radius (Ø13.5mm)
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.95mm radius (Ø13.9mm)
 
-    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.75mm centered at X=0, Z=10mm)
+    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r centered at X=0, Z=10mm)
     cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
     # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
-    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, h - 2 * knuckle_len, 20.0 * SCALE)
+    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, h - 2 * knuckle_len, 20.0)
     cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
 
     # C. Main Center Cavity (Straight rectangular window starting right at X=0.0mm):
@@ -155,7 +155,7 @@ def construct_follower_frame():
     dt_cutter.translate(App.Vector(0, 0, bottom_thick))
 
     # Master bottom push-out finger access hole (Ø6.0mm through bottom floor: Z = -0.5 to Z = bottom_thick + 0.5)
-    push_hole = Part.makeCylinder(3.0 * SCALE, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
+    push_hole = Part.makeCylinder(3.0, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
     dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
     dt_cutters = []
@@ -176,14 +176,14 @@ def construct_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 5. Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = 120.0mm
-    dt_lk_neck = 3.5 * SCALE
-    dt_lk_flare = 7.0 * SCALE
-    dt_lk_depth = 7.0 * SCALE
-    gap = 0.35 * SCALE  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
+    # 5. Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = h / 2.0
+    dt_lk_neck = 3.5
+    dt_lk_flare = 7.0
+    dt_lk_depth = 7.0
+    gap = 0.35  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
 
-    x_left = -knuckle_r - 1.0 * SCALE
-    x_right = 1.0 * SCALE
+    x_left = -knuckle_r - 1.0
+    x_right = 1.0
     center_x = (x_left + x_right) / 2.0
 
     dt4_poly_pts = [
@@ -212,13 +212,13 @@ def construct_follower_frame():
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
     # 7. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
-    foot_r = 6.0 * SCALE
-    foot_d = 2.0 * SCALE
+    foot_r = 6.0
+    foot_d = 2.0
     foot_locs = [
         (w - (rail_w / 2.0), rail_w / 2.0),          # Bottom Right
         (w - (rail_w / 2.0), h - (rail_w / 2.0)),      # Top Right
-        (25.0 * SCALE, rail_w / 2.0),                  # Bottom Left (along front rail)
-        (25.0 * SCALE, h - (rail_w / 2.0)),            # Top Left (along back rail)
+        (25.0, rail_w / 2.0),                          # Bottom Left (along front rail)
+        (25.0, h - (rail_w / 2.0)),                    # Top Left (along back rail)
     ]
     foot_cutters = [
         Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
@@ -228,8 +228,8 @@ def construct_follower_frame():
 
     # 8. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into top landing rail at X = w - rail_w/2)
     tpu_cutters = []
-    tpu_w = 5.0 * SCALE
-    tpu_l = 14.0 * SCALE
+    tpu_w = 5.0
+    tpu_l = 14.0
     tpu_h = TPU_BUMPER_DEPTH # 1.5mm
     for py in [h * 0.25, h * 0.75]:
         b = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)
@@ -242,7 +242,7 @@ def construct_follower_frame():
     try:
         base_edges = [
             e for e in frame.Edges
-            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 10.0 * SCALE
+            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 10.0
         ]
         if base_edges:
             frame = frame.makeChamfer(ELEPHANTS_FOOT_CHAMFER, base_edges)

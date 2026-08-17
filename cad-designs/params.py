@@ -13,58 +13,58 @@ SCALE_180     = 180.0 / 256.0
 # Profile 1 (Default): 256mm Build Plate -> 220mm True Squares (Max part: 244mm <= 245mm)
 # Profile 2 (Compact): 180mm Build Plate -> 145mm True Squares (Max part: 169mm <= 170mm)
 # ==============================================================================
-PANEL_WIDTH              = 220.0 * SCALE  # 220mm True Square
-PANEL_HEIGHT             = 220.0 * SCALE  # 220mm True Square
-PANEL_THICKNESS          = 12.0 * SCALE
-FOLLOWER_PANEL_THICKNESS = 10.0 * SCALE
-BASE_PANEL_THICKNESS     = 15.0 * SCALE
-FLAP_THICKNESS           = 2.4 * SCALE
-PADDLE_THICKNESS         = 2.4 * SCALE
+PANEL_WIDTH              = 220.0  # 220mm True Square
+PANEL_HEIGHT             = 220.0  # 220mm True Square
+PANEL_THICKNESS          = 12.0
+FOLLOWER_PANEL_THICKNESS = 10.0
+BASE_PANEL_THICKNESS     = 15.0
+FLAP_THICKNESS           = 2.4
+PADDLE_THICKNESS         = 2.4
 
-INTERFACE_PANEL_WIDTH     = 240.0 * SCALE
-INTERFACE_PANEL_HEIGHT    = 120.0 * SCALE
-INTERFACE_PANEL_THICKNESS = 25.0 * SCALE
+INTERFACE_PANEL_WIDTH     = 240.0
+INTERFACE_PANEL_HEIGHT    = 120.0
+INTERFACE_PANEL_THICKNESS = 25.0
 
-# FDM Clearances, Tolerances & Walls
-FIT_CLEARANCE           = 0.4 * SCALE
-PRESS_FIT_CLEARANCE     = 0.2 * SCALE
-THREAD_CLEARANCE        = 0.6 * SCALE
-WALL_THICKNESS          = 3.0 * SCALE
-COSMETIC_WALL_THICKNESS = 2.0 * SCALE
+# FDM Clearances, Tolerances & Walls (Fixed mm for 0.4mm nozzle FDM printing)
+FIT_CLEARANCE           = 0.40
+PRESS_FIT_CLEARANCE     = 0.20
+THREAD_CLEARANCE        = 0.60
+WALL_THICKNESS          = 3.00
+COSMETIC_WALL_THICKNESS = 2.00
 
 # Aesthetics & Printability Parameters
-TEXTURE_HEIGHT         = 0.6 * SCALE
-HOLE_CHAMFER           = 0.8 * SCALE
-ELEPHANTS_FOOT_CHAMFER = 0.4 * SCALE
+TEXTURE_HEIGHT         = 0.60
+HOLE_CHAMFER           = 0.80
+ELEPHANTS_FOOT_CHAMFER = 0.40
 CONTROL_DECK_ANGLE     = 15.0
-ACCENT_BEVEL_DEPTH     = 1.2 * SCALE
+ACCENT_BEVEL_DEPTH     = 1.20
 
 # TPU Dampers, Alignment Reticles & Power Port
-TPU_BUMPER_DEPTH     = 1.5 * SCALE
-RETICLE_DEBOSS_DEPTH = 0.4 * SCALE
-DC_JACK_DIAMETER     = 11.5 * SCALE
+TPU_BUMPER_DEPTH     = 1.50
+RETICLE_DEBOSS_DEPTH = 0.40
+DC_JACK_DIAMETER     = 11.50
 
 # Base Module & Joiner Optimizations (True Sliding Dovetail System)
-FOOT_PAD_DIA      = 20.1 * SCALE
-FOOT_PAD_DEPTH    = 2.0 * SCALE
-JOINER_DETENT     = 0.3 * SCALE
-WIRE_PORT_FILLET  = 1.5 * SCALE
+FOOT_PAD_DIA      = 20.10
+FOOT_PAD_DEPTH    = 2.00
+JOINER_DETENT     = 0.30
+WIRE_PORT_FILLET  = 1.50
 
-# True Sliding Dovetail Geometry (Top-Slide Drop-In Lock)
-DOVETAIL_FLOOR_THICKNESS = 3.0 * SCALE  # 3.0mm bottom floor drop stop
-DOVETAIL_NECK_WIDTH      = 12.0 * SCALE  # Width at frame seam
-DOVETAIL_FLARE_WIDTH     = 18.0 * SCALE  # Flared width inside pocket (locks horizontally)
-DOVETAIL_DEPTH           = 12.0 * SCALE  # 12mm deep insertion into frame for high moment stiffness
-DOVETAIL_CLEARANCE       = 0.20 * SCALE  # 0.20mm sliding tolerance per side (0.40mm total clearance for smooth FDM assembly)
+# True Sliding Dovetail Geometry (Top-Slide Drop-In Lock - Fixed Universal Hardware)
+DOVETAIL_FLOOR_THICKNESS = 3.00  # 3.0mm bottom floor drop stop
+DOVETAIL_NECK_WIDTH      = 12.00 # Width at frame seam
+DOVETAIL_FLARE_WIDTH     = 18.00 # Flared width inside pocket (locks horizontally)
+DOVETAIL_DEPTH           = 12.00 # 12mm deep insertion into frame for high moment stiffness
+DOVETAIL_CLEARANCE       = 0.20  # 0.20mm sliding tolerance per side (0.40mm total clearance for smooth FDM assembly)
 DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
-# Heavy-Duty Drive Axle & Hex Torque Coupler (Column Synchronous Folding)
-PIVOT_Z                   = 10.0 * SCALE  # Axle & Hinge Pivot Center (10.0mm above tabletop for 100% flat bottom across all frames)
-DRIVE_SHAFT_DIAMETER      = 13.0 * SCALE  # Ø13mm outer axle diameter (3.5mm ground clearance & 100% flush tabletop)
-DRIVE_SHAFT_BORE          = 8.0 * SCALE   # Ø8mm inner weight-relief bore
-HEX_COUPLER_SIZE          = 8.0 * SCALE   # 8.0mm Flat-to-Flat standard hex drive interface
-HEX_COUPLER_DEPTH         = 12.0 * SCALE  # 12.0mm engagement depth for zero slip under 35kg-cm servo load
-BEARING_ROTATING_CLEARANCE = 0.45 * SCALE  # 0.45mm radial clearance (Ø13.9mm frame knuckle bore for friction-free FDM 3D printing rotation)
+# Heavy-Duty Drive Axle & Hex Torque Coupler (Column Synchronous Folding - Fixed Universal Hardware)
+PIVOT_Z                   = 10.00 # Axle & Hinge Pivot Center (10.0mm above tabletop for 100% flat bottom across all frames)
+DRIVE_SHAFT_DIAMETER      = 13.00 # Ø13mm outer axle diameter (3.5mm ground clearance & 100% flush tabletop)
+DRIVE_SHAFT_BORE          = 8.00  # Ø8mm inner weight-relief bore
+HEX_COUPLER_SIZE          = 8.00  # 8.0mm Flat-to-Flat standard hex drive interface
+HEX_COUPLER_DEPTH         = 12.00 # 12.0mm engagement depth for zero slip under 35kg-cm servo load
+BEARING_ROTATING_CLEARANCE = 0.45  # 0.45mm radial clearance (Ø13.9mm frame knuckle bore for friction-free FDM 3D printing rotation)
 
 
 # ==============================================================================

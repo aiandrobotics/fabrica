@@ -37,8 +37,8 @@ from params import (
     EXPORT_DIR,
 )
 
-TOP_PLATE_THICKNESS = 2.4 * SCALE
-BOTTOM_FLOOR_THICKNESS = 3.0 * SCALE
+TOP_PLATE_THICKNESS = 2.4
+BOTTOM_FLOOR_THICKNESS = 3.0
 
 def construct_base_module():
     """
@@ -49,16 +49,16 @@ def construct_base_module():
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
     t = params.BASE_PANEL_THICKNESS
-    rail_w = 15.0 * SCALE    # 15.0mm perimeter rails on all 4 sides
+    rail_w = 15.0            # 15.0mm perimeter rails on all 4 sides
     top_t = TOP_PLATE_THICKNESS # 2.4mm top deck plate
     bottom_floor = BOTTOM_FLOOR_THICKNESS # 3.0mm
 
-    # 1. Main outer solid box (240 x 240 x 15mm)
+    # 1. Main outer solid box (w x h x 15mm)
     base_box = Part.makeBox(w, h, t, App.Vector(0, 0, 0))
 
     # 2. Open-Bottom 4-Wall Cavity (leaves 15mm perimeter rails and 2.4mm top deck plate)
-    cavity_w = w - (2.0 * rail_w) # 210mm
-    cavity_h = h - (2.0 * rail_w) # 210mm
+    cavity_w = w - (2.0 * rail_w)
+    cavity_h = h - (2.0 * rail_w)
     cavity_z = t - top_t          # 12.6mm (Z = 0 to 12.6mm)
     cavity = Part.makeBox(cavity_w, cavity_h, cavity_z + 0.1, App.Vector(rail_w, rail_w, -0.1))
     main_shell = base_box.cut(cavity).removeSplitter()
@@ -95,8 +95,8 @@ def construct_base_module():
 
     # 5. 0.6mm Diamond Micro-Grip Surface Texture
     tex_cutters = []
-    tex_spacing = 14.0 * SCALE
-    tex_w = 0.8 * SCALE
+    tex_spacing = 14.0
+    tex_w = 0.8
     tex_d = TEXTURE_HEIGHT
     
     for i in range(-int(w), int(w + h), int(tex_spacing)):
@@ -109,8 +109,8 @@ def construct_base_module():
         tex_cutters.extend([g1, g2])
 
     if tex_cutters:
-        tex_bound = Part.makeBox(w - 2 * 3.0 * SCALE, h - 2 * 3.0 * SCALE, top_t + 2.0)
-        tex_bound.translate(App.Vector(3.0 * SCALE, 3.0 * SCALE, panel_z_min - 1.0))
+        tex_bound = Part.makeBox(w - 2 * 3.0, h - 2 * 3.0, top_t + 2.0)
+        tex_bound.translate(App.Vector(3.0, 3.0, panel_z_min - 1.0))
         tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
         main_shell = main_shell.cut(tex_compound).removeSplitter()
 
@@ -133,7 +133,7 @@ def construct_base_module():
     dt_cutter.translate(App.Vector(0, 0, bottom_floor))
 
     # Master bottom push-out finger access hole (Ø6.0mm through bottom floor)
-    push_hole = Part.makeCylinder(3.0 * SCALE, bottom_floor + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
+    push_hole = Part.makeCylinder(3.0, bottom_floor + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
     dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
     dovetail_cuts = []
@@ -162,21 +162,21 @@ def construct_base_module():
 
     # Internal Wire Pass-Through Ports (Routing cables from dovetail joiners into central cavity)
     wire_ports = [
-        Part.makeBox(12.0 * SCALE, rail_w + 2.0, 7.0 * SCALE), # Front Y=0
-        Part.makeBox(12.0 * SCALE, rail_w + 2.0, 7.0 * SCALE), # Back Y=H
-        Part.makeBox(rail_w + 2.0, 12.0 * SCALE, 7.0 * SCALE), # Left X=0
-        Part.makeBox(rail_w + 2.0, 12.0 * SCALE, 7.0 * SCALE), # Right X=W
+        Part.makeBox(12.0, rail_w + 2.0, 7.0), # Front Y=0
+        Part.makeBox(12.0, rail_w + 2.0, 7.0), # Back Y=H
+        Part.makeBox(rail_w + 2.0, 12.0, 7.0), # Left X=0
+        Part.makeBox(rail_w + 2.0, 12.0, 7.0), # Right X=W
     ]
-    wire_ports[0].translate(App.Vector(w / 2.0 - 6.0 * SCALE, -1.0, bottom_floor))
-    wire_ports[1].translate(App.Vector(w / 2.0 - 6.0 * SCALE, h - rail_w - 1.0, bottom_floor))
-    wire_ports[2].translate(App.Vector(-1.0, h / 2.0 - 6.0 * SCALE, bottom_floor))
-    wire_ports[3].translate(App.Vector(w - rail_w - 1.0, h / 2.0 - 6.0 * SCALE, bottom_floor))
+    wire_ports[0].translate(App.Vector(w / 2.0 - 6.0, -1.0, bottom_floor))
+    wire_ports[1].translate(App.Vector(w / 2.0 - 6.0, h - rail_w - 1.0, bottom_floor))
+    wire_ports[2].translate(App.Vector(-1.0, h / 2.0 - 6.0, bottom_floor))
+    wire_ports[3].translate(App.Vector(w - rail_w - 1.0, h / 2.0 - 6.0, bottom_floor))
 
     main_shell = main_shell.cut(Part.makeCompound(dovetail_cuts + wire_ports)).removeSplitter()
 
     # 8. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of outer rails for Ø12mm x 2.0mm rubber feet)
-    foot_r = 6.0 * SCALE
-    foot_d = 2.0 * SCALE
+    foot_r = 6.0
+    foot_d = 2.0
     foot_locs = [
         (rail_w / 2.0, rail_w / 2.0),
         (w - rail_w / 2.0, rail_w / 2.0),
@@ -193,7 +193,7 @@ def construct_base_module():
     try:
         base_edges = [
             e for e in main_shell.Edges
-            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 10.0 * SCALE
+            if abs(e.BoundBox.ZMin) < 0.001 and abs(e.BoundBox.ZMax) < 0.001 and e.Length > 10.0
         ]
         if base_edges:
             main_shell = main_shell.makeChamfer(ELEPHANTS_FOOT_CHAMFER, base_edges)

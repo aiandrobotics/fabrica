@@ -80,10 +80,11 @@ def build_motorized_assembly():
         App.closeDocument(doc_name)
     doc = App.newDocument("MotorizedAssembly")
 
-    w = PANEL_WIDTH          # 240.0mm
-    h = PANEL_HEIGHT         # 240.0mm
-    t = BASE_PANEL_THICKNESS # 15.0mm
-    bottom_thick = 3.0 * SCALE
+    import params
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
+    t = params.BASE_PANEL_THICKNESS
+    bottom_thick = 3.0
 
     # 1. Base Motorized Chassis Frame
     frame_shape = construct_motorized_frame()

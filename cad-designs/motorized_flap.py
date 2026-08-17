@@ -50,22 +50,22 @@ def construct_motorized_flap():
       5. Full-size blade with organic circular cutouts (~45% mass reduction) and diamond micro-grip knurling matching follower_flap.
     """
     import params
-    w = params.PANEL_WIDTH - (1.0 * SCALE)
-    h = params.PANEL_HEIGHT - (2.0 * SCALE)
+    w = params.PANEL_WIDTH - 1.0
+    h = params.PANEL_HEIGHT - 2.0
     t = params.PADDLE_THICKNESS
     panel_z_min = params.BASE_PANEL_THICKNESS
     top_z = panel_z_min + t                  # 17.4mm
     pivot_z = PIVOT_Z                        # 10.0mm
-    axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - (0.05 * SCALE) # 6.45mm radius (Ø12.9mm solid core)
+    axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - 0.05 # 6.45mm radius (Ø12.9mm solid core)
     axle_len = h - 61.0                      # Axle spans from Y=0.5 to Y = h - 60.5mm
 
-    # 1. Main full-size rectangular blade (X = 0 to 239mm, Y = 1 to 239mm, Z = 15.0 to 17.4mm)
+    # 1. Main full-size rectangular blade (X = 0 to w, Y = 1 to h+1, Z = 15.0 to 17.4mm)
     flap_box = Part.makeBox(w, h, t)
-    flap_box.translate(App.Vector(0, 1.0 * SCALE, panel_z_min))
+    flap_box.translate(App.Vector(0, 1.0, panel_z_min))
 
     # Knuckle and Motor Corner Relief Cutouts (1.0mm axial gap from 360 circle knuckle and tower)
-    cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
-    cut_bot.translate(App.Vector(-0.5 * SCALE, 0.0, panel_z_min - 1.0))
+    cut_bot = Part.makeBox(14.0, 16.0, t + 2.0)
+    cut_bot.translate(App.Vector(-0.5, 0.0, panel_z_min - 1.0))
 
     cut_mid_k = Part.makeBox(14.0, 16.5, t + 2.0)
     cut_mid_k.translate(App.Vector(-0.5, h - 71.0, panel_z_min - 1.0))
@@ -77,37 +77,37 @@ def construct_motorized_flap():
 
     # 2. Perimeter Accent Shadow Bevel (1.2mm depth, 4.0mm width on outer free edges)
     bevel_d = ACCENT_BEVEL_DEPTH             # 1.2mm
-    bevel_w = 4.0 * SCALE                    # 4.0mm
+    bevel_w = 4.0                            # 4.0mm
     bevel_cuts = []
 
     # Right edge bevel
-    b_right = Part.makeBox(bevel_w + 0.1, h + 2.0 * SCALE, bevel_d + 0.1)
+    b_right = Part.makeBox(bevel_w + 0.1, h + 2.0, bevel_d + 0.1)
     b_right.translate(App.Vector(w - bevel_w, 0.0, top_z - bevel_d))
     bevel_cuts.append(b_right)
 
     # Bottom edge bevel (for X >= 14mm)
-    b_bot = Part.makeBox(w - 14.0 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(14.0 * SCALE, 0.0, top_z - bevel_d))
+    b_bot = Part.makeBox(w - 14.0, bevel_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(14.0, 0.0, top_z - bevel_d))
     bevel_cuts.append(b_bot)
 
     # Top edge bevel (for X >= 49mm)
     b_top = Part.makeBox(w - 49.0, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(49.0, h - bevel_w + 1.0 * SCALE, top_z - bevel_d))
+    b_top.translate(App.Vector(49.0, h - bevel_w + 1.0, top_z - bevel_d))
     bevel_cuts.append(b_top)
 
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
     # 3. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to h - 60.5mm)
-    axle_solid = Part.makeCylinder(axle_r, axle_len, App.Vector(0, 0.5 * SCALE, pivot_z), App.Vector(0, 1, 0))
+    axle_solid = Part.makeCylinder(axle_r, axle_len, App.Vector(0, 0.5, pivot_z), App.Vector(0, 1, 0))
 
     # 4. Smooth Under-Flap Reinforcing Gusset (Y = 16.0 to h - 71.0mm) matching follower_flap.py
-    gusset_start_y = 16.0 * SCALE
+    gusset_start_y = 16.0
     gusset_len = h - 71.0 - gusset_start_y
     gusset_pts = [
         App.Vector(0, gusset_start_y, pivot_z),
-        App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),
-        App.Vector(6.5 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE),
-        App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),
+        App.Vector(3.25, gusset_start_y, pivot_z - 3.0),
+        App.Vector(6.5, gusset_start_y, pivot_z - 1.0),
+        App.Vector(14.0, gusset_start_y, panel_z_min),
         App.Vector(0, gusset_start_y, panel_z_min),
         App.Vector(0, gusset_start_y, pivot_z),
     ]
@@ -115,13 +115,13 @@ def construct_motorized_flap():
     gusset_face = Part.Face(gusset_wire)
     gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
 
-    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 15.5 to h - 70.5mm)
+    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 16.0 to h - 70.5mm)
     theta_t = math.radians(135.0)
     xt = axle_r * math.cos(theta_t)
     zt = pivot_z + axle_r * math.sin(theta_t)
-    xs = 4.0 * SCALE
+    xs = 4.0
     zs = top_z
-    scale_t = 6.0 * SCALE
+    scale_t = 6.0
     ts_x = -scale_t
     ts_z = 0.0
     tt_x = -scale_t * math.sin(theta_t)
@@ -152,17 +152,17 @@ def construct_motorized_flap():
     # Fuse flap blade with axle, smooth under-flap gusset, and smooth top transition bridge
     flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid, bridge_solid])).removeSplitter()
 
-    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (Matching follower_flap.py)
+    # 5. Output Female Hex Sockets (Bottom: Y=0.5mm, Top: Y = h - 60.5mm)
     socket_d = 10.5
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, (h - 60.5) + 0.1)
-    hex_socket_top_face = Part.Face(hex_socket_top_wire)
-    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
-
-    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, -0.1)
+    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, 0.4)
     hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
     hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
 
-    flap = flap.cut(Part.makeCompound([hex_socket_top_cutter, hex_socket_bot_cutter])).removeSplitter()
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, h - 60.4)
+    hex_socket_top_face = Part.Face(hex_socket_top_wire)
+    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
+
+    flap = flap.cut(Part.makeCompound([hex_socket_bot_cutter, hex_socket_top_cutter])).removeSplitter()
 
     # 6. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction) matching follower_flap
     scale_geo = min(w, h) / 220.0
@@ -200,8 +200,8 @@ def construct_motorized_flap():
 
     # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture (Dual 45° cross-hatch matching follower_flap)
     tex_cutters = []
-    tex_spacing = 14.0 * SCALE
-    tex_w = 0.8 * SCALE
+    tex_spacing = 14.0
+    tex_w = 0.8
     tex_d = TEXTURE_HEIGHT                   # 0.6mm
     
     for i in range(-int(w), int(w + h), int(tex_spacing)):

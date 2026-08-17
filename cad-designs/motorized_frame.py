@@ -58,13 +58,12 @@ def construct_motorized_frame():
     w = params.PANEL_WIDTH
     h = params.PANEL_HEIGHT
     t = params.BASE_PANEL_THICKNESS
-    rail_w = 15.0 * SCALE
-    bottom_thick = 3.0 * SCALE
+    rail_w = 15.0
+    bottom_thick = 3.0
     pivot_z = PIVOT_Z        # 10.0mm
 
-    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0 * SCALE # 9.5mm radius
-    knuckle_len = 15.0 * SCALE
-    k_top_len = 15.0 * SCALE
+    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0 # 9.5mm radius
+    knuckle_len = 15.0
     # MG996R Motor Module Fixed Hardware Zone (anchored at top edge Y = h):
     # Total motor module length = 70.0mm (never scaled, fits physical MG996R servo)
     k_top_start_y = h - 70.0
@@ -74,9 +73,9 @@ def construct_motorized_frame():
     bay_start_y = h - 44.5 # Motor bay spans Y in [h - 44.5, h]
     bay_len = 44.5
 
-    tie_x = 11.0 * SCALE
-    tie_w = 14.0 * SCALE
-    tie_h = 3.0 * SCALE
+    tie_x = 11.0
+    tie_w = 14.0
+    tie_h = 3.0
 
     # 1. Base 4-Wall Perimeter Frame
     outer_box = Part.makeBox(w, h, t)
@@ -86,7 +85,7 @@ def construct_motorized_frame():
     k_top = Part.makeCylinder(knuckle_r, k_top_len, App.Vector(0, k_top_start_y, pivot_z), App.Vector(0, 1, 0))
 
     # C1 Fillet Blend Ramps (Rf = 12.0mm)
-    rf = 12.0 * SCALE
+    rf = 12.0
     xc = math.sqrt((knuckle_r + rf)**2 - (t - pivot_z + rf)**2)
     zc = t + rf
     touch_theta = math.atan2(zc - pivot_z, xc)
@@ -254,7 +253,7 @@ def construct_motorized_frame():
     dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_cut_h))
     dt_cutter.translate(App.Vector(0, 0, bottom_thick))
 
-    push_hole = Part.makeCylinder(3.0 * SCALE, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
+    push_hole = Part.makeCylinder(3.0, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
     dt_cutter_with_hole = dt_cutter.fuse(push_hole)
 
     # Front Wall (Y=0) -> cuts into +Y
@@ -266,15 +265,15 @@ def construct_motorized_frame():
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
 
-    # Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = 120.0mm
-    dt_lk_neck = 3.5 * SCALE
-    dt_lk_flare = 7.0 * SCALE
-    dt_lk_depth = 7.0 * SCALE
-    gap = 0.35 * SCALE  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
-    x_left = -knuckle_r - 1.0 * SCALE
-    x_right = 1.0 * SCALE
+    # Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = h / 2.0
+    dt_lk_neck = 3.5
+    dt_lk_flare = 7.0
+    dt_lk_depth = 7.0
+    gap = 0.35  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
+    x_left = -knuckle_r - 1.0
+    x_right = 1.0
     center_x = (x_left + x_right) / 2.0
-    y_seam = h / 2.0  # 120.0mm
+    y_seam = h / 2.0
 
     dt4_poly_pts = [
         App.Vector(x_right, y_seam + gap, 0),
@@ -298,13 +297,13 @@ def construct_motorized_frame():
         frame = frame.cut(dt).removeSplitter()
 
     # 6. Anti-Slip Rubber Foot Sockets on Standard Frame Rails (Ø12mm x 2.0mm)
-    foot_r = 6.0 * SCALE
-    foot_d = 2.0 * SCALE
+    foot_r = 6.0
+    foot_d = 2.0
     foot_locs = [
         (w - (rail_w / 2.0), rail_w / 2.0),                # Bottom Right
         (w - (rail_w / 2.0), h - (rail_w / 2.0)),          # Top Right
-        (25.0 * SCALE, rail_w / 2.0),                      # Bottom Left
-        (55.0 * SCALE, h - (rail_w / 2.0)),                # Top Rail (clears motor housing, under main frame)
+        (25.0, rail_w / 2.0),                              # Bottom Left
+        (55.0, h - (rail_w / 2.0)),                        # Top Rail (clears motor housing, under main frame)
     ]
     for fx, fy in foot_locs:
         fc = Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
@@ -312,8 +311,8 @@ def construct_motorized_frame():
 
     # 7. Silent-Flip TPU Landing Bumper Slots (recessed into right landing rail at X = w - rail_w/2)
     tpu_cutters = []
-    tpu_w = 5.0 * SCALE
-    tpu_l = 14.0 * SCALE
+    tpu_w = 5.0
+    tpu_l = 14.0
     tpu_h = TPU_BUMPER_DEPTH # 1.5mm
     for py in [h * 0.25, h * 0.75]:
         b = Part.makeBox(tpu_w, tpu_l, tpu_h + 0.1)

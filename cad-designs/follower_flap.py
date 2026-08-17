@@ -67,18 +67,18 @@ def construct_follower_flap():
     flap_box = Part.makeBox(w, h, t)
     flap_box.translate(App.Vector(0, 0, panel_z_min))
 
-    # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= 224.0mm) knuckle barrels (1.0mm axial gap)
-    cut_bot = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
-    cut_bot.translate(App.Vector(-0.5 * SCALE, -0.5 * SCALE, panel_z_min - 0.5))
+    # Knuckle clearance corner cutouts for bottom (Y <= 16.0mm) and top (Y >= h - 16.0mm) knuckle barrels (1.0mm axial gap)
+    cut_bot = Part.makeBox(14.0, 16.0, t + 2.0)
+    cut_bot.translate(App.Vector(-0.5, -0.5, panel_z_min - 0.5))
 
-    cut_top = Part.makeBox(14.0 * SCALE, 16.0 * SCALE, t + 2.0)
-    cut_top.translate(App.Vector(-0.5 * SCALE, h - 16.0 * SCALE, panel_z_min - 0.5))
+    cut_top = Part.makeBox(14.0, 16.0, t + 2.0)
+    cut_top.translate(App.Vector(-0.5, h - 16.0, panel_z_min - 0.5))
 
     flap = flap_box.cut(Part.makeCompound([cut_bot, cut_top])).removeSplitter()
 
     # 2. Dual-Tone Perimeter Shadow Bevel (1.2mm depth on 3 outer free edges: Right X=w, Top Y=h, Bottom Y=0)
     bevel_d = ACCENT_BEVEL_DEPTH  # 1.2mm
-    bevel_w = 3.0 * SCALE
+    bevel_w = 3.0
     
     bevel_cuts = []
     # Right edge bevel
@@ -87,29 +87,29 @@ def construct_follower_flap():
     bevel_cuts.append(b_right)
     
     # Bottom edge bevel (for X >= 12mm)
-    b_bot = Part.makeBox(w - 11.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(11.5 * SCALE, -0.1, top_z - bevel_d))
+    b_bot = Part.makeBox(w - 11.5, bevel_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(11.5, -0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
     
     # Top edge bevel (for X >= 12mm)
-    b_top = Part.makeBox(w - 11.5 * SCALE, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(11.5 * SCALE, h - bevel_w, top_z - bevel_d))
+    b_top = Part.makeBox(w - 11.5, bevel_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(11.5, h - bevel_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
     
     flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 3. Continuous Full-Length Solid Drive Axle (Full 240mm: Y = 0.0 to 240.0mm)
+    # 3. Continuous Full-Length Solid Drive Axle (Full module length: Y = 0.0 to h)
     shaft_r = DRIVE_SHAFT_DIAMETER / 2.0  # 6.5mm (Ø13.0mm in Ø13.9mm knuckle bores)
     axle_solid = Part.makeCylinder(shaft_r, h, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
 
-    # 4. Under-Flap Structural Reinforcing Gusset (Y = 16.0mm to 224.0mm between knuckles)
-    gusset_start_y = 16.0 * SCALE
-    gusset_len = h - (32.0 * SCALE) # 208.0mm
+    # 4. Under-Flap Structural Reinforcing Gusset (Y = 16.0mm to h - 16.0mm between knuckles)
+    gusset_start_y = 16.0
+    gusset_len = h - 32.0
     gusset_pts = [
         App.Vector(0, gusset_start_y, pivot_z),
-        App.Vector(3.25 * SCALE, gusset_start_y, pivot_z - 3.0 * SCALE),
-        App.Vector(6.5 * SCALE, gusset_start_y, pivot_z - 1.0 * SCALE),
-        App.Vector(14.0 * SCALE, gusset_start_y, panel_z_min),
+        App.Vector(3.25, gusset_start_y, pivot_z - 3.0),
+        App.Vector(6.5, gusset_start_y, pivot_z - 1.0),
+        App.Vector(14.0, gusset_start_y, panel_z_min),
         App.Vector(0, gusset_start_y, panel_z_min),
         App.Vector(0, gusset_start_y, pivot_z),
     ]
@@ -117,14 +117,14 @@ def construct_follower_flap():
     gusset_face = Part.Face(gusset_wire)
     gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
 
-    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 15.5mm to 224.5mm between knuckles)
+    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 16.0mm to h - 16.0mm between knuckles)
     # Smoothly blends the flat top surface of the flap (Z = 17.4mm) over the top of the axle and tangentially into the axle cylinder curve
     theta_t = math.radians(135.0)
     xt = shaft_r * math.cos(theta_t)
     zt = pivot_z + shaft_r * math.sin(theta_t)
-    xs = 4.0 * SCALE
+    xs = 4.0
     zs = top_z
-    scale_t = 6.0 * SCALE
+    scale_t = 6.0
     ts_x = -scale_t
     ts_z = 0.0
     tt_x = -scale_t * math.sin(theta_t)
@@ -155,8 +155,8 @@ def construct_follower_flap():
     # Fuse flap panel with continuous drive axle, reinforcing gusset, and smooth top transition bridge
     flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid, bridge_solid])).removeSplitter()
 
-    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 0 and Y = 240 outer axle ends)
-    socket_d = 10.5 * SCALE
+    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 0 and Y = h outer axle ends)
+    socket_d = 10.5
     hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, h + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
     hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
@@ -201,8 +201,8 @@ def construct_follower_flap():
 
     # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture
     tex_cutters = []
-    tex_spacing = 14.0 * SCALE
-    tex_w = 0.8 * SCALE
+    tex_spacing = 14.0
+    tex_w = 0.8
     tex_d = TEXTURE_HEIGHT
     
     for i in range(-int(w), int(w + h), int(tex_spacing)):
