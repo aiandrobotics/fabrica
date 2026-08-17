@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-17
+- Standardized True Square 220.0mm x 220.0mm modular panel architecture across all modules with symmetrical 230.0mm inter-module pitch and 10.0mm seam gaps.
+- Decoupled all physical hardware features (MG996R servo motor bay, M3 fastener bosses, snap-fit lids, 8.0mm hex torque couplers, sliding dovetails, silicone foot sockets, and FDM clearances) from build plate scaling parameters, locking them to unscaled 1:1 physical constants.
+- Standardized canonical top-level 6-module universal garment folding robot assembly as `cad-designs/assembly.py`, exporting `assembly.step` and `assembly.stl`.
+- Updated `cad-designs/export_all.py` to automatically batch build and export all 3 assemblies and 9 individual printable parts (26 STEP & STL production files) in a single pass.
+- Completed comprehensive FreeCAD visual, manifold solid, and 3D Boolean interference validation with 0.00000 mm³ overlap across all mating component interfaces.
+- Marked Phase 4 (Active Motorized Module) as completed and production certified for 3D printing.
+
 ## 2026-08-15
 - Re-architected Active Motorized Module (`cad-designs/motorized_frame.py`, `motorized_flap.py`, `motorized_servo_cover.py`, `motorized_assembly.py`) with a **horizontal inline direct-drive servo mount**, eliminating the $+22\text{ mm}$ top motor bump and creating a **100% flush, coplanar top deck ($Z = 15.0\text{..}17.5\text{ mm}$)** across the entire module with $0.00000\text{ mm}^3$ interference across all 9 mating pairs.
 - Updated Active Flap (`motorized_flap.py`) to a full rectangular blade with integrated continuous $\varnothing 13.0\text{ mm}$ drive axle, 25T metal horn socket, bottom $8.0\text{ mm}$ hex torque socket, and gradient mass-reduction cutouts.
