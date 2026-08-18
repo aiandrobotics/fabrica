@@ -27,46 +27,44 @@ def construct_motorized_servo_cover():
     """
     import params
     h = params.PANEL_HEIGHT
-    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 23.4 to 24.8mm)
+    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 25.8 to 27.2mm, spanning Y in [182.2, 214.2mm])
     w_top = 63.7 # X in [-23.5, 40.2mm]
-    l_top = 38.8 # Y in [h - 44.3, h - 5.5mm]
+    l_top = 32.0 # Y in [182.2, 214.2mm]
     t_top = 1.4
-    z_top_min = 23.4
+    z_top_min = 25.8
 
     top_plate = Part.makeBox(w_top, l_top, t_top)
-    top_plate.translate(App.Vector(-23.5, h - 44.3, z_top_min))
+    top_plate.translate(App.Vector(-23.5, 182.2, z_top_min))
 
-    # 2. Continuous Rear Interlocking Tongue with 5.0mm Solid Under-Plate Overlap (Total 10.0mm length: 5mm overlap under plate + 5mm rear locking tongue)
+    # 2. Continuous Rear Interlocking Tongue (Y in [213.5, 219.5mm], Z in [24.3, 25.8mm]) sliding into the frame back wall past the servo body
     tongue_w = 53.5 # X in [-17.0, 36.5mm] cleanly inside bay cavity and slot
-    tongue_l = 10.0
+    tongue_l = 8.5
     tongue_t = 1.5
     tongue = Part.makeBox(tongue_w, tongue_l, tongue_t)
-    tongue.translate(App.Vector(-17.0, h - 10.5, z_top_min - tongue_t))
+    tongue.translate(App.Vector(-17.0, 211.0, z_top_min - tongue_t))
 
-    # 3. Dual Heavy-Duty Side Cantilever Snap Legs with 3.0mm locking anchors and 9.0mm deflection length
+    # 3. Dual Heavy-Duty Side Cantilever Snap Legs with locking anchors
     def make_side_snap_leg(is_left):
         leg_l = 8.0   # Y-length
         leg_t = 1.8   # X-thickness
-        leg_h = 9.0   # Z-height
-        y_start = h - 35.0
+        leg_h = 6.5   # Z-height
+        y_start = 189.0
         
         if is_left:
             x_pos = -17.0
-            # 3.0mm wide outward locking barb anchor in -X direction
             pts = [
                 App.Vector(x_pos, y_start, z_top_min - leg_h),
-                App.Vector(x_pos - 3.0, y_start, z_top_min - leg_h + 3.0),
-                App.Vector(x_pos, y_start, z_top_min - leg_h + 3.8),
+                App.Vector(x_pos - 2.5, y_start, z_top_min - leg_h + 2.0),
+                App.Vector(x_pos, y_start, z_top_min - leg_h + 2.8),
                 App.Vector(x_pos, y_start, z_top_min - leg_h),
             ]
             x_ext = leg_t
         else:
             x_pos = 38.4
-            # 3.0mm wide outward locking barb anchor in +X direction
             pts = [
                 App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h),
-                App.Vector(x_pos + leg_t + 3.0, y_start, z_top_min - leg_h + 3.0),
-                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h + 3.8),
+                App.Vector(x_pos + leg_t + 2.5, y_start, z_top_min - leg_h + 2.0),
+                App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h + 2.8),
                 App.Vector(x_pos + leg_t, y_start, z_top_min - leg_h),
             ]
             x_ext = leg_t
@@ -85,7 +83,7 @@ def construct_motorized_servo_cover():
     lid = top_plate.fuse([tongue, leg_left, leg_right]).removeSplitter()
 
     # 4. Finger / Tool Pry Notch at Rear-Left Corner
-    notch = Part.makeCylinder(3.5, 3.0, App.Vector(-23.5, h - 5.5, z_top_min - 1.0))
+    notch = Part.makeCylinder(3.5, 3.0, App.Vector(-23.5, 214.2, z_top_min - 1.0))
     lid = lid.cut(notch).removeSplitter()
 
     # Export STEP and STL

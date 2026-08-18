@@ -13,7 +13,9 @@
 - Converted motorized frame cavity to a unified monolithic L-shaped boundary, eliminating split-line rail notches and motor enclosure slivers.
 - Flattened motorized chassis bottom to 100% planar Z=0.0mm coplanar base across entire footprint, eliminating bottom protrusion step and table rocking.
 - Extended continuous flat solid base plate under knuckle and motor housing zone across X=[-24, +48mm] at Z=0.0mm with smooth outer corner filleting.
-- Integrated high-fidelity MG996R servo motor STEP model from cad-designs/3d-print/MG996R.step into motorized assembly and 6-module robot assembly scripts.
+- Repositioned motor mounting towers to Y=182.0mm and motor bay to Y=[182.0, 214.5mm] to accommodate the 48.05mm total motor + circular horn length without overlap.
+- Redesigned motorized servo adapter with 4.3mm thickness (Y=[159.5, 163.8mm]), seating flush against the MG996R round horn disk and engaging flap top hex socket with zero axial interference.
+- Updated motorized servo cover with flush top seating at Z=25.8mm and rear tongue sliding cleanly past the servo body into the frame rear wall.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17

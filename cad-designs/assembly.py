@@ -48,12 +48,12 @@ def construct_servo_cad_reference(h=220.0):
     step_file = os.path.join(SCRIPT_DIR, "3d-print", "MG996R.step")
 
     raw_servo = Part.Shape()
-    if step_file:
+    if os.path.exists(step_file):
         raw_servo.read(step_file)
-        p1 = App.Placement(App.Vector(-30.25, -9.75, -14.19), App.Rotation(0,0,0,1))
+        p1 = App.Placement(App.Vector(-30.25, -9.75, 0.0), App.Rotation(0,0,0,1))
         r1 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(1,0,0), 90))
         r2 = App.Placement(App.Vector(0,0,0), App.Rotation(App.Vector(0,1,0), 180))
-        p2 = App.Placement(App.Vector(0.0, h - 55.0, PIVOT_Z), App.Rotation(0,0,0,1))
+        p2 = App.Placement(App.Vector(0.0, 182.0, PIVOT_Z), App.Rotation(0,0,0,1))
 
         full_placement = p2.multiply(r2).multiply(r1).multiply(p1)
         servo_solid = raw_servo.copy()

@@ -43,45 +43,43 @@ def construct_motorized_servo_adapter():
     """
     import params
     h = params.PANEL_HEIGHT
-    pivot_z = PIVOT_Z                          # 10.0mm
-    disk_r = 9.5                               # 9.5mm radius (Ø19.0mm)
-    disk_t = 6.0                               # 6.0mm thickness
-    y_rear = h - 55.0                          # Seats against servo horn at Y = h - 55.0mm
-    y_front = y_rear - disk_t                  # h - 61.0mm
-    hex_size = 7.7                             # 7.7mm flat-to-flat (8mm hex clearance)
-    peg_len = 10.5                             # 10.5mm insertion length into flap
+    pivot_z = PIVOT_Z                          # 15.0mm
+    disk_r = 10.0                              # 10.0mm radius (Ø20.0mm circular flange matching round metal horn)
+    y_front = 159.5                            # Front face at Y = 159.5mm (0.3mm axial clearance from flap axle at 159.2mm)
+    y_rear = 163.8                             # Rear face at Y = 163.8mm (seats flush against MG996R round metal horn)
+    disk_t = y_rear - y_front                  # 4.3mm thickness
+    hex_size = 7.7                             # 7.7mm flat-to-flat (8.0mm hex socket clearance)
+    peg_len = 9.0                              # 9.0mm insertion length into flap female hex socket (Y=159.5 to 150.5mm)
 
-    # 1. Main Circular Flange Disk (Y in [h - 61.0, h - 55.0mm])
+    # 1. Main Circular Flange Disk (Y in [159.5, 163.8mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))
 
-    # 2. Male 8.0mm Hex Drive Peg (Extending along -Y from Y = h - 61.0 to h - 71.5mm)
+    # 2. Male 8.0mm Hex Drive Peg (Extending along -Y from Y = 159.5 to 150.5mm)
     hex_wire = make_hexagon_wire(hex_size, 0, pivot_z, y_front)
     hex_face = Part.Face(hex_wire)
     hex_peg = hex_face.extrude(App.Vector(0, -peg_len, 0))
 
-    # 45° Lead-in nose chamfer on hex peg tip at Y = y_front - peg_len
+    # 45° Lead-in nose chamfer on hex peg tip
     chamfer_cone = Part.makeCone(disk_r, disk_r - 2.0, 2.0, App.Vector(0, y_front - peg_len, pivot_z), App.Vector(0, -1, 0))
     hex_peg = hex_peg.cut(chamfer_cone).removeSplitter()
 
     adapter = flange.fuse(hex_peg).removeSplitter()
 
-    # 3. 4x M2/M2.5 Mounting Screw Clearance Holes (Ø2.2mm) on Ø14.0mm PCD (R = 7.0mm)
+    # 3. 4x M2/M2.5 Mounting Screw Clearance Holes (Ø2.5mm) on Ø14.0mm PCD (R = 7.0mm)
     pcd_r = 7.0
-    screw_r = 1.1
+    screw_r = 1.25
     screw_holes = []
     for i in range(4):
-        ang = math.radians(90.0 * i)
+        ang = math.radians(90.0 * i + 45.0)
         sx = pcd_r * math.cos(ang)
         sz = pivot_z + pcd_r * math.sin(ang)
         sh = Part.makeCylinder(screw_r, disk_t + 2.0, App.Vector(sx, y_front - 1.0, sz), App.Vector(0, 1, 0))
         screw_holes.append(sh)
 
-    # 4. Central 2.0mm Hub/Screw Clearance Pocket on Rear Contact Face (Ø8.5mm x 2.0mm deep)
-    rear_pocket_r = 4.25
-    rear_pocket_depth = 2.0
-    rear_pocket = Part.makeCylinder(rear_pocket_r, rear_pocket_depth + 0.1, App.Vector(0, y_rear - rear_pocket_depth, pivot_z), App.Vector(0, 1, 0))
+    # 4. Central Driver Access Counterbore for M3 Horn Retention Screw (Ø6.5mm)
+    cbore = Part.makeCylinder(3.25, disk_t + 2.0, App.Vector(0, y_front - 1.0, pivot_z), App.Vector(0, 1, 0))
 
-    cutters = screw_holes + [rear_pocket]
+    cutters = screw_holes + [cbore]
     adapter = adapter.cut(Part.makeCompound(cutters)).removeSplitter()
 
     # Export STEP and STL
