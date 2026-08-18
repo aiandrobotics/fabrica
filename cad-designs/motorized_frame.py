@@ -89,25 +89,20 @@ def construct_motorized_frame():
     seam_boss = Part.makeBox(knuckle_r + 4.0, seam_boss_len, pivot_z - bore_r)
     seam_boss.translate(App.Vector(-knuckle_r, y_cradle_seam - seam_boss_len / 2.0, 0))
 
-    # Solid 2.0mm Bottom Base Floor under entire motor module zone (Y in [h - 70.0, h], X in [-24.0, 48.0mm], Z in [-2.0, 0.0mm])
-    floor_t = 2.0
-    module_base_floor = Part.makeBox(72.0, 70.0, floor_t)
-    module_base_floor.translate(App.Vector(-24.0, k_top_start_y, -floor_t))
+    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 15.0mm]) anchoring knuckle to base floor
+    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, pivot_z)
+    knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, 0.0))
 
-    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [h - 70.0, h - 55.0mm], Z in [-2.0, 15.0mm]) anchoring knuckle to base floor
-    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, pivot_z + floor_t)
-    knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, -floor_t))
-
-    # Solid Mounting Towers at Y in [h - 55.0, h - 44.5mm] (height Z=0.0 to 25.0mm, sitting on base floor)
+    # Solid Mounting Towers at Y in [h - 55.0, h - 44.5mm] (height Z=0.0 to 25.0mm, sitting flush on Z=0.0mm planar base)
     t_servo = 25.0
-    towers_box = Part.makeBox(72.0, 10.5, t_servo + floor_t)
-    towers_box.translate(App.Vector(-24.0, towers_start_y, -floor_t))
+    towers_box = Part.makeBox(72.0, 10.5, t_servo)
+    towers_box.translate(App.Vector(-24.0, towers_start_y, 0.0))
 
-    # Rear motor housing perimeter at Y in [h - 44.5, h] (height Z=0.0 to 25.0mm, sitting on base floor)
-    rear_box = Part.makeBox(72.0, bay_len, t_servo + floor_t)
-    rear_box.translate(App.Vector(-24.0, bay_start_y, -floor_t))
+    # Rear motor housing perimeter at Y in [h - 44.5, h] (height Z=0.0 to 25.0mm, sitting flush on Z=0.0mm planar base)
+    rear_box = Part.makeBox(72.0, bay_len, t_servo)
+    rear_box.translate(App.Vector(-24.0, bay_start_y, 0.0))
 
-    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
     # 2. Main Open Cavity, Bores, and Cradle Trough
 
@@ -160,17 +155,11 @@ def construct_motorized_frame():
     adapter_pocket = Part.makeBox(22.0, 6.6, 25.0)
     adapter_pocket.translate(App.Vector(-11.0, k_top_start_y + 8.5, 0.0))
 
-    # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor module zone)
-    trim_bot_main = Part.makeBox(w + 50.0, k_top_start_y + 25.0, 20.0)
-    trim_bot_main.translate(App.Vector(-25.0, -25.0, -20.0))
+    # 100% Planar bottom trim at Z=0.0mm across entire module footprint (eliminates any rocking/wobbling on tables)
+    trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
+    trim_bot_flat.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    trim_bot_right = Part.makeBox(w - 48.0 + 25.0, 70.0 + 25.0, 20.0)
-    trim_bot_right.translate(App.Vector(48.0, k_top_start_y, -20.0))
-
-    trim_under_motor = Part.makeBox(w + 50.0, h + 50.0, 20.0)
-    trim_under_motor.translate(App.Vector(-25.0, -25.0, -22.0))
-
-    for b in [bot_bore, top_bore, adapter_pocket, trim_bot_main, trim_bot_right, trim_under_motor]:
+    for b in [bot_bore, top_bore, adapter_pocket, trim_bot_flat]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.0mm thick at Y = h - 5.0 to h), and Solid Front Towers:
@@ -224,8 +213,8 @@ def construct_motorized_frame():
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 
-    # Re-apply bottom trims to guarantee 100% planar base (Z=0.0mm on frame rails, Z=-2.0mm on motor base floor)
-    frame = frame.cut(Part.makeCompound([trim_bot_main, trim_bot_right, trim_under_motor])).removeSplitter()
+    # Re-apply bottom trim to guarantee 100% planar base at Z=0.0mm
+    frame = frame.cut(trim_bot_flat).removeSplitter()
 
     # 5. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Rails (Front Y=0, Right X=W) matching Follower Frame
     dt_neck_w = DOVETAIL_NECK_WIDTH
