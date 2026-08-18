@@ -89,6 +89,10 @@ def construct_motorized_frame():
     seam_boss = Part.makeBox(knuckle_r + 4.0, seam_boss_len, pivot_z - bore_r)
     seam_boss.translate(App.Vector(-knuckle_r, y_cradle_seam - seam_boss_len / 2.0, 0))
 
+    # Continuous Solid Base Plate under entire motor zone and knuckle (X in [-24.0, 48.0mm], Y in [150.0, 220.0mm], Z in [0.0, 3.0mm])
+    module_base_floor = Part.makeBox(72.0, 70.0, bottom_thick)
+    module_base_floor.translate(App.Vector(-24.0, k_top_start_y, 0.0))
+
     # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 15.0mm]) anchoring knuckle to base floor
     knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, pivot_z)
     knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, 0.0))
@@ -102,7 +106,7 @@ def construct_motorized_frame():
     rear_box = Part.makeBox(72.0, bay_len, t_servo)
     rear_box.translate(App.Vector(-24.0, bay_start_y, 0.0))
 
-    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
     # 2. Main Open Cavity, Bores, and Cradle Trough
 
@@ -137,11 +141,11 @@ def construct_motorized_frame():
 
     # Front-Right Screw Access Pocket (flush with X = 48.0mm inner motor wall)
     cut_screw_access_right = Part.makeBox(37.0, 15.0, 25.0)
-    cut_screw_access_right.translate(App.Vector(11.0, k_top_start_y, 0.0))
+    cut_screw_access_right.translate(App.Vector(11.0, k_top_start_y, bottom_thick))
 
-    # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 25.0mm])
+    # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [h - 70.0, h - 55.0mm], Z in [3.0, 25.0mm])
     cut_screw_access_left = Part.makeBox(13.5, 15.0, 25.0)
-    cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, 0.0))
+    cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, bottom_thick))
 
     for cav in [cav_main, cradle_trough, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
@@ -151,9 +155,9 @@ def construct_motorized_frame():
     # Top knuckle bore spanning Y in [h - 70.1, h - 60.9mm] (SOLID 360 degree closed cylinder barrel):
     top_bore = Part.makeCylinder(bore_r, 9.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # Adapter Disk Clearance Pocket at Y in [h - 61.5, h - 54.9mm] (X in [-11.0, 11.0mm], Z in [0.0, 25.0mm])
+    # Adapter Disk Clearance Pocket at Y in [h - 61.5, h - 54.9mm] (X in [-11.0, 11.0mm], Z in [3.0, 25.0mm])
     adapter_pocket = Part.makeBox(22.0, 6.6, 25.0)
-    adapter_pocket.translate(App.Vector(-11.0, k_top_start_y + 8.5, 0.0))
+    adapter_pocket.translate(App.Vector(-11.0, k_top_start_y + 8.5, bottom_thick))
 
     # 100% Planar bottom trim at Z=0.0mm across entire module footprint (eliminates any rocking/wobbling on tables)
     trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
@@ -335,7 +339,12 @@ def construct_motorized_frame():
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_trim2 = corner_cutter2.cut(corner_cyl2)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2])).removeSplitter()
+    corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter3.translate(App.Vector(-27.0, k_top_start_y - 3.0, -1.0))
+    corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
+    corner_trim3 = corner_cutter3.cut(corner_cyl3)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3])).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")
