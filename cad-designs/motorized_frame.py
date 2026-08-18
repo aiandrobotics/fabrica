@@ -111,48 +111,44 @@ def construct_motorized_frame():
 
     # 2. Main Open Cavity, Bores, and Cradle Trough
 
-    # Knuckle Bores:
-    bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
-    top_bore = Part.makeCylinder(bore_r, k_top_len + 0.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
-
     # Semi-Circular Cradle Trough between knuckles (supports half-cylinder axle from below)
     cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Lower Main Center Cavity (Opens fully from X=0 to X=W-15mm, using semi-cylinder cradle as sole hinge wall):
-    cav_main_lower = Part.makeBox(w - rail_w, k_top_start_y - rail_w, t + 2.0)
-    cav_main_lower.translate(App.Vector(0, rail_w, -1.0))
+    # Unified L-Shaped Main Cavity (continuous along right rail from Y=15 to Y=205mm without split line notches)
+    cav_pts = [
+        App.Vector(0, rail_w, 0),
+        App.Vector(w - rail_w, rail_w, 0),
+        App.Vector(w - rail_w, h - rail_w, 0),
+        App.Vector(48.0, h - rail_w, 0),
+        App.Vector(48.0, k_top_start_y, 0),
+        App.Vector(0, k_top_start_y, 0),
+        App.Vector(0, rail_w, 0),
+    ]
+    cav_wire = Part.makePolygon(cav_pts)
+    cav_face = Part.Face(cav_wire)
+    cav_main = cav_face.extrude(App.Vector(0, 0, t + 2.0))
+    cav_main.translate(App.Vector(0, 0, -1.0))
     try:
         c_edges = [
-            e for e in cav_main_lower.Edges
+            e for e in cav_main.Edges
             if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.YMin - e.BoundBox.YMax) < 0.001
+            and not (abs(e.BoundBox.XMin - 0.0) < 0.001 and abs(e.BoundBox.YMin - k_top_start_y) < 0.001)
+            and not (abs(e.BoundBox.XMin - 0.0) < 0.001 and abs(e.BoundBox.YMin - rail_w) < 0.001)
         ]
         if c_edges:
-            cav_main_lower = cav_main_lower.makeFillet(3.0, c_edges)
+            cav_main = cav_main.makeFillet(3.0, c_edges)
     except Exception:
         pass
 
-    # Upper main cavity (Y = h - 70.0 to h - 15.0mm, X = 48 to W - 15mm) — preserves solid inner motor enclosure wall
-    cav_main_upper = Part.makeBox(w - rail_w - 48.0, 55.0, t + 2.0)
-    cav_main_upper.translate(App.Vector(48.0, k_top_start_y, -1.0))
-    try:
-        cu_edges = [
-            e for e in cav_main_upper.Edges
-            if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.YMin - e.BoundBox.YMax) < 0.001
-        ]
-        if cu_edges:
-            cav_main_upper = cav_main_upper.makeFillet(3.0, cu_edges)
-    except Exception:
-        pass
-
-    # Front-Right Screw Access Pocket (X in [11.0, 48.5mm], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 25.0mm])
-    cut_screw_access_right = Part.makeBox(37.5, 15.0, 25.0)
+    # Front-Right Screw Access Pocket (flush with X = 48.0mm inner motor wall)
+    cut_screw_access_right = Part.makeBox(37.0, 15.0, 25.0)
     cut_screw_access_right.translate(App.Vector(11.0, k_top_start_y, 0.0))
 
     # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [h - 70.0, h - 55.0mm], Z in [0.0, 25.0mm])
     cut_screw_access_left = Part.makeBox(13.5, 15.0, 25.0)
     cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, 0.0))
 
-    for cav in [cav_main_lower, cav_main_upper, cradle_trough, cut_screw_access_right, cut_screw_access_left]:
+    for cav in [cav_main, cradle_trough, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Knuckle Bore
