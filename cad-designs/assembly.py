@@ -46,6 +46,8 @@ from hex_drive_coupler import construct_hex_drive_coupler
 def construct_servo_cad_reference(h=220.0):
     """Loads and positions the real MG996R STEP solid reference model in horizontal orientation."""
     step_paths = [
+        os.path.join(SCRIPT_DIR, "3d-print", "MG996R.step"),
+        os.path.join(SCRIPT_DIR, "3d-print", "mg996r.step"),
         os.path.join(SCRIPT_DIR, "..", "specs", "reference-images", "mg996r.step"),
         os.path.join(SCRIPT_DIR, "exports", "reference-models", "mg996r.step"),
     ]

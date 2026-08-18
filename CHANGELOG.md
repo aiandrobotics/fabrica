@@ -13,6 +13,7 @@
 - Converted motorized frame cavity to a unified monolithic L-shaped boundary, eliminating split-line rail notches and motor enclosure slivers.
 - Flattened motorized chassis bottom to 100% planar Z=0.0mm coplanar base across entire footprint, eliminating bottom protrusion step and table rocking.
 - Extended continuous flat solid base plate under knuckle and motor housing zone across X=[-24, +48mm] at Z=0.0mm with smooth outer corner filleting.
+- Integrated high-fidelity MG996R servo motor STEP model from cad-designs/3d-print/MG996R.step into motorized assembly and 6-module robot assembly scripts.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17
