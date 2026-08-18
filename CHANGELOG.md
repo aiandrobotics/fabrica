@@ -17,6 +17,7 @@
 - Redesigned motorized servo adapter with 4.3mm thickness (Y=[159.5, 163.8mm]), seating flush against the MG996R round horn disk and engaging flap top hex socket with zero axial interference.
 - Converted motor mounting walls into 5.0mm thick tower posts at Y=[182.0, 187.0mm] and widened drop-in bay cavity to 56.3mm (X=[-17.8, +38.5mm]), eliminating solid side shelves and providing complete top drop-in clearance and direct screwdriver/bolt access to all 4x M3 mounting holes.
 - Removed obsolete split-seam dovetail cut and cradle boss from both motorized and follower frames, creating continuous, unbroken, smooth semi-cylindrical cradle troughs for elastic snap-in flap assembly.
+- Implemented full-length solid vertical base pedestal along the entire 220mm hinge rail ($X \in [-9.4, 0\text{ mm}], Z \in [0.0, 15.0\text{ mm}]$) on both follower and motorized frames, eliminating circular underside overhangs for 100% supportless FDM printing, planar tabletop seating, and tripled hinge stiffness.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17

@@ -83,6 +83,10 @@ def construct_motorized_frame():
 
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE # 6.85mm
 
+    # FULL-LENGTH HINGE PEDESTAL under bottom knuckle & cradle from Y=0 to Y=k_top_start_y (X in [-knuckle_r, 0], Z in [0, pivot_z])
+    hinge_pedestal = Part.makeBox(knuckle_r, k_top_start_y, pivot_z)
+    hinge_pedestal.translate(App.Vector(-knuckle_r, 0, 0))
+
     # Continuous Solid Base Plate under entire motor zone and knuckle (X in [-24.0, 48.0mm], Y in [150.0, 220.0mm], Z in [0.0, 3.0mm])
     module_base_floor = Part.makeBox(72.0, 70.0, bottom_thick)
     module_base_floor.translate(App.Vector(-24.0, k_top_start_y, 0.0))
@@ -99,7 +103,7 @@ def construct_motorized_frame():
     housing_box = Part.makeBox(72.0, bay_len, t_servo)
     housing_box.translate(App.Vector(-24.0, bay_start_y, 0.0))
 
-    frame = outer_box.fuse([k_bot, k_top, cradle_support, module_base_floor, knuckle_pedestal, housing_box]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, hinge_pedestal, module_base_floor, knuckle_pedestal, housing_box]).removeSplitter()
 
     # 2. Main Open Cavity, Bores, and Cradle Trough
 
@@ -307,7 +311,12 @@ def construct_motorized_frame():
     corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
     corner_trim3 = corner_cutter3.cut(corner_cyl3)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3])).removeSplitter()
+    corner_cutter4 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter4.translate(App.Vector(-knuckle_r - 3.0, -3.0, -1.0))
+    corner_cyl4 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, 3.0, -1.0))
+    corner_trim4 = corner_cutter4.cut(corner_cyl4)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3, corner_trim4])).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")

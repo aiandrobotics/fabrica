@@ -80,7 +80,11 @@ def construct_follower_frame():
 
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.85mm radius (Ø13.7mm)
 
-    frame = outer_box.fuse([k_bot, k_top, cradle_support]).removeSplitter()
+    # Full-Length Solid Hinge Pedestal under knuckles and cradle (X in [-knuckle_r, 0], Y in [0, h], Z in [0, pivot_z])
+    hinge_pedestal = Part.makeBox(knuckle_r, h, pivot_z)
+    hinge_pedestal.translate(App.Vector(-knuckle_r, 0, 0))
+
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, hinge_pedestal]).removeSplitter()
 
     # 3. Open Interior Cavities, Bores, and Continuous Cradle Trough
 
@@ -105,8 +109,8 @@ def construct_follower_frame():
         pass
 
     # D. Knuckle planar bottom trim: 100% flat at Z=0.0mm
-    trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
-    trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
+    trim_bot = Part.makeBox(w + 100.0, h + 100.0, 20.0)
+    trim_bot.translate(App.Vector(-50.0, -50.0, -20.0))
 
     frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, trim_bot])).removeSplitter()
 
@@ -207,7 +211,17 @@ def construct_follower_frame():
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_trim2 = corner_cutter2.cut(corner_cyl2)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2])).removeSplitter()
+    corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter3.translate(App.Vector(-knuckle_r - 3.0, -3.0, -1.0))
+    corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, 3.0, -1.0))
+    corner_trim3 = corner_cutter3.cut(corner_cyl3)
+
+    corner_cutter4 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter4.translate(App.Vector(-knuckle_r - 3.0, h - 3.0, -1.0))
+    corner_cyl4 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, h - 3.0, -1.0))
+    corner_trim4 = corner_cutter4.cut(corner_cyl4)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3, corner_trim4])).removeSplitter()
 
     # 10. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
