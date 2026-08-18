@@ -176,7 +176,21 @@ def construct_base_module():
     ]
     main_shell = main_shell.cut(Part.makeCompound(foot_cutters)).removeSplitter()
 
-    # 9. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
+    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on all 4 outer corners)
+    corner_trims = []
+    for cx, cy in [(0, 0), (w, 0), (w, h), (0, h)]:
+        bx = -3.0 if cx == 0 else cx - 3.0
+        by = -3.0 if cy == 0 else cy - 3.0
+        ax = 3.0 if cx == 0 else cx - 3.0
+        ay = 3.0 if cy == 0 else cy - 3.0
+        c_box = Part.makeBox(6.0, 6.0, t + 2.0)
+        c_box.translate(App.Vector(bx, by, -1.0))
+        c_cyl = Part.makeCylinder(3.0, t + 2.0, App.Vector(ax, ay, -1.0))
+        corner_trims.append(c_box.cut(c_cyl))
+
+    main_shell = main_shell.cut(Part.makeCompound(corner_trims)).removeSplitter()
+
+    # 10. Elephant's Foot Relief Chamfer along bottom outer edges (0.4mm)
     try:
         base_edges = [
             e for e in main_shell.Edges

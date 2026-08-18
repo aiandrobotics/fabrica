@@ -84,6 +84,19 @@ def construct_follower_flap():
     # Fuse into a SINGLE continuous monolithic face
     blade = slab_full.fuse(slab_hinge).removeSplitter()
 
+    # Outer corner fillets (R=3.0mm on top-right and bottom-right outer corners)
+    corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter1.translate(App.Vector(x_max - 3.0, y_min - 3.0, panel_z_min - 1.0))
+    corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(x_max - 3.0, y_min + 3.0, panel_z_min - 1.0))
+    corner_trim1 = corner_cutter1.cut(corner_cyl1)
+
+    corner_cutter2 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter2.translate(App.Vector(x_max - 3.0, y_max - 3.0, panel_z_min - 1.0))
+    corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(x_max - 3.0, y_max - 3.0, panel_z_min - 1.0))
+    corner_trim2 = corner_cutter2.cut(corner_cyl2)
+
+    blade = blade.cut(Part.makeCompound([corner_trim1, corner_trim2])).removeSplitter()
+
     # 3. Perimeter Shadow Bevel (Uniform 2.0mm around the OUTER boundary ONLY)
     border_w = 2.0
     bevel_d = ACCENT_BEVEL_DEPTH          # 1.2mm
@@ -124,6 +137,12 @@ def construct_follower_flap():
     # 4. Drive Axle: End full-cylinder journals (for 360° knuckle rings) + middle half-cylinder axle
     axle_bot = Part.makeCylinder(shaft_r, rail_w - gap_axial, App.Vector(0, gap_axial, pivot_z), App.Vector(0, 1, 0))
     axle_top = Part.makeCylinder(shaft_r, rail_w - gap_axial, App.Vector(0, h - rail_w, pivot_z), App.Vector(0, 1, 0))
+
+    # Lead-in chamfers on outer journal tips for smooth insertion
+    c_axle_bot = Part.makeCone(shaft_r, shaft_r - 0.8, 0.8, App.Vector(0, gap_axial, pivot_z), App.Vector(0, -1, 0))
+    c_axle_top = Part.makeCone(shaft_r, shaft_r - 0.8, 0.8, App.Vector(0, h - gap_axial, pivot_z), App.Vector(0, 1, 0))
+    axle_bot = axle_bot.cut(c_axle_bot)
+    axle_top = axle_top.cut(c_axle_top)
 
     axle_mid_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     axle_mid_trim = Part.makeBox(shaft_r * 4.0, mid_len + 1.0, shaft_r * 2.0)

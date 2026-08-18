@@ -7,6 +7,8 @@
 - Extended motorized flap to full 219.0mm length deck coverage over the frame cavity with precision servo notch and zero kinematic interference across 180° rotation.
 - Re-architected frame hinge support to a single semi-cylindrical cradle wall, maximizing open cavity space without redundant rectangular walls.
 - Added reinforced sub-bore cradle foundation boss and symmetric 0.20mm tight-fit sliding dovetail joint across cradle walls to eliminate looseness and wobble.
+- Added high-capacity filleted wire pass-through conduits through all chassis dovetail sockets for continuous cable routing into interior wiring cavities.
+- Added smooth R=3.0mm vertical corner fillets and lead-in chamfers across all frames, flaps, and drive axles for tactile finish and supportless FDM printing.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17

@@ -99,6 +99,15 @@ def construct_follower_frame():
     # C. Main Center Cavity Window (Opens fully from X=0 to X=W-15mm, using semi-cylinder cradle as sole hinge wall)
     cav_main = Part.makeBox(w - rail_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(0, rail_w, -1.0))
+    try:
+        c_edges = [
+            e for e in cav_main.Edges
+            if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.YMin - e.BoundBox.YMax) < 0.001
+        ]
+        if c_edges:
+            cav_main = cav_main.makeFillet(3.0, c_edges)
+    except Exception:
+        pass
 
     # D. Knuckle planar bottom trim: 100% flat at Z=0.0mm
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
@@ -126,22 +135,39 @@ def construct_follower_frame():
 
     # Master bottom push-out finger access hole (Ø6.0mm through bottom floor: Z = -0.5 to Z = bottom_thick + 0.5)
     push_hole = Part.makeCylinder(3.0, bottom_thick + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
-    dt_cutter_with_hole = dt_cutter.fuse(push_hole)
+
+    # High-Capacity Wire Pass-Through Conduit (through back wall of dovetail directly into frame wiring cavity)
+    wire_hole_w = 8.0
+    wire_hole_h = 8.6
+    wire_hole_d = rail_w + 2.0
+    wire_conduit = Part.makeBox(wire_hole_w, wire_hole_d, wire_hole_h)
+    wire_conduit.translate(App.Vector(-wire_hole_w / 2.0, 0.0, 9.0 - (wire_hole_h / 2.0)))
+    try:
+        w_edges = [
+            e for e in wire_conduit.Edges
+            if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.ZMin - e.BoundBox.ZMax) < 0.001
+        ]
+        if w_edges:
+            wire_conduit = wire_conduit.makeFillet(1.0, w_edges)
+    except Exception:
+        pass
+
+    dt_cutter_complete = dt_cutter.fuse([push_hole, wire_conduit]).removeSplitter()
 
     dt_cutters = []
     # Front Wall (Y=0) -> cuts into +Y
-    c_front = dt_cutter_with_hole.copy()
+    c_front = dt_cutter_complete.copy()
     c_front.translate(App.Vector(w / 2.0, 0, 0))
     dt_cutters.append(c_front)
 
     # Back Wall (Y=H) -> cuts into -Y
-    c_back = dt_cutter_with_hole.copy()
+    c_back = dt_cutter_complete.copy()
     c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
     c_back.translate(App.Vector(w / 2.0, h, 0))
     dt_cutters.append(c_back)
 
     # Right Wall (X=W) -> cuts into -X
-    c_right = dt_cutter_with_hole.copy()
+    c_right = dt_cutter_complete.copy()
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
@@ -208,7 +234,20 @@ def construct_follower_frame():
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 9. Elephant's Foot Relief Chamfer along outer bottom bed edges
+    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on outer corners)
+    corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter1.translate(App.Vector(w - 3.0, -3.0, -1.0))
+    corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, 3.0, -1.0))
+    corner_trim1 = corner_cutter1.cut(corner_cyl1)
+
+    corner_cutter2 = Part.makeBox(6.0, 6.0, t + 2.0)
+    corner_cutter2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
+    corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
+    corner_trim2 = corner_cutter2.cut(corner_cyl2)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2])).removeSplitter()
+
+    # 10. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
         base_edges = [
             e for e in frame.Edges
