@@ -15,7 +15,7 @@
 - Extended continuous flat solid base plate under knuckle and motor housing zone across X=[-24, +48mm] at Z=0.0mm with smooth outer corner filleting.
 - Repositioned motor mounting towers to Y=182.0mm and motor bay to Y=[182.0, 214.5mm] to accommodate the 48.05mm total motor + circular horn length without overlap.
 - Redesigned motorized servo adapter with 4.3mm thickness (Y=[159.5, 163.8mm]), seating flush against the MG996R round horn disk and engaging flap top hex socket with zero axial interference.
-- Updated motorized servo cover with flush top seating at Z=25.8mm and rear tongue sliding cleanly past the servo body into the frame rear wall.
+- Converted motor mounting walls into 5.0mm thick tower posts at Y=[182.0, 187.0mm] and widened drop-in bay cavity to 56.3mm (X=[-17.8, +38.5mm]), eliminating solid side shelves and providing complete top drop-in clearance and direct screwdriver/bolt access to all 4x M3 mounting holes.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17
