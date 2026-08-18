@@ -173,14 +173,16 @@ def construct_motorized_frame():
     for b in [bot_bore, top_bore, adapter_pocket, trim_bot_main, trim_bot_right, trim_under_motor]:
         frame = frame.cut(b).removeSplitter()
 
-    # 4. Top Drop-In Servo Bay Cavity with 2.0mm Solid Closed Base Floor (Z in [-2.0, 0.0mm]), Solid Closed Rear Wall (5.0mm thick at Y = h - 5.0 to h), and Solid Front Towers:
-    # Front gearhead pass-through pocket through towers (X in [-11.5, 32.5mm], Y in [h - 55.0, h - 44.5mm], Z in [0.0, 25.0mm])
-    pocket_body = Part.makeBox(44.0, 10.5, 25.0)
-    pocket_body.translate(App.Vector(-11.5, towers_start_y, 0.0))
+    # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.0mm thick at Y = h - 5.0 to h), and Solid Front Towers:
+    z_motor_rest = 5.25  # EXACT bottom plane of MG996R servo motor when spline is aligned at Z = 15.00mm
 
-    # Main Top Drop-In Motor Bay (X in [-17.8, 38.5mm], Y in [h - 44.5, h - 5.0mm], Z in [0.0, 25.0mm])
-    pocket_bay = Part.makeBox(56.3, 39.5, 25.0)
-    pocket_bay.translate(App.Vector(-17.8, bay_start_y, 0.0))
+    # Front gearhead pass-through pocket through towers (X in [-11.5, 32.5mm], Y in [h - 55.0, h - 44.5mm], Z in [5.25, 25.0mm])
+    pocket_body = Part.makeBox(44.0, 10.5, 25.0 - z_motor_rest)
+    pocket_body.translate(App.Vector(-11.5, towers_start_y, z_motor_rest))
+
+    # Main Top Drop-In Motor Bay (X in [-17.8, 38.5mm], Y in [h - 44.5, h - 5.0mm], Z in [5.25, 25.0mm])
+    pocket_bay = Part.makeBox(56.3, 39.5, 25.0 - z_motor_rest)
+    pocket_bay.translate(App.Vector(-17.8, bay_start_y, z_motor_rest))
 
     # Top Lid Seating Rebate (1.8mm depth at Z in [23.2, 25.0mm], X in [-23.8, 40.5mm], Y in [h - 44.5, h - 5.2mm])
     pocket_rebate = Part.makeBox(64.3, 39.3, 2.0)
@@ -197,9 +199,9 @@ def construct_motorized_frame():
         Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, z_sc2), App.Vector(0, 1, 0)),
     ]
 
-    # External motor wire exit conduit through OUTER LEFT WALL at X = -24.0mm matching MG996R cable grommet (Y in [h - 24.0, h - 12.0mm], Z in [3.0, 16.0mm])
+    # External motor wire exit conduit through OUTER LEFT WALL at X = -24.0mm matching MG996R cable grommet (Y in [h - 24.0, h - 12.0mm], Z in [5.25, 16.0mm])
     pocket_wire_left = Part.makeBox(14.0, 12.0, 13.0)
-    pocket_wire_left.translate(App.Vector(-26.0, h - 24.0, 3.0))
+    pocket_wire_left.translate(App.Vector(-26.0, h - 24.0, z_motor_rest))
 
     # Rear Tongue Locking Slot underneath the solid horizontal retention bar (5.3mm depth at X in [-20.0, 37.0mm], Y in [h - 5.7, h - 0.4mm], Z in [18.0, 20.0mm])
     slot_rear_tongue = Part.makeBox(57.0, 5.3, 2.0)
