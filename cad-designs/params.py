@@ -59,12 +59,12 @@ DOVETAIL_CLEARANCE       = 0.20  # 0.20mm sliding tolerance per side (0.40mm tot
 DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
 # Heavy-Duty Drive Axle & Hex Torque Coupler (Column Synchronous Folding - Fixed Universal Hardware)
-PIVOT_Z                   = 10.00 # Axle & Hinge Pivot Center (10.0mm above tabletop for 100% flat bottom across all frames)
-DRIVE_SHAFT_DIAMETER      = 13.00 # Ø13mm outer axle diameter (3.5mm ground clearance & 100% flush tabletop)
+PIVOT_Z                   = BASE_PANEL_THICKNESS  # 15.00mm (Hinge line at top deck surface for full-coverage panels resting on top of frame)
+DRIVE_SHAFT_DIAMETER      = 12.80 # Ø12.8mm outer axle diameter (R=6.4mm half-cylinder axle in R=6.85mm cradle bore)
 DRIVE_SHAFT_BORE          = 8.00  # Ø8mm inner weight-relief bore
 HEX_COUPLER_SIZE          = 8.00  # 8.0mm Flat-to-Flat standard hex drive interface
 HEX_COUPLER_DEPTH         = 12.00 # 12.0mm engagement depth for zero slip under 35kg-cm servo load
-BEARING_ROTATING_CLEARANCE = 0.45  # 0.45mm radial clearance (Ø13.9mm frame knuckle bore for friction-free FDM 3D printing rotation)
+BEARING_ROTATING_CLEARANCE = 0.45  # 0.45mm radial clearance (Ø13.7mm frame knuckle bore for friction-free FDM 3D printing rotation)
 
 
 # ==============================================================================

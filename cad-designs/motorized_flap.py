@@ -44,111 +44,109 @@ def construct_motorized_flap():
       5. Full-size blade with organic circular cutouts (~45% mass reduction) and diamond micro-grip knurling matching follower_flap.
     """
     import params
-    w = params.PANEL_WIDTH - 1.0
-    h = params.PANEL_HEIGHT - 2.0
-    t = params.PADDLE_THICKNESS
-    panel_z_min = params.BASE_PANEL_THICKNESS
-    top_z = panel_z_min + t                  # 17.4mm
-    pivot_z = PIVOT_Z                        # 10.0mm
-    axle_r = (DRIVE_SHAFT_DIAMETER / 2.0) - 0.05 # 6.45mm radius (Ø12.9mm solid core)
-    axle_len = h - 61.0                      # Axle spans from Y=0.5 to Y = h - 60.5mm
+    w = params.PANEL_WIDTH
+    h = params.PANEL_HEIGHT
+    t = params.PADDLE_THICKNESS                  # 2.4mm
+    pivot_z = PIVOT_Z                            # 15.00mm (exact top deck hinge line)
+    panel_z_min = pivot_z                        # 15.00mm (rests directly on top of frame rails)
+    top_z = pivot_z + t                          # 17.40mm
+    rail_w = 15.0
+    gap_axial = 0.5
+    gap_radial = 0.5
 
-    # 1. Main full-size rectangular blade (X = 0 to w, Y = 1 to h+1, Z = 15.0 to 17.4mm)
-    flap_box = Part.makeBox(w, h, t)
-    flap_box.translate(App.Vector(0, 1.0, panel_z_min))
+    shaft_r = DRIVE_SHAFT_DIAMETER / 2.0         # 6.40mm
+    knuckle_r = shaft_r + 3.0                    # 9.40mm
 
-    # Knuckle and Motor Corner Relief Cutouts (1.0mm axial gap from 360 circle knuckle and tower)
-    cut_bot = Part.makeBox(14.0, 16.0, t + 2.0)
-    cut_bot.translate(App.Vector(-0.5, 0.0, panel_z_min - 1.0))
+    y_min = gap_axial                            # 0.5mm
+    y_max = h - gap_axial                        # 219.5mm (full frame length coverage!)
+    total_len = y_max - y_min                    # 219.0mm
 
-    cut_mid_k = Part.makeBox(14.0, 16.5, t + 2.0)
-    cut_mid_k.translate(App.Vector(-0.5, h - 71.0, panel_z_min - 1.0))
+    x_wing_start = knuckle_r + gap_radial        # 9.9mm
+    x_max = w - gap_axial                        # 219.5mm
+    full_wing_w = x_max - x_wing_start           # 209.6mm
 
-    cut_motor = Part.makeBox(49.0, 75.0, t + 10.0)
-    cut_motor.translate(App.Vector(-0.5, h - 55.2, panel_z_min - 1.0))
+    # Motor module notch boundary (motor housing spans X in [-24.0, 48.0mm], Y in [150.0, 220.0mm])
+    # Inner notch clearance at X = 50.5mm (giving 100% collision-free kinematic rotation clearance)
+    x_mot_notch = 50.5
+    y_knuckle_mot_top = h - 70.0 - gap_axial     # 149.5mm
 
-    flap = flap_box.cut(Part.makeCompound([cut_bot, cut_mid_k, cut_motor])).removeSplitter()
+    # 1. Main outer slab spanning X in [x_wing_start, x_max], Y in [y_min, y_max]
+    slab_base = Part.makeBox(full_wing_w, total_len, t)
+    slab_base.translate(App.Vector(x_wing_start, y_min, panel_z_min))
 
-    # 2. Perimeter Accent Shadow Bevel (1.2mm depth, 4.0mm width on outer free edges)
-    bevel_d = ACCENT_BEVEL_DEPTH             # 1.2mm
-    bevel_w = 4.0                            # 4.0mm
+    # Cut away the motor module notch from slab_base: X in [x_wing_start - 1.0, x_mot_notch], Y in [149.5, 220.5]
+    cut_motor_bay = Part.makeBox(x_mot_notch - x_wing_start + 1.0, (h - 70.0 - gap_axial) + 72.0, t + 2.0)
+    cut_motor_bay.translate(App.Vector(x_wing_start - 0.5, y_knuckle_mot_top, panel_z_min - 1.0))
+    slab_outer = slab_base.cut(cut_motor_bay)
+
+    # 2. Hinge extension between knuckles spanning Y in [15.0, 149.5mm], X in [-6.4, 9.9mm]
+    y_knuckle_bot = rail_w                       # 15.0mm
+    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 134.5mm
+    hinge_ext_w = x_wing_start - (-shaft_r)      # 16.3mm
+
+    slab_hinge = Part.makeBox(hinge_ext_w + 1.0, mid_len, t)
+    slab_hinge.translate(App.Vector(-shaft_r, y_knuckle_bot, panel_z_min))
+
+    blade = slab_outer.fuse(slab_hinge).removeSplitter()
+
+    # 3. Perimeter Shadow Bevel (Uniform 2.0mm around the OUTER boundary ONLY)
+    border_w = 2.0
+    bevel_d = ACCENT_BEVEL_DEPTH          # 1.2mm
     bevel_cuts = []
 
-    # Right edge bevel
-    b_right = Part.makeBox(bevel_w + 0.1, h + 2.0, bevel_d + 0.1)
-    b_right.translate(App.Vector(w - bevel_w, 0.0, top_z - bevel_d))
+    # Right edge bevel (Full height Y in [0.5, 219.5mm])
+    b_right = Part.makeBox(border_w + 0.2, total_len + 0.2, bevel_d + 0.1)
+    b_right.translate(App.Vector(x_max - border_w, y_min - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_right)
 
-    # Bottom edge bevel (for X >= 14mm)
-    b_bot = Part.makeBox(w - 14.0, bevel_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(14.0, 0.0, top_z - bevel_d))
+    # Bottom outer edge bevel (X in [9.9, 219.5mm])
+    b_bot = Part.makeBox(full_wing_w + 0.1, border_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(x_wing_start, y_min - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
 
-    # Top edge bevel (for X >= 49mm)
-    b_top = Part.makeBox(w - 49.0, bevel_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(49.0, h - bevel_w + 1.0, top_z - bevel_d))
+    # Top outer edge bevel (X in [x_mot_notch, 219.5mm])
+    b_top = Part.makeBox(x_max - x_mot_notch + 0.1, border_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(x_mot_notch, y_max - border_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
 
-    flap = flap.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
+    # Motor notch left inner edge bevel (at X = x_mot_notch, Y in [149.5, 219.5mm])
+    b_mot_left = Part.makeBox(border_w + 0.1, y_max - y_knuckle_mot_top + 0.2, bevel_d + 0.1)
+    b_mot_left.translate(App.Vector(x_mot_notch - 0.1, y_knuckle_mot_top - 0.1, top_z - bevel_d))
+    bevel_cuts.append(b_mot_left)
 
-    # 3. Continuous Solid-Core Cylindrical Drive Axle (Ø12.9mm, Y = 0.5 to h - 60.5mm)
-    axle_solid = Part.makeCylinder(axle_r, axle_len, App.Vector(0, 0.5, pivot_z), App.Vector(0, 1, 0))
+    # Motor notch bottom step bevel (at Y = 149.5mm, X in [-6.4, x_mot_notch])
+    b_mot_bot = Part.makeBox(x_mot_notch - (-shaft_r) + 0.1, border_w + 0.1, bevel_d + 0.1)
+    b_mot_bot.translate(App.Vector(-shaft_r, y_knuckle_mot_top - border_w, top_z - bevel_d))
+    bevel_cuts.append(b_mot_bot)
 
-    # 4. Smooth Under-Flap Reinforcing Gusset (Y = 16.0 to h - 71.0mm) matching follower_flap.py
-    gusset_start_y = 16.0
-    gusset_len = h - 71.0 - gusset_start_y
-    gusset_pts = [
-        App.Vector(0, gusset_start_y, pivot_z),
-        App.Vector(3.25, gusset_start_y, pivot_z - 3.0),
-        App.Vector(6.5, gusset_start_y, pivot_z - 1.0),
-        App.Vector(14.0, gusset_start_y, panel_z_min),
-        App.Vector(0, gusset_start_y, panel_z_min),
-        App.Vector(0, gusset_start_y, pivot_z),
-    ]
-    gusset_wire = Part.makePolygon(gusset_pts)
-    gusset_face = Part.Face(gusset_wire)
-    gusset_solid = gusset_face.extrude(App.Vector(0, gusset_len, 0))
+    # Knuckle bottom notch inner step (X in [9.9 - 0.1, 9.9 + border_w], Y in [0.5 - 0.1, 15.0 + 0.1])
+    b_left_bot = Part.makeBox(border_w + 0.1, y_knuckle_bot - y_min + 0.2, bevel_d + 0.1)
+    b_left_bot.translate(App.Vector(x_wing_start - 0.1, y_min - 0.1, top_z - bevel_d))
+    bevel_cuts.append(b_left_bot)
 
-    # 4b. Smooth Flap-to-Axle Top Transition Bridge (Y = 16.0 to h - 70.5mm)
-    theta_t = math.radians(135.0)
-    xt = axle_r * math.cos(theta_t)
-    zt = pivot_z + axle_r * math.sin(theta_t)
-    xs = 4.0
-    zs = top_z
-    scale_t = 6.0
-    ts_x = -scale_t
-    ts_z = 0.0
-    tt_x = -scale_t * math.sin(theta_t)
-    tt_z = scale_t * math.cos(theta_t)
+    # Left shaft outer edge (X in [-6.4 - 0.1, -6.4 + border_w], Y in [15.0 - 0.1, 149.5 + 0.1])
+    b_left_mid = Part.makeBox(border_w + 0.1, mid_len + 0.2, bevel_d + 0.1)
+    b_left_mid.translate(App.Vector(-shaft_r - 0.1, y_knuckle_bot - 0.1, top_z - bevel_d))
+    bevel_cuts.append(b_left_mid)
 
-    num_curve = 24
-    curve_pts = []
-    for i in range(num_curve):
-        u = float(i) / float(num_curve - 1)
-        h00 = 2 * u**3 - 3 * u**2 + 1
-        h10 = u**3 - 2 * u**2 + u
-        h01 = -2 * u**3 + 3 * u**2
-        h11 = u**3 - u**2
-        px = h00 * xs + h10 * ts_x + h01 * xt + h11 * tt_x
-        pz = h00 * zs + h10 * ts_z + h01 * zt + h11 * tt_z
-        curve_pts.append(App.Vector(px, 0, pz))
+    flap = blade.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    bridge_pts = list(curve_pts)
-    bridge_pts.append(App.Vector(0, 0, pivot_z))
-    bridge_pts.append(App.Vector(xs, 0, panel_z_min))
-    bridge_pts.append(App.Vector(xs, 0, top_z))
-    bridge_pts.append(curve_pts[0])
+    # 4. Drive Axle: Bottom journal (Y in [0.5, 15.0mm]), Top journal (Y in [149.5, 159.5mm]), and Middle Half-Cylinder
+    axle_bot = Part.makeCylinder(shaft_r, rail_w - gap_axial, App.Vector(0, gap_axial, pivot_z), App.Vector(0, 1, 0))
+    axle_top = Part.makeCylinder(shaft_r, 10.0, App.Vector(0, y_knuckle_mot_top, pivot_z), App.Vector(0, 1, 0))
 
-    bridge_face = Part.Face(Part.makePolygon(bridge_pts))
-    bridge_solid = bridge_face.extrude(App.Vector(0, gusset_len, 0))
-    bridge_solid.translate(App.Vector(0, gusset_start_y, 0))
+    # Half-cylinder axle between knuckles (strictly below Z = 15.00mm)
+    axle_mid_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
+    axle_mid_trim = Part.makeBox(shaft_r * 4.0, mid_len + 1.0, shaft_r * 2.0)
+    axle_mid_trim.translate(App.Vector(-shaft_r * 2.0, y_knuckle_bot - 0.5, pivot_z))
+    axle_mid_half = axle_mid_full.cut(axle_mid_trim)
 
-    # Fuse flap blade with axle, smooth under-flap gusset, and smooth top transition bridge
-    flap = flap.fuse(Part.makeCompound([axle_solid, gusset_solid, bridge_solid])).removeSplitter()
+    # Fuse flat flap panel with continuous drive axle and journals
+    flap = flap.fuse(Part.makeCompound([axle_bot, axle_top, axle_mid_half])).removeSplitter()
 
     # 5. Output Female Hex Sockets (Bottom: Y=0.5mm, Top: Y = h - 60.5mm)
     socket_d = 10.5
-    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, 0.4)
+    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_min - 0.1)
     hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
     hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
 
@@ -158,31 +156,32 @@ def construct_motorized_flap():
 
     flap = flap.cut(Part.makeCompound([hex_socket_bot_cutter, hex_socket_top_cutter])).removeSplitter()
 
-    # 6. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction) matching follower_flap
-    scale_geo = min(w, h) / 220.0
-    hole_specs = [
-        (w * 0.48, h * 0.50, 18.0 * scale_geo),
-        (w * 0.28, h * 0.32, 15.0 * scale_geo),
-        (w * 0.72, h * 0.35, 16.0 * scale_geo),
-        (w * 0.32, h * 0.70, 17.0 * scale_geo),
-        (w * 0.70, h * 0.68, 15.5 * scale_geo),
-        (w * 0.52, h * 0.22, 12.0 * scale_geo),
-        (w * 0.52, h * 0.78, 12.5 * scale_geo),
-        (w * 0.22, h * 0.52, 11.0 * scale_geo),
-        (w * 0.84, h * 0.50, 11.5 * scale_geo),
-        (w * 0.22, h * 0.15, 8.5 * scale_geo),
-        (w * 0.82, h * 0.18, 9.0 * scale_geo),
-        (w * 0.20, h * 0.85, 8.0 * scale_geo),
-        (w * 0.84, h * 0.82, 8.5 * scale_geo),
-        (w * 0.37, h * 0.12, 7.0 * scale_geo),
-        (w * 0.67, h * 0.12, 7.0 * scale_geo),
-        (w * 0.37, h * 0.88, 7.0 * scale_geo),
-        (w * 0.67, h * 0.88, 7.0 * scale_geo),
+    # 6. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction)
+    mid_blade_w = x_max - (-shaft_r)
+    scale_geo = min(mid_blade_w, total_len) / 200.0
+    hole_uvs = [
+        (0.55, 0.45, 18.0 * scale_geo),
+        (0.35, 0.30, 15.0 * scale_geo),
+        (0.75, 0.32, 16.0 * scale_geo),
+        (0.40, 0.65, 17.0 * scale_geo),
+        (0.75, 0.65, 15.5 * scale_geo),
+        (0.58, 0.20, 12.0 * scale_geo),
+        (0.58, 0.75, 12.5 * scale_geo),
+        (0.30, 0.48, 11.0 * scale_geo),
+        (0.86, 0.48, 11.5 * scale_geo),
+        (0.30, 0.15, 8.5 * scale_geo),
+        (0.84, 0.18, 9.0 * scale_geo),
+        (0.68, 0.88, 10.0 * scale_geo),
+        (0.86, 0.82, 8.5 * scale_geo),
+        (0.42, 0.12, 7.0 * scale_geo),
+        (0.72, 0.12, 7.0 * scale_geo),
     ]
 
     cutters = []
-    for cx, cy, hr in hole_specs:
-        if cx - hr < 49.0 and cy + hr > h - 55.0:
+    for u, v, hr in hole_uvs:
+        cx = 15.0 + (mid_blade_w - 30.0) * u
+        cy = y_min + (total_len) * v
+        if cx < x_mot_notch + hr and cy > y_knuckle_mot_top - hr:
             continue
         cyl = Part.makeCylinder(hr, t + 1.0, App.Vector(cx, cy, panel_z_min - 0.5))
         c_top = Part.makeCone(hr + HOLE_CHAMFER, hr, HOLE_CHAMFER + 0.1, App.Vector(cx, cy, top_z - HOLE_CHAMFER))
@@ -192,26 +191,35 @@ def construct_motorized_flap():
     if cutters:
         flap = flap.cut(Part.makeCompound(cutters)).removeSplitter()
 
-    # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture (Dual 45° cross-hatch matching follower_flap)
+    # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture extending across entire flap face to borders
     tex_cutters = []
     tex_spacing = 14.0
     tex_w = 0.8
     tex_d = TEXTURE_HEIGHT                   # 0.6mm
     
-    for i in range(-int(w), int(w + h), int(tex_spacing)):
-        g1 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
+    for i in range(-int(w), int(w + h * 2), int(tex_spacing)):
+        g1 = Part.makeBox(tex_w, h * 2.0, tex_d + 0.1)
         g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
         g1.translate(App.Vector(i, 0, top_z - tex_d))
-        g2 = Part.makeBox(tex_w, h * 1.5, tex_d + 0.1)
+        g2 = Part.makeBox(tex_w, h * 2.0, tex_d + 0.1)
         g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
         g2.translate(App.Vector(i, h, top_z - tex_d))
         tex_cutters.extend([g1, g2])
 
-    if tex_cutters:
-        tex_bound = Part.makeBox(w - 2 * bevel_w, h - 2 * bevel_w, t + 2.0)
-        tex_bound.translate(App.Vector(bevel_w, bevel_w, panel_z_min - 1.0))
-        tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
-        flap = flap.cut(tex_compound).removeSplitter()
+    # Bound for the outer slab inset by border_w
+    tb_slab_base = Part.makeBox(full_wing_w - border_w + 1.0, total_len - 2 * border_w, t + 2.0)
+    tb_slab_base.translate(App.Vector(x_wing_start - 0.5, y_min + border_w, panel_z_min - 1.0))
+    tb_cut = Part.makeBox(x_mot_notch - x_wing_start + border_w + 1.0, (h - 70.0 - gap_axial) + 72.0, t + 4.0)
+    tb_cut.translate(App.Vector(x_wing_start - 0.5, y_knuckle_mot_top - border_w, panel_z_min - 2.0))
+    tb_slab = tb_slab_base.cut(tb_cut)
+
+    # Bound for the hinge extension inset by border_w
+    tb_hinge = Part.makeBox(hinge_ext_w - border_w + 1.0, mid_len - 2 * border_w, t + 2.0)
+    tb_hinge.translate(App.Vector(border_w - shaft_r, y_knuckle_bot + border_w, panel_z_min - 1.0))
+
+    tex_bound_all = tb_slab.fuse(tb_hinge).removeSplitter()
+    tex_compound = Part.makeCompound(tex_cutters).common(tex_bound_all)
+    flap = flap.cut(tex_compound).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_flap.step")

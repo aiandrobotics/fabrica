@@ -27,11 +27,11 @@ def construct_motorized_servo_cover():
     """
     import params
     h = params.PANEL_HEIGHT
-    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 19.8 to 21.2mm, clearing servo top at Z=19.75mm)
+    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 23.4 to 24.8mm)
     w_top = 63.7 # X in [-23.5, 40.2mm]
     l_top = 38.8 # Y in [h - 44.3, h - 5.5mm]
     t_top = 1.4
-    z_top_min = 19.8
+    z_top_min = 23.4
 
     top_plate = Part.makeBox(w_top, l_top, t_top)
     top_plate.translate(App.Vector(-23.5, h - 44.3, z_top_min))

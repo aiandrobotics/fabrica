@@ -58,22 +58,19 @@ def build_follower_assembly():
 
     # 3. Front Interlocking Bridge Joiner (Color: Blue #3498db)
     joiner_shape = construct_frame_joiner()
+    joiner_front_shape = joiner_shape.copy()
+    joiner_front_shape.translate(App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick))
     joiner_front = doc.addObject("Part::Feature", "FrameJoiner_Front")
-    joiner_front.Shape = joiner_shape.copy()
-    joiner_front.Placement = App.Placement(
-        App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick),
-        App.Rotation(App.Vector(0, 0, 1), 0)
-    )
+    joiner_front.Shape = joiner_front_shape
     if hasattr(joiner_front, "ViewObject") and joiner_front.ViewObject:
         joiner_front.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
     # 4. Right Interlocking Bridge Joiner (Color: Blue #3498db)
+    joiner_right_shape = joiner_shape.copy()
+    joiner_right_shape.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
+    joiner_right_shape.translate(App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick))
     joiner_right = doc.addObject("Part::Feature", "FrameJoiner_Right")
-    joiner_right.Shape = joiner_shape.copy()
-    joiner_right.Placement = App.Placement(
-        App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick),
-        App.Rotation(App.Vector(0, 0, 1), 90)
-    )
+    joiner_right.Shape = joiner_right_shape
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
         joiner_right.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
@@ -81,10 +78,6 @@ def build_follower_assembly():
     coupler_shape = construct_hex_drive_coupler()
     coupler_obj = doc.addObject("Part::Feature", "HexDriveCoupler")
     coupler_obj.Shape = coupler_shape
-    coupler_obj.Placement = App.Placement(
-        App.Vector(0, 0, 0),
-        App.Rotation(App.Vector(0, 0, 1), 0)
-    )
     if hasattr(coupler_obj, "ViewObject") and coupler_obj.ViewObject:
         coupler_obj.ViewObject.ShapeColor = (0.6, 0.35, 0.71)
 

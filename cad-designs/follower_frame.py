@@ -60,71 +60,51 @@ def construct_follower_frame():
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
 
-    # 2. Knuckle Extension Barrels & C1-Continuous Smooth Concave Transition Ramps (Y = 0 to 15mm and Y = h-15 to h mm)
-    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0  # 9.5mm radius (Ø19.0mm outer barrel)
+    # 2. End 360° Knuckle Rings & Middle Semi-Circular Support Cradle Wall
+    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0  # 9.4mm outer radius
     knuckle_len = rail_w
-    pivot_z = PIVOT_Z  # Axle center (10.0mm above tabletop for 100% flat bottom across all frames)
-    
-    # Bottom Knuckle Barrel (+Y facing)
+    pivot_z = PIVOT_Z  # 15.00mm (exact top deck hinge line)
+    t_blade = params.PADDLE_THICKNESS # 2.4mm
+    sweep_z_min = pivot_z - t_blade   # 12.60mm (allows 180° fold clearance in X < 0)
+
+    # Bottom 360° Knuckle Barrel (Y in [0, 15mm])
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
-    # Top Knuckle Barrel (-Y facing)
+    # Top 360° Knuckle Barrel (Y in [h - 15mm, h])
     k_top = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, h - knuckle_len, pivot_z), App.Vector(0, 1, 0))
 
-    # Smooth C1-Continuous Tangent Concave Blend Ramp (flows directly from Ø19mm cylinder to Z = 15.0mm frame top deck)
-    rf = 12.0  # 12.0mm concave blend radius
-    xc = math.sqrt((knuckle_r + rf)**2 - (t - pivot_z + rf)**2) # ~10.06mm
-    zc = t + rf                                                 # 27.0mm
-    touch_theta = math.atan2(zc - pivot_z, xc)
+    # Middle Semi-Circular Support Cradle Wall between knuckles (strictly below Z = 12.60mm in X < 0)
+    cradle_outer = Part.makeCylinder(knuckle_r, h - 2 * knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
+    cradle_trim_top = Part.makeBox(knuckle_r * 4.0, h, knuckle_r * 2.0)
+    cradle_trim_top.translate(App.Vector(-knuckle_r * 2.0, 0, sweep_z_min))
+    cradle_support = cradle_outer.cut(cradle_trim_top)
 
-    ramp_pts = [App.Vector(-knuckle_r, 0, 0)]
-    num_arch = 16
-    for i in range(num_arch):
-        th = math.pi - i * (math.pi - touch_theta) / float(num_arch - 1)
-        ramp_pts.append(App.Vector(knuckle_r * math.cos(th), 0, pivot_z + knuckle_r * math.sin(th)))
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.85mm radius (Ø13.7mm)
 
-    num_fillet = 16
-    for i in range(1, num_fillet):
-        alpha = (touch_theta - math.pi) + i * (-math.pi / 2.0 - (touch_theta - math.pi)) / float(num_fillet - 1)
-        ramp_pts.append(App.Vector(xc + rf * math.cos(alpha), 0, zc + rf * math.sin(alpha)))
+    # Solid cradle reinforcement boss at Y_seam below axle bore (Z in [0, bore_bottom = 8.15mm])
+    seam_boss_len = 24.0
+    seam_boss = Part.makeBox(knuckle_r + 4.0, seam_boss_len, pivot_z - bore_r)
+    seam_boss.translate(App.Vector(-knuckle_r, y_seam - seam_boss_len / 2.0, 0))
 
-    ramp_pts.append(App.Vector(rail_w, 0, t))
-    ramp_pts.append(App.Vector(rail_w, 0, 0))
-    ramp_pts.append(App.Vector(-knuckle_r, 0, 0))
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss]).removeSplitter()
 
-    ramp_wire = Part.makePolygon(ramp_pts)
-    ramp_face = Part.Face(ramp_wire)
-    ramp_bot = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
-    ramp_top = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
-    ramp_top.translate(App.Vector(0, h - knuckle_len, 0))
+    # 3. Open Interior Cavities, Bores, and Continuous Cradle Trough
 
-    # 2b. Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, h-15mm])
-    cradle_outer_cyl = Part.makeCylinder(knuckle_r, h - 2 * knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
-
-    frame = outer_box.fuse(Part.makeCompound([k_bot, k_top, cradle_outer_cyl, ramp_bot, ramp_top])).removeSplitter()
-
-    # 3. Open Interior Cavities & Axial Cradle (Clean straight vertical wall from cradle apex at X=0.0mm)
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.95mm radius (Ø13.9mm)
-
-    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r centered at X=0, Z=10mm)
-    cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
-
-    # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
-    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, h - 2 * knuckle_len, 20.0)
-    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
-
-    # C. Main Center Cavity (Straight rectangular window starting right at X=0.0mm):
-    cav_main = Part.makeBox(w - rail_w, h - 2 * rail_w, t + 2.0)
-    cav_main.translate(App.Vector(0.0, rail_w, -1.0))
-
-    # D. Knuckle Bearing Bores (Top & Bottom: 100% Solid 360° closed rings)
+    # A. 360° Knuckle Bearing Bores (Top & Bottom closed 360° journals)
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # Knuckle planar bottom trim: 100% flat at Z=0.0mm
+    # B. Semi-Circular Cradle Trough (supports half-cylinder axle from below)
+    cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+
+    # C. Main Center Cavity Window (Opens fully from X=0 to X=W-15mm, using semi-cylinder cradle as sole hinge wall)
+    cav_main = Part.makeBox(w - rail_w, h - 2 * rail_w, t + 2.0)
+    cav_main.translate(App.Vector(0, rail_w, -1.0))
+
+    # D. Knuckle planar bottom trim: 100% flat at Z=0.0mm
     trim_bot = Part.makeBox(knuckle_r * 4.0, h + 2.0, knuckle_r + 2.0)
     trim_bot.translate(App.Vector(-knuckle_r * 2.0, -1.0, -knuckle_r - 2.0))
 
-    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, cav_cradle_top, top_bore, bot_bore, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, trim_bot])).removeSplitter()
 
     # 4. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH
@@ -166,15 +146,15 @@ def construct_follower_frame():
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
 
-    # 5. Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = h / 2.0
-    dt_lk_neck = 3.5
-    dt_lk_flare = 7.0
-    dt_lk_depth = 7.0
-    gap = 0.35  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
+    # 5. Clean Solid Symmetric Through-Dovetail Joint across Axial Cradle Wall at Y = h / 2.0
+    dt_lk_neck = 4.0
+    dt_lk_flare = 7.5
+    dt_lk_depth = 6.0
+    gap = 0.20  # 0.20mm snug tight fit clearance for rock-solid lock
 
-    x_left = -knuckle_r - 1.0
-    x_right = 1.0
-    center_x = (x_left + x_right) / 2.0
+    x_left = -knuckle_r - 2.0
+    x_right = 5.0
+    center_x = -4.5  # centered on cradle wall boss
 
     dt4_poly_pts = [
         # Top edge of female pocket (in +Y half)

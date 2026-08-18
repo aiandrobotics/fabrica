@@ -66,77 +66,61 @@ def construct_motorized_frame():
     towers_start_y = h - 55.0 # Towers span Y in [h - 55.0, h - 44.5]
     bay_start_y = h - 44.5 # Motor bay spans Y in [h - 44.5, h]
     bay_len = 44.5
-
     # 1. Base 4-Wall Perimeter Frame
     outer_box = Part.makeBox(w, h, t)
+    t_blade = params.PADDLE_THICKNESS # 2.4mm
+    sweep_z_min = pivot_z - t_blade   # 12.60mm
 
-    # Knuckles: Bottom (Y=0..15mm) and Top (Y = h - 70.0 to h - 55.0mm)
+    # Bottom 360° Knuckle Barrel (Y in [0, 15mm])
     k_bot = Part.makeCylinder(knuckle_r, knuckle_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
+    # Top Knuckle Barrel at Y in [h - 70.0, h - 55.0mm] (surrounding servo adapter journal)
     k_top = Part.makeCylinder(knuckle_r, k_top_len, App.Vector(0, k_top_start_y, pivot_z), App.Vector(0, 1, 0))
+    # Middle Semi-Circular Support Cradle Wall between knuckles (strictly below Z = 12.60mm in X < 0)
+    cradle_outer = Part.makeCylinder(knuckle_r, k_top_start_y - knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
+    cradle_trim_top = Part.makeBox(knuckle_r * 4.0, h, knuckle_r * 2.0)
+    cradle_trim_top.translate(App.Vector(-knuckle_r * 2.0, 0, sweep_z_min))
+    cradle_support = cradle_outer.cut(cradle_trim_top)
 
-    # C1 Fillet Blend Ramps (Rf = 12.0mm)
-    rf = 12.0
-    xc = math.sqrt((knuckle_r + rf)**2 - (t - pivot_z + rf)**2)
-    zc = t + rf
-    touch_theta = math.atan2(zc - pivot_z, xc)
+    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE # 6.85mm
 
-    ramp_pts = [App.Vector(-knuckle_r, 0, 0)]
-    num_arch = 16
-    for i in range(num_arch):
-        th = math.pi - i * (math.pi - touch_theta) / float(num_arch - 1)
-        ramp_pts.append(App.Vector(knuckle_r * math.cos(th), 0, pivot_z + knuckle_r * math.sin(th)))
-
-    num_fillet = 16
-    for i in range(1, num_fillet):
-        alpha = (touch_theta - math.pi) + i * (-math.pi / 2.0 - (touch_theta - math.pi)) / float(num_fillet - 1)
-        ramp_pts.append(App.Vector(xc + rf * math.cos(alpha), 0, zc + rf * math.sin(alpha)))
-
-    ramp_pts.append(App.Vector(rail_w, 0, t))
-    ramp_pts.append(App.Vector(rail_w, 0, 0))
-    ramp_pts.append(App.Vector(-knuckle_r, 0, 0))
-
-    ramp_wire = Part.makePolygon(ramp_pts)
-    ramp_face = Part.Face(ramp_wire)
-    ramp_bot = ramp_face.extrude(App.Vector(0, knuckle_len, 0))
-    ramp_top = ramp_face.extrude(App.Vector(0, k_top_len, 0))
-    ramp_top.translate(App.Vector(0, k_top_start_y, 0))
+    # Solid cradle reinforcement boss at y_cradle_seam below axle bore (Z in [0, bore_bottom = 8.15mm])
+    y_cradle_seam = (knuckle_len + k_top_start_y) / 2.0  # 82.5mm
+    seam_boss_len = 24.0
+    seam_boss = Part.makeBox(knuckle_r + 4.0, seam_boss_len, pivot_z - bore_r)
+    seam_boss.translate(App.Vector(-knuckle_r, y_cradle_seam - seam_boss_len / 2.0, 0))
 
     # Solid 2.0mm Bottom Base Floor under entire motor module zone (Y in [h - 70.0, h], X in [-24.0, 48.0mm], Z in [-2.0, 0.0mm])
     floor_t = 2.0
     module_base_floor = Part.makeBox(72.0, 70.0, floor_t)
     module_base_floor.translate(App.Vector(-24.0, k_top_start_y, -floor_t))
 
-    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [h - 70.0, h - 55.0mm], Z in [-2.0, 10.0mm]) anchoring knuckle to base floor
-    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, 12.0)
+    # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [h - 70.0, h - 55.0mm], Z in [-2.0, 15.0mm]) anchoring knuckle to base floor
+    knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, pivot_z + floor_t)
     knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, -floor_t))
 
-    # Solid Mounting Towers at Y in [h - 55.0, h - 44.5mm] (height Z=0.0 to 21.2mm, sitting on base floor)
-    t_servo = 21.2
+    # Solid Mounting Towers at Y in [h - 55.0, h - 44.5mm] (height Z=0.0 to 25.0mm, sitting on base floor)
+    t_servo = 25.0
     towers_box = Part.makeBox(72.0, 10.5, t_servo + floor_t)
     towers_box.translate(App.Vector(-24.0, towers_start_y, -floor_t))
 
-    # Rear motor housing perimeter at Y in [h - 44.5, h] (height Z=0.0 to 21.2mm, sitting on base floor)
+    # Rear motor housing perimeter at Y in [h - 44.5, h] (height Z=0.0 to 25.0mm, sitting on base floor)
     rear_box = Part.makeBox(72.0, bay_len, t_servo + floor_t)
     rear_box.translate(App.Vector(-24.0, bay_start_y, -floor_t))
 
-    # Axial Cradle Outer Cylinder Solid (R=9.5mm outer cylinder running along hinge axis at Y in [15, h - 70mm])
-    cradle_outer_cyl = Part.makeCylinder(knuckle_r, k_top_start_y - knuckle_len, App.Vector(0, knuckle_len, pivot_z), App.Vector(0, 1, 0))
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
 
-    frame = outer_box.fuse([k_bot, k_top, ramp_bot, ramp_top, cradle_outer_cyl, module_base_floor, knuckle_pedestal, towers_box, rear_box]).removeSplitter()
+    # 2. Main Open Cavity, Bores, and Cradle Trough
 
-    # 2. Cut open interior cavities & Axial Cradle (Clean straight vertical wall from cradle apex at X=0.0mm)
-    bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.95mm radius (Ø13.9mm)
+    # Knuckle Bores:
+    bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
+    top_bore = Part.makeCylinder(bore_r, k_top_len + 0.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # A. Continuous Axial Cradle Trough Cutter (Cylinder radius bore_r = 6.95mm centered at X=0, Z=10mm)
+    # Semi-Circular Cradle Trough between knuckles (supports half-cylinder axle from below)
     cradle_trough = Part.makeCylinder(bore_r, k_top_start_y - knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # B. Upper Flap Sweep Cut above Z=10.0mm (open top above cradle half-pipe, height 20mm)
-    cav_cradle_top = Part.makeBox(knuckle_r * 2.0 + 10.0, k_top_start_y - knuckle_len, 20.0)
-    cav_cradle_top.translate(App.Vector(-knuckle_r - 2.0, knuckle_len, pivot_z))
-
-    # C. Lower Main Center Cavity (Straight rectangular window starting right at X=0.0mm):
+    # Lower Main Center Cavity (Opens fully from X=0 to X=W-15mm, using semi-cylinder cradle as sole hinge wall):
     cav_main_lower = Part.makeBox(w - rail_w, k_top_start_y - rail_w, t + 2.0)
-    cav_main_lower.translate(App.Vector(0.0, rail_w, -1.0))
+    cav_main_lower.translate(App.Vector(0, rail_w, -1.0))
 
     # Upper main cavity (Y = h - 70.0 to h - 15.0mm, X = 48 to W - 15mm) — preserves solid inner motor enclosure wall
     cav_main_upper = Part.makeBox(w - rail_w - 48.0, 55.0, t + 2.0)
@@ -150,7 +134,7 @@ def construct_motorized_frame():
     cut_screw_access_left = Part.makeBox(13.5, 15.0, 25.0)
     cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, 0.0))
 
-    for cav in [cav_main_lower, cav_main_upper, cradle_trough, cav_cradle_top, cut_screw_access_right, cut_screw_access_left]:
+    for cav in [cav_main_lower, cav_main_upper, cradle_trough, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Knuckle Bore
@@ -158,8 +142,8 @@ def construct_motorized_frame():
     # Top knuckle bore spanning Y in [h - 70.1, h - 60.9mm] (SOLID 360 degree closed cylinder barrel):
     top_bore = Part.makeCylinder(bore_r, 9.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # Adapter Disk Clearance Pocket at Y in [h - 61.5, h - 54.9mm] (X in [-11.0, 11.0mm], Z in [0.0, 20.0mm])
-    adapter_pocket = Part.makeBox(22.0, 6.6, 20.0)
+    # Adapter Disk Clearance Pocket at Y in [h - 61.5, h - 54.9mm] (X in [-11.0, 11.0mm], Z in [0.0, 25.0mm])
+    adapter_pocket = Part.makeBox(22.0, 6.6, 25.0)
     adapter_pocket.translate(App.Vector(-11.0, k_top_start_y + 8.5, 0.0))
 
     # Planar bottom trim at Z=0.0mm for standard frame rails (preserving the Z=-2.0mm solid floor under motor module zone)
@@ -184,17 +168,19 @@ def construct_motorized_frame():
     pocket_bay = Part.makeBox(56.3, 39.5, 25.0)
     pocket_bay.translate(App.Vector(-17.8, bay_start_y, 0.0))
 
-    # Top Lid Seating Rebate (1.8mm depth at Z in [19.4, 21.3mm], X in [-23.8, 40.5mm], Y in [h - 44.5, h - 5.2mm])
+    # Top Lid Seating Rebate (1.8mm depth at Z in [23.2, 25.0mm], X in [-23.8, 40.5mm], Y in [h - 44.5, h - 5.2mm])
     pocket_rebate = Part.makeBox(64.3, 39.3, 2.0)
-    pocket_rebate.translate(App.Vector(-23.8, bay_start_y, 19.4))
+    pocket_rebate.translate(App.Vector(-23.8, bay_start_y, 23.2))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing cleanly through the solid towers along Y-axis:
     screw_r = 1.7
+    z_sc1 = pivot_z - 5.25 # 9.75mm
+    z_sc2 = pivot_z + 5.25 # 20.25mm
     screw_holes = [
-        Part.makeCylinder(screw_r, 14.0, App.Vector(34.95, towers_start_y - 1.0, 4.75), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0, App.Vector(34.95, towers_start_y - 1.0, 15.25), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, 4.75), App.Vector(0, 1, 0)),
-        Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, 15.25), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(34.95, towers_start_y - 1.0, z_sc1), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(34.95, towers_start_y - 1.0, z_sc2), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, z_sc1), App.Vector(0, 1, 0)),
+        Part.makeCylinder(screw_r, 14.0, App.Vector(-14.45, towers_start_y - 1.0, z_sc2), App.Vector(0, 1, 0)),
     ]
 
     # External motor wire exit conduit through OUTER LEFT WALL at X = -24.0mm matching MG996R cable grommet (Y in [h - 24.0, h - 12.0mm], Z in [3.0, 16.0mm])
@@ -255,30 +241,34 @@ def construct_motorized_frame():
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
 
-    # Clean Solid Through-Dovetail Joint across Axial Cradle Wall at Y = h / 2.0
-    dt_lk_neck = 3.5
-    dt_lk_flare = 7.0
-    dt_lk_depth = 7.0
-    gap = 0.35  # 0.35mm FDM sliding clearance for smooth assembly right off the print bed
-    x_left = -knuckle_r - 1.0
-    x_right = 1.0
-    center_x = (x_left + x_right) / 2.0
-    y_seam = h / 2.0
+    # Cradle Wall Dovetail Joint at y_cradle_seam = 82.5mm
+    dt_lk_neck = 4.0
+    dt_lk_flare = 7.5
+    dt_lk_depth = 6.0
+    gap = 0.20  # 0.20mm snug tight fit clearance
+
+    x_left = -knuckle_r - 2.0
+    x_right = 5.0
+    center_x = -4.5
 
     dt4_poly_pts = [
-        App.Vector(x_right, y_seam + gap, 0),
-        App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_seam + gap, 0),
-        App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_seam + dt_lk_depth + gap, 0),
-        App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_seam + dt_lk_depth + gap, 0),
-        App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_seam + gap, 0),
-        App.Vector(x_left, y_seam + gap, 0),
-        App.Vector(x_left, y_seam, 0),
-        App.Vector(center_x - dt_lk_neck / 2.0, y_seam, 0),
-        App.Vector(center_x - dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
-        App.Vector(center_x + dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
-        App.Vector(center_x + dt_lk_neck / 2.0, y_seam, 0),
-        App.Vector(x_right, y_seam, 0),
-        App.Vector(x_right, y_seam + gap, 0),
+        # Top edge of female pocket (in +Y half)
+        App.Vector(x_right, y_cradle_seam + gap, 0),
+        App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_cradle_seam + gap, 0),
+        App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_cradle_seam + dt_lk_depth + gap, 0),
+        App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_cradle_seam + dt_lk_depth + gap, 0),
+        App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_cradle_seam + gap, 0),
+        App.Vector(x_left, y_cradle_seam + gap, 0),
+        
+        # Bottom edge of male tab (in -Y half)
+        App.Vector(x_left, y_cradle_seam, 0),
+        App.Vector(center_x - dt_lk_neck / 2.0, y_cradle_seam, 0),
+        App.Vector(center_x - dt_lk_flare / 2.0, y_cradle_seam + dt_lk_depth, 0),
+        App.Vector(center_x + dt_lk_flare / 2.0, y_cradle_seam + dt_lk_depth, 0),
+        App.Vector(center_x + dt_lk_neck / 2.0, y_cradle_seam, 0),
+        App.Vector(x_right, y_cradle_seam, 0),
+        
+        App.Vector(x_right, y_cradle_seam + gap, 0),
     ]
     dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, pivot_z + 2.0))
     dt4_cutter.translate(App.Vector(0, 0, -1.0))

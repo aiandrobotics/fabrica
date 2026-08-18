@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-18
+- Unified monolithic seamless flap construction across all folding flaps, eliminating internal seam split lines and creating unbroken planar top decks.
+- Extended stepped wings on follower and motorized flaps to cover chassis rails past 360° knuckle rings with 0.50mm radial clearance.
+- Extended anti-slip 45° diamond traction micro-grip texture continuously across entire flap faces with uniform 2.0mm perimeter shadow bevel borders.
+- Extended motorized flap to full 219.0mm length deck coverage over the frame cavity with precision servo notch and zero kinematic interference across 180° rotation.
+- Re-architected frame hinge support to a single semi-cylindrical cradle wall, maximizing open cavity space without redundant rectangular walls.
+- Added reinforced sub-bore cradle foundation boss and symmetric 0.20mm tight-fit sliding dovetail joint across cradle walls to eliminate looseness and wobble.
+- Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
+
 ## 2026-08-17
 - Standardized True Square 220.0mm x 220.0mm modular panel architecture across all modules with symmetrical 230.0mm inter-module pitch and 10.0mm seam gaps.
 - Decoupled all physical hardware features (MG996R servo motor bay, M3 fastener bosses, snap-fit lids, 8.0mm hex torque couplers, sliding dovetails, silicone foot sockets, and FDM clearances) from build plate scaling parameters, locking them to unscaled 1:1 physical constants.
