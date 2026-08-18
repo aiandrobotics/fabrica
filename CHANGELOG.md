@@ -9,6 +9,8 @@
 - Added reinforced sub-bore cradle foundation boss and symmetric 0.20mm tight-fit sliding dovetail joint across cradle walls to eliminate looseness and wobble.
 - Added high-capacity filleted wire pass-through conduits through all chassis dovetail sockets for continuous cable routing into interior wiring cavities.
 - Added smooth R=3.0mm vertical corner fillets and lead-in chamfers across all frames, flaps, and drive axles for tactile finish and supportless FDM printing.
+- Implemented solid servo bay bed floor at Z=5.25mm for direct gravity-supported drop-in motor seating and M3 screw hole alignment.
+- Converted motorized frame cavity to a unified monolithic L-shaped boundary, eliminating split-line rail notches and motor enclosure slivers.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17
