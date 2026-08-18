@@ -80,12 +80,7 @@ def construct_follower_frame():
 
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE  # 6.85mm radius (Ø13.7mm)
 
-    # Solid cradle reinforcement boss at Y_seam below axle bore (Z in [0, bore_bottom = 8.15mm])
-    seam_boss_len = 24.0
-    seam_boss = Part.makeBox(knuckle_r + 4.0, seam_boss_len, pivot_z - bore_r)
-    seam_boss.translate(App.Vector(-knuckle_r, y_seam - seam_boss_len / 2.0, 0))
-
-    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, cradle_support]).removeSplitter()
 
     # 3. Open Interior Cavities, Bores, and Continuous Cradle Trough
 
@@ -171,39 +166,6 @@ def construct_follower_frame():
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dt_cutters.append(c_right)
-
-    # 5. Clean Solid Symmetric Through-Dovetail Joint across Axial Cradle Wall at Y = h / 2.0
-    dt_lk_neck = 4.0
-    dt_lk_flare = 7.5
-    dt_lk_depth = 6.0
-    gap = 0.20  # 0.20mm snug tight fit clearance for rock-solid lock
-
-    x_left = -knuckle_r - 2.0
-    x_right = 5.0
-    center_x = -4.5  # centered on cradle wall boss
-
-    dt4_poly_pts = [
-        # Top edge of female pocket (in +Y half)
-        App.Vector(x_right, y_seam + gap, 0),
-        App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_seam + gap, 0),
-        App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_seam + dt_lk_depth + gap, 0),
-        App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_seam + dt_lk_depth + gap, 0),
-        App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_seam + gap, 0),
-        App.Vector(x_left, y_seam + gap, 0),
-        
-        # Bottom edge of male tab (in -Y half)
-        App.Vector(x_left, y_seam, 0),
-        App.Vector(center_x - dt_lk_neck / 2.0, y_seam, 0),
-        App.Vector(center_x - dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
-        App.Vector(center_x + dt_lk_flare / 2.0, y_seam + dt_lk_depth, 0),
-        App.Vector(center_x + dt_lk_neck / 2.0, y_seam, 0),
-        App.Vector(x_right, y_seam, 0),
-        
-        App.Vector(x_right, y_seam + gap, 0),
-    ]
-    dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, pivot_z + 2.0))
-    dt4_cutter.translate(App.Vector(0, 0, -1.0))
-    dt_cutters.append(dt4_cutter)
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 

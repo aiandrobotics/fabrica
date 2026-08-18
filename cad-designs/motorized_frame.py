@@ -83,12 +83,6 @@ def construct_motorized_frame():
 
     bore_r = (DRIVE_SHAFT_DIAMETER / 2.0) + BEARING_ROTATING_CLEARANCE # 6.85mm
 
-    # Solid cradle reinforcement boss at y_cradle_seam below axle bore (Z in [0, bore_bottom = 8.15mm])
-    y_cradle_seam = (knuckle_len + k_top_start_y) / 2.0  # 82.5mm
-    seam_boss_len = 24.0
-    seam_boss = Part.makeBox(knuckle_r + 4.0, seam_boss_len, pivot_z - bore_r)
-    seam_boss.translate(App.Vector(-knuckle_r, y_cradle_seam - seam_boss_len / 2.0, 0))
-
     # Continuous Solid Base Plate under entire motor zone and knuckle (X in [-24.0, 48.0mm], Y in [150.0, 220.0mm], Z in [0.0, 3.0mm])
     module_base_floor = Part.makeBox(72.0, 70.0, bottom_thick)
     module_base_floor.translate(App.Vector(-24.0, k_top_start_y, 0.0))
@@ -105,7 +99,7 @@ def construct_motorized_frame():
     housing_box = Part.makeBox(72.0, bay_len, t_servo)
     housing_box.translate(App.Vector(-24.0, bay_start_y, 0.0))
 
-    frame = outer_box.fuse([k_bot, k_top, cradle_support, seam_boss, module_base_floor, knuckle_pedestal, housing_box]).removeSplitter()
+    frame = outer_box.fuse([k_bot, k_top, cradle_support, module_base_floor, knuckle_pedestal, housing_box]).removeSplitter()
 
     # 2. Main Open Cavity, Bores, and Cradle Trough
 
@@ -269,39 +263,7 @@ def construct_motorized_frame():
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
 
-    # Cradle Wall Dovetail Joint at y_cradle_seam = 82.5mm
-    dt_lk_neck = 4.0
-    dt_lk_flare = 7.5
-    dt_lk_depth = 6.0
-    gap = 0.20  # 0.20mm snug tight fit clearance
-
-    x_left = -knuckle_r - 2.0
-    x_right = 5.0
-    center_x = -4.5
-
-    dt4_poly_pts = [
-        # Top edge of female pocket (in +Y half)
-        App.Vector(x_right, y_cradle_seam + gap, 0),
-        App.Vector(center_x + dt_lk_neck / 2.0 + gap, y_cradle_seam + gap, 0),
-        App.Vector(center_x + dt_lk_flare / 2.0 + gap, y_cradle_seam + dt_lk_depth + gap, 0),
-        App.Vector(center_x - dt_lk_flare / 2.0 - gap, y_cradle_seam + dt_lk_depth + gap, 0),
-        App.Vector(center_x - dt_lk_neck / 2.0 - gap, y_cradle_seam + gap, 0),
-        App.Vector(x_left, y_cradle_seam + gap, 0),
-        
-        # Bottom edge of male tab (in -Y half)
-        App.Vector(x_left, y_cradle_seam, 0),
-        App.Vector(center_x - dt_lk_neck / 2.0, y_cradle_seam, 0),
-        App.Vector(center_x - dt_lk_flare / 2.0, y_cradle_seam + dt_lk_depth, 0),
-        App.Vector(center_x + dt_lk_flare / 2.0, y_cradle_seam + dt_lk_depth, 0),
-        App.Vector(center_x + dt_lk_neck / 2.0, y_cradle_seam, 0),
-        App.Vector(x_right, y_cradle_seam, 0),
-        
-        App.Vector(x_right, y_cradle_seam + gap, 0),
-    ]
-    dt4_cutter = Part.Face(Part.makePolygon(dt4_poly_pts)).extrude(App.Vector(0, 0, pivot_z + 2.0))
-    dt4_cutter.translate(App.Vector(0, 0, -1.0))
-
-    for dt in [c_front, c_right, dt4_cutter]:
+    for dt in [c_front, c_right]:
         frame = frame.cut(dt).removeSplitter()
 
     # 6. Anti-Slip Rubber Foot Sockets on Standard Frame Rails (Ø12mm x 2.0mm)

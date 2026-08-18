@@ -16,6 +16,7 @@
 - Repositioned motor mounting towers to Y=182.0mm and motor bay to Y=[182.0, 214.5mm] to accommodate the 48.05mm total motor + circular horn length without overlap.
 - Redesigned motorized servo adapter with 4.3mm thickness (Y=[159.5, 163.8mm]), seating flush against the MG996R round horn disk and engaging flap top hex socket with zero axial interference.
 - Converted motor mounting walls into 5.0mm thick tower posts at Y=[182.0, 187.0mm] and widened drop-in bay cavity to 56.3mm (X=[-17.8, +38.5mm]), eliminating solid side shelves and providing complete top drop-in clearance and direct screwdriver/bolt access to all 4x M3 mounting holes.
+- Removed obsolete split-seam dovetail cut and cradle boss from both motorized and follower frames, creating continuous, unbroken, smooth semi-cylindrical cradle troughs for elastic snap-in flap assembly.
 - Rebuilt and validated all 12 production STEP and STL files with 100% build pass.
 
 ## 2026-08-17
