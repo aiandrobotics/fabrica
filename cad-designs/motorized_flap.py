@@ -128,26 +128,16 @@ def construct_motorized_flap():
     b_mot_left.translate(App.Vector(x_mot_notch - 0.1, y_knuckle_mot_top - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_mot_left)
 
-    # Motor notch bottom step bevel (at Y = 149.5mm, X in [-6.4, x_mot_notch])
-    b_mot_bot = Part.makeBox(x_mot_notch - (-shaft_r) + 0.1, border_w + 0.1, bevel_d + 0.1)
-    b_mot_bot.translate(App.Vector(-shaft_r, y_knuckle_mot_top - border_w, top_z - bevel_d))
+    # Motor notch bottom step bevel (at Y = 149.5mm, X in [shaft_r, x_mot_notch])
+    b_mot_bot = Part.makeBox(x_mot_notch - shaft_r + 0.1, border_w + 0.1, bevel_d + 0.1)
+    b_mot_bot.translate(App.Vector(shaft_r, y_knuckle_mot_top - border_w, top_z - bevel_d))
     bevel_cuts.append(b_mot_bot)
 
-    # Left shaft outer edge (X in [-6.4 - 0.1, -6.4 + border_w], Y in [16.0 - 0.1, 149.5 + 0.1])
-    b_left_mid = Part.makeBox(border_w + 0.1, mid_len + 0.2, bevel_d + 0.1)
-    b_left_mid.translate(App.Vector(-shaft_r - 0.1, y_knuckle_bot - 0.1, top_z - bevel_d))
-    bevel_cuts.append(b_left_mid)
+    flap = blade.cut(Part.makeCompound([b_right, b_bot, b_top, b_mot_left, b_mot_bot])).removeSplitter()
 
-    flap = blade.cut(Part.makeCompound([b_right, b_bot, b_top, b_mot_left, b_mot_bot, b_left_mid])).removeSplitter()
-
-    # 4. Drive Axle: Half-cylinder axle along hinge line between knuckles (Y in [16.0, 149.5mm])
+    # 4. Continuous Full Cylindrical Drive Axle (Ø12.8mm full cylinder providing 100% 360° hex socket enclosure)
     axle_mid_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
-    axle_mid_trim = Part.makeBox(shaft_r * 4.0, mid_len + 1.0, shaft_r * 2.0)
-    axle_mid_trim.translate(App.Vector(-shaft_r * 2.0, y_knuckle_bot - 0.5, pivot_z))
-    axle_mid_half = axle_mid_full.cut(axle_mid_trim)
-
-    # Fuse flat flap panel with continuous drive axle
-    flap = flap.fuse(axle_mid_half).removeSplitter()
+    flap = flap.fuse(axle_mid_full).removeSplitter()
 
     # 5. Output Female Hex Sockets (Bottom: Y=16.0mm, Top: Y=149.5mm)
     socket_d = 10.0

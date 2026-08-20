@@ -68,9 +68,10 @@ def construct_follower_flap():
     x_max = w - gap_axial                        # 219.5mm
     total_w = x_max - x_min                      # 225.9mm
 
-    # 1. Main monolithic flat slab spanning X in [-6.4, 219.5mm], Y in [16.0, 204.0mm]
-    blade = Part.makeBox(total_w, total_len, t)
-    blade.translate(App.Vector(x_min, y_min, panel_z_min))
+    # 1. Main monolithic flat slab spanning X in [0.0, 219.5mm], Y in [16.0, 204.0mm]
+    blade_w = x_max - 0.0
+    blade = Part.makeBox(blade_w, total_len, t)
+    blade.translate(App.Vector(0.0, y_min, panel_z_min))
 
     # Outer corner fillets (R=3.0mm on top-right and bottom-right outer corners)
     corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
@@ -85,7 +86,7 @@ def construct_follower_flap():
 
     blade = blade.cut(Part.makeCompound([corner_trim1, corner_trim2])).removeSplitter()
 
-    # 2. Perimeter Shadow Bevel (Uniform 2.0mm around the OUTER boundary ONLY)
+    # 2. Perimeter Shadow Bevel (Uniform 2.0mm around the blade outer edges)
     border_w = 2.0
     bevel_d = ACCENT_BEVEL_DEPTH          # 1.2mm
     bevel_cuts = []
@@ -95,30 +96,21 @@ def construct_follower_flap():
     b_right.translate(App.Vector(x_max - border_w, y_min - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_right)
 
-    # Bottom outer edge bevel (X in [-6.4, 219.5mm])
-    b_bot = Part.makeBox(total_w + 0.1, border_w + 0.1, bevel_d + 0.1)
-    b_bot.translate(App.Vector(x_min, y_min - 0.1, top_z - bevel_d))
+    # Bottom outer edge bevel (X in [shaft_r, 219.5mm])
+    b_bot = Part.makeBox(x_max - shaft_r + 0.1, border_w + 0.1, bevel_d + 0.1)
+    b_bot.translate(App.Vector(shaft_r, y_min - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
 
-    # Top outer edge bevel (X in [-6.4, 219.5mm])
-    b_top = Part.makeBox(total_w + 0.1, border_w + 0.1, bevel_d + 0.1)
-    b_top.translate(App.Vector(x_min, y_max - border_w, top_z - bevel_d))
+    # Top outer edge bevel (X in [shaft_r, 219.5mm])
+    b_top = Part.makeBox(x_max - shaft_r + 0.1, border_w + 0.1, bevel_d + 0.1)
+    b_top.translate(App.Vector(shaft_r, y_max - border_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
-
-    # Left shaft outer edge (X in [-6.4 - 0.1, -6.4 + border_w], Y in [16.0 - 0.1, 204.0 + 0.1])
-    b_left_mid = Part.makeBox(border_w + 0.1, total_len + 0.2, bevel_d + 0.1)
-    b_left_mid.translate(App.Vector(x_min - 0.1, y_min - 0.1, top_z - bevel_d))
-    bevel_cuts.append(b_left_mid)
 
     flap = blade.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 3. Continuous Drive Axle: Half-Cylinder Axle fused directly under the flap blade
+    # 3. Continuous Full Cylindrical Hinge Spine (Ø12.8mm full cylinder providing 100% 360° hex socket enclosure)
     axle_full = Part.makeCylinder(shaft_r, total_len, App.Vector(0, y_min, pivot_z), App.Vector(0, 1, 0))
-    axle_trim = Part.makeBox(shaft_r * 4.0, total_len + 1.0, shaft_r * 2.0)
-    axle_trim.translate(App.Vector(-shaft_r * 2.0, y_min - 0.5, pivot_z))
-    axle_half = axle_full.cut(axle_trim)
-
-    flap = flap.fuse(axle_half).removeSplitter()
+    flap = flap.fuse(axle_full).removeSplitter()
 
     # 4. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 16.0 and Y = 204.0mm ends)
     socket_d = 10.0
