@@ -314,19 +314,21 @@ def construct_motorized_frame():
     corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
     corner_trim3 = corner_cutter3.cut(corner_cyl3)
 
-    # 9. Outer Knuckle Circular Rim & Bore Entry Chamfers (At Y = 0)
+    # 9. Outer Knuckle Circular Rim & Bore Entry Chamfers (CYLINDER-BOUNDED: strictly r <= knuckle_r)
     chamfer_cutters = []
-    # Bottom Knuckle (Y = 0) Outer Rim Chamfer (1.2mm x 45°)
-    cone_bot_outer = Part.makeCone(knuckle_r - 1.2, knuckle_r + 3.0, 1.2, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
-    box_bot_outer = Part.makeBox(knuckle_r * 4.0, 2.0, knuckle_r * 4.0, App.Vector(-knuckle_r * 2.0, -1.5, pivot_z - knuckle_r * 2.0))
-    chamfer_cutters.append(box_bot_outer.cut(cone_bot_outer))
+    c_rim = 1.0  # 1.0mm 45° outer rim chamfer
+
+    # Bottom Knuckle (Y = 0) Outer Rim Chamfer (strictly bounded by cylinder of radius knuckle_r)
+    cyl_bot_bound = Part.makeCylinder(knuckle_r + 0.1, c_rim + 0.05, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    cone_bot_keep = Part.makeCone(knuckle_r - c_rim, knuckle_r, c_rim + 0.05, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cyl_bot_bound.cut(cone_bot_keep))
 
     # Bottom Knuckle Bore Entry Chamfer (0.8mm x 45°)
-    cone_bot_bore = Part.makeCone(bore_r, bore_r + 0.8, 0.8, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
+    cone_bot_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
     chamfer_cutters.append(cone_bot_bore)
 
     # Top Knuckle (Y = 150.0mm) Output Bore Entry Chamfer (0.8mm x 45°)
-    cone_top_bore = Part.makeCone(bore_r, bore_r + 0.8, 0.8, App.Vector(0, k_top_start_y, pivot_z), App.Vector(0, -1, 0))
+    cone_top_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, k_top_start_y - 0.05, pivot_z), App.Vector(0, 1, 0))
     chamfer_cutters.append(cone_top_bore)
 
     frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters)).removeSplitter()
