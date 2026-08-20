@@ -308,17 +308,28 @@ def construct_motorized_frame():
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_trim2 = corner_cutter2.cut(corner_cyl2)
 
+    # Motor bay outer corner fillet (X = -24.0, Y = 150.0)
     corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
     corner_cutter3.translate(App.Vector(-27.0, k_top_start_y - 3.0, -1.0))
     corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
     corner_trim3 = corner_cutter3.cut(corner_cyl3)
 
-    corner_cutter4 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter4.translate(App.Vector(-knuckle_r - 3.0, -3.0, -1.0))
-    corner_cyl4 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, 3.0, -1.0))
-    corner_trim4 = corner_cutter4.cut(corner_cyl4)
+    # 9. Outer Knuckle Circular Rim & Bore Entry Chamfers (At Y = 0)
+    chamfer_cutters = []
+    # Bottom Knuckle (Y = 0) Outer Rim Chamfer (1.2mm x 45°)
+    cone_bot_outer = Part.makeCone(knuckle_r - 1.2, knuckle_r + 3.0, 1.2, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
+    box_bot_outer = Part.makeBox(knuckle_r * 4.0, 2.0, knuckle_r * 4.0, App.Vector(-knuckle_r * 2.0, -1.5, pivot_z - knuckle_r * 2.0))
+    chamfer_cutters.append(box_bot_outer.cut(cone_bot_outer))
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3, corner_trim4])).removeSplitter()
+    # Bottom Knuckle Bore Entry Chamfer (0.8mm x 45°)
+    cone_bot_bore = Part.makeCone(bore_r, bore_r + 0.8, 0.8, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
+    chamfer_cutters.append(cone_bot_bore)
+
+    # Top Knuckle (Y = 150.0mm) Output Bore Entry Chamfer (0.8mm x 45°)
+    cone_top_bore = Part.makeCone(bore_r, bore_r + 0.8, 0.8, App.Vector(0, k_top_start_y, pivot_z), App.Vector(0, -1, 0))
+    chamfer_cutters.append(cone_top_bore)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters)).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")

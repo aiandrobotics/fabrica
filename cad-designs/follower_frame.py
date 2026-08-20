@@ -205,7 +205,7 @@ def construct_follower_frame():
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on outer corners)
+    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on front-right and back-right vertical corners)
     corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
     corner_cutter1.translate(App.Vector(w - 3.0, -3.0, -1.0))
     corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, 3.0, -1.0))
@@ -216,17 +216,27 @@ def construct_follower_frame():
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_trim2 = corner_cutter2.cut(corner_cyl2)
 
-    corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter3.translate(App.Vector(-knuckle_r - 3.0, -3.0, -1.0))
-    corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, 3.0, -1.0))
-    corner_trim3 = corner_cutter3.cut(corner_cyl3)
+    # 10. Outer Knuckle Circular Rim & Bore Entry Chamfers (At Y = 0 and Y = H)
+    chamfer_cutters = []
+    # Bottom Knuckle (Y = 0) Outer Rim Chamfer (1.2mm x 45°)
+    cone_bot_outer = Part.makeCone(knuckle_r - 1.2, knuckle_r + 3.0, 1.2, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
+    box_bot_outer = Part.makeBox(knuckle_r * 4.0, 2.0, knuckle_r * 4.0, App.Vector(-knuckle_r * 2.0, -1.5, pivot_z - knuckle_r * 2.0))
+    chamfer_cutters.append(box_bot_outer.cut(cone_bot_outer))
 
-    corner_cutter4 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter4.translate(App.Vector(-knuckle_r - 3.0, h - 3.0, -1.0))
-    corner_cyl4 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, h - 3.0, -1.0))
-    corner_trim4 = corner_cutter4.cut(corner_cyl4)
+    # Bottom Knuckle Bore Entry Chamfer (0.8mm x 45°)
+    cone_bot_bore = Part.makeCone(bore_r, bore_r + 0.8, 0.8, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
+    chamfer_cutters.append(cone_bot_bore)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3, corner_trim4])).removeSplitter()
+    # Top Knuckle (Y = H) Outer Rim Chamfer (1.2mm x 45°)
+    cone_top_outer = Part.makeCone(knuckle_r - 1.2, knuckle_r + 3.0, 1.2, App.Vector(0, h, pivot_z), App.Vector(0, 1, 0))
+    box_top_outer = Part.makeBox(knuckle_r * 4.0, 2.0, knuckle_r * 4.0, App.Vector(-knuckle_r * 2.0, h - 0.5, pivot_z - knuckle_r * 2.0))
+    chamfer_cutters.append(box_top_outer.cut(cone_top_outer))
+
+    # Top Knuckle Bore Entry Chamfer (0.8mm x 45°)
+    cone_top_bore = Part.makeCone(bore_r, bore_r + 0.8, 0.8, App.Vector(0, h, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cone_top_bore)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2] + chamfer_cutters)).removeSplitter()
 
     # 10. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:
