@@ -71,12 +71,8 @@ def construct_end_pivot_pin():
     c_tip = Part.makeCone(journal_r, journal_r - 1.5, 1.5, App.Vector(0, journal_len + disk_thick + peg_len, pivot_z), App.Vector(0, 1, 0))
     hex_peg = hex_peg.cut(c_tip).removeSplitter()
 
-    # Fuse into monolithic shoulder pin
+    # Fuse into monolithic solid shoulder pin
     pin = journal.fuse([disk, hex_peg]).removeSplitter()
-
-    # 4. Central Ø3.4mm weight-relief / driver access through-hole
-    center_hole = Part.makeCylinder(1.7, journal_len + disk_thick + peg_len + 2.0, App.Vector(0, -1.0, pivot_z), App.Vector(0, 1, 0))
-    pin = pin.cut(center_hole).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "end_pivot_pin.step")

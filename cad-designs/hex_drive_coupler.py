@@ -76,11 +76,6 @@ def construct_hex_drive_coupler():
     # Fuse into a smooth, 100% solid coupler pin
     coupler = bridge.fuse([pos_journal, hex_pos_peg, neg_journal, hex_neg_peg]).removeSplitter()
 
-    # Central Ø3.4mm through-hole
-    total_reach = gap_half + knuckle_len + thrust_gap + socket_depth + 2.0
-    center_hole = Part.makeCylinder(1.7, 2 * total_reach, App.Vector(0, -total_reach, pivot_z), App.Vector(0, 1, 0))
-    coupler = coupler.cut(center_hole).removeSplitter()
-
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "hex_drive_coupler.step")
     stl_path  = os.path.join(EXPORT_DIR, "hex_drive_coupler.stl")
