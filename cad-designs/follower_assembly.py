@@ -20,14 +20,16 @@ from follower_frame import construct_follower_frame
 from follower_flap import construct_follower_flap
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
+from end_pivot_pin import construct_end_pivot_pin
 
 def build_follower_assembly():
     """
     Assembles the Passive Follower Module:
     1. Follower Chassis Frame (Green #2ecc71).
-    2. Full-Size Rotating Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
-    3. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
-    4. Modular Double-Male Hex Drive Coupler Pin (Purple #9b59b6) at bottom hinge port (Y=0).
+    2. Modular Drop-In Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
+    3. Captive Inner-Flanged Shoulder Pivot Pin (Cyan #1abc9c) at bottom hinge port (Y=0).
+    4. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
+    5. Modular Double-Male Hex Drive Coupler Pin (Purple #9b59b6) at top hinge port (Y=220).
     """
     for doc_name in list(App.listDocuments().keys()):
         App.closeDocument(doc_name)
@@ -44,8 +46,8 @@ def build_follower_assembly():
     if hasattr(frame_obj, "ViewObject") and frame_obj.ViewObject:
         frame_obj.ViewObject.ShapeColor = (0.18, 0.8, 0.44)
 
-    # 2. Full-Size Follower Flap with Dual Female Hex Sockets (Color: Orange #e67e22)
-    # Flap axle is centered along hinge axis at X = 0, Z = 8.0mm
+    # 2. Modular Drop-In Follower Flap (Color: Orange #e67e22)
+    # Flap rests flush on top deck at Z = 15.00mm, Y in [16.0, 204.0mm]
     flap_shape = construct_follower_flap()
     flap_obj = doc.addObject("Part::Feature", "FollowerFlap")
     flap_obj.Shape = flap_shape
@@ -56,7 +58,14 @@ def build_follower_assembly():
     if hasattr(flap_obj, "ViewObject") and flap_obj.ViewObject:
         flap_obj.ViewObject.ShapeColor = (0.9, 0.49, 0.13)
 
-    # 3. Front Interlocking Bridge Joiner (Color: Blue #3498db)
+    # 3. Captive Inner-Flanged Shoulder Pivot Pin (Color: Cyan #1abc9c at bottom Y=0)
+    pin_shape = construct_end_pivot_pin()
+    pin_obj = doc.addObject("Part::Feature", "EndPivotPin")
+    pin_obj.Shape = pin_shape
+    if hasattr(pin_obj, "ViewObject") and pin_obj.ViewObject:
+        pin_obj.ViewObject.ShapeColor = (0.1, 0.74, 0.61)
+
+    # 4. Front Interlocking Bridge Joiner (Color: Blue #3498db)
     joiner_shape = construct_frame_joiner()
     joiner_front_shape = joiner_shape.copy()
     joiner_front_shape.translate(App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick))
@@ -65,7 +74,7 @@ def build_follower_assembly():
     if hasattr(joiner_front, "ViewObject") and joiner_front.ViewObject:
         joiner_front.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
-    # 4. Right Interlocking Bridge Joiner (Color: Blue #3498db)
+    # 5. Right Interlocking Bridge Joiner (Color: Blue #3498db)
     joiner_right_shape = joiner_shape.copy()
     joiner_right_shape.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     joiner_right_shape.translate(App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick))
@@ -74,8 +83,9 @@ def build_follower_assembly():
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
         joiner_right.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
-    # 5. Modular Double-Male Hex Drive Coupler Pin (Color: Purple #9b59b6)
+    # 6. Modular Double-Male Hex Drive Coupler Pin (Color: Purple #9b59b6 at top seam Y=225)
     coupler_shape = construct_hex_drive_coupler()
+    coupler_shape.translate(App.Vector(0, h + (MODULE_GAP / 2.0), 0)) # Centered on inter-module seam gap at Y=225.0mm
     coupler_obj = doc.addObject("Part::Feature", "HexDriveCoupler")
     coupler_obj.Shape = coupler_shape
     if hasattr(coupler_obj, "ViewObject") and coupler_obj.ViewObject:

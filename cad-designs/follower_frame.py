@@ -92,6 +92,11 @@ def construct_follower_frame():
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
+    # A2. Inner Thrust Flange Counterbore Recesses (Ø16.8mm x 1.2mm for captive pin inner thrust disk)
+    disk_recess_r = 8.4  # 8.4mm radius for Ø16.0mm disk (+0.4mm radial clearance)
+    bot_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+    top_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, h - knuckle_len - 1.2, pivot_z), App.Vector(0, 1, 0))
+
     # B. Semi-Circular Cradle Trough (supports half-cylinder axle from below)
     cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
@@ -112,7 +117,7 @@ def construct_follower_frame():
     trim_bot = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, bot_thrust_recess, top_thrust_recess, trim_bot])).removeSplitter()
 
     # 4. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH

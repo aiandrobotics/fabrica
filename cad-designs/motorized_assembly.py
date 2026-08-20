@@ -24,7 +24,7 @@ from motorized_flap import construct_motorized_flap
 from motorized_servo_adapter import construct_motorized_servo_adapter
 from motorized_servo_cover import construct_motorized_servo_cover
 from frame_joiner import construct_frame_joiner
-from hex_drive_coupler import construct_hex_drive_coupler
+from end_pivot_pin import construct_end_pivot_pin
 
 def construct_servo_cad_reference():
     """
@@ -57,10 +57,10 @@ def build_motorized_assembly():
     Assembles the Active Motorized Module:
     1. Motorized Frame (Gold/Amber)
     2. Full-Size Active Flap (Crimson Red)
-    3. Flush Slide-In Servo Cover (Slate Black)
-    4. 2x Frame Joiners (Blue)
-    5. Modular Hex Drive Coupler Pin (Purple)
-    6. Modular Servo Drive Adapter (Orange)
+    3. Modular Circular Servo Horn Drive Adapter (Orange)
+    4. Flush Slide-In Servo Cover (Purple/Slate)
+    5. Captive Inner-Flanged Shoulder Pivot Pin (Cyan) at bottom port (Y=0)
+    6. 2x Frame Joiners (Blue)
     7. MG996R Horizontal Servo Motor Solid (Cyan)
     """
     for doc_name in list(App.listDocuments().keys()):
@@ -100,7 +100,14 @@ def build_motorized_assembly():
     if hasattr(cover_obj, "ViewObject") and cover_obj.ViewObject:
         cover_obj.ViewObject.ShapeColor = (0.50, 0.25, 0.60)
 
-    # 5. Front Interlocking Bridge Joiner (Blue)
+    # 5. Captive Inner-Flanged Shoulder Pivot Pin (Color: Cyan #1abc9c at bottom Y=0)
+    pin_shape = construct_end_pivot_pin()
+    pin_obj = doc.addObject("Part::Feature", "EndPivotPin")
+    pin_obj.Shape = pin_shape
+    if hasattr(pin_obj, "ViewObject") and pin_obj.ViewObject:
+        pin_obj.ViewObject.ShapeColor = (0.1, 0.74, 0.61)
+
+    # 6. Front Interlocking Bridge Joiner (Blue)
     joiner_shape = construct_frame_joiner()
     joiner_front_shape = joiner_shape.copy()
     joiner_front_shape.translate(App.Vector(w / 2.0, - (MODULE_GAP / 2.0), bottom_thick))
@@ -109,7 +116,7 @@ def build_motorized_assembly():
     if hasattr(joiner_front, "ViewObject") and joiner_front.ViewObject:
         joiner_front.ViewObject.ShapeColor = (0.20, 0.40, 0.85)
 
-    # 6. Right Interlocking Bridge Joiner (Blue)
+    # 7. Right Interlocking Bridge Joiner (Blue)
     joiner_right_shape = joiner_shape.copy()
     joiner_right_shape.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     joiner_right_shape.translate(App.Vector(w + (MODULE_GAP / 2.0), h / 2.0, bottom_thick))
@@ -117,13 +124,6 @@ def build_motorized_assembly():
     joiner_right.Shape = joiner_right_shape
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
         joiner_right.ViewObject.ShapeColor = (0.20, 0.40, 0.85)
-
-    # 7. Modular Double-Male Hex Drive Coupler Pin (Yellow)
-    coupler_shape = construct_hex_drive_coupler()
-    coupler_obj = doc.addObject("Part::Feature", "HexDriveCoupler")
-    coupler_obj.Shape = coupler_shape
-    if hasattr(coupler_obj, "ViewObject") and coupler_obj.ViewObject:
-        coupler_obj.ViewObject.ShapeColor = (0.90, 0.85, 0.20)
 
     # 8. ServoMotor Reference Solid (Cyan)
     servo_shape = construct_servo_cad_reference()
@@ -138,9 +138,9 @@ def build_motorized_assembly():
         flap_shape,
         adapter_shape,
         cover_shape,
+        pin_shape,
         joiner_front_shape,
         joiner_right_shape,
-        coupler_shape,
         servo_shape
     ])
     step_path = os.path.join(EXPORT_DIR, "motorized_assembly.step")

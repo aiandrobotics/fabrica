@@ -57,9 +57,10 @@ def construct_motorized_flap():
     shaft_r = DRIVE_SHAFT_DIAMETER / 2.0         # 6.40mm
     knuckle_r = shaft_r + 3.0                    # 9.40mm
 
-    y_min = gap_axial                            # 0.5mm
+    # Modular Drop-In Span: Starts at Y=16.0mm (seats against bottom pin inner thrust disk)
+    y_min = 16.0                                 # 16.0mm
     y_max = h - gap_axial                        # 219.5mm (full frame length coverage!)
-    total_len = y_max - y_min                    # 219.0mm
+    total_len = y_max - y_min                    # 203.5mm
 
     x_wing_start = knuckle_r + gap_radial        # 9.9mm
     x_max = w - gap_axial                        # 219.5mm
@@ -79,9 +80,9 @@ def construct_motorized_flap():
     cut_motor_bay.translate(App.Vector(x_wing_start - 0.5, y_knuckle_mot_top, panel_z_min - 1.0))
     slab_outer = slab_base.cut(cut_motor_bay)
 
-    # 2. Hinge extension between knuckles spanning Y in [15.0, 149.5mm], X in [-6.4, 9.9mm]
-    y_knuckle_bot = rail_w                       # 15.0mm
-    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 134.5mm
+    # 2. Hinge extension between knuckles spanning Y in [16.0, 149.5mm], X in [-6.4, 9.9mm]
+    y_knuckle_bot = y_min                        # 16.0mm
+    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 133.5mm
     hinge_ext_w = x_wing_start - (-shaft_r)      # 16.3mm
 
     slab_hinge = Part.makeBox(hinge_ext_w + 1.0, mid_len, t)
@@ -107,7 +108,7 @@ def construct_motorized_flap():
     bevel_d = ACCENT_BEVEL_DEPTH          # 1.2mm
     bevel_cuts = []
 
-    # Right edge bevel (Full height Y in [0.5, 219.5mm])
+    # Right edge bevel (Full height Y in [16.0, 219.5mm])
     b_right = Part.makeBox(border_w + 0.2, total_len + 0.2, bevel_d + 0.1)
     b_right.translate(App.Vector(x_max - border_w, y_min - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_right)
@@ -132,44 +133,29 @@ def construct_motorized_flap():
     b_mot_bot.translate(App.Vector(-shaft_r, y_knuckle_mot_top - border_w, top_z - bevel_d))
     bevel_cuts.append(b_mot_bot)
 
-    # Knuckle bottom notch inner step (X in [9.9 - 0.1, 9.9 + border_w], Y in [0.5 - 0.1, 15.0 + 0.1])
-    b_left_bot = Part.makeBox(border_w + 0.1, y_knuckle_bot - y_min + 0.2, bevel_d + 0.1)
-    b_left_bot.translate(App.Vector(x_wing_start - 0.1, y_min - 0.1, top_z - bevel_d))
-    bevel_cuts.append(b_left_bot)
-
-    # Left shaft outer edge (X in [-6.4 - 0.1, -6.4 + border_w], Y in [15.0 - 0.1, 149.5 + 0.1])
+    # Left shaft outer edge (X in [-6.4 - 0.1, -6.4 + border_w], Y in [16.0 - 0.1, 149.5 + 0.1])
     b_left_mid = Part.makeBox(border_w + 0.1, mid_len + 0.2, bevel_d + 0.1)
     b_left_mid.translate(App.Vector(-shaft_r - 0.1, y_knuckle_bot - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_left_mid)
 
-    flap = blade.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
+    flap = blade.cut(Part.makeCompound([b_right, b_bot, b_top, b_mot_left, b_mot_bot, b_left_mid])).removeSplitter()
 
-    # 4. Drive Axle: Bottom journal (Y in [0.5, 15.0mm]), Top journal (Y in [149.5, 159.5mm]), and Middle Half-Cylinder
-    axle_bot = Part.makeCylinder(shaft_r, rail_w - gap_axial, App.Vector(0, gap_axial, pivot_z), App.Vector(0, 1, 0))
-    axle_top = Part.makeCylinder(shaft_r, 10.0, App.Vector(0, y_knuckle_mot_top, pivot_z), App.Vector(0, 1, 0))
-
-    # Lead-in chamfers on axle tips
-    c_axle_bot = Part.makeCone(shaft_r, shaft_r - 0.8, 0.8, App.Vector(0, gap_axial, pivot_z), App.Vector(0, -1, 0))
-    c_axle_top = Part.makeCone(shaft_r, shaft_r - 0.8, 0.8, App.Vector(0, y_knuckle_mot_top + 10.0, pivot_z), App.Vector(0, 1, 0))
-    axle_bot = axle_bot.cut(c_axle_bot)
-    axle_top = axle_top.cut(c_axle_top)
-
-    # Half-cylinder axle between knuckles (strictly below Z = 15.00mm)
+    # 4. Drive Axle: Half-cylinder axle along hinge line between knuckles (Y in [16.0, 149.5mm])
     axle_mid_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     axle_mid_trim = Part.makeBox(shaft_r * 4.0, mid_len + 1.0, shaft_r * 2.0)
     axle_mid_trim.translate(App.Vector(-shaft_r * 2.0, y_knuckle_bot - 0.5, pivot_z))
     axle_mid_half = axle_mid_full.cut(axle_mid_trim)
 
-    # Fuse flat flap panel with continuous drive axle and journals
-    flap = flap.fuse(Part.makeCompound([axle_bot, axle_top, axle_mid_half])).removeSplitter()
+    # Fuse flat flap panel with continuous drive axle
+    flap = flap.fuse(axle_mid_half).removeSplitter()
 
-    # 5. Output Female Hex Sockets (Bottom: Y=0.5mm, Top: Y = h - 60.5mm)
-    socket_d = 10.5
+    # 5. Output Female Hex Sockets (Bottom: Y=16.0mm, Top: Y=149.5mm)
+    socket_d = 10.0
     hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_min - 0.1)
     hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
     hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
 
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, h - 60.4)
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_knuckle_mot_top + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
     hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
 
