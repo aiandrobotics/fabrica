@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-08-20
+- Eliminated flat chord facet and texture cutter grooves on folding flap hinge spines, ensuring a 100% smooth, continuous Ø12.8mm circular cylindrical surface.
 - Extended Follower and Motorized folding flaps into full-square top decks (219.0mm x 219.5mm) completely covering chassis top and bottom rails.
 - Added smooth 0.50mm radial knuckle relief notches (R=9.9mm) preserving full 0° to 180° rotation clearance with zero collision.
 - Extended 45° anti-slip diamond micro-grip traction texture and 2.0mm perimeter shadow bevels continuously across full square flap blades.

@@ -86,11 +86,9 @@ def construct_motorized_flap():
     cut_motor_bay.translate(App.Vector(x_wing_start - 0.5, y_knuckle_mot_top, panel_z_min - 1.0))
     slab_outer = slab_base.cut(cut_motor_bay)
 
-    # 2. Hinge extension between knuckles spanning Y in [16.0, 149.5mm], X in [-6.4, 9.9mm]
-    hinge_ext_w = x_wing_start - (-shaft_r)      # 16.3mm
-
-    slab_hinge = Part.makeBox(hinge_ext_w + 1.0, mid_len, t)
-    slab_hinge.translate(App.Vector(-shaft_r, y_knuckle_bot, panel_z_min))
+    # 2. Hinge extension between knuckles spanning Y in [16.0, 149.5mm], X in [0.0, 9.9mm]
+    slab_hinge = Part.makeBox(x_wing_start, mid_len, t)
+    slab_hinge.translate(App.Vector(0.0, y_knuckle_bot, panel_z_min))
 
     blade = slab_outer.fuse(slab_hinge).removeSplitter()
 
@@ -222,9 +220,9 @@ def construct_motorized_flap():
     tb_cut.translate(App.Vector(x_wing_start - 0.5, y_knuckle_mot_top - border_w, panel_z_min - 2.0))
     tb_slab = tb_slab_base.cut(tb_cut)
 
-    # Bound for the hinge extension inset by border_w
-    tb_hinge = Part.makeBox(hinge_ext_w - border_w + 1.0, mid_len - 2 * border_w, t + 2.0)
-    tb_hinge.translate(App.Vector(border_w - shaft_r, y_knuckle_bot + border_w, panel_z_min - 1.0))
+    # Bound for the hinge extension inset by border_w (X in [shaft_r, x_wing_start])
+    tb_hinge = Part.makeBox(x_wing_start - shaft_r + 1.0, mid_len - 2 * border_w, t + 2.0)
+    tb_hinge.translate(App.Vector(shaft_r, y_knuckle_bot + border_w, panel_z_min - 1.0))
 
     tex_bound_all = tb_slab.fuse(tb_hinge).removeSplitter()
     tex_compound = Part.makeCompound(tex_cutters).common(tex_bound_all)
