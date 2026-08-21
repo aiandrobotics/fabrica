@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-08-21
+- Reduced `motorized_frame.py` motor wire pass-through conduit to a fitted $10.0\text{mm} \times 8.6\text{mm}$ port with $1.5\text{mm}$ corner fillets centered at $(Y=205.5\text{mm}, Z=15.0\text{mm})$, eliminating the oversized $20\text{mm}$ void and restoring a $5.45\text{mm}$ solid base wall and $7.9\text{mm}$ top rail bridge.
 - Standardized `motorized_servo_adapter.py` on a continuous 100% solid core 8.0mm male hex peg (18.0mm length, 7.7mm AF) with 2.55–3.15mm radial clearance to 4x M2/M2.5 horn-mounting screw heads, enabling straight-line screwdriver access and robust torsional shear resistance.
 - Implemented 180° flap folding kinematic relief cuts along hinge pedestals on both Follower Frame and Motorized Frame, enabling 100% collision-free 0° to 180° rotation sweep ($0.0000\,\text{mm}^3$ overlap).
 - Bounded outer corner trim cutters to strictly $3.0\text{mm} \times 3.0\text{mm}$ boxes across all frames and flaps, eliminating oversized OpenCASCADE boolean bounding box protrusions.

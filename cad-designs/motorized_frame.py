@@ -202,9 +202,17 @@ def construct_motorized_frame():
         Part.makeCylinder(screw_r, 8.0, App.Vector(-14.45, towers_start_y - 1.0, z_sc2), App.Vector(0, 1, 0)),
     ]
 
-    # External motor wire exit conduit through OUTER LEFT WALL at X in [-24.0, -10.0mm] matching MG996R cable grommet (Y in [200.0, 212.0mm], Z in [5.25, 20.0mm])
-    pocket_wire_left = Part.makeBox(14.0, 12.0, 20.0)
-    pocket_wire_left.translate(App.Vector(-24.0, 200.0, z_motor_rest))
+    # External motor wire exit conduit through OUTER LEFT WALL at X in [-24.0, -10.0mm] matching MG996R cable grommet & 3-pin Dupont connector
+    wire_port_w = 10.0
+    wire_port_h = 8.6
+    pocket_wire_left = Part.makeBox(14.0, wire_port_w, wire_port_h)
+    pocket_wire_left.translate(App.Vector(-24.0, 205.5 - (wire_port_w / 2.0), pivot_z - (wire_port_h / 2.0)))
+    w_edges = [
+        e for e in pocket_wire_left.Edges
+        if abs(e.Length - 14.0) < 1e-3 and abs(e.tangentAt(0).x) > 0.99
+    ]
+    if len(w_edges) == 4:
+        pocket_wire_left = pocket_wire_left.makeFillet(1.5, w_edges)
 
     # Rear Tongue Locking Slot underneath the solid rear frame wall (5.5mm depth at X in [-20.0, 37.0mm], Y in [214.5, 220.0mm], Z in [24.0, 26.0mm])
     slot_rear_tongue = Part.makeBox(57.0, 5.5, 2.0)
