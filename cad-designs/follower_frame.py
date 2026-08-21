@@ -244,7 +244,12 @@ def construct_follower_frame():
     cone_top_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, h + 0.05, pivot_z), App.Vector(0, -1, 0))
     chamfer_cutters.append(cone_top_bore)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2] + chamfer_cutters)).removeSplitter()
+    for cutter in [corner_trim1, corner_trim2] + chamfer_cutters:
+        frame = frame.cut(cutter).removeSplitter()
+
+    # Re-apply bores to ensure 100% open bore channels
+    frame = frame.cut(bot_bore).removeSplitter()
+    frame = frame.cut(top_bore).removeSplitter()
 
     # 10. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:

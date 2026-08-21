@@ -164,11 +164,14 @@ def construct_motorized_frame():
     adapter_pocket = Part.makeBox(26.0, 23.5, 30.0)
     adapter_pocket.translate(App.Vector(-13.0, k_top_start_y + 8.5, bottom_thick))
 
+    # Fused continuous bore and adapter pocket cutter (eliminates co-planar boundary artifacts)
+    bore_and_pocket = top_bore.fuse(adapter_pocket).removeSplitter()
+
     # 100% Planar bottom trim at Z=0.0mm across entire module footprint (eliminates any rocking/wobbling on tables)
     trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot_flat.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    for b in [bot_bore, bot_thrust_recess, top_bore, adapter_pocket, trim_bot_flat]:
+    for b in [bot_bore, bot_thrust_recess, bore_and_pocket, trim_bot_flat]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.5mm thick at Y = 214.5 to 220.0mm), and Solid Front Towers:
@@ -337,7 +340,12 @@ def construct_motorized_frame():
     cone_top_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, k_top_start_y - 0.05, pivot_z), App.Vector(0, 1, 0))
     chamfer_cutters.append(cone_top_bore)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters)).removeSplitter()
+    for cutter in [corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters:
+        frame = frame.cut(cutter).removeSplitter()
+
+    # Re-apply bores and planar bottom trim to ensure 100% open bore channels
+    frame = frame.cut(bot_bore).removeSplitter()
+    frame = frame.cut(bore_and_pocket).removeSplitter()
     frame = frame.cut(trim_bot_flat).removeSplitter()
 
     # Export STEP and STL
