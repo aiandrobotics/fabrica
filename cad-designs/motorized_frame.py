@@ -149,6 +149,8 @@ def construct_motorized_frame():
 
     # 3. Hinge Bearing Bores & Knuckle Bore
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
+    # Bottom inner thrust flange recess (Ø16.8mm x 1.2mm for captive pin inner thrust disk):
+    bot_thrust_recess = Part.makeCylinder(8.4, 1.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     # Top knuckle bore spanning Y in [149.9, 159.1mm] (SOLID 360 degree closed cylinder barrel):
     top_bore = Part.makeCylinder(bore_r, 9.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
@@ -160,7 +162,7 @@ def construct_motorized_frame():
     trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot_flat.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    for b in [bot_bore, top_bore, adapter_pocket, trim_bot_flat]:
+    for b in [bot_bore, bot_thrust_recess, top_bore, adapter_pocket, trim_bot_flat]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.5mm thick at Y = 214.5 to 220.0mm), and Solid Front Towers:
@@ -306,17 +308,30 @@ def construct_motorized_frame():
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_trim2 = corner_cutter2.cut(corner_cyl2)
 
+    # Motor bay outer corner fillet (X = -24.0, Y = 150.0)
     corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
     corner_cutter3.translate(App.Vector(-27.0, k_top_start_y - 3.0, -1.0))
     corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
     corner_trim3 = corner_cutter3.cut(corner_cyl3)
 
-    corner_cutter4 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter4.translate(App.Vector(-knuckle_r - 3.0, -3.0, -1.0))
-    corner_cyl4 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, 3.0, -1.0))
-    corner_trim4 = corner_cutter4.cut(corner_cyl4)
+    # 9. Outer Knuckle Circular Rim & Bore Entry Chamfers (CYLINDER-BOUNDED: strictly r <= knuckle_r)
+    chamfer_cutters = []
+    c_rim = 1.0  # 1.0mm 45° outer rim chamfer
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3, corner_trim4])).removeSplitter()
+    # Bottom Knuckle (Y = 0) Outer Rim Chamfer (strictly bounded by cylinder of radius knuckle_r)
+    cyl_bot_bound = Part.makeCylinder(knuckle_r + 0.1, c_rim + 0.05, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    cone_bot_keep = Part.makeCone(knuckle_r - c_rim, knuckle_r, c_rim + 0.05, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cyl_bot_bound.cut(cone_bot_keep))
+
+    # Bottom Knuckle Bore Entry Chamfer (0.8mm x 45°)
+    cone_bot_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cone_bot_bore)
+
+    # Top Knuckle (Y = 150.0mm) Output Bore Entry Chamfer (0.8mm x 45°)
+    cone_top_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, k_top_start_y - 0.05, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cone_top_bore)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters)).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")

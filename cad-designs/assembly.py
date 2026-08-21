@@ -42,6 +42,7 @@ from follower_flap import construct_follower_flap
 from base_module import construct_base_module
 from frame_joiner import construct_frame_joiner
 from hex_drive_coupler import construct_hex_drive_coupler
+from end_pivot_pin import construct_end_pivot_pin
 
 def construct_servo_cad_reference(h=220.0):
     """Loads and positions the real MG996R STEP solid reference model in horizontal orientation."""
@@ -140,9 +141,17 @@ def build_universal_folding_robot_assembly():
         obj_bl_flap.ViewObject.ShapeColor = (0.85, 0.50, 0.20)
     export_shapes.append(bl_flap)
 
-    # Left Column Hex Drive Coupler at Y = 250.0mm (bridges Top-Left Flap to Bottom-Left Flap)
+    # Bottom-Left Pivot Pin at (X = 0.0mm, Y = 0.0mm)
+    bl_pin = construct_end_pivot_pin()
+    obj_bl_pin = doc.addObject("Part::Feature", "Left_End_Pivot_Pin")
+    obj_bl_pin.Shape = bl_pin
+    if hasattr(obj_bl_pin, "ViewObject") and obj_bl_pin.ViewObject:
+        obj_bl_pin.ViewObject.ShapeColor = (0.10, 0.74, 0.61) # Cyan
+    export_shapes.append(bl_pin)
+
+    # Left Column Hex Drive Coupler at Y = 225.0mm (bridges Top-Left Flap to Bottom-Left Flap)
     l_coupler = construct_hex_drive_coupler()
-    l_coupler.translate(App.Vector(0, pitch_y, 0))
+    l_coupler.translate(App.Vector(0, h + (gap / 2.0), 0))
     obj_l_coupler = doc.addObject("Part::Feature", "Left_Hex_Coupler")
     obj_l_coupler.Shape = l_coupler
     if hasattr(obj_l_coupler, "ViewObject") and obj_l_coupler.ViewObject:
@@ -241,9 +250,17 @@ def build_universal_folding_robot_assembly():
         obj_br_flap.ViewObject.ShapeColor = (0.85, 0.50, 0.20)
     export_shapes.append(br_flap)
 
-    # Right Column Hex Coupler at X = 740mm, Y = 250mm
+    # Bottom-Right Pivot Pin at (X = 740.0mm, Y = 0.0mm)
+    br_pin = mirror_x(construct_end_pivot_pin())
+    obj_br_pin = doc.addObject("Part::Feature", "Right_End_Pivot_Pin")
+    obj_br_pin.Shape = br_pin
+    if hasattr(obj_br_pin, "ViewObject") and obj_br_pin.ViewObject:
+        obj_br_pin.ViewObject.ShapeColor = (0.10, 0.74, 0.61)
+    export_shapes.append(br_pin)
+
+    # Right Column Hex Coupler at X = 740mm, Y = 225mm
     r_coupler = mirror_x(construct_hex_drive_coupler())
-    r_coupler.translate(App.Vector(0, pitch_y, 0))
+    r_coupler.translate(App.Vector(0, h + (gap / 2.0), 0))
     obj_r_coupler = doc.addObject("Part::Feature", "Right_Hex_Coupler")
     obj_r_coupler.Shape = r_coupler
     if hasattr(obj_r_coupler, "ViewObject") and obj_r_coupler.ViewObject:

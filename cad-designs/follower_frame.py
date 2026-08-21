@@ -92,6 +92,11 @@ def construct_follower_frame():
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
+    # A2. Inner Thrust Flange Counterbore Recesses (Ø16.8mm x 1.2mm for captive pin inner thrust disk)
+    disk_recess_r = 8.4  # 8.4mm radius for Ø16.0mm disk (+0.4mm radial clearance)
+    bot_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+    top_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, h - knuckle_len - 1.2, pivot_z), App.Vector(0, 1, 0))
+
     # B. Semi-Circular Cradle Trough (supports half-cylinder axle from below)
     cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
@@ -112,7 +117,7 @@ def construct_follower_frame():
     trim_bot = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, bot_thrust_recess, top_thrust_recess, trim_bot])).removeSplitter()
 
     # 4. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH
@@ -200,7 +205,7 @@ def construct_follower_frame():
 
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
-    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on outer corners)
+    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on front-right and back-right vertical corners)
     corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
     corner_cutter1.translate(App.Vector(w - 3.0, -3.0, -1.0))
     corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, 3.0, -1.0))
@@ -211,17 +216,29 @@ def construct_follower_frame():
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_trim2 = corner_cutter2.cut(corner_cyl2)
 
-    corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter3.translate(App.Vector(-knuckle_r - 3.0, -3.0, -1.0))
-    corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, 3.0, -1.0))
-    corner_trim3 = corner_cutter3.cut(corner_cyl3)
+    # 10. Outer Knuckle Circular Rim & Bore Entry Chamfers (CYLINDER-BOUNDED: strictly r <= knuckle_r)
+    chamfer_cutters = []
+    c_rim = 1.0  # 1.0mm 45° outer rim chamfer
 
-    corner_cutter4 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter4.translate(App.Vector(-knuckle_r - 3.0, h - 3.0, -1.0))
-    corner_cyl4 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-knuckle_r + 3.0, h - 3.0, -1.0))
-    corner_trim4 = corner_cutter4.cut(corner_cyl4)
+    # Bottom Knuckle (Y = 0) Outer Rim Chamfer (strictly bounded by cylinder of radius knuckle_r)
+    cyl_bot_bound = Part.makeCylinder(knuckle_r + 0.1, c_rim + 0.05, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    cone_bot_keep = Part.makeCone(knuckle_r - c_rim, knuckle_r, c_rim + 0.05, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cyl_bot_bound.cut(cone_bot_keep))
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3, corner_trim4])).removeSplitter()
+    # Bottom Knuckle Bore Entry Chamfer (0.8mm x 45°)
+    cone_bot_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, -0.05, pivot_z), App.Vector(0, 1, 0))
+    chamfer_cutters.append(cone_bot_bore)
+
+    # Top Knuckle (Y = H) Outer Rim Chamfer (strictly bounded by cylinder of radius knuckle_r)
+    cyl_top_bound = Part.makeCylinder(knuckle_r + 0.1, c_rim + 0.05, App.Vector(0, h + 0.05, pivot_z), App.Vector(0, -1, 0))
+    cone_top_keep = Part.makeCone(knuckle_r - c_rim, knuckle_r, c_rim + 0.05, App.Vector(0, h + 0.05, pivot_z), App.Vector(0, -1, 0))
+    chamfer_cutters.append(cyl_top_bound.cut(cone_top_keep))
+
+    # Top Knuckle Bore Entry Chamfer (0.8mm x 45°)
+    cone_top_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, h + 0.05, pivot_z), App.Vector(0, -1, 0))
+    chamfer_cutters.append(cone_top_bore)
+
+    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2] + chamfer_cutters)).removeSplitter()
 
     # 10. Elephant's Foot Relief Chamfer along outer bottom bed edges
     try:

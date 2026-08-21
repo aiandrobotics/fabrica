@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-20
+- Added captive flanged thrust-collar end pivot pin (`end_pivot_pin.py`) with 100% solid construction, Ø16.0mm x 1.0mm retaining disk, and 0.45mm FDM rotating clearance.
+- Updated follower and motorized frames with 100% closed 360° cylindrical bearing knuckles (Ø13.7mm bore) and inner Ø16.8mm x 1.2mm counterbore thrust recesses.
+- Redesigned follower and motorized flaps into modular drop-in units with full 360° cylindrical axle spines and 100% fully-enclosed 6-sided 8.0mm female hex torque sockets.
+- Updated hex drive coupler (`hex_drive_coupler.py`) with 100% solid core and central Ø15.0mm x 2.0mm axial centering collar for anti-wandering lock.
+- Refined chassis outer corners and knuckle barrels with cylinder-bounded 1.0mm x 45° circular outer rim chamfers, 0.8mm bore entry chamfers, and smooth planar rail faces.
+- Verified 0.00000 mm³ boolean interference across all assemblies and exported all 13 production STEP and STL models.
+
 ## 2026-08-18
 - Unified monolithic seamless flap construction across all folding flaps, eliminating internal seam split lines and creating unbroken planar top decks.
 - Extended stepped wings on follower and motorized flaps to cover chassis rails past 360° knuckle rings with 0.50mm radial clearance.
