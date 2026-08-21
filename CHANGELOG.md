@@ -1,6 +1,9 @@
 # Changelog
 
 ## 2026-08-20
+- Extended Follower and Motorized folding flaps into full-square top decks (219.0mm x 219.5mm) completely covering chassis top and bottom rails.
+- Added smooth 0.50mm radial knuckle relief notches (R=9.9mm) preserving full 0° to 180° rotation clearance with zero collision.
+- Extended 45° anti-slip diamond micro-grip traction texture and 2.0mm perimeter shadow bevels continuously across full square flap blades.
 - Added captive flanged thrust-collar end pivot pin (`end_pivot_pin.py`) with 100% solid construction, Ø16.0mm x 1.0mm retaining disk, and 0.45mm FDM rotating clearance.
 - Updated follower and motorized frames with 100% closed 360° cylindrical bearing knuckles (Ø13.7mm bore) and inner Ø16.8mm x 1.2mm counterbore thrust recesses.
 - Redesigned follower and motorized flaps into modular drop-in units with full 360° cylindrical axle spines and 100% fully-enclosed 6-sided 8.0mm female hex torque sockets.
