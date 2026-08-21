@@ -79,10 +79,9 @@ def construct_follower_flap():
     slab_outer = Part.makeBox(full_wing_w, total_blade_len, t)
     slab_outer.translate(App.Vector(x_wing_start, y_min_blade, panel_z_min))
 
-    # 2. Hinge extension between knuckles spanning Y in [16.0, 204.0mm], X in [-6.4, 9.9mm]
-    hinge_ext_w = x_wing_start - (-shaft_r)
-    slab_hinge = Part.makeBox(hinge_ext_w + 1.0, mid_len, t)
-    slab_hinge.translate(App.Vector(-shaft_r, y_knuckle_bot, panel_z_min))
+    # 2. Hinge extension between knuckles spanning Y in [16.0, 204.0mm], X in [0.0, 9.9mm]
+    slab_hinge = Part.makeBox(x_wing_start, mid_len, t)
+    slab_hinge.translate(App.Vector(0.0, y_knuckle_bot, panel_z_min))
 
     blade = slab_outer.fuse(slab_hinge).removeSplitter()
 
@@ -205,11 +204,16 @@ def construct_follower_flap():
         g2.translate(App.Vector(i, h, top_z - tex_d))
         tex_cutters.extend([g1, g2])
 
-    # Bound for the entire outer slab inset by border_w
-    tb_slab = Part.makeBox(total_w - 2 * border_w, total_blade_len - 2 * border_w, t + 2.0)
-    tb_slab.translate(App.Vector(x_min + border_w, y_min_blade + border_w, panel_z_min - 1.0))
+    # Bound for the outer slab inset by border_w
+    tb_outer = Part.makeBox(full_wing_w - border_w + 1.0, total_blade_len - 2 * border_w, t + 2.0)
+    tb_outer.translate(App.Vector(x_wing_start - 0.5, y_min_blade + border_w, panel_z_min - 1.0))
 
-    tex_compound = Part.makeCompound(tex_cutters).common(tb_slab)
+    # Bound for the hinge extension between knuckles (X in [shaft_r, x_wing_start])
+    tb_hinge = Part.makeBox(x_wing_start - shaft_r + 1.0, mid_len - 2 * border_w, t + 2.0)
+    tb_hinge.translate(App.Vector(shaft_r, y_knuckle_bot + border_w, panel_z_min - 1.0))
+
+    tex_bound_all = tb_outer.fuse(tb_hinge).removeSplitter()
+    tex_compound = Part.makeCompound(tex_cutters).common(tex_bound_all)
     flap = flap.cut(tex_compound).removeSplitter()
 
     # Export STEP and STL
