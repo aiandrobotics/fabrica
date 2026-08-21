@@ -38,18 +38,19 @@ def construct_motorized_servo_adapter():
       1. Ø19.0mm Circular Flange Disk (7.0mm thickness spanning Y=178.0 to 185.0mm, centered at Z_pivot=10.0mm).
       2. 4x M2/M2.5 screw clearance through-holes (Ø2.2mm) on Ø14.0mm PCD for bolting to the standard round horn.
       3. Central Ø6.5mm driver access counterbore for the M3 servo spline retention screw.
-      4. Male 8.0mm Hex Drive Peg (7.7mm flat-to-flat, 10.5mm length extending along -Y from Y=178.0 to 167.5mm)
-         with a 1.5mm x 45° self-aligning lead-in entry chamfer.
+      4. Male 8.0mm Hex Drive Peg (7.7mm flat-to-flat, 18.0mm length extending along -Y from Y=159.5 to 141.5mm)
+         passing through frame top knuckle (Y in [150.0, 158.5mm]) and engaging 8.0mm into flap shaft hex socket (Y in [141.5, 149.5mm])
+         with a 2.0mm x 45° self-aligning lead-in entry chamfer.
     """
     import params
     h = params.PANEL_HEIGHT
     pivot_z = PIVOT_Z                          # 15.0mm
     disk_r = 10.0                              # 10.0mm radius (Ø20.0mm circular flange matching round metal horn)
-    y_front = 159.5                            # Front face at Y = 159.5mm (0.3mm axial clearance from flap axle at 159.2mm)
+    y_front = 159.5                            # Front face at Y = 159.5mm (0.3mm axial clearance from frame knuckle)
     y_rear = 163.8                             # Rear face at Y = 163.8mm (seats flush against MG996R round metal horn)
     disk_t = y_rear - y_front                  # 4.3mm thickness
     hex_size = 7.7                             # 7.7mm flat-to-flat (8.0mm hex socket clearance)
-    peg_len = 9.0                              # 9.0mm insertion length into flap female hex socket (Y=159.5 to 150.5mm)
+    peg_len = 18.0                             # 18.0mm length (passes through knuckle into flap socket: Y=159.5 to 141.5mm)
 
     # 1. Main Circular Flange Disk (Y in [159.5, 163.8mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))
