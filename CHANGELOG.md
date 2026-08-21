@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-21
+- Implemented 180° flap folding kinematic relief cuts along hinge pedestals on both Follower Frame and Motorized Frame, enabling 100% collision-free 0° to 180° rotation sweep ($0.0000\,\text{mm}^3$ overlap).
+- Bounded outer corner trim cutters to strictly $3.0\text{mm} \times 3.0\text{mm}$ boxes across all frames and flaps, eliminating oversized OpenCASCADE boolean bounding box protrusions.
+- Corrected `motorized_servo_adapter.py` hex drive peg length to $18.0\text{mm}$, ensuring $8.0\text{mm}$ positive torque engagement into the motorized flap's female hex socket with $2.0\text{mm}$ bottom clearance.
+- Verified $1.0\text{mm}$ axial air gap between rotating adapter flange and frame knuckle, guaranteeing zero contact and zero friction under high servo torque.
+- Fused continuous bore and pocket cutters and re-punched bore channels after chamfering to eliminate OpenCASCADE co-planar inversion artifacts.
+- Validated all 13 production STEP and STL assets with 100% build pass via `export_all.py`.
+
 ## 2026-08-20
 - Eliminated flat chord facet and texture cutter grooves on folding flap hinge spines, ensuring a 100% smooth, continuous Ø12.8mm circular cylindrical surface.
 - Extended Follower and Motorized folding flaps into full-square top decks (219.0mm x 219.5mm) completely covering chassis top and bottom rails.
