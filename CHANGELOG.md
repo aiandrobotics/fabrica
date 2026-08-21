@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-08-21
+- Upgraded `motorized_servo_adapter.py` to a stepped hybrid architecture with a smooth Ø12.8mm cylindrical bearing journal ($Y \in [149.5, 159.5\text{mm}]$) rotating with 0.45mm clearance inside the frame knuckle and an 8.0mm hex drive peg ($Y \in [141.5, 149.5\text{mm}]$) locking into the flap socket, isolating radial loads away from the servo gear train.
 - Implemented 180° flap folding kinematic relief cuts along hinge pedestals on both Follower Frame and Motorized Frame, enabling 100% collision-free 0° to 180° rotation sweep ($0.0000\,\text{mm}^3$ overlap).
 - Bounded outer corner trim cutters to strictly $3.0\text{mm} \times 3.0\text{mm}$ boxes across all frames and flaps, eliminating oversized OpenCASCADE boolean bounding box protrusions.
 - Corrected `motorized_servo_adapter.py` hex drive peg length to $18.0\text{mm}$, ensuring $8.0\text{mm}$ positive torque engagement into the motorized flap's female hex socket with $2.0\text{mm}$ bottom clearance.
