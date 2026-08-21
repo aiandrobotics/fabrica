@@ -304,21 +304,21 @@ def construct_motorized_frame():
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
     # 8. Smooth rounded outer vertical corner fillets (R=3.0mm on outer corners)
-    corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter1.translate(App.Vector(w - 3.0, -3.0, -1.0))
+    corner_box1 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box1.translate(App.Vector(w - 3.0, 0.0, -1.0))
     corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, 3.0, -1.0))
-    corner_trim1 = corner_cutter1.cut(corner_cyl1)
+    corner_trim1 = corner_box1.cut(corner_cyl1)
 
-    corner_cutter2 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
+    corner_box2 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
-    corner_trim2 = corner_cutter2.cut(corner_cyl2)
+    corner_trim2 = corner_box2.cut(corner_cyl2)
 
     # Motor bay outer corner fillet (X = -24.0, Y = 150.0)
-    corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter3.translate(App.Vector(-27.0, k_top_start_y - 3.0, -1.0))
+    corner_box3 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box3.translate(App.Vector(-24.0, k_top_start_y, -1.0))
     corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
-    corner_trim3 = corner_cutter3.cut(corner_cyl3)
+    corner_trim3 = corner_box3.cut(corner_cyl3)
 
     # 9. Outer Knuckle Circular Rim & Bore Entry Chamfers (CYLINDER-BOUNDED: strictly r <= knuckle_r)
     chamfer_cutters = []
@@ -338,6 +338,7 @@ def construct_motorized_frame():
     chamfer_cutters.append(cone_top_bore)
 
     frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters)).removeSplitter()
+    frame = frame.cut(trim_bot_flat).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")

@@ -212,15 +212,15 @@ def construct_follower_frame():
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
     # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on front-right and back-right vertical corners)
-    corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter1.translate(App.Vector(w - 3.0, -3.0, -1.0))
+    corner_box1 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box1.translate(App.Vector(w - 3.0, 0.0, -1.0))
     corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, 3.0, -1.0))
-    corner_trim1 = corner_cutter1.cut(corner_cyl1)
+    corner_trim1 = corner_box1.cut(corner_cyl1)
 
-    corner_cutter2 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
+    corner_box2 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
-    corner_trim2 = corner_cutter2.cut(corner_cyl2)
+    corner_trim2 = corner_box2.cut(corner_cyl2)
 
     # 10. Outer Knuckle Circular Rim & Bore Entry Chamfers (CYLINDER-BOUNDED: strictly r <= knuckle_r)
     chamfer_cutters = []
