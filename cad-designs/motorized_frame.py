@@ -18,6 +18,7 @@ from params import (
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
     PIVOT_Z,
+    PADDLE_THICKNESS,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
     TPU_BUMPER_DEPTH,
@@ -144,7 +145,12 @@ def construct_motorized_frame():
     cut_screw_access_left = Part.makeBox(13.5, 32.0, 30.0)
     cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, bottom_thick))
 
-    for cav in [cav_main, cradle_trough, cut_screw_access_right, cut_screw_access_left]:
+    # 180° Flap Folding Kinematic Relief: In the active flap span Y in [15.0, 150.0mm],
+    # reduce outer pedestal wall for X <= 0 down to Z = 12.1mm (0.5mm clearance below 2.4mm blade at 180°)
+    hinge_180_relief = Part.makeBox(knuckle_r + 5.0, k_top_start_y - knuckle_len + 0.2, (pivot_z + 1.0) - (pivot_z - PADDLE_THICKNESS - 0.5))
+    hinge_180_relief.translate(App.Vector(-knuckle_r - 5.0, knuckle_len - 0.1, pivot_z - PADDLE_THICKNESS - 0.5))
+
+    for cav in [cav_main, cradle_trough, hinge_180_relief, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Knuckle Bore

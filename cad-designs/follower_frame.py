@@ -20,6 +20,7 @@ from params import (
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
     PIVOT_Z,
+    PADDLE_THICKNESS,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
     EXPORT_DIR,
@@ -100,6 +101,11 @@ def construct_follower_frame():
     # B. Semi-Circular Cradle Trough (supports half-cylinder axle from below)
     cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
+    # B2. 180° Flap Folding Kinematic Relief: In the active flap span Y in [15.0, 205.0mm],
+    # reduce outer pedestal wall for X <= 0 down to Z = 12.1mm (0.5mm clearance below 2.4mm blade at 180°)
+    hinge_180_relief = Part.makeBox(knuckle_r + 5.0, h - 2 * knuckle_len + 0.2, (pivot_z + 1.0) - (pivot_z - PADDLE_THICKNESS - 0.5))
+    hinge_180_relief.translate(App.Vector(-knuckle_r - 5.0, knuckle_len - 0.1, pivot_z - PADDLE_THICKNESS - 0.5))
+
     # C. Main Center Cavity Window (Opens fully from X=0 to X=W-15mm, using semi-cylinder cradle as sole hinge wall)
     cav_main = Part.makeBox(w - rail_w, h - 2 * rail_w, t + 2.0)
     cav_main.translate(App.Vector(0, rail_w, -1.0))
@@ -117,7 +123,7 @@ def construct_follower_frame():
     trim_bot = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, bot_thrust_recess, top_thrust_recess, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, bot_thrust_recess, top_thrust_recess, hinge_180_relief, trim_bot])).removeSplitter()
 
     # 4. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH
