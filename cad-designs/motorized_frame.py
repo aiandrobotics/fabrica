@@ -18,6 +18,7 @@ from params import (
     DOVETAIL_FLARE_WIDTH,
     DOVETAIL_DEPTH,
     PIVOT_Z,
+    PADDLE_THICKNESS,
     DRIVE_SHAFT_DIAMETER,
     BEARING_ROTATING_CLEARANCE,
     TPU_BUMPER_DEPTH,
@@ -144,7 +145,12 @@ def construct_motorized_frame():
     cut_screw_access_left = Part.makeBox(13.5, 32.0, 30.0)
     cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, bottom_thick))
 
-    for cav in [cav_main, cradle_trough, cut_screw_access_right, cut_screw_access_left]:
+    # 180° Flap Folding Kinematic Relief: In the active flap span Y in [15.0, 150.0mm],
+    # reduce outer pedestal wall for X <= 0 down to Z = 12.1mm (0.5mm clearance below 2.4mm blade at 180°)
+    hinge_180_relief = Part.makeBox(knuckle_r + 5.0, k_top_start_y - knuckle_len + 0.2, (pivot_z + 1.0) - (pivot_z - PADDLE_THICKNESS - 0.5))
+    hinge_180_relief.translate(App.Vector(-knuckle_r - 5.0, knuckle_len - 0.1, pivot_z - PADDLE_THICKNESS - 0.5))
+
+    for cav in [cav_main, cradle_trough, hinge_180_relief, cut_screw_access_right, cut_screw_access_left]:
         frame = frame.cut(cav).removeSplitter()
 
     # 3. Hinge Bearing Bores & Knuckle Bore
@@ -158,11 +164,14 @@ def construct_motorized_frame():
     adapter_pocket = Part.makeBox(26.0, 23.5, 30.0)
     adapter_pocket.translate(App.Vector(-13.0, k_top_start_y + 8.5, bottom_thick))
 
+    # Fused continuous bore and adapter pocket cutter (eliminates co-planar boundary artifacts)
+    bore_and_pocket = top_bore.fuse(adapter_pocket).removeSplitter()
+
     # 100% Planar bottom trim at Z=0.0mm across entire module footprint (eliminates any rocking/wobbling on tables)
     trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot_flat.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    for b in [bot_bore, bot_thrust_recess, top_bore, adapter_pocket, trim_bot_flat]:
+    for b in [bot_bore, bot_thrust_recess, bore_and_pocket, trim_bot_flat]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.5mm thick at Y = 214.5 to 220.0mm), and Solid Front Towers:
@@ -298,21 +307,21 @@ def construct_motorized_frame():
     frame = frame.cut(Part.makeCompound(tpu_cutters)).removeSplitter()
 
     # 8. Smooth rounded outer vertical corner fillets (R=3.0mm on outer corners)
-    corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter1.translate(App.Vector(w - 3.0, -3.0, -1.0))
+    corner_box1 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box1.translate(App.Vector(w - 3.0, 0.0, -1.0))
     corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, 3.0, -1.0))
-    corner_trim1 = corner_cutter1.cut(corner_cyl1)
+    corner_trim1 = corner_box1.cut(corner_cyl1)
 
-    corner_cutter2 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
+    corner_box2 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box2.translate(App.Vector(w - 3.0, h - 3.0, -1.0))
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(w - 3.0, h - 3.0, -1.0))
-    corner_trim2 = corner_cutter2.cut(corner_cyl2)
+    corner_trim2 = corner_box2.cut(corner_cyl2)
 
     # Motor bay outer corner fillet (X = -24.0, Y = 150.0)
-    corner_cutter3 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter3.translate(App.Vector(-27.0, k_top_start_y - 3.0, -1.0))
+    corner_box3 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box3.translate(App.Vector(-24.0, k_top_start_y, -1.0))
     corner_cyl3 = Part.makeCylinder(3.0, t + 2.0, App.Vector(-21.0, k_top_start_y + 3.0, -1.0))
-    corner_trim3 = corner_cutter3.cut(corner_cyl3)
+    corner_trim3 = corner_box3.cut(corner_cyl3)
 
     # 9. Outer Knuckle Circular Rim & Bore Entry Chamfers (CYLINDER-BOUNDED: strictly r <= knuckle_r)
     chamfer_cutters = []
@@ -331,7 +340,13 @@ def construct_motorized_frame():
     cone_top_bore = Part.makeCone(bore_r + 0.8, bore_r, 0.85, App.Vector(0, k_top_start_y - 0.05, pivot_z), App.Vector(0, 1, 0))
     chamfer_cutters.append(cone_top_bore)
 
-    frame = frame.cut(Part.makeCompound([corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters)).removeSplitter()
+    for cutter in [corner_trim1, corner_trim2, corner_trim3] + chamfer_cutters:
+        frame = frame.cut(cutter).removeSplitter()
+
+    # Re-apply bores and planar bottom trim to ensure 100% open bore channels
+    frame = frame.cut(bot_bore).removeSplitter()
+    frame = frame.cut(bore_and_pocket).removeSplitter()
+    frame = frame.cut(trim_bot_flat).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_frame.step")

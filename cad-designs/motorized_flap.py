@@ -93,15 +93,15 @@ def construct_motorized_flap():
     blade = slab_outer.fuse(slab_hinge).removeSplitter()
 
     # Outer corner fillets (R=3.0mm on top-right and bottom-right outer corners)
-    corner_cutter1 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter1.translate(App.Vector(x_max - 3.0, y_min_blade - 3.0, panel_z_min - 1.0))
+    corner_box1 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box1.translate(App.Vector(x_max - 3.0, y_min_blade, panel_z_min - 1.0))
     corner_cyl1 = Part.makeCylinder(3.0, t + 2.0, App.Vector(x_max - 3.0, y_min_blade + 3.0, panel_z_min - 1.0))
-    corner_trim1 = corner_cutter1.cut(corner_cyl1)
+    corner_trim1 = corner_box1.cut(corner_cyl1)
 
-    corner_cutter2 = Part.makeBox(6.0, 6.0, t + 2.0)
-    corner_cutter2.translate(App.Vector(x_max - 3.0, y_max_blade - 3.0, panel_z_min - 1.0))
+    corner_box2 = Part.makeBox(3.0, 3.0, t + 2.0)
+    corner_box2.translate(App.Vector(x_max - 3.0, y_max_blade - 3.0, panel_z_min - 1.0))
     corner_cyl2 = Part.makeCylinder(3.0, t + 2.0, App.Vector(x_max - 3.0, y_max_blade - 3.0, panel_z_min - 1.0))
-    corner_trim2 = corner_cutter2.cut(corner_cyl2)
+    corner_trim2 = corner_box2.cut(corner_cyl2)
 
     blade = blade.cut(Part.makeCompound([corner_trim1, corner_trim2])).removeSplitter()
 
