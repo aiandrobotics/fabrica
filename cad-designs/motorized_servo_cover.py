@@ -27,14 +27,14 @@ def construct_motorized_servo_cover():
     """
     import params
     h = params.PANEL_HEIGHT
-    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 25.8 to 27.2mm, spanning Y in [182.2, 214.2mm])
-    w_top = 63.7 # X in [-23.5, 40.2mm]
+    # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 25.8 to 27.2mm, spanning Y in [182.2, 214.2mm], flush with outer left wall at X=-24.0mm)
+    w_top = 64.2 # X in [-24.0, 40.2mm]
     l_top = 32.0 # Y in [182.2, 214.2mm]
     t_top = 1.4
     z_top_min = 25.8
 
     top_plate = Part.makeBox(w_top, l_top, t_top)
-    top_plate.translate(App.Vector(-23.5, 182.2, z_top_min))
+    top_plate.translate(App.Vector(-24.0, 182.2, z_top_min))
 
     # 2. Continuous Rear Interlocking Tongue (Y in [213.5, 219.5mm], Z in [24.3, 25.8mm]) sliding into the frame back wall past the servo body
     tongue_w = 53.5 # X in [-17.0, 36.5mm] cleanly inside bay cavity and slot
@@ -83,7 +83,7 @@ def construct_motorized_servo_cover():
     lid = top_plate.fuse([tongue, leg_left, leg_right]).removeSplitter()
 
     # 4. Finger / Tool Pry Notch at Rear-Left Corner
-    notch = Part.makeCylinder(3.5, 3.0, App.Vector(-23.5, 214.2, z_top_min - 1.0))
+    notch = Part.makeCylinder(3.5, 3.0, App.Vector(-24.0, 214.2, z_top_min - 1.0))
     lid = lid.cut(notch).removeSplitter()
 
     # Export STEP and STL

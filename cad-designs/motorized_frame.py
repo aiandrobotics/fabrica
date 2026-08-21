@@ -187,9 +187,9 @@ def construct_motorized_frame():
     pocket_bay_wide = Part.makeBox(56.3, bay_len - towers_t - 5.5, 30.0)
     pocket_bay_wide.translate(App.Vector(-17.8, towers_start_y + towers_t, z_motor_rest))
 
-    # Top Lid Seating Rebate (1.4mm depth at Z in [25.8, 27.5mm], X in [-23.8, 40.5mm], Y in [182.0, 214.5mm])
-    pocket_rebate = Part.makeBox(64.3, 32.5, 2.0)
-    pocket_rebate.translate(App.Vector(-23.8, bay_start_y, 25.8))
+    # Top Lid Seating Rebate (1.4mm depth at Z in [25.8, 27.5mm], extending past outer left wall X=-24.0mm to X=40.5mm, Y in [182.0, 214.5mm])
+    pocket_rebate = Part.makeBox(67.0, 32.5, 2.0)
+    pocket_rebate.translate(App.Vector(-26.0, bay_start_y, 25.8))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing cleanly through the 5.0mm solid towers along Y-axis:
     screw_r = 1.7
