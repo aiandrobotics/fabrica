@@ -66,6 +66,7 @@ All part and assembly Python scripts must be visually and analytically validated
 | `TPU_BUMPER_DEPTH` | 1.5 mm | Recessed pocket depth for silent flip TPU shock dampers |
 | `RETICLE_DEBOSS_DEPTH` | 0.4 mm | Deboss depth for garment collar & shoulder centering guide lines |
 | `DC_JACK_DIAMETER` | 11.5 mm | Mounting cutout diameter for external DC power supply jack |
+| `BUTTON_HOLE_DIA` | 16.0 mm | Mounting cutout diameter for top interface tactile push buttons |
 | `FOOT_PAD_DIA` | 20.1 mm | Sockets for press-fitting anti-slip silicone/rubber feet |
 | `FOOT_PAD_DEPTH` | 2.0 mm | Recessed depth for tabletop anti-slip rubber pads |
 | `JOINER_DETENT` | 0.3 mm | Flex detent bump on dovetail joiners for click-lock retention |

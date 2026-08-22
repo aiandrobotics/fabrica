@@ -43,6 +43,7 @@ ACCENT_BEVEL_DEPTH     = 1.20
 TPU_BUMPER_DEPTH     = 1.50
 RETICLE_DEBOSS_DEPTH = 0.40
 DC_JACK_DIAMETER     = 11.50
+BUTTON_HOLE_DIA      = 16.00
 
 # Base Module & Joiner Optimizations (True Sliding Dovetail System)
 FOOT_PAD_DIA      = 20.10
