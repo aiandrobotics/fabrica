@@ -56,10 +56,17 @@ Build, validate, and commit before moving to the next phase.
 ---
 
 ## Phase 5 — Interface Module & Electronics Enclosure (`interface_panel.py`, `controller_case.py`, `assembly_interface_module.py`)
-- **15° Angled Interface Control Faceplate** (`interface_panel.py`): Model ergonomic 15° forward-angled control deck top faceplate (yellow) housing 4 tactile button cutouts, a status LED bar diffuser window, 0.8 mm hole edge chamfers, and 0.6 mm micro-grip diamond surface texture.
-- **Ventilated Controller Case** (`controller_case.py`): Model protective electronics enclosure (green) featuring an 11.5 mm DC power barrel jack / USB-C PD mounting cutout, zip-tie wire strain-relief saddles, 0.4 mm bottom Elephant's Foot relief chamfers, 0.5 mm debossed Poka-Yoke directional alignment arrows ("FRONT ➔"), click-lock dovetail joiner sockets with detent dimples, 1.5 mm filleted internal wire pass-through ports, and passive convection cooling chimney slots underneath the Raspberry Pi Pico 2W and PCA9685 driver board to prevent thermal throttling.
-- **Interface Sub-Assembly** (`assembly_interface_module.py`): Assemble Controller Case + 15° Angled Interface Faceplate.
-- **Visual Validation**: Apply `freecad-visual-validation` skill using `render_freecad_script` and `inspect_freecad_assembly` (exploded view with dimensions). Confirm PASS report.
+- **15° Angled Interface Control Faceplate** (`interface_panel.py`): Model ergonomic 15° forward-angled control deck top faceplate (yellow):
+  - **4x Top Interaction Buttons**: 4x standardized tactile push button cutouts / mounting bezels (spaced ergonomically across the top deck) allowing the user to interact with the system (e.g. Start/Fold, Stop/Pause, Preset/Mode, and Reset).
+  - **Status LED Window**: Dedicated status indicator light pipe / diffuser aperture for multi-color system state feedback (Ready, Folding, Paused, Fault, WiFi/Connected).
+  - **Surface & Aesthetic Detailing**: $0.8\text{ mm}$ hole edge chamfers, $0.6\text{ mm}$ micro-grip diamond surface texture, $1.2\text{ mm}$ perimeter shadow bevel, and secure snap-latch / fastener mounting to the lower chassis case.
+- **Ventilated Dual-Board Controller Enclosure** (`controller_case.py`): Model protective modular electronics chassis (green) designed to house two internal circuit boards:
+  - **PCA9685 16-Channel 12-Bit PWM Servo Driver Board**: Dedicated internal mounting standoffs ($62.5 \times 25.4\text{ mm}$ hole pattern) for driving all motorized folding flap servos.
+  - **Universal Microcontroller Bay (Raspberry Pi Pico / Pico 2W OR ESP32 DevKit V1)**: Hybrid/universal mounting bosses and external USB programming port aperture accommodating either a **Raspberry Pi Pico** ($51 \times 21\text{ mm}$) or an **ESP32 DevKit** ($51.5 \times 28.5\text{ mm}$).
+  - **Power & External Connectivity**: $\varnothing 11.5\text{ mm}$ high-current DC barrel jack (5.5×2.1mm) / USB-C PD power inlet cutout for powering the servo rail, plus MCU USB programming cutout.
+  - **Cable Management & Thermal Ventilation**: Zip-tie wire strain-relief anchor saddles, dedicated wire raceways connecting buttons/LED/MCU/PCA9685, passive convection cooling chimney slots underneath both circuit boards, $0.4\text{ mm}$ bottom Elephant's Foot relief chamfers, $0.5\text{ mm}$ debossed Poka-Yoke directional alignment arrows ("FRONT ➔"), click-lock dovetail joiner sockets with detent dimples, and $1.5\text{ mm}$ filleted internal wire pass-through ports connecting seamlessly to adjacent grid frames.
+- **Interface Sub-Assembly** (`assembly_interface_module.py`): Multi-body sub-assembly model integrating Controller Case + 15° Angled Interface Faceplate + Circuit Board CAD Reference models (PCA9685 + Pico / ESP32) + 4 Push Buttons + Status LED Diffuser.
+- **Visual Validation**: Apply `freecad-visual-validation` skill using `render_freecad_script` (multi-view bursts), `inspect_freecad_assembly` (exploded view with dimensions), and `check_interference` (confirming $0.0000\,\text{mm}^3$ overlap). Confirm PASS report.
 
 ---
 

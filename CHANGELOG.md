@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-08-22
+- Updated `cad-designs/specs/roadmap.md` Phase 5 (Interface Module & Electronics Enclosure) specification with detailed requirements for 4 top interaction buttons, status LED indicator, and dual circuit board housing supporting PCA9685 PWM servo driver + universal microcontroller bay (Raspberry Pi Pico / Pico 2W or ESP32 DevKit).
 - Updated Bambu Lab 3MF print project to `cad-designs/3d-print/fabrica-bambu-lab-256.3mf` configured for 256x256mm build volume.
 
 ## 2026-08-21
