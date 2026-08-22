@@ -31,10 +31,10 @@ def construct_interface_panel():
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
-    h_case = 30.0  # 30.0mm base chassis height
+    h_case = 45.0  # 45.0mm base chassis height for spacious wiring
     plate_t = 3.0  # 3.0mm faceplate thickness
     
-    # 1. Base flat plate at Z = h_case (30.0mm):
+    # 1. Base flat plate at Z = h_case (45.0mm):
     flat_plate = Part.makeBox(w, d, plate_t, App.Vector(0, 0, h_case))
     
     # 2. 4x Standardized Ø16.0mm Tactile Push Button Cutouts:

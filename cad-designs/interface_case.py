@@ -1,9 +1,10 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board Flat Rectangular Enclosure with 4-Sided Toolless Snap System)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Rectangular Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
-1. Flat horizontal rectangular box chassis (220.0 x 120.0 x 30.0mm)
+1. Spacious flat horizontal rectangular box chassis (220.0 x 120.0 x 45.0mm)
+   - 45.0mm increased chassis height provides >25mm of generous overhead space for 16-motor servo wiring bundles, DuPont jumpers, and power buses
 2. Houses 3 Circuit Boards:
    - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 37.0 x 24.0mm pitch)
    - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle)
@@ -14,10 +15,10 @@ Features:
    - Rear Cantilever Snap-Catch Bosses (2x @ X=50, 170mm) with tactile click detents
    - Rear Toolless Pry-Release Access Notches for easy finger/coin opening
 4. High-Capacity Wiring & Thermal Management:
-   - High-Capacity 16-Motor Wire Conduit Window (60.0 x 16.0mm) passing up to 48 servo wires / ribbon cables directly to the grid
+   - High-Capacity 16-Motor Wire Conduit Window (60.0 x 20.0mm) passing up to 48 servo wires / ribbon cables directly to the grid
    - Dual Captive Zip-Tie Strain-Relief Anchor Saddles (12.0 x 6.0mm) absorbing 100% of external pull force
    - S-Curve Friction Snubber Posts (2x Ø6.0mm) for hardware-free wire tension relief
-   - Left-Bay Power & Logic Conduit Window (38.0 x 16.0mm)
+   - Left-Bay Power & Logic Conduit Window (38.0 x 20.0mm)
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
    - Passive convection chimney cooling slots directly below all 3 boards
@@ -51,11 +52,11 @@ def create_dovetail_socket_cutter(neck_w, flare_w, depth, height):
 
 def construct_interface_case():
     """
-    Constructs the monolithic 3D printable flat rectangular electronics chassis.
+    Constructs the monolithic 3D printable high-capacity flat rectangular electronics chassis.
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
-    h = 30.0  # 30.0mm uniform rectangular box chassis height
+    h = 45.0  # 45.0mm increased rectangular box chassis height for spacious wiring
     wall_t = params.WALL_THICKNESS  # 3.0mm
     floor_t = 3.0  # 3.0mm solid bottom floor
     
@@ -125,7 +126,7 @@ def construct_interface_case():
             bx = esp_cx + dx
             by = esp_cy + dy
             boss = Part.makeCylinder(esp_boss_r, floor_t + esp_standoff_h, App.Vector(bx, by, 0))
-            pilot = Part.makeCylinder(esp_pilot_r, esp_standoff_h + 1.0, App.Vector(bx, by, floor_t))
+            pilot = Part.makeCylinder(esp_pilot_r, pca_standoff_h + 1.0, App.Vector(bx, by, floor_t))
             esp_bosses.append(boss.cut(pilot))
             
     # ESP32 Perimeter Alignment Cradle:
@@ -186,7 +187,7 @@ def construct_interface_case():
     # B) DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
     dc_jack_r = params.DC_JACK_DIAMETER / 2.0  # 5.75mm
     dc_jack_y = pdb_cy  # 86.0mm
-    dc_jack_z = 12.0
+    dc_jack_z = 14.0
     dc_jack_cut = Part.makeCylinder(dc_jack_r, wall_t + 2.0, App.Vector(-1.0, dc_jack_y, dc_jack_z), App.Vector(1, 0, 0))
     
     # C) ESP32 Header Pin Through-Floor Relief Slots:
@@ -235,13 +236,13 @@ def construct_interface_case():
         p_hole = Part.makeCylinder(3.0, dt_floor + 2.0, App.Vector(dt_x, d - dt_depth / 2.0, -1.0))
         pushout_holes.append(p_hole)
         
-    # G) High-Capacity Dual Rear Wire Conduit Windows:
+    # G) High-Capacity Dual Rear Wire Conduit Windows (Expanded 20.0mm Height):
     motor_conduit_w = 60.0
-    motor_conduit_h = 16.0
+    motor_conduit_h = 20.0
     motor_conduit_cut = Part.makeBox(motor_conduit_w, wall_t + dt_depth + 4.0, motor_conduit_h, App.Vector(pca_cx - motor_conduit_w / 2.0, d - dt_depth - 2.0, dt_floor + 1.5))
     
     power_conduit_w = 38.0
-    power_conduit_h = 16.0
+    power_conduit_h = 20.0
     power_conduit_cut = Part.makeBox(power_conduit_w, wall_t + dt_depth + 4.0, power_conduit_h, App.Vector(55.0 - power_conduit_w / 2.0, d - dt_depth - 2.0, dt_floor + 1.5))
     
     # H) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:

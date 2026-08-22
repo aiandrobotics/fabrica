@@ -1,9 +1,9 @@
 """
-Fabrica Cloth Folding Robot - Interface Module Assembly (Flat Rectangular Box Enclosure)
+Fabrica Cloth Folding Robot - Interface Module Assembly (Spacious High-Capacity Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Integrates 3 Boards + User Interface Controls in a Flat Horizontal Rectangular Box Enclosure:
-1. Interface Case (interface_case.py) - Flat lower electronics chassis (220.0 x 120.0 x 30.0mm) with 4-sided toolless snap retention
+Integrates 3 Boards + User Interface Controls in a Spacious Flat Horizontal Rectangular Box Enclosure:
+1. Interface Case (interface_case.py) - Flat lower electronics chassis (220.0 x 120.0 x 45.0mm) with 4-sided toolless snap retention
 2. Interface Control Faceplate (interface_panel.py) - Flat horizontal top deck (220.0 x 120.0 x 3.0mm) with round LED window
 3. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
 4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
@@ -132,10 +132,12 @@ def build_assembly():
     """
     doc = App.newDocument("InterfaceModuleAssembly")
     
-    # 1. Base Flat Controller Case (30.0mm height):
+    h_case = 45.0  # 45.0mm spacious height
+    
+    # 1. Base Flat Controller Case (45.0mm height):
     case = construct_interface_case()
     
-    # 2. Top Flat Control Faceplate (at Z = 30.0mm):
+    # 2. Top Flat Control Faceplate (at Z = 45.0mm):
     deck = construct_interface_panel()
     
     # 3. PCA9685 Driver Board (Right Bay):
@@ -151,7 +153,6 @@ def build_assembly():
     pdb.translate(App.Vector(38.0 - 45.0 / 2.0, 86.0 - 32.0 / 2.0, 8.0))
     
     # 6. 4x Ø16.0mm Tactile Push Buttons:
-    h_case = 30.0
     btn_pitch = 28.0
     btn_cx = params.PANEL_WIDTH / 2.0
     btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
