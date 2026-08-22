@@ -44,6 +44,16 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 - **Ventilation**: Passive convection cooling chimney slots ($2.0\text{ mm} \times 15.0\text{ mm}$) located on the bottom base directly below the PCA9685 driver and ESP32 board to prevent heat buildup.
 - **Fastening**: 4x corner M3 countersunk screws securing the faceplate to the lower case.
 
+### 4. Grid Attachment & Dovetail Joint System
+- **Main Board Interlocking**: The interface module casing attaches directly and rigidly to the main folding board chassis (Base, Follower, or Motorized frames) using the standardized sliding dovetail joint system.
+- **Dovetail Geometry & Dimensions**:
+  - Neck Width: $12.0\text{ mm}$ at the chassis interface seam.
+  - Flared Width: $18.0\text{ mm}$ inside the pocket, creating a robust mechanical interlock preventing lateral or pull-out separation.
+  - Socket Depth: $12.0\text{ mm}$ insertion depth for maximum torsional and bending stiffness.
+  - Drop-Stop Floor: $3.0\text{ mm}$ solid bottom floor maintaining a 100% flush top surface alignment with adjacent frames.
+  - Push-Out Toolless Removal: $\varnothing 6.0\text{ mm}$ through-floor push-out hole for effortless joiner ejection.
+  - Internal Wire Raceway Conduit: $1.5\text{ mm}$ filleted internal cable pass-through channel aligned concentric with the dovetail tunnel, routing the 16x PWM servo lines and power buses invisibly from the controller enclosure into the main folding grid.
+
 ---
 
 ## Constraints
