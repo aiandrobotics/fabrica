@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-08-22
+- Standardized all project specifications (`specs/mission.md`, `cad-designs/specs/mission.md`, `cad-designs/specs/tech-stack.md`, `docs/README.md`, `firmware/README.md`) on dual internal circuit boards: PCA9685 16-channel PWM servo driver + ESP32 DevKit microcontroller with 4 top interaction buttons and status LED.
 - Updated `cad-designs/specs/roadmap.md` Phase 5 (Interface Module & Electronics Enclosure) specification locking in the hardware layout: 4 top user interaction buttons, multi-color status LED indicator, and dual internal circuit boards (PCA9685 16-channel PWM servo driver + ESP32 DevKit microcontroller).
 - Updated Bambu Lab 3MF print project to `cad-designs/3d-print/fabrica-bambu-lab-256.3mf` configured for 256x256mm build volume.
 

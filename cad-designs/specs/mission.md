@@ -27,7 +27,7 @@ All CAD assets must be:
 
 4. **Interface & Enclosure Module**:
    - Control pad housing integrating 4 physical tactile buttons, status LED diffusers, and cable management.
-   - Protective enclosure for the microcontroller (Raspberry Pi Pico 2W), PCA9685 16-channel servo driver board, and power distribution terminals.
+   - Protective enclosure for the dual internal circuit boards: ESP32 microcontroller board, PCA9685 16-channel servo driver board, and power distribution terminals.
 
 5. **Kinematic Linkages & Hardware Interfaces**:
    - Custom 3D-printable hinge pins, servo horn drive adapters, and panel coupler links.
@@ -37,7 +37,7 @@ All CAD assets must be:
 Standard 4×3 Garment Folding Grid Assembly:
 - **Grid Layout**: 4 rows × 3 columns of modular panels forming a flat folding table for garments (t-shirts, towels, trousers).
 - **Actuation**: Parallel servo actuation capable of folding garments in 8–12 seconds per cycle.
-- **Enclosure & Control**: Integrated Pico 2W + PCA9685 controller housing with front-accessible physical button interface pad.
+- **Enclosure & Control**: Integrated ESP32 + PCA9685 dual-board controller housing with front-accessible physical 4-button and status LED interface pad.
 
 ## Target Audience & Use Case
 

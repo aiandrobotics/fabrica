@@ -1,6 +1,6 @@
 # MicroPython Firmware
 
-This folder contains the MicroPython firmware running on the **Raspberry Pi Pico 2W (RP2350)** for the Fabrica Cloth Folding Robot.
+This folder contains the MicroPython firmware running on the **ESP32** for the Fabrica Cloth Folding Robot.
 
 ## Architecture
 

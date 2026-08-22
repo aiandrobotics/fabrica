@@ -2,7 +2,7 @@
 
 ## Vision & Executive Summary
 
-**Fabrica** is an open-source, end-to-end automated laundry folding system. The core mission of this project is to build and deliver a complete open-source hardware and software ecosystem—spanning **3D CAD designs**, **Raspberry Pi Pico 2W firmware**, **a comprehensive documentation website**, and **a wireless mobile application**—that enables anyone to build, program, and operate a smart cloth folding robot for $80–$150.
+**Fabrica** is an open-source, end-to-end automated laundry folding system. The core mission of this project is to build and deliver a complete open-source hardware and software ecosystem—spanning **3D CAD designs**, **ESP32 firmware**, **a comprehensive documentation website**, and **a wireless mobile application**—that enables anyone to build, program, and operate a smart cloth folding robot for $80–$150.
 
 Using a customizable grid of hinged 3D-printed panels and intelligent parallel servo motor actuation, Fabrica folds garments (such as t-shirts, towels, and trousers) in 8 to 12 seconds per item with a single button press or mobile app tap.
 
@@ -17,14 +17,14 @@ The Fabrica mission encompasses four primary, interconnected project deliverable
    - Engineered hinge linkages, drive shafts, servo couplers, and controller housing enclosures optimized for FDM 3D printing (PLA/PETG).
 
 2. **Embedded Firmware (`firmware/`)**:
-   - Production-grade MicroPython firmware executing autonomously on the **Raspberry Pi Pico 2W**.
+   - Production-grade MicroPython / C++ firmware executing autonomously on the **ESP32**.
    - Driver integration for PCA9685 16-channel PWM servo driver over I2C, 4-button polling interface with debouncing, LED status feedback, parallel motor step execution, and non-volatile Flash memory storage.
 
 3. **Documentation Website (`docs/`)**:
    - A modern, interactive web-based documentation portal providing step-by-step 3D assembly guides, electrical wiring schematics, an interactive Bill of Materials (BOM), operation manuals, and troubleshooting flows.
 
 4. **Mobile Application (`mobile-app/`)**:
-   - A cross-platform mobile application providing wireless (Wi-Fi/Bluetooth LE) connectivity to the Raspberry Pi Pico 2W.
+   - A cross-platform mobile application providing wireless (Wi-Fi/Bluetooth LE) connectivity to the ESP32.
    - Enables visual sequence creation, pattern management, live telemetry/diagnostics, remote control, and a foundation for future AI-powered garment vision recognition.
 
 ---
@@ -36,7 +36,7 @@ graph TD
     subgraph Deliverables Ecosystem
         CAD[CAD Designs<br/>cad-designs/]
         Docs[Docs Website<br/>docs/]
-        Firmware[Pico 2W Firmware<br/>firmware/]
+        Firmware[ESP32 Firmware<br/>firmware/]
         App[Mobile App<br/>mobile-app/]
     end
 
@@ -65,7 +65,7 @@ graph TD
 ## Product Roadmap
 
 - [ ] **Deliverable 1: CAD Designs**: Modular 3D printed panel models, drive shafts, hinge links, controller housing, and full 4×3 grid assembly models.
-- [ ] **Deliverable 2: Pico 2W Firmware**: MicroPython firmware, PCA9685 I2C driver, polling button interface, parallel sequence executor, and Flash profile storage.
+- [ ] **Deliverable 2: ESP32 Firmware**: MicroPython/C++ firmware, PCA9685 I2C driver, polling 4-button interface, status LED driver, parallel sequence executor, and Flash profile storage.
 - [ ] **Deliverable 3: Documentation Website**: Step-by-step mechanical assembly guides, wiring schematics, interactive BOM table, and user manuals.
 - [ ] **Deliverable 4: Mobile Application**: Bluetooth LE / Wi-Fi wireless control, visual folding sequence editor, live telemetry, and AI vision preparation.
 
