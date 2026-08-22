@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with Integrated Male Dovetail Key)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board Enclosure with Integrated Male Dovetail & Wire Raceway)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -11,15 +11,15 @@ Features:
    - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
 3. Direct Wall Snap-Lock Retention Windows (Zero Internal Boss Clutter):
    - 4x Retention windows cut directly through the front and rear perimeter walls (2 on Front, 2 on Rear @ X=50, 170mm)
-   - 100% unobstructed, smooth interior chamber and floor maximizing cable routing volume
+   - 100% unobstructed, smooth interior chamber maximizing cable routing volume
 4. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
    - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
    - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
    - Aligned directly behind the PCA9685 servo pin headers (X in [107.25, 200.75mm])
-5. Integrated External Male Sliding Dovetail Key on Rear Wall (@ X = 55.0mm):
-   - Protrudes outward from the rear wall (Y = 120.0mm) with standard flared male key geometry
-   - Slides directly into the female dovetail socket of any Fabrica robot base frame module without separate loose joiners
-   - 100% solid inner wall (zero internal socket cutouts or cavities)
+5. Integrated External Male Sliding Dovetail Key with Standard Wire Raceway (@ X = 55.0mm):
+   - Flared male sliding dovetail key matching frame_joiner geometry (11.6mm neck -> 17.6mm flare, 12mm height)
+   - High-capacity internal wire raceway conduit (6.8 x 8.6mm with 1.0mm fillets) passing directly through the dovetail arm into the enclosure
+   - Slides directly into the female dovetail socket of any Fabrica robot base frame module without loose joiners
 6. Ports & Thermal Management:
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
@@ -42,7 +42,7 @@ import params
 def construct_interface_case():
     """
     Constructs the monolithic 3D printable high-capacity flat rectangular electronics chassis
-    with an integrated external male sliding dovetail key.
+    with an integrated external male sliding dovetail key and continuous internal wire raceway.
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
@@ -87,7 +87,7 @@ def construct_interface_case():
     
     esp_bosses = []
     for dx in [-esp_pitch_x / 2.0, esp_pitch_x / 2.0]:
-        for dy in [-esp_pitch_y / 2.0, esp_pitch_y / 2.0]:
+        for dy in [-esp_pitch_y / 2.0, pca_pitch_y / 2.0]:
             bx = esp_cx + dx
             by = esp_cy + dy
             boss = Part.makeCylinder(esp_boss_r, floor_t + esp_standoff_h, App.Vector(bx, by, 0))
@@ -121,7 +121,7 @@ def construct_interface_case():
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
     # 4. Integrated External Male Dovetail Key on Rear Wall (@ X = 55.0mm / W * 0.25):
-    # Protrudes outward from rear wall Y = 120.0mm directly into standard robot frame female pocket
+    # Matches exact cross-section and shape of frame_joiner.py:
     dt_clearance = params.DOVETAIL_CLEARANCE  # 0.20mm
     gap = params.MODULE_GAP  # 20.0mm
     neck_w = params.DOVETAIL_NECK_WIDTH - (2.0 * dt_clearance)  # 11.60mm
@@ -161,9 +161,29 @@ def construct_interface_case():
     dt_male_solid = dt_male_solid.cut(Part.makeCompound([c_cutter1, c_cutter2])).removeSplitter()
     case_body = case_body.fuse(dt_male_solid).removeSplitter()
     
+    # High-Capacity Internal Wire Raceway Conduit (6.8mm x 8.6mm with 1.0mm Fillets) matching frame_joiner:
+    # Extends continuously from tip (Y=153mm) through bridge and case wall into cavity (Y=115mm):
+    raceway_w = 6.8
+    raceway_h = 8.6
+    center_z = params.DOVETAIL_FLOOR_THICKNESS + (dt_height / 2.0)  # 3.0 + 6.0 = 9.0mm
+    raceway_box = Part.makeBox(
+        raceway_w,
+        (y_tip - y_seam) + wall_t + 6.0,
+        raceway_h,
+        App.Vector(dt_x - raceway_w / 2.0, y_seam - wall_t - 2.0, center_z - (raceway_h / 2.0))
+    )
+    try:
+        y_edges = [
+            e for e in raceway_box.Edges
+            if abs(e.BoundBox.XMin - e.BoundBox.XMax) < 0.001 and abs(e.BoundBox.ZMin - e.BoundBox.ZMax) < 0.001
+        ]
+        if y_edges:
+            raceway_box = raceway_box.makeFillet(1.0, y_edges)
+    except Exception:
+        pass
+        
     # 5. External Port & Wall Cutouts:
     # A) Direct Wall Snap Retention Holes (4x: 2 on Front Wall, 2 on Rear Wall @ X=50, 170mm):
-    # Cut directly through the 3.0mm perimeter walls at Z = [38.0, 41.5mm]
     snap_hole_w = 12.0
     snap_hole_h = 3.5
     snap_z = h - 7.0  # 38.0mm to 41.5mm
@@ -234,7 +254,7 @@ def construct_interface_case():
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring, raceway_box] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body
