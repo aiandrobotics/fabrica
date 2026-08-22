@@ -47,11 +47,19 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 
 ### 3. Case Enclosure & Ergonomics
 - **Deck Angle**: $15.0^\circ$ ergonomic forward tilt (`CONTROL_DECK_ANGLE = 15.0`).
-- **Power Inlet**: $\varnothing 11.5\text{ mm}$ circular hole for standard panel-mount DC barrel jack (5.5×2.1mm) powering the high-current servo power bus.
-- **Ventilation**: Passive convection cooling chimney slots ($2.0\text{ mm} \times 15.0\text{ mm}$) located on the bottom base directly below the PCA9685 driver and ESP32 board to prevent heat buildup.
+- **Power Inlet**: $\varnothing 11.5\text{ mm}$ circular hole for standard panel-mount DC barrel jack (5.5×2.1mm) powering the high-current servo power bus directly into the PDB.
+- **Ventilation**: Passive convection cooling chimney slots located on the bottom base directly below the PDB, PCA9685 driver, and ESP32 board to prevent heat buildup.
 - **Fastening**: 4x corner M3 countersunk screws securing the faceplate to the lower case.
 
-### 4. Grid Attachment & Dovetail Joint System
+### 4. High-Capacity 16-Motor Wire Conduit & Strain-Relief Architecture
+- **16-Motor Wire Capacity**:
+  - Right-Bay Conduit Window: $60.0\text{ mm} \times 16.0\text{ mm}$ wide-mouth pass-through directly behind the PCA9685 16-channel servo pin headers, effortlessly passing up to 48 individual servo wires or 4 flat ribbon cable harnesses.
+  - Left-Bay Conduit Window: $38.0\text{ mm} \times 16.0\text{ mm}$ pass-through behind PDB/ESP32 for high-current power and logic buses.
+- **Pull-Tension Isolation & Strain Relief**:
+  - Dual Captive Zip-Tie Anchor Saddles: $12.0\text{ mm} \times 6.0\text{ mm}$ saddles with $3.0\text{ mm} \times 2.5\text{ mm}$ underpasses positioned right in front of the exit port. Tightening a zip-tie collar against the inner shoulder absorbs 100% of external cable pulling force, leaving zero mechanical tension on PCB pins or solder joints.
+  - Dual S-Bend Friction Snubber Posts: $2\times \varnothing 6.0\text{ mm}$ cylindrical friction posts for optional hardware-free S-curve wire routing.
+
+### 5. Grid Attachment & Dovetail Joint System
 - **Main Board Interlocking**: The interface module casing attaches directly and rigidly to the main folding board chassis (Base, Follower, or Motorized frames) using the standardized sliding dovetail joint system.
 - **Dovetail Geometry & Dimensions**:
   - Neck Width: $12.0\text{ mm}$ at the chassis interface seam.
@@ -59,7 +67,7 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
   - Socket Depth: $12.0\text{ mm}$ insertion depth for maximum torsional and bending stiffness.
   - Drop-Stop Floor: $3.0\text{ mm}$ solid bottom floor maintaining a 100% flush top surface alignment with adjacent frames.
   - Push-Out Toolless Removal: $\varnothing 6.0\text{ mm}$ through-floor push-out hole for effortless joiner ejection.
-  - Internal Wire Raceway Conduit: $1.5\text{ mm}$ filleted internal cable pass-through channel aligned concentric with the dovetail tunnel, routing the 16x PWM servo lines and power buses invisibly from the controller enclosure into the main folding grid.
+  - Internal Wire Raceway Conduit: Smooth radiused internal cable pass-through channel aligned concentric with the dovetail tunnel, routing the 16x PWM servo lines and power buses invisibly from the controller enclosure into the main folding grid.
 
 ---
 
