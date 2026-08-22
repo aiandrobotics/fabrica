@@ -21,7 +21,7 @@ Phase 5 implements the **Interface Module & Electronics Enclosure** for the Fabr
 
 ---
 
-## Task Group 2: Dual-Board Controller Enclosure Chassis (`controller_case.py`)
+## Task Group 2: Dual-Board Controller Enclosure Chassis (`interface_case.py`)
 1. **Outer Chassis & Base Geometry**:
    - Monolithic rigid lower enclosure body with $3.0\text{ mm}$ structural outer walls, $0.4\text{ mm}$ Elephant's Foot relief chamfers, and anti-slip rubber foot sockets ($\varnothing 20.1 \times 2.0\text{ mm}$).
    - Front-sloped mating rim matching the 15° forward incline of the top faceplate.
@@ -52,9 +52,9 @@ Phase 5 implements the **Interface Module & Electronics Enclosure** for the Fabr
 
 ---
 
-## Task Group 4: Interface Sub-Assembly & Multi-Body Kinematics (`assembly_interface_module.py`)
+## Task Group 4: Interface Sub-Assembly & Multi-Body Kinematics (`interface_assembly.py`)
 1. **Assembly Construction**:
-   - Combine `controller_case`, `interface_panel`, PCA9685 reference solid, ESP32 reference solid, 4x 16mm button reference solids, and status LED diffuser into a single multi-body assembly model.
+   - Combine `interface_case`, `interface_panel`, PCA9685 reference solid, ESP32 reference solid, 4x 16mm button reference solids, and status LED diffuser into a single multi-body assembly model.
 2. **Clearance & Interference Verification**:
    - Validate zero volumetric overlap ($0.0000\,\text{mm}^3$) between all mating components using FreeCAD MCP `check_interference`.
    - Verify proper cable routing clearance around PCA9685 servo pin headers and ESP32 USB port.
@@ -65,7 +65,7 @@ Phase 5 implements the **Interface Module & Electronics Enclosure** for the Fabr
 1. **Headless Visual Validation**:
    - Execute multi-view burst renders (`Isometric`, `Front`, `Top`, `Right`, `Bottom`) and exploded view via `render_freecad_script` and `inspect_freecad_assembly`.
 2. **Production Pipeline Export**:
-   - Integrate `interface_panel.py`, `controller_case.py`, and `assembly_interface_module.py` into `export_all.py`.
+   - Integrate `interface_case.py`, `interface_panel.py`, and `interface_assembly.py` into `export_all.py`.
    - Verify 100% build pass rate across all STEP and STL production models.
 3. **Documentation & Changelog**:
    - Update `CHANGELOG.md` with complete Phase 5 release details.

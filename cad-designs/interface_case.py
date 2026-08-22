@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Controller Case (Dual-Board Electronics Enclosure)
+Fabrica Cloth Folding Robot - Interface Case (Dual-Board Electronics Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Houses:
@@ -37,7 +37,7 @@ def create_dovetail_socket_cutter(neck_w, flare_w, depth, height):
     face = Part.Face(wire)
     return face.extrude(App.Vector(0, 0, height))
 
-def construct_controller_case():
+def construct_interface_case():
     """
     Constructs the monolithic 3D printable lower electronics chassis.
     """
@@ -229,23 +229,25 @@ def construct_controller_case():
     
     return case_body
 
+construct_controller_case = construct_interface_case  # Backward compatibility alias
+
 def main():
-    doc = App.newDocument("ControllerCaseDoc")
-    shape = construct_controller_case()
+    doc = App.newDocument("InterfaceCaseDoc")
+    shape = construct_interface_case()
     
     out_dir = params.EXPORT_DIR
     os.makedirs(out_dir, exist_ok=True)
-    step_path = os.path.join(out_dir, "controller_case.step")
-    stl_path = os.path.join(out_dir, "controller_case.stl")
+    step_path = os.path.join(out_dir, "interface_case.step")
+    stl_path = os.path.join(out_dir, "interface_case.stl")
     shape.exportStep(step_path)
     shape.exportStl(stl_path)
-    print("=== Controller Case Exported Successfully ===")
+    print("=== Interface Case Exported Successfully ===")
     print("STEP:", step_path)
     print("STL:", stl_path)
     print("BoundBox:", shape.BoundBox)
     print(f"Volume: {shape.Volume:.2f} mm3")
     
-    feature = doc.addObject("Part::Feature", "ControllerCase")
+    feature = doc.addObject("Part::Feature", "InterfaceCase")
     feature.Shape = shape
     if hasattr(feature, "ViewObject") and feature.ViewObject:
         feature.ViewObject.ShapeColor = (0.2, 0.65, 0.35)

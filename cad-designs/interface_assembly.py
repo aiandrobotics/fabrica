@@ -3,7 +3,7 @@ Fabrica Cloth Folding Robot - Interface Module Assembly
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Integrates:
-1. Controller Case (controller_case.py) - Lower electronics chassis
+1. Interface Case (interface_case.py) - Lower electronics chassis
 2. Interface Control Faceplate (interface_panel.py) - 15° ergonomic top deck
 3. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
 4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import FreeCAD as App
 import Part
 import params
-from controller_case import construct_controller_case
+from interface_case import construct_interface_case
 from interface_panel import construct_interface_panel
 
 def construct_pca9685_cad_reference():
@@ -103,7 +103,7 @@ def build_assembly():
     doc = App.newDocument("InterfaceModuleAssembly")
     
     # 1. Base Controller Case:
-    case = construct_controller_case()
+    case = construct_interface_case()
     
     # 2. Top Interface Control Faceplate:
     deck = construct_interface_panel()
@@ -142,7 +142,7 @@ def build_assembly():
     led.translate(App.Vector(0, 0, params.BASE_PANEL_THICKNESS))
     
     # Add objects to document with standard aesthetic color palette:
-    obj_case = doc.addObject("Part::Feature", "ControllerCase")
+    obj_case = doc.addObject("Part::Feature", "InterfaceCase")
     obj_case.Shape = case
     if hasattr(obj_case, "ViewObject") and obj_case.ViewObject:
         obj_case.ViewObject.ShapeColor = (0.2, 0.65, 0.35)  # Enclosure Green
@@ -180,11 +180,11 @@ def build_assembly():
     assy_compound = Part.makeCompound([case, deck, pca, esp] + buttons + [led])
     out_dir = params.EXPORT_DIR
     os.makedirs(out_dir, exist_ok=True)
-    step_path = os.path.join(out_dir, "assembly_interface_module.step")
-    stl_path = os.path.join(out_dir, "assembly_interface_module.stl")
+    step_path = os.path.join(out_dir, "interface_assembly.step")
+    stl_path = os.path.join(out_dir, "interface_assembly.stl")
     assy_compound.exportStep(step_path)
     assy_compound.exportStl(stl_path)
-    print("=== Interface Module Assembly Exported Successfully ===")
+    print("=== Interface Assembly Exported Successfully ===")
     print("STEP:", step_path)
     print("STL:", stl_path)
     print("BoundBox:", assy_compound.BoundBox)

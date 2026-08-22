@@ -15,8 +15,8 @@
 - [ ] Dovetail sockets match universal `frame_joiner.py` with $0.20\text{ mm}$ clearance per side.
 
 ### 3. Multi-Body Assembly & Interference Checks
-- [ ] Multi-body assembly in `assembly_interface_module.py` builds cleanly with:
-  - `controller_case`
+- [ ] Multi-body assembly in `interface_assembly.py` builds cleanly with:
+  - `interface_case`
   - `interface_panel`
   - PCA9685 reference solid
   - ESP32 reference solid

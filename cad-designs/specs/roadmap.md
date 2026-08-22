@@ -55,18 +55,18 @@ Build, validate, and commit before moving to the next phase.
 
 ---
 
-## Phase 5 — Interface Module & Electronics Enclosure (`interface_panel.py`, `controller_case.py`, `assembly_interface_module.py`) ✅
+## Phase 5 — Interface Module & Electronics Enclosure (`interface_case.py`, `interface_panel.py`, `interface_assembly.py`) ✅
 - **Specs**: [plan.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-22-phase-5-interface-module/plan.md) | [requirements.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-22-phase-5-interface-module/requirements.md) | [validation.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-22-phase-5-interface-module/validation.md)
 - **15° Angled Interface Control Faceplate** (`interface_panel.py`): Model ergonomic 15° forward-angled control deck top faceplate (yellow):
   - **4x Top Interaction Buttons**: 4x standardized $\varnothing 16.0\text{ mm}$ round tactile push button mounting holes / bezels spaced ergonomically across the top deck for direct user interaction with the folding system (e.g. Start/Fold, Stop/Pause, Preset/Mode, and Reset).
   - **Status LED Window**: Dedicated status indicator light pipe / diffuser aperture for multi-color system state feedback (Ready, Folding, Paused, Fault, WiFi/Connected).
   - **Surface & Aesthetic Detailing**: $0.8\text{ mm}$ hole edge chamfers, $0.6\text{ mm}$ micro-grip diamond surface texture, $1.2\text{ mm}$ perimeter shadow bevel, and secure snap-latch / fastener mounting to the lower chassis case.
-- **Ventilated Dual-Board Controller Enclosure** (`controller_case.py`): Model protective modular electronics chassis (green) housing 2 circuit boards:
+- **Ventilated Dual-Board Controller Enclosure** (`interface_case.py`): Model protective modular electronics chassis (green) housing 2 circuit boards:
   - **PCA9685 16-Channel 12-Bit PWM Servo Driver Board**: Dedicated internal mounting standoffs ($55.88 \times 19.05\text{ mm}$ / $2.20" \times 0.75"$ M2.5 hole pattern on $62.5 \times 25.4\text{ mm}$ PCB) for driving all motorized folding flap servos.
   - **ESP32 Microcontroller Board (WROOM-32 / ESP-32S DevKit)**: Dedicated internal mounting standoffs ($46.0 \times 23.0\text{ mm}$ hole pattern on $51.5 \times 28.5\text{ mm}$ PCB) + universal perimeter snap cradle and micro-USB / USB-C external programming port aperture for WiFi/Bluetooth control and robot logic execution.
   - **Power & External Connectivity**: $\varnothing 11.5\text{ mm}$ high-current DC barrel jack (5.5×2.1mm) / USB-C PD power inlet cutout for powering the servo rail, plus ESP32 USB programming cutout.
   - **Cable Management & Thermal Ventilation**: Zip-tie wire strain-relief anchor saddles, dedicated wire raceways connecting 4 buttons, status LED, ESP32, PCA9685, and servo outputs, passive convection cooling chimney slots underneath both circuit boards, $0.4\text{ mm}$ bottom Elephant's Foot relief chamfers, $0.5\text{ mm}$ debossed Poka-Yoke directional alignment arrows ("FRONT ➔"), click-lock dovetail joiner sockets with detent dimples, and $1.5\text{ mm}$ filleted internal wire pass-through ports connecting seamlessly to adjacent grid frames.
-- **Interface Sub-Assembly** (`assembly_interface_module.py`): Multi-body sub-assembly model integrating Controller Case + 15° Angled Interface Faceplate + Circuit Board CAD Reference models (PCA9685 + ESP32 DevKit) + 4 Push Buttons + Status LED Diffuser.
+- **Interface Sub-Assembly** (`interface_assembly.py`): Multi-body sub-assembly model integrating Interface Case + 15° Angled Interface Faceplate + Circuit Board CAD Reference models (PCA9685 + ESP32 DevKit) + 4 Push Buttons + Status LED Diffuser.
 - **Visual Validation**: Apply `freecad-visual-validation` skill using `render_freecad_script` (multi-view bursts), `inspect_freecad_assembly` (exploded view with dimensions), and `check_interference` (confirming $0.0000\,\text{mm}^3$ overlap). Confirm PASS report.
 
 ---

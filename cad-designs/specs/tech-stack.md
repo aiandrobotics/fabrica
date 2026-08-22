@@ -87,11 +87,11 @@ cad-designs/
 ├── motorized_flap.py               ← monolithic active folding flap (integrated Ø13mm axle, 25T servo horn pocket, 8mm hex output socket, ~45% mass cutouts, micro-grip texture)
 ├── motorized_servo_cover.py        ← toolless snap-latch servo housing cover with wire strain relief and cooling gills
 ├── motorized_assembly.py           ← motorized module sub-assembly (MotorizedFrame + MotorizedServoCover + MotorizedFlap + FrameJoiners + HexCoupler + Servo)
-├── interface_panel.py              ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status window, hole chamfers, micro-grip texture)
-├── controller_case.py              ← dual-board enclosure case (housing PCA9685 + ESP32 DevKit, 11.5mm DC jack, zip-tie saddles, cooling chimneys, dovetail sockets)
+├── interface_case.py                ← dual-board enclosure case (housing PCA9685 + ESP32 DevKit, 11.5mm DC jack, zip-tie saddles, cooling chimneys, dovetail sockets)
+├── interface_panel.py               ← 15° angled ergonomic control deck faceplate (4 button cutouts, LED status window, hole chamfers, micro-grip texture)
+├── interface_assembly.py            ← interface module sub-assembly (InterfaceCase + InterfacePanel + PCA9685 + ESP32 + 4 Buttons + Status LED)
 ├── frame_joiner.py                 ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── hex_drive_coupler.py            ← modular double-male 8.0mm hex torque drive coupler pin
-├── assembly_interface_module.py    ← interface module sub-assembly (Case + 15° Faceplate + PCA9685 + ESP32 + 4 Buttons + Status LED)
 ├── assembly_4x3_grid.py            ← full 4x3 grid assembly model (2 Base + 4 Follower + 6 Motorized + Interface)
 ├── export_all.py                   ← batch script to export all STEP and STL models
 ├── run.sh                          ← CLI entrypoint for building and exporting CAD models

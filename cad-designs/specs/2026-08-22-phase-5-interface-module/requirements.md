@@ -2,9 +2,9 @@
 
 ## Scope
 Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, and multi-body assembly validation for:
-1. `controller_case.py`: Protective lower electronics chassis housing the dual circuit boards, power input, wire channels, and cooling vents.
+1. `interface_case.py`: Protective lower electronics chassis housing the dual circuit boards, power input, wire channels, and cooling vents.
 2. `interface_panel.py`: 15° forward-angled ergonomic user interaction top deck with 4x Ø16mm push button cutouts and a multi-color status LED window.
-3. `assembly_interface_module.py`: Complete sub-assembly model verifying clearance, fastener alignments, and cable pass-throughs.
+3. `interface_assembly.py`: Complete sub-assembly model verifying clearance, fastener alignments, and cable pass-throughs.
 
 ---
 
