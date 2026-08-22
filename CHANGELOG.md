@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2026-08-21
-- Extended `motorized_frame.py` top lid seating rebate through the outer left edge ($X=-24.0\text{mm}$) and widened `motorized_servo_cover.py` top plate to $64.2\text{mm}$ ($X \in [-24.0, 40.2\text{mm}]$), eliminating the paper-thin $0.20\text{mm}$ rim artifact and enabling a 100% flush outer chassis finish.
+- Implemented 50/50 split on `motorized_frame.py` left wall ($6.20\text{mm}$ total width), extending the outer $3.10\text{mm}$ to full height ($Z=27.2\text{mm}$) and the inner $3.10\text{mm}$ as a support ledge ($Z=25.8\text{mm}$); resized `motorized_servo_cover.py` to $60.8\text{mm}$ width ($X \in [-20.6, 40.2\text{mm}]$) to sit in a dedicated 3-wall captive recessed pocket.
 - Reduced `motorized_frame.py` motor wire pass-through conduit to a fitted $10.0\text{mm} \times 8.6\text{mm}$ port with $1.5\text{mm}$ corner fillets centered at $(Y=205.5\text{mm}, Z=15.0\text{mm})$, eliminating the oversized $20\text{mm}$ void and restoring a $5.45\text{mm}$ solid base wall and $7.9\text{mm}$ top rail bridge.
 - Standardized `motorized_servo_adapter.py` on a continuous 100% solid core 8.0mm male hex peg (18.0mm length, 7.7mm AF) with 2.55–3.15mm radial clearance to 4x M2/M2.5 horn-mounting screw heads, enabling straight-line screwdriver access and robust torsional shear resistance.
 - Implemented 180° flap folding kinematic relief cuts along hinge pedestals on both Follower Frame and Motorized Frame, enabling 100% collision-free 0° to 180° rotation sweep ($0.0000\,\text{mm}^3$ overlap).
