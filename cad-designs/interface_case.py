@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with Direct Wall Retention Ports)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Clean-Floor Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -11,14 +11,12 @@ Features:
    - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
 3. Direct Wall Snap-Lock Retention Windows (Zero Internal Boss Clutter):
    - 4x Retention windows cut directly through the front and rear perimeter walls (2 on Front, 2 on Rear @ X=50, 170mm)
-   - 100% unobstructed, smooth interior chamber maximizing cable routing volume
+   - 100% unobstructed, smooth interior chamber and floor maximizing cable routing volume
 4. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
    - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
    - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
    - Aligned directly behind the PCA9685 servo pin headers
-5. Wiring, Ports & Thermal Management:
-   - Dual Captive Zip-Tie Strain-Relief Anchor Saddles (12.0 x 6.0mm) absorbing 100% of external pull force
-   - S-Curve Friction Snubber Posts (2x Ø6.0mm) for hardware-free wire tension relief
+5. Ports & Thermal Management:
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
    - Passive convection chimney cooling slots directly below all 3 boards
@@ -114,29 +112,7 @@ def construct_interface_case():
             pilot = Part.makeCylinder(pdb_pilot_r, pdb_standoff_h + 1.0, App.Vector(bx, by, floor_t))
             pdb_bosses.append(boss.cut(pilot))
             
-    # D) Heavy-Duty Cable Strain-Relief Zip-Tie Saddles & Friction Snubber Posts:
-    sad1_b = Part.makeBox(6.0, 10.0, 4.0, App.Vector(w * 0.50 - 3.0, d * 0.45 - 5.0, floor_t))
-    sad1_slot = Part.makeBox(7.0, 3.0, 2.0, App.Vector(w * 0.50 - 3.5, d * 0.45 - 1.5, floor_t + 1.0))
-    saddle_mid = sad1_b.cut(sad1_slot)
-    
-    sad2_b = Part.makeBox(6.0, 10.0, 4.0, App.Vector(pdb_cx + 28.0 - 3.0, pdb_cy - 5.0, floor_t))
-    sad2_slot = Part.makeBox(7.0, 3.0, 2.0, App.Vector(pdb_cx + 28.0 - 3.5, pdb_cy - 1.5, floor_t + 1.0))
-    saddle_pdb = sad2_b.cut(sad2_slot)
-    
-    # Dedicated Rear 16-Motor Cable Strain-Relief Anchor Saddles:
-    sad_motor1_b = Part.makeBox(12.0, 6.0, 5.0, App.Vector(pca_cx - 15.0 - 6.0, 104.0 - 3.0, floor_t))
-    sad_motor1_slot = Part.makeBox(3.0, 7.0, 2.5, App.Vector(pca_cx - 15.0 - 1.5, 104.0 - 3.5, floor_t + 1.2))
-    saddle_motor1 = sad_motor1_b.cut(sad_motor1_slot)
-    
-    sad_motor2_b = Part.makeBox(12.0, 6.0, 5.0, App.Vector(pca_cx + 15.0 - 6.0, 104.0 - 3.0, floor_t))
-    sad_motor2_slot = Part.makeBox(3.0, 7.0, 2.5, App.Vector(pca_cx + 15.0 - 1.5, 104.0 - 3.5, floor_t + 1.2))
-    saddle_motor2 = sad_motor2_b.cut(sad_motor2_slot)
-    
-    # S-Curve Friction Snubber Posts:
-    snubber1 = Part.makeCylinder(3.0, 8.0, App.Vector(pca_cx - 24.0, 94.0, floor_t))
-    snubber2 = Part.makeCylinder(3.0, 8.0, App.Vector(pca_cx + 24.0, 94.0, floor_t))
-    
-    elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + pdb_bosses + [saddle_mid, saddle_pdb, saddle_motor1, saddle_motor2, snubber1, snubber2]
+    elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + pdb_bosses
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
     # 4. External Port & Wall Cutouts:
