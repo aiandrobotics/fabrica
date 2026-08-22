@@ -183,18 +183,12 @@ def construct_interface_case():
         slot_cut = Part.makeBox(slot_w, wall_t + 4.0, slot_h, App.Vector(sx, d - wall_t - 2.0, slot_z_start))
         motor_slots.append(slot_cut)
         
-    # F) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
-    pry_notches = [
-        Part.makeBox(12.0, 3.0, 2.0, App.Vector(50.0 - 6.0, d - 2.0, h - 1.5)),
-        Part.makeBox(12.0, 3.0, 2.0, App.Vector(170.0 - 6.0, d - 2.0, h - 1.5)),
-    ]
-    
-    # G) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
+    # F) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + wall_snap_holes + motor_slots + pry_notches + cooling_slots + foot_sockets
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body
