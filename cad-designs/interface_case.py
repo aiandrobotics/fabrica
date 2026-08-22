@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with Modular Dovetail Joiner Socket)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with Integrated Male Dovetail Key)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -16,9 +16,10 @@ Features:
    - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
    - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
    - Aligned directly behind the PCA9685 servo pin headers (X in [107.25, 200.75mm])
-5. Modular Sliding Dovetail Socket on Rear Wall (@ X = 55.0mm):
-   - Standard female sliding dovetail socket with floor stop (Z in [3.0, 15.0mm]) and Ø6.0mm bottom push-out access hole
-   - Allows rigid interlocking attachment to any Fabrica base frame module using frame_joiner.py
+5. Integrated External Male Sliding Dovetail Key on Rear Wall (@ X = 55.0mm):
+   - Protrudes outward from the rear wall (Y = 120.0mm) with standard flared male key geometry
+   - Slides directly into the female dovetail socket of any Fabrica robot base frame module without separate loose joiners
+   - 100% solid inner wall (zero internal socket cutouts or cavities)
 6. Ports & Thermal Management:
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
@@ -38,22 +39,10 @@ import FreeCAD as App
 import Part
 import params
 
-def create_dovetail_socket_cutter(neck_w, flare_w, depth, height):
-    """Creates a female dovetail socket cutting tool."""
-    poly_pts = [
-        App.Vector(-neck_w / 2.0, 0.1, 0),
-        App.Vector(neck_w / 2.0, 0.1, 0),
-        App.Vector(flare_w / 2.0, -depth, 0),
-        App.Vector(-flare_w / 2.0, -depth, 0),
-        App.Vector(-neck_w / 2.0, 0.1, 0),
-    ]
-    wire = Part.makePolygon(poly_pts)
-    face = Part.Face(wire)
-    return face.extrude(App.Vector(0, 0, height))
-
 def construct_interface_case():
     """
-    Constructs the monolithic 3D printable high-capacity flat rectangular electronics chassis.
+    Constructs the monolithic 3D printable high-capacity flat rectangular electronics chassis
+    with an integrated external male sliding dovetail key.
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
@@ -64,7 +53,7 @@ def construct_interface_case():
     # 1. Main outer rectangular solid:
     outer_box = Part.makeBox(w, d, h)
     
-    # 2. Hollow internal cavity (Completely smooth walls, NO internal protruding bosses!):
+    # 2. Hollow internal cavity (Completely smooth walls, 100% solid floor and rear wall):
     inner_cavity = Part.makeBox(w - 2 * wall_t, d - 2 * wall_t, h - floor_t + 2.0, App.Vector(wall_t, wall_t, floor_t))
     case_body = outer_box.cut(inner_cavity).removeSplitter()
     
@@ -131,7 +120,48 @@ def construct_interface_case():
     elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + pdb_bosses
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
-    # 4. External Port & Wall Cutouts:
+    # 4. Integrated External Male Dovetail Key on Rear Wall (@ X = 55.0mm / W * 0.25):
+    # Protrudes outward from rear wall Y = 120.0mm directly into standard robot frame female pocket
+    dt_clearance = params.DOVETAIL_CLEARANCE  # 0.20mm
+    gap = params.MODULE_GAP  # 20.0mm
+    neck_w = params.DOVETAIL_NECK_WIDTH - (2.0 * dt_clearance)  # 11.60mm
+    flare_w = params.DOVETAIL_FLARE_WIDTH - (2.0 * dt_clearance)  # 17.60mm
+    dt_depth = params.DOVETAIL_DEPTH - dt_clearance  # 11.80mm
+    dt_height = params.DOVETAIL_HEIGHT  # 12.0mm (Z in [3.0, 15.0mm])
+    bridge_w = params.DOVETAIL_FLARE_WIDTH  # 18.0mm bridge arm width
+    
+    dt_x = w * 0.25  # 55.0mm
+    y_seam = d  # 120.0mm
+    y_frame_face = y_seam + gap  # 140.0mm
+    y_tip = y_frame_face + dt_depth  # 151.80mm
+    
+    dt_pts = [
+        App.Vector(dt_x - bridge_w / 2.0, y_seam - 1.0, 0),
+        App.Vector(dt_x - bridge_w / 2.0, y_frame_face - 2.0, 0),
+        App.Vector(dt_x - neck_w / 2.0, y_frame_face, 0),
+        App.Vector(dt_x - flare_w / 2.0, y_tip, 0),
+        App.Vector(dt_x + flare_w / 2.0, y_tip, 0),
+        App.Vector(dt_x + neck_w / 2.0, y_frame_face, 0),
+        App.Vector(dt_x + bridge_w / 2.0, y_frame_face - 2.0, 0),
+        App.Vector(dt_x + bridge_w / 2.0, y_seam - 1.0, 0),
+        App.Vector(dt_x - bridge_w / 2.0, y_seam - 1.0, 0),
+    ]
+    dt_wire = Part.makePolygon(dt_pts)
+    dt_face = Part.Face(dt_wire)
+    dt_male_solid = dt_face.extrude(App.Vector(0, 0, dt_height))
+    dt_male_solid.translate(App.Vector(0, 0, params.DOVETAIL_FLOOR_THICKNESS))
+    
+    # 45 deg Lead-in entry chamfers at male tip:
+    c_cutter1 = Part.makeBox(flare_w + 4.0, 3.0, 3.0, App.Vector(dt_x - flare_w / 2.0 - 2.0, y_tip - 1.5, params.DOVETAIL_FLOOR_THICKNESS - 1.5))
+    c_cutter1.rotate(App.Vector(dt_x, y_tip, params.DOVETAIL_FLOOR_THICKNESS), App.Vector(1, 0, 0), 45)
+    
+    c_cutter2 = Part.makeBox(flare_w + 4.0, 3.0, 3.0, App.Vector(dt_x - flare_w / 2.0 - 2.0, y_tip - 1.5, params.DOVETAIL_FLOOR_THICKNESS + dt_height - 1.5))
+    c_cutter2.rotate(App.Vector(dt_x, y_tip, params.DOVETAIL_FLOOR_THICKNESS + dt_height), App.Vector(1, 0, 0), -45)
+    
+    dt_male_solid = dt_male_solid.cut(Part.makeCompound([c_cutter1, c_cutter2])).removeSplitter()
+    case_body = case_body.fuse(dt_male_solid).removeSplitter()
+    
+    # 5. External Port & Wall Cutouts:
     # A) Direct Wall Snap Retention Holes (4x: 2 on Front Wall, 2 on Rear Wall @ X=50, 170mm):
     # Cut directly through the 3.0mm perimeter walls at Z = [38.0, 41.5mm]
     snap_hole_w = 12.0
@@ -199,26 +229,12 @@ def construct_interface_case():
         slot_cut = Part.makeBox(slot_w, wall_t + 4.0, slot_h, App.Vector(sx, d - wall_t - 2.0, slot_z_start))
         motor_slots.append(slot_cut)
         
-    # F) Modular Sliding Dovetail Socket on Rear Wall (@ X = 55.0mm / W * 0.25):
-    dt_neck_w = params.DOVETAIL_NECK_WIDTH
-    dt_flare_w = params.DOVETAIL_FLARE_WIDTH
-    dt_depth = params.DOVETAIL_DEPTH
-    dt_floor = params.DOVETAIL_FLOOR_THICKNESS
-    dt_h = params.DOVETAIL_HEIGHT
-    
-    dt_cutter = create_dovetail_socket_cutter(dt_neck_w, dt_flare_w, dt_depth, dt_h + 1.0)
-    dt_x = w * 0.25  # 55.0mm
-    dt_cutter.translate(App.Vector(dt_x, d, dt_floor))
-    
-    # Push-out access hole through floor (Ø6.0mm) to easily tap out joiner
-    p_hole = Part.makeCylinder(3.0, dt_floor + 2.0, App.Vector(dt_x, d - dt_depth / 2.0, -1.0))
-    
-    # G) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
+    # F) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring, dt_cutter, p_hole] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body
