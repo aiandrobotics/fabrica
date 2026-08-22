@@ -7,8 +7,8 @@
 - [ ] All exported STL models pass manifold validity checks (zero non-manifold edges, zero self-intersections, zero unclosed shells).
 
 ### 2. Clearance & Fastener Fit Verification
-- [ ] PCA9685 mounting hole pattern aligns with M2.5 standoff bosses ($56.5 \times 19.5\text{ mm}$ center-to-center).
-- [ ] ESP32 DevKit mounting hole pattern aligns with M3 standoff bosses ($46.0 \times 23.0\text{ mm}$ center-to-center).
+- [ ] PCA9685 mounting hole pattern aligns with M2.5 standoff bosses ($55.88 \times 19.05\text{ mm}$ / $2.20" \times 0.75"$ center-to-center).
+- [ ] ESP32 DevKit mounting hole pattern aligns with M3 standoff bosses ($46.0 \times 23.0\text{ mm}$ center-to-center) and perimeter retention cradle ($52.0 \times 29.0\text{ mm}$).
 - [ ] 4x Ø16.0 mm button hole cutouts have $0.8\text{ mm}$ chamfers and accommodate standard 16mm push button bodies with $>0.2\text{ mm}$ radial clearance.
 - [ ] $\varnothing 11.5\text{ mm}$ DC power barrel jack cutout cleanly accommodates standard 5.5×2.1mm threaded panel-mount jack.
 - [ ] ESP32 micro-USB / USB-C port cutout provides clean straight-in plug clearance for standard cable overmolds.

@@ -14,8 +14,8 @@ Phase 5 implements the **Interface Module & Electronics Enclosure** for the Fabr
    - `BUTTON_HOLE_DIA = 16.00`
    - `DC_JACK_DIAMETER = 11.50`
 2. Create CAD electronic component reference solids for accurate envelope fit & mounting boss location:
-   - **PCA9685 Board Reference**: $62.5 \times 25.4 \times 12.0\text{ mm}$ with 4x M2.5 mounting holes ($56.5 \times 19.5\text{ mm}$ spacing) and terminal block + pin header envelopes.
-   - **ESP32 DevKit V1 Reference**: $51.5 \times 28.5 \times 10.0\text{ mm}$ with 4x M3 mounting holes ($46.0 \times 23.0\text{ mm}$ spacing) and micro-USB / USB-C connector envelope.
+   - **PCA9685 Board Reference**: $62.5 \times 25.4 \times 12.0\text{ mm}$ with 4x M2.5 mounting holes ($55.88 \times 19.05\text{ mm}$ spacing / $2.20" \times 0.75"$) and terminal block + pin header envelopes.
+   - **WROOM-32 / ESP-32S DevKit Reference**: $51.5 \times 28.5 \times 12.0\text{ mm}$ with 4x M3 mounting holes ($46.0 \times 23.0\text{ mm}$ spacing), dual pin header rows ($22.86\text{ mm}$ pitch), and micro-USB / USB-C connector envelope.
    - **16mm Push Button Reference**: $\varnothing 16.0\text{ mm}$ threaded barrel with bezel and solder lug envelope ($25.0\text{ mm}$ depth).
    - **Status LED Reference**: $\varnothing 5.0\text{ mm}$ / rectangular light pipe diffuser solid.
 

@@ -11,16 +11,22 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 ## Decisions & Hardware Specifications
 
 ### 1. Dual Internal Circuit Boards
+
 - **PCA9685 16-Channel 12-Bit PWM Servo Driver Board**:
-  - PCB Envelope: $62.5 \times 25.4 \times 12.0\text{ mm}$ (including screw terminal & 3-pin headers).
-  - Mounting Hole Pattern: 4x M2.5 holes ($56.5\text{ mm} \times 19.5\text{ mm}$ rectangular spacing).
-  - Mounting Method: Raised M2.5 screw bosses with $\varnothing 2.2\text{ mm}$ core pilot holes.
-  - Connector Orientations: 16x 3-pin servo headers facing toward internal wire raceways leading to frame dovetail conduit ports.
-- **ESP32 Microcontroller Board (ESP32 DevKit V1 / NodeMCU-32S)**:
-  - PCB Envelope: $51.5 \times 28.5 \times 10.0\text{ mm}$.
-  - Mounting Hole Pattern: 4x M3 holes ($46.0\text{ mm} \times 23.0\text{ mm}$ rectangular spacing).
-  - Mounting Method: Raised M3 screw bosses with $\varnothing 2.6\text{ mm}$ core pilot holes.
-  - Programming Port: Micro-USB / USB-C port aligned flush with outer enclosure port cutout.
+  - PCB Envelope: $62.5\text{ mm} \times 25.4\text{ mm} \times 12.0\text{ mm}$ (standard Adafruit / generic breakout footprint).
+  - Mounting Holes: 4x $\varnothing 2.5\text{ mm}$ corner mounting holes.
+  - Hole Pitch (Center-to-Center): **$55.88\text{ mm}$ ($2.20"$)** along the long axis $\times$ **$19.05\text{ mm}$ ($0.75"$)** along the short axis.
+  - Edge Margins: $3.31\text{ mm}$ from long ends, $3.18\text{ mm}$ from side edges.
+  - Mounting Method: 4x raised M2.5 cylindrical standoffs ($H = 5.0\text{ mm}$, $\varnothing_{outer} = 5.0\text{ mm}$) with $\varnothing 2.2\text{ mm}$ core pilot holes for M2.5 self-tapping fasteners or brass heat-set inserts.
+  - Connector Orientations: 16x 3-pin male servo headers ($Z = 12.0\text{ mm}$ clearance) facing toward the internal wire raceways leading to frame dovetail conduit ports.
+
+- **WROOM-32 / ESP-32S Development Board (ESP32 DevKit V1 / NodeMCU-32S)**:
+  - PCB Envelope: $51.5\text{ mm} \times 28.5\text{ mm} \times 12.0\text{ mm}$ (30-pin standard) / up to $54.5\text{ mm} \times 28.0\text{ mm}$ (38-pin).
+  - Pin Header Footprint: 2 rows of 15/19 pins on $2.54\text{ mm}$ ($0.1"$) pitch, $22.86\text{ mm}$ ($0.9"$) row spacing.
+  - Mounting Architecture (Universal Hybrid Standoff + Cradle):
+    1. **Screw Standoffs**: 4x M3 standoffs spaced at **$46.0\text{ mm} \times 23.0\text{ mm}$** center-to-center with $\varnothing 2.6\text{ mm}$ core pilot holes for boards featuring corner mounting holes.
+    2. **Perimeter Retention Cradle**: $52.0\text{ mm} \times 29.0\text{ mm}$ perimeter retention cradle with corner capture ledges ensuring boards without mounting holes (standard DevKitC clones) snap firmly into place.
+  - External USB Programming Port: $11.0\text{ mm} \times 6.5\text{ mm}$ rectangular cutout with $1.0\text{ mm}$ edge chamfers on the chassis wall, accommodating both Micro-USB and USB-C cable overmolds.
 
 ### 2. User Interaction Controls
 - **4x Top Interaction Buttons**:
