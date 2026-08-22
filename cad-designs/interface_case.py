@@ -1,28 +1,28 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board Electronics Enclosure with 4-Sided Toolless Snap System)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board Flat Rectangular Enclosure with 4-Sided Toolless Snap System)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Houses 3 Circuit Boards:
-1. Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module with screw terminals (M3 standoffs @ 37.0 x 24.0 mm pitch)
-2. ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0 mm pitch + perimeter cradle)
-3. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05 mm pitch)
-
-4-Sided Toolless Screw-Free Interlocking Retention System:
-4. Front Under-Hook Pockets (2x @ X=50, 170mm) capturing front panel lugs
-5. Left & Right Sidewall Alignment Registers preventing lateral bowing/gapping
-6. Rear Cantilever Snap-Catch Bosses (2x @ X=50, 170mm) with tactile click detents
-7. Rear Pry-Release Access Notches for effortless toolless finger/coin opening
-
-High-Capacity Wiring & Thermal Features:
-8. High-Capacity 16-Motor Wire Conduit Window (60.0 x 16.0mm) passing up to 48 servo wires / ribbon cables directly to the grid
-9. Dual Captive Zip-Tie Strain-Relief Anchor Saddles (12.0 x 6.0mm) absorbing 100% of external pull force
-10. S-Curve Friction Snubber Posts (2x Ø6.0mm) for hardware-free wire tension relief
-11. Left-Bay Power & Logic Conduit Window (38.0 x 16.0mm)
-12. High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
-13. ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
-14. Passive convection chimney cooling slots directly below all 3 boards
-15. Standard sliding dovetail sockets for seamless grid attachment
-16. 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
+Features:
+1. Flat horizontal rectangular box chassis (220.0 x 120.0 x 30.0mm)
+2. Houses 3 Circuit Boards:
+   - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 37.0 x 24.0mm pitch)
+   - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle)
+   - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
+3. 4-Sided Toolless Screw-Free Interlocking Snap Retention System:
+   - Front Under-Hook Retention Pockets (2x @ X=50, 170mm)
+   - Left & Right Sidewall Alignment Registers preventing lateral bowing/gapping
+   - Rear Cantilever Snap-Catch Bosses (2x @ X=50, 170mm) with tactile click detents
+   - Rear Toolless Pry-Release Access Notches for easy finger/coin opening
+4. High-Capacity Wiring & Thermal Management:
+   - High-Capacity 16-Motor Wire Conduit Window (60.0 x 16.0mm) passing up to 48 servo wires / ribbon cables directly to the grid
+   - Dual Captive Zip-Tie Strain-Relief Anchor Saddles (12.0 x 6.0mm) absorbing 100% of external pull force
+   - S-Curve Friction Snubber Posts (2x Ø6.0mm) for hardware-free wire tension relief
+   - Left-Bay Power & Logic Conduit Window (38.0 x 16.0mm)
+   - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
+   - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
+   - Passive convection chimney cooling slots directly below all 3 boards
+   - 2x Standard sliding dovetail sockets with push-out access holes
+   - 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
 """
 
 import os
@@ -51,66 +51,38 @@ def create_dovetail_socket_cutter(neck_w, flare_w, depth, height):
 
 def construct_interface_case():
     """
-    Constructs the monolithic 3D printable lower electronics chassis with toolless snap retention.
+    Constructs the monolithic 3D printable flat rectangular electronics chassis.
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
+    h = 30.0  # 30.0mm uniform rectangular box chassis height
     wall_t = params.WALL_THICKNESS  # 3.0mm
     floor_t = 3.0  # 3.0mm solid bottom floor
     
-    # 15° Angled height profile:
-    # Front (Y=0): Z = 15.0mm (matching base chassis rail height)
-    # Rear (Y=120): Z = 15.0 + 120 * tan(15°) = ~47.15mm
-    angle_deg = params.CONTROL_DECK_ANGLE  # 15.0°
-    angle_rad = math.radians(angle_deg)
-    z_front = params.BASE_PANEL_THICKNESS  # 15.0mm
-    z_rear = z_front + d * math.tan(angle_rad)  # ~47.15mm
-    
-    # 1. Main outer wedge solid (Extruded along X):
-    yz_pts = [
-        App.Vector(0, 0, 0),
-        App.Vector(0, d, 0),
-        App.Vector(0, d, z_rear),
-        App.Vector(0, 0, z_front),
-        App.Vector(0, 0, 0)
-    ]
-    yz_wire = Part.makePolygon(yz_pts)
-    yz_face = Part.Face(yz_wire)
-    outer_wedge = yz_face.extrude(App.Vector(w, 0, 0))
+    # 1. Main outer rectangular solid:
+    outer_box = Part.makeBox(w, d, h)
     
     # 2. Hollow internal cavity (Offset by 3.0mm walls and 3.0mm floor):
-    yz_inner_pts = [
-        App.Vector(0, wall_t, floor_t),
-        App.Vector(0, d - wall_t, floor_t),
-        App.Vector(0, d - wall_t, z_rear + 2.0),
-        App.Vector(0, wall_t, z_front + 2.0),
-        App.Vector(0, wall_t, floor_t)
-    ]
-    yz_inner_wire = Part.makePolygon(yz_inner_pts)
-    yz_inner_face = Part.Face(yz_inner_wire)
-    inner_cavity = yz_inner_face.extrude(App.Vector(w - 2 * wall_t, 0, 0))
-    inner_cavity.translate(App.Vector(wall_t, 0, 0))
-    
-    case_body = outer_wedge.cut(inner_cavity).removeSplitter()
+    inner_cavity = Part.makeBox(w - 2 * wall_t, d - 2 * wall_t, h - floor_t + 2.0, App.Vector(wall_t, wall_t, floor_t))
+    case_body = outer_box.cut(inner_cavity).removeSplitter()
     
     # 3. Four-Sided Toolless Snap Retention Features on Case:
-    # A) Front Under-Hook Retention Bosses (2x @ X=50, 170mm):
+    # A) Front Under-Hook Retention Bosses (2x @ X=50, 170mm, Y=wall_t):
     front_hook_bosses = []
     front_hook_pockets = []
     for hx in [50.0, 170.0]:
-        h_solid = Part.makeBox(20.0, 7.0, 5.0, App.Vector(hx - 10.0, wall_t, 7.5))
-        h_pkt = Part.makeBox(16.0, 6.0, 4.0, App.Vector(hx - 8.0, wall_t - 0.5, 8.5))
+        h_solid = Part.makeBox(20.0, 7.0, 6.0, App.Vector(hx - 10.0, wall_t, h - 6.0))
+        h_pkt = Part.makeBox(16.0, 6.0, 7.0, App.Vector(hx - 8.0, wall_t - 0.5, h - 5.0))
         front_hook_bosses.append(h_solid)
         front_hook_pockets.append(h_pkt)
         
-    # B) Rear Cantilever Snap Catches (2x @ X=50, 170mm):
+    # B) Rear Cantilever Snap Catches (2x @ X=50, 170mm, Y=d-wall_t):
     rear_catch_bosses = []
     for rx in [50.0, 170.0]:
-        z_rear_top = z_front + (d - wall_t - 2.0) * math.tan(angle_rad)
-        c_solid = Part.makeBox(18.0, 6.0, 10.0, App.Vector(rx - 9.0, d - wall_t - 6.0, z_rear_top - 10.0))
-        c_pkt = Part.makeBox(13.0, 4.5, 8.5, App.Vector(rx - 6.5, d - wall_t - 5.0, z_rear_top - 8.5))
-        c_bar = Part.makeBox(14.0, 1.5, 2.0, App.Vector(rx - 7.0, d - wall_t - 5.5, z_rear_top - 5.5))
-        c_full = c_solid.cut(c_pkt).fuse(c_bar).removeSplitter().common(outer_wedge)
+        c_solid = Part.makeBox(18.0, 6.0, 10.0, App.Vector(rx - 9.0, d - wall_t - 6.0, h - 10.0))
+        c_pkt = Part.makeBox(14.0, 5.0, 11.0, App.Vector(rx - 7.0, d - wall_t - 5.5, h - 9.0))
+        c_bar = Part.makeBox(14.0, 1.2, 2.0, App.Vector(rx - 7.0, d - wall_t - 2.0, h - 6.5))
+        c_full = c_solid.cut(c_pkt).fuse(c_bar).removeSplitter()
         rear_catch_bosses.append(c_full)
         
     case_retention = front_hook_bosses + rear_catch_bosses
@@ -180,17 +152,15 @@ def construct_interface_case():
             pdb_bosses.append(boss.cut(pilot))
             
     # D) Heavy-Duty Cable Strain-Relief Zip-Tie Saddles & Friction Snubber Posts:
-    # 1. Central Inter-Board Harness Saddle:
     sad1_b = Part.makeBox(6.0, 10.0, 4.0, App.Vector(w * 0.50 - 3.0, d * 0.45 - 5.0, floor_t))
     sad1_slot = Part.makeBox(7.0, 3.0, 2.0, App.Vector(w * 0.50 - 3.5, d * 0.45 - 1.5, floor_t + 1.0))
     saddle_mid = sad1_b.cut(sad1_slot)
     
-    # 2. PDB Output Bus Saddle:
     sad2_b = Part.makeBox(6.0, 10.0, 4.0, App.Vector(pdb_cx + 28.0 - 3.0, pdb_cy - 5.0, floor_t))
     sad2_slot = Part.makeBox(7.0, 3.0, 2.0, App.Vector(pdb_cx + 28.0 - 3.5, pdb_cy - 1.5, floor_t + 1.0))
     saddle_pdb = sad2_b.cut(sad2_slot)
     
-    # 3. Dedicated Rear 16-Motor Cable Strain-Relief Anchor Saddles (absorbs 100% of pull tension):
+    # Dedicated Rear 16-Motor Cable Strain-Relief Anchor Saddles:
     sad_motor1_b = Part.makeBox(12.0, 6.0, 5.0, App.Vector(pca_cx - 15.0 - 6.0, 104.0 - 3.0, floor_t))
     sad_motor1_slot = Part.makeBox(3.0, 7.0, 2.5, App.Vector(pca_cx - 15.0 - 1.5, 104.0 - 3.5, floor_t + 1.2))
     saddle_motor1 = sad_motor1_b.cut(sad_motor1_slot)
@@ -199,7 +169,7 @@ def construct_interface_case():
     sad_motor2_slot = Part.makeBox(3.0, 7.0, 2.5, App.Vector(pca_cx + 15.0 - 1.5, 104.0 - 3.5, floor_t + 1.2))
     saddle_motor2 = sad_motor2_b.cut(sad_motor2_slot)
     
-    # 4. S-Curve Friction Snubber Posts (2x Ø6mm posts for hardware-free wire tension relief):
+    # S-Curve Friction Snubber Posts:
     snubber1 = Part.makeCylinder(3.0, 8.0, App.Vector(pca_cx - 24.0, 94.0, floor_t))
     snubber2 = Part.makeCylinder(3.0, 8.0, App.Vector(pca_cx + 24.0, 94.0, floor_t))
     
@@ -215,7 +185,7 @@ def construct_interface_case():
     
     # B) DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
     dc_jack_r = params.DC_JACK_DIAMETER / 2.0  # 5.75mm
-    dc_jack_y = pdb_cy  # 86.0mm (aligned directly with PDB)
+    dc_jack_y = pdb_cy  # 86.0mm
     dc_jack_z = 12.0
     dc_jack_cut = Part.makeCylinder(dc_jack_r, wall_t + 2.0, App.Vector(-1.0, dc_jack_y, dc_jack_z), App.Vector(1, 0, 0))
     
@@ -266,20 +236,18 @@ def construct_interface_case():
         pushout_holes.append(p_hole)
         
     # G) High-Capacity Dual Rear Wire Conduit Windows:
-    # 1. Right Bay 16-Motor High-Capacity Conduit Window (60mm wide x 16mm high):
     motor_conduit_w = 60.0
     motor_conduit_h = 16.0
     motor_conduit_cut = Part.makeBox(motor_conduit_w, wall_t + dt_depth + 4.0, motor_conduit_h, App.Vector(pca_cx - motor_conduit_w / 2.0, d - dt_depth - 2.0, dt_floor + 1.5))
     
-    # 2. Left Bay Power & Logic Conduit Window (38mm wide x 16mm high):
     power_conduit_w = 38.0
     power_conduit_h = 16.0
     power_conduit_cut = Part.makeBox(power_conduit_w, wall_t + dt_depth + 4.0, power_conduit_h, App.Vector(55.0 - power_conduit_w / 2.0, d - dt_depth - 2.0, dt_floor + 1.5))
     
     # H) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
     pry_notches = [
-        Part.makeBox(12.0, 3.0, 2.0, App.Vector(50.0 - 6.0, d - 2.0, z_rear - 1.5)),
-        Part.makeBox(12.0, 3.0, 2.0, App.Vector(170.0 - 6.0, d - 2.0, z_rear - 1.5)),
+        Part.makeBox(12.0, 3.0, 2.0, App.Vector(50.0 - 6.0, d - 2.0, h - 1.5)),
+        Part.makeBox(12.0, 3.0, 2.0, App.Vector(170.0 - 6.0, d - 2.0, h - 1.5)),
     ]
     
     # I) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:

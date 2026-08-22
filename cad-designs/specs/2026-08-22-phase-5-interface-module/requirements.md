@@ -46,8 +46,8 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
   - Purpose: Multi-color visual feedback (Ready, Active Fold Cycle, Paused, Fault/Stall, WiFi Connected).
 
 ### 3. Case Enclosure & Ergonomics
-- **Deck Angle**: $15.0^\circ$ ergonomic forward tilt (`CONTROL_DECK_ANGLE = 15.0`).
-- **Power Inlet**: $\varnothing 11.5\text{ mm}$ circular hole for standard panel-mount DC barrel jack (5.5×2.1mm) powering the high-current servo power bus directly into the PDB.
+- **Enclosure Profile**: Flat horizontal rectangular unibody box ($220.0\text{ mm} \ (W) \times 120.0\text{ mm} \ (D) \times 30.0\text{ mm} \ (H)$ chassis + $3.0\text{ mm}$ top plate, total $H = 33.0\text{ mm}$).
+- **Power Inlet**: $\varnothing 11.5\text{ mm}$ circular hole on left wall for standard panel-mount DC barrel jack (5.5×2.1mm) powering the high-current servo power bus directly into the PDB.
 - **Ventilation**: Passive convection cooling chimney slots located on the bottom base directly below the PDB, PCA9685 driver, and ESP32 board to prevent heat buildup.
 - **Fastening**: 4x corner M3 countersunk screws securing the faceplate to the lower case.
 

@@ -1,10 +1,10 @@
 """
-Fabrica Cloth Folding Robot - Interface Module Assembly
+Fabrica Cloth Folding Robot - Interface Module Assembly (Flat Rectangular Box Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Integrates 3 Boards + User Interface Controls:
-1. Interface Case (interface_case.py) - Lower electronics chassis with 4-sided toolless snap retention
-2. Interface Control Faceplate (interface_panel.py) - 15° ergonomic top deck with round LED window
+Integrates 3 Boards + User Interface Controls in a Flat Horizontal Rectangular Box Enclosure:
+1. Interface Case (interface_case.py) - Flat lower electronics chassis (220.0 x 120.0 x 30.0mm) with 4-sided toolless snap retention
+2. Interface Control Faceplate (interface_panel.py) - Flat horizontal top deck (220.0 x 120.0 x 3.0mm) with round LED window
 3. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
 4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
 5. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
@@ -132,10 +132,10 @@ def build_assembly():
     """
     doc = App.newDocument("InterfaceModuleAssembly")
     
-    # 1. Base Controller Case:
+    # 1. Base Flat Controller Case (30.0mm height):
     case = construct_interface_case()
     
-    # 2. Top Interface Control Faceplate:
+    # 2. Top Flat Control Faceplate (at Z = 30.0mm):
     deck = construct_interface_panel()
     
     # 3. PCA9685 Driver Board (Right Bay):
@@ -151,29 +151,22 @@ def build_assembly():
     pdb.translate(App.Vector(38.0 - 45.0 / 2.0, 86.0 - 32.0 / 2.0, 8.0))
     
     # 6. 4x Ø16.0mm Tactile Push Buttons:
-    angle_deg = params.CONTROL_DECK_ANGLE
-    angle_rad = math.radians(angle_deg)
-    deck_len = params.INTERFACE_PANEL_HEIGHT / math.cos(angle_rad)
-    btn_y_flat = deck_len * 0.45
-    
+    h_case = 30.0
     btn_pitch = 28.0
     btn_cx = params.PANEL_WIDTH / 2.0
     btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
+    btn_y = params.INTERFACE_PANEL_HEIGHT * 0.45
     
     buttons = []
     for bx in btn_xs:
         btn = construct_button_16mm_cad_reference()
-        btn.translate(App.Vector(bx, btn_y_flat, 3.0))
-        btn.rotate(App.Vector(0, 0, 0), App.Vector(1, 0, 0), angle_deg)
-        btn.translate(App.Vector(0, 0, params.BASE_PANEL_THICKNESS))
+        btn.translate(App.Vector(bx, btn_y, h_case + 3.0))
         buttons.append(btn)
         
     # 7. Status LED Diffuser / Round Indicator:
     led = construct_led_diffuser_cad_reference()
-    led_y_flat = deck_len * 0.72
-    led.translate(App.Vector(btn_cx, led_y_flat, 0.0))
-    led.rotate(App.Vector(0, 0, 0), App.Vector(1, 0, 0), angle_deg)
-    led.translate(App.Vector(0, 0, params.BASE_PANEL_THICKNESS))
+    led_y = params.INTERFACE_PANEL_HEIGHT * 0.72
+    led.translate(App.Vector(btn_cx, led_y, h_case))
     
     # Add objects to document with standard aesthetic color palette:
     obj_case = doc.addObject("Part::Feature", "InterfaceCase")
