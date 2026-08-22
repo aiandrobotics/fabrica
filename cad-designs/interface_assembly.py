@@ -142,11 +142,11 @@ def build_assembly():
     
     # 4. ESP32 DevKit Board (Lower-Left Bay):
     esp = construct_esp32_cad_reference()
-    esp.translate(App.Vector(params.PANEL_WIDTH * 0.30 - 51.5 / 2.0, params.INTERFACE_PANEL_HEIGHT * 0.42 - 28.5 / 2.0, 8.0))
+    esp.translate(App.Vector(58.0 - 51.5 / 2.0, 44.0 - 28.5 / 2.0, 8.0))
     
     # 5. Power Distribution Board (Upper-Left Bay):
     pdb = construct_pdb_cad_reference()
-    pdb.translate(App.Vector(45.0 - 45.0 / 2.0, 94.0 - 32.0 / 2.0, 8.0))
+    pdb.translate(App.Vector(38.0 - 45.0 / 2.0, 86.0 - 32.0 / 2.0, 8.0))
     
     # 6. 4x Ø16.0mm Tactile Push Buttons:
     angle_deg = params.CONTROL_DECK_ANGLE

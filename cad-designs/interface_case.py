@@ -130,8 +130,8 @@ def construct_interface_case():
             
     # B) ESP32 DevKit Standoffs & Universal Retention Cradle (Lower-Left Bay):
     # PCB Footprint: 51.5 x 28.5mm, Hole pitch: 46.0 x 23.0mm
-    esp_cx = w * 0.30  # ~66.0mm
-    esp_cy = d * 0.42  # ~50.4mm
+    esp_cx = 58.0  # positioned for ample clearance
+    esp_cy = 44.0  # 44.0mm
     esp_pitch_x = 46.0
     esp_pitch_y = 23.0
     esp_standoff_h = 5.0
@@ -154,8 +154,8 @@ def construct_interface_case():
     
     # C) Power Distribution Board (PDB) Standoffs (Upper-Left Bay):
     # Footprint: 45.0 x 32.0mm, Hole pitch: 37.0 x 24.0mm (M3)
-    pdb_cx = 45.0
-    pdb_cy = 94.0
+    pdb_cx = 38.0
+    pdb_cy = 86.0
     pdb_pitch_x = 37.0
     pdb_pitch_y = 24.0
     pdb_standoff_h = 5.0
@@ -190,7 +190,7 @@ def construct_interface_case():
     
     # B) DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
     dc_jack_r = params.DC_JACK_DIAMETER / 2.0  # 5.75mm
-    dc_jack_y = pdb_cy  # 94.0mm
+    dc_jack_y = pdb_cy  # 86.0mm (aligned directly with PDB)
     dc_jack_z = 12.0
     dc_jack_cut = Part.makeCylinder(dc_jack_r, wall_t + 2.0, App.Vector(-1.0, dc_jack_y, dc_jack_z), App.Vector(1, 0, 0))
     
