@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with 16 Discrete Vertical Motor Wire Ports)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with 16 Full-Height Vertical Wire Ports)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -9,8 +9,8 @@ Features:
    - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 37.0 x 24.0mm pitch)
    - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle)
    - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
-3. 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
-   - 16x vertical wire ports (3.5mm wide x 18.0mm high) on 6.0mm pitch
+3. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+   - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
    - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
    - Aligned directly behind the PCA9685 servo pin headers
 4. 4-Sided Toolless Screw-Free Interlocking Snap Retention System:
@@ -24,7 +24,6 @@ Features:
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
    - Passive convection chimney cooling slots directly below all 3 boards
-   - 2x Standard sliding dovetail sockets with push-out access holes
    - 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
 """
 
@@ -38,19 +37,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import FreeCAD as App
 import Part
 import params
-
-def create_dovetail_socket_cutter(neck_w, flare_w, depth, height):
-    """Creates a female dovetail socket cutting tool."""
-    poly_pts = [
-        App.Vector(-neck_w / 2.0, 0.1, 0),
-        App.Vector(neck_w / 2.0, 0.1, 0),
-        App.Vector(flare_w / 2.0, -depth, 0),
-        App.Vector(-flare_w / 2.0, -depth, 0),
-        App.Vector(-neck_w / 2.0, 0.1, 0),
-    ]
-    wire = Part.makePolygon(poly_pts)
-    face = Part.Face(wire)
-    return face.extrude(App.Vector(0, 0, height))
 
 def construct_interface_case():
     """
@@ -218,53 +204,33 @@ def construct_interface_case():
         Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(w - 16.0, d - 16.0, -0.1)),
     ]
     
-    # F) Dual Sliding Dovetail Sockets on Rear Mating Wall (Y = 120.0mm):
-    dt_neck_w = params.DOVETAIL_NECK_WIDTH
-    dt_flare_w = params.DOVETAIL_FLARE_WIDTH
-    dt_depth = params.DOVETAIL_DEPTH
-    dt_floor = params.DOVETAIL_FLOOR_THICKNESS
-    dt_h = params.DOVETAIL_HEIGHT
-    
-    dt_cutter_proto = create_dovetail_socket_cutter(dt_neck_w, dt_flare_w, dt_depth, dt_h + 1.0)
-    dt_cutters = []
-    pushout_holes = []
-    
-    for dt_x in [w * 0.25, w * 0.75]:  # 55.0mm and 165.0mm
-        dt_c = dt_cutter_proto.copy()
-        dt_c.translate(App.Vector(dt_x, d, dt_floor))
-        dt_cutters.append(dt_c)
-        
-        # Push-out access hole through floor (Ø6.0mm)
-        p_hole = Part.makeCylinder(3.0, dt_floor + 2.0, App.Vector(dt_x, d - dt_depth / 2.0, -1.0))
-        pushout_holes.append(p_hole)
-        
-    # G) 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+    # F) Extended Full-Height 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
     # 16 slots of 3.5mm width and 2.5mm solid structural pillars between them (pitch = 6.0mm)
-    # Spans X in [107.25, 200.75mm] directly behind the PCA9685 servo pin headers
+    # Extends vertically from Z = 5.0mm (near base floor) to Z = 37.0mm (total slot height = 32.0mm)
     slot_w = 3.5
-    slot_h = 18.0
+    slot_h = 32.0
     slot_pitch = 6.0
-    slot_z_start = 14.0
+    slot_z_start = 5.0
     slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # ~107.25mm
     
     motor_slots = []
     for i in range(16):
         sx = slot_start_x + i * slot_pitch
-        slot_cut = Part.makeBox(slot_w, wall_t + dt_depth + 4.0, slot_h, App.Vector(sx, d - dt_depth - 2.0, slot_z_start))
+        slot_cut = Part.makeBox(slot_w, wall_t + 4.0, slot_h, App.Vector(sx, d - wall_t - 2.0, slot_z_start))
         motor_slots.append(slot_cut)
         
-    # H) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
+    # G) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
     pry_notches = [
         Part.makeBox(12.0, 3.0, 2.0, App.Vector(50.0 - 6.0, d - 2.0, h - 1.5)),
         Part.makeBox(12.0, 3.0, 2.0, App.Vector(170.0 - 6.0, d - 2.0, h - 1.5)),
     ]
     
-    # I) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
+    # H) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + motor_slots + pry_notches + cooling_slots + foot_sockets + dt_cutters + pushout_holes
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + motor_slots + pry_notches + cooling_slots + foot_sockets
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body
