@@ -10,7 +10,14 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 
 ## Decisions & Hardware Specifications
 
-### 1. Dual Internal Circuit Boards
+### 1. Triple Internal Circuit Boards
+
+- **Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module**:
+  - PCB Envelope: $45.0\text{ mm} \times 32.0\text{ mm} \times 12.0\text{ mm}$ with heavy-duty input and output screw terminal blocks.
+  - Mounting Holes: 4x $\varnothing 3.0\text{ mm}$ corner mounting holes.
+  - Hole Pitch (Center-to-Center): **$37.0\text{ mm} \times 24.0\text{ mm}$**.
+  - Mounting Method: 4x raised M3 cylindrical standoffs ($H = 5.0\text{ mm}$, $\varnothing_{outer} = 6.0\text{ mm}$) with $\varnothing 2.6\text{ mm}$ core pilot holes.
+  - Placement: Upper-left bay directly behind the DC barrel jack ($Y = 94.0\text{ mm}$), receiving external power and distributing regulated $5\text{V}/6\text{V}$ high-current bus to the PCA9685 servo rail and clean logic power to the ESP32.
 
 - **PCA9685 16-Channel 12-Bit PWM Servo Driver Board**:
   - PCB Envelope: $62.5\text{ mm} \times 25.4\text{ mm} \times 12.0\text{ mm}$ (standard Adafruit / generic breakout footprint).

@@ -1,16 +1,20 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Dual-Board Electronics Enclosure)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board Electronics Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Houses:
-1. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05 mm pitch)
+Houses 3 Circuit Boards:
+1. Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module with screw terminals (M3 standoffs @ 37.0 x 24.0 mm pitch)
 2. ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0 mm pitch + perimeter cradle)
-3. High-current DC Power Barrel Jack (Ø11.5mm)
-4. ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
-5. Passive convection chimney cooling slots
-6. Standard sliding dovetail sockets for seamless grid attachment & hidden wire routing
-7. 4x M3 corner fastener bosses for interface top deck retention
-8. 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
+3. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05 mm pitch)
+
+Connectivity, Thermal & Mounting Features:
+4. High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
+5. ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
+6. Passive convection chimney cooling slots directly below all 3 boards
+7. Internal zip-tie cable strain-relief saddles for clean wiring harnesses
+8. Standard sliding dovetail sockets for seamless grid attachment & hidden wire routing
+9. 4x M3 corner fastener bosses for interface top deck retention
+10. 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
 """
 
 import os
@@ -104,7 +108,7 @@ def construct_interface_case():
     if corner_bosses:
         case_body = case_body.fuse(Part.makeCompound(corner_bosses)).removeSplitter()
         
-    # 4. Internal Electronics Mounting:
+    # 4. Internal Electronics Mounting (3 Distinct Functional Bays):
     # A) PCA9685 16-Channel PWM Servo Driver Standoffs (Right Bay):
     # PCB Footprint: 62.5 x 25.4mm, Hole pitch: 55.88 x 19.05mm
     pca_cx = w * 0.70  # ~154.0mm
@@ -124,10 +128,10 @@ def construct_interface_case():
             pilot = Part.makeCylinder(pca_pilot_r, pca_standoff_h + 1.0, App.Vector(bx, by, floor_t))
             pca_bosses.append(boss.cut(pilot))
             
-    # B) ESP32 DevKit Standoffs & Universal Retention Cradle (Left Bay):
+    # B) ESP32 DevKit Standoffs & Universal Retention Cradle (Lower-Left Bay):
     # PCB Footprint: 51.5 x 28.5mm, Hole pitch: 46.0 x 23.0mm
     esp_cx = w * 0.30  # ~66.0mm
-    esp_cy = d * 0.50  # 60.0mm
+    esp_cy = d * 0.42  # ~50.4mm
     esp_pitch_x = 46.0
     esp_pitch_y = 23.0
     esp_standoff_h = 5.0
@@ -148,14 +152,33 @@ def construct_interface_case():
     cradle_pocket = Part.makeBox(52.0, 29.0, 4.0, App.Vector(esp_cx - 26.0, esp_cy - 14.5, floor_t))
     esp_cradle = cradle_box.cut(cradle_pocket)
     
-    # C) Cable Strain-Relief Zip-Tie Saddles:
+    # C) Power Distribution Board (PDB) Standoffs (Upper-Left Bay):
+    # Footprint: 45.0 x 32.0mm, Hole pitch: 37.0 x 24.0mm (M3)
+    pdb_cx = 45.0
+    pdb_cy = 94.0
+    pdb_pitch_x = 37.0
+    pdb_pitch_y = 24.0
+    pdb_standoff_h = 5.0
+    pdb_boss_r = 3.0
+    pdb_pilot_r = 1.3
+    
+    pdb_bosses = []
+    for dx in [-pdb_pitch_x / 2.0, pdb_pitch_x / 2.0]:
+        for dy in [-pdb_pitch_y / 2.0, pdb_pitch_y / 2.0]:
+            bx = pdb_cx + dx
+            by = pdb_cy + dy
+            boss = Part.makeCylinder(pdb_boss_r, floor_t + pdb_standoff_h, App.Vector(bx, by, 0))
+            pilot = Part.makeCylinder(pdb_pilot_r, pdb_standoff_h + 1.0, App.Vector(bx, by, floor_t))
+            pdb_bosses.append(boss.cut(pilot))
+            
+    # D) Cable Strain-Relief Zip-Tie Saddles:
     saddles = []
-    for sx in [w * 0.50 - 15.0, w * 0.50 + 15.0]:
-        sad_b = Part.makeBox(6.0, 10.0, 4.0, App.Vector(sx - 3.0, d * 0.50 - 5.0, floor_t))
-        sad_slot = Part.makeBox(7.0, 3.0, 2.0, App.Vector(sx - 3.5, d * 0.50 - 1.5, floor_t + 1.0))
+    for sx, sy in [(w * 0.50, d * 0.45), (pdb_cx + 28.0, pdb_cy)]:
+        sad_b = Part.makeBox(6.0, 10.0, 4.0, App.Vector(sx - 3.0, sy - 5.0, floor_t))
+        sad_slot = Part.makeBox(7.0, 3.0, 2.0, App.Vector(sx - 3.5, sy - 1.5, floor_t + 1.0))
         saddles.append(sad_b.cut(sad_slot))
         
-    elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + saddles
+    elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + pdb_bosses + saddles
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
     # 5. External Port Cutouts:
@@ -165,17 +188,17 @@ def construct_interface_case():
     usb_z = floor_t + esp_standoff_h + 0.5
     usb_cut = Part.makeBox(wall_t + 2.0, usb_w, usb_h, App.Vector(-1.0, esp_cy - usb_w / 2.0, usb_z))
     
-    # B) DC Power Barrel Jack (Ø11.5mm) on Left Wall:
+    # B) DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
     dc_jack_r = params.DC_JACK_DIAMETER / 2.0  # 5.75mm
-    dc_jack_y = d * 0.82  # ~98.4mm
+    dc_jack_y = pdb_cy  # 94.0mm
     dc_jack_z = 12.0
     dc_jack_cut = Part.makeCylinder(dc_jack_r, wall_t + 2.0, App.Vector(-1.0, dc_jack_y, dc_jack_z), App.Vector(1, 0, 0))
     
-    # C) ESP32 Header Pin Through-Floor Relief Slots (clears 8.5mm pin headers below PCB):
+    # C) ESP32 Header Pin Through-Floor Relief Slots:
     esp_pin_slot1 = Part.makeBox(42.0, 4.0, floor_t + 2.0, App.Vector(esp_cx - 21.0, esp_cy - 28.5 / 2.0 + 1.0 - 0.75, -1.0))
     esp_pin_slot2 = Part.makeBox(42.0, 4.0, floor_t + 2.0, App.Vector(esp_cx - 21.0, esp_cy + 28.5 / 2.0 - 3.5 - 0.75, -1.0))
     
-    # D) Passive Convection Chimney Cooling Slots in Base Floor:
+    # D) Passive Convection Chimney Cooling Slots in Base Floor for all 3 boards:
     cooling_slots = [esp_pin_slot1, esp_pin_slot2]
     for i in [-1, 0, 1]:
         slot_e = Part.makeBox(36.0, 2.5, floor_t + 2.0, App.Vector(esp_cx - 18.0, esp_cy + i * 6.0 - 1.25, -1.0))
@@ -183,6 +206,9 @@ def construct_interface_case():
     for i in [-2, -1, 0, 1, 2]:
         slot_p = Part.makeBox(48.0, 2.5, floor_t + 2.0, App.Vector(pca_cx - 24.0, pca_cy + i * 5.0 - 1.25, -1.0))
         cooling_slots.append(slot_p)
+    for i in [-1, 0, 1]:
+        slot_pdb = Part.makeBox(28.0, 2.5, floor_t + 2.0, App.Vector(pdb_cx - 14.0, pdb_cy + i * 6.0 - 1.25, -1.0))
+        cooling_slots.append(slot_pdb)
         
     # E) 4x Bottom Anti-Slip Rubber Feet Sockets (Ø20.1mm x 2.0mm):
     foot_r = params.FOOT_PAD_DIA / 2.0

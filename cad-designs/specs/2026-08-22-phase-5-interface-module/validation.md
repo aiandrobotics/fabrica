@@ -18,6 +18,7 @@
 - [ ] Multi-body assembly in `interface_assembly.py` builds cleanly with:
   - `interface_case`
   - `interface_panel`
+  - Power Distribution Board (PDB) reference solid
   - PCA9685 reference solid
   - ESP32 reference solid
   - 4x 16mm push button reference solids

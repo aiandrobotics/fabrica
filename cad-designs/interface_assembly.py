@@ -2,13 +2,14 @@
 Fabrica Cloth Folding Robot - Interface Module Assembly
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Integrates:
+Integrates 3 Boards + User Interface Controls:
 1. Interface Case (interface_case.py) - Lower electronics chassis
 2. Interface Control Faceplate (interface_panel.py) - 15° ergonomic top deck
-3. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
+3. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
 4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
-5. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference)
-6. Status LED Diffuser Light Pipe (CAD Reference)
+5. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
+6. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference)
+7. Status LED Diffuser Light Pipe (CAD Reference)
 """
 
 import os
@@ -78,6 +79,33 @@ def construct_esp32_cad_reference():
     
     return pcb.fuse([shield, usb, h1, h2, btn1, btn2]).removeSplitter()
 
+def construct_pdb_cad_reference():
+    """
+    CAD Reference solid for 5V/6V High-Current Power Distribution Board with screw terminals.
+    PCB Footprint: 45.0 x 32.0 x 1.6mm with 4x M3 mounting holes (37.0 x 24.0mm pitch).
+    """
+    w = 45.0
+    d = 32.0
+    t_pcb = 1.6
+    
+    pcb = Part.makeBox(w, d, t_pcb)
+    pitch_x = 37.0
+    pitch_y = 24.0
+    holes = []
+    for dx in [-pitch_x / 2.0, pitch_x / 2.0]:
+        for dy in [-pitch_y / 2.0, pitch_y / 2.0]:
+            h = Part.makeCylinder(1.5, t_pcb + 1.0, App.Vector(w / 2.0 + dx, d / 2.0 + dy, -0.5))
+            holes.append(h)
+    pcb = pcb.cut(Part.makeCompound(holes))
+    
+    # Input and output screw terminal blocks:
+    term_in = Part.makeBox(8.0, 15.0, 10.0, App.Vector(2.0, d / 2.0 - 7.5, t_pcb))
+    term_out = Part.makeBox(8.0, 24.0, 10.0, App.Vector(w - 10.0, d / 2.0 - 12.0, t_pcb))
+    inductor = Part.makeCylinder(6.0, 7.0, App.Vector(w / 2.0, d / 2.0, t_pcb))
+    heatsink = Part.makeBox(12.0, 16.0, 8.0, App.Vector(w / 2.0 - 6.0, d / 2.0 - 8.0, t_pcb))
+    
+    return pcb.fuse([term_in, term_out, inductor, heatsink]).removeSplitter()
+
 def construct_button_16mm_cad_reference():
     """
     CAD Reference solid for standard Ø16.0mm round tactile push button.
@@ -108,15 +136,19 @@ def build_assembly():
     # 2. Top Interface Control Faceplate:
     deck = construct_interface_panel()
     
-    # 3. PCA9685 Driver Board:
+    # 3. PCA9685 Driver Board (Right Bay):
     pca = construct_pca9685_cad_reference()
     pca.translate(App.Vector(params.PANEL_WIDTH * 0.70 - 62.5 / 2.0, params.INTERFACE_PANEL_HEIGHT * 0.50 - 25.4 / 2.0, 8.0))
     
-    # 4. ESP32 DevKit Board:
+    # 4. ESP32 DevKit Board (Lower-Left Bay):
     esp = construct_esp32_cad_reference()
-    esp.translate(App.Vector(params.PANEL_WIDTH * 0.30 - 51.5 / 2.0, params.INTERFACE_PANEL_HEIGHT * 0.50 - 28.5 / 2.0, 8.0))
+    esp.translate(App.Vector(params.PANEL_WIDTH * 0.30 - 51.5 / 2.0, params.INTERFACE_PANEL_HEIGHT * 0.42 - 28.5 / 2.0, 8.0))
     
-    # 5. 4x Ø16.0mm Tactile Push Buttons:
+    # 5. Power Distribution Board (Upper-Left Bay):
+    pdb = construct_pdb_cad_reference()
+    pdb.translate(App.Vector(45.0 - 45.0 / 2.0, 94.0 - 32.0 / 2.0, 8.0))
+    
+    # 6. 4x Ø16.0mm Tactile Push Buttons:
     angle_deg = params.CONTROL_DECK_ANGLE
     angle_rad = math.radians(angle_deg)
     deck_len = params.INTERFACE_PANEL_HEIGHT / math.cos(angle_rad)
@@ -134,7 +166,7 @@ def build_assembly():
         btn.translate(App.Vector(0, 0, params.BASE_PANEL_THICKNESS))
         buttons.append(btn)
         
-    # 6. Status LED Diffuser:
+    # 7. Status LED Diffuser:
     led = construct_led_diffuser_cad_reference()
     led_y_flat = deck_len * 0.72
     led.translate(App.Vector(btn_cx, led_y_flat, 0.0))
@@ -162,6 +194,11 @@ def build_assembly():
     if hasattr(obj_esp, "ViewObject") and obj_esp.ViewObject:
         obj_esp.ViewObject.ShapeColor = (0.15, 0.15, 0.15)  # MCU PCB Black
         
+    obj_pdb = doc.addObject("Part::Feature", "PowerDistributionBoard")
+    obj_pdb.Shape = pdb
+    if hasattr(obj_pdb, "ViewObject") and obj_pdb.ViewObject:
+        obj_pdb.ViewObject.ShapeColor = (0.85, 0.25, 0.2)  # PDB Red/Copper
+        
     btn_colors = [(0.2, 0.4, 0.8), (0.2, 0.7, 0.3), (0.9, 0.7, 0.1), (0.85, 0.2, 0.2)]
     for i, b in enumerate(buttons):
         obj_b = doc.addObject("Part::Feature", f"Button_{i+1}")
@@ -177,7 +214,7 @@ def build_assembly():
     doc.recompute()
     
     # Export full multi-body assembly compound:
-    assy_compound = Part.makeCompound([case, deck, pca, esp] + buttons + [led])
+    assy_compound = Part.makeCompound([case, deck, pca, esp, pdb] + buttons + [led])
     out_dir = params.EXPORT_DIR
     os.makedirs(out_dir, exist_ok=True)
     step_path = os.path.join(out_dir, "interface_assembly.step")
