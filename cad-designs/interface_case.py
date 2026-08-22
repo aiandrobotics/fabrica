@@ -1,24 +1,26 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Rectangular Enclosure)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with 16 Discrete Vertical Motor Wire Ports)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
 1. Spacious flat horizontal rectangular box chassis (220.0 x 120.0 x 45.0mm)
-   - 45.0mm increased chassis height provides >25mm of generous overhead space for 16-motor servo wiring bundles, DuPont jumpers, and power buses
+   - 45.0mm chassis height provides >25mm of generous overhead space for wire routing
 2. Houses 3 Circuit Boards:
    - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 37.0 x 24.0mm pitch)
    - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle)
    - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
-3. 4-Sided Toolless Screw-Free Interlocking Snap Retention System:
+3. 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+   - 16x vertical wire ports (3.5mm wide x 18.0mm high) on 6.0mm pitch
+   - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
+   - Aligned directly behind the PCA9685 servo pin headers
+4. 4-Sided Toolless Screw-Free Interlocking Snap Retention System:
    - Front Under-Hook Retention Pockets (2x @ X=50, 170mm)
    - Left & Right Sidewall Alignment Registers preventing lateral bowing/gapping
    - Rear Cantilever Snap-Catch Bosses (2x @ X=50, 170mm) with tactile click detents
    - Rear Toolless Pry-Release Access Notches for easy finger/coin opening
-4. High-Capacity Wiring & Thermal Management:
-   - High-Capacity 16-Motor Wire Conduit Window (60.0 x 20.0mm) passing up to 48 servo wires / ribbon cables directly to the grid
+5. Wiring, Ports & Thermal Management:
    - Dual Captive Zip-Tie Strain-Relief Anchor Saddles (12.0 x 6.0mm) absorbing 100% of external pull force
    - S-Curve Friction Snubber Posts (2x Ø6.0mm) for hardware-free wire tension relief
-   - Left-Bay Power & Logic Conduit Window (38.0 x 20.0mm)
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
    - Passive convection chimney cooling slots directly below all 3 boards
@@ -236,15 +238,21 @@ def construct_interface_case():
         p_hole = Part.makeCylinder(3.0, dt_floor + 2.0, App.Vector(dt_x, d - dt_depth / 2.0, -1.0))
         pushout_holes.append(p_hole)
         
-    # G) High-Capacity Dual Rear Wire Conduit Windows (Expanded 20.0mm Height):
-    motor_conduit_w = 60.0
-    motor_conduit_h = 20.0
-    motor_conduit_cut = Part.makeBox(motor_conduit_w, wall_t + dt_depth + 4.0, motor_conduit_h, App.Vector(pca_cx - motor_conduit_w / 2.0, d - dt_depth - 2.0, dt_floor + 1.5))
+    # G) 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+    # 16 slots of 3.5mm width and 2.5mm solid structural pillars between them (pitch = 6.0mm)
+    # Spans X in [107.25, 200.75mm] directly behind the PCA9685 servo pin headers
+    slot_w = 3.5
+    slot_h = 18.0
+    slot_pitch = 6.0
+    slot_z_start = 14.0
+    slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # ~107.25mm
     
-    power_conduit_w = 38.0
-    power_conduit_h = 20.0
-    power_conduit_cut = Part.makeBox(power_conduit_w, wall_t + dt_depth + 4.0, power_conduit_h, App.Vector(55.0 - power_conduit_w / 2.0, d - dt_depth - 2.0, dt_floor + 1.5))
-    
+    motor_slots = []
+    for i in range(16):
+        sx = slot_start_x + i * slot_pitch
+        slot_cut = Part.makeBox(slot_w, wall_t + dt_depth + 4.0, slot_h, App.Vector(sx, d - dt_depth - 2.0, slot_z_start))
+        motor_slots.append(slot_cut)
+        
     # H) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
     pry_notches = [
         Part.makeBox(12.0, 3.0, 2.0, App.Vector(50.0 - 6.0, d - 2.0, h - 1.5)),
@@ -256,7 +264,7 @@ def construct_interface_case():
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring, motor_conduit_cut, power_conduit_cut] + pry_notches + cooling_slots + foot_sockets + dt_cutters + pushout_holes
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + motor_slots + pry_notches + cooling_slots + foot_sockets + dt_cutters + pushout_holes
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body

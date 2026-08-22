@@ -51,9 +51,8 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 - **Ventilation**: Passive convection cooling chimney slots located on the bottom base directly below the PDB, PCA9685 driver, and ESP32 board to prevent heat buildup.
 - **Fastening**: 4x corner M3 countersunk screws securing the faceplate to the lower case.
 
-### 4. High-Capacity 16-Motor Wire Conduit & Strain-Relief Architecture
-- **16-Motor Wire Capacity**:
-  - Right-Bay Conduit Window: $60.0\text{ mm} \times 16.0\text{ mm}$ wide-mouth pass-through directly behind the PCA9685 16-channel servo pin headers, effortlessly passing up to 48 individual servo wires or 4 flat ribbon cable harnesses.
+### 4. 16 Discrete Vertical Motor Wire Ports & Strain-Relief Architecture
+- **16 Discrete Vertical Slots**: 16 individual vertical wire slots ($3.5\text{ mm} \times 18.0\text{ mm}$) on $6.0\text{ mm}$ pitch with $2.5\text{ mm}$ solid structural pillars between each slot directly behind the PCA9685 pin headers, allowing individual dedicated routing for each servo motor.
   - Left-Bay Conduit Window: $38.0\text{ mm} \times 16.0\text{ mm}$ pass-through behind PDB/ESP32 for high-current power and logic buses.
 - **Pull-Tension Isolation & Strain Relief**:
   - Dual Captive Zip-Tie Anchor Saddles: $12.0\text{ mm} \times 6.0\text{ mm}$ saddles with $3.0\text{ mm} \times 2.5\text{ mm}$ underpasses positioned right in front of the exit port. Tightening a zip-tie collar against the inner shoulder absorbs 100% of external cable pulling force, leaving zero mechanical tension on PCB pins or solder joints.
