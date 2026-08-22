@@ -1,6 +1,12 @@
 # Changelog
 
 ## 2026-08-22
+- Implemented **Phase 5: Interface Module & Electronics Enclosure**:
+  - Added `controller_case.py` ($220.0 \times 120.0\text{ mm}$ lower electronics chassis, $15^\circ$ forward slope) housing PCA9685 16-channel PWM servo driver (M2.5 standoffs @ $55.88 \times 19.05\text{ mm}$ pitch) and WROOM-32 / ESP-32S DevKit (M3 standoffs @ $46.0 \times 23.0\text{ mm}$ pitch + perimeter snap cradle), $\varnothing 11.5\text{ mm}$ DC power barrel jack port, $12.0 \times 7.5\text{ mm}$ USB programming port, passive convection cooling chimneys, internal zip-tie saddles, and 2x sliding dovetail sockets with $\varnothing 6.0\text{ mm}$ push-out holes and $1.5\text{ mm}$ filleted wire conduit channels.
+  - Added `interface_panel.py` ($15.0^\circ$ ergonomic forward-angled top control deck) with 4x inline $\varnothing 16.0\text{ mm}$ button cutouts ($0.8\text{ mm}$ top chamfers), multi-state status LED diffuser window with retention lip, 4x corner M3 counterbored mounting holes, $0.6\text{ mm}$ diamond micro-grip surface texture, and $1.2\text{ mm}$ shadow accent bevels.
+  - Added `assembly_interface_module.py` multi-body sub-assembly model with CAD references for PCA9685, ESP32, 4x 16mm push buttons, and status LED diffuser.
+  - Validated zero geometric interference ($0.00000\,\text{mm}^3$ overlap across all mated pairs) via FreeCAD MCP `check_interference`.
+  - Expanded production export pipeline (`export_all.py`) to 16/16 scripts building with a 100% pass rate.
 - Updated Phase 5 roadmap in `cad-designs/specs/roadmap.md` and added `BUTTON_HOLE_DIA = 16.0` to `cad-designs/params.py` and `tech-stack.md` for standard Ø16.0mm round interface push buttons.
 - Standardized all project specifications (`specs/mission.md`, `cad-designs/specs/mission.md`, `cad-designs/specs/tech-stack.md`, `docs/README.md`, `firmware/README.md`) on dual internal circuit boards: PCA9685 16-channel PWM servo driver + ESP32 DevKit microcontroller with 4 top interaction buttons and status LED.
 - Updated Bambu Lab 3MF print project to `cad-designs/3d-print/fabrica-bambu-lab-256.3mf` configured for 256x256mm build volume.
