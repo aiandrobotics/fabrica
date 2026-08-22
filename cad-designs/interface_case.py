@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Clean-Floor Enclosure)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with Modular Dovetail Joiner Socket)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -15,13 +15,16 @@ Features:
 4. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
    - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
    - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
-   - Aligned directly behind the PCA9685 servo pin headers
-5. Ports & Thermal Management:
+   - Aligned directly behind the PCA9685 servo pin headers (X in [107.25, 200.75mm])
+5. Modular Sliding Dovetail Socket on Rear Wall (@ X = 55.0mm):
+   - Standard female sliding dovetail socket with floor stop (Z in [3.0, 15.0mm]) and Ø6.0mm bottom push-out access hole
+   - Allows rigid interlocking attachment to any Fabrica base frame module using frame_joiner.py
+6. Ports & Thermal Management:
    - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
    - Passive convection chimney cooling slots directly below all 3 boards
    - 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
-   - Rear Toolless Pry-Release Access Notches
+   - Continuous 100% flush top perimeter rim
 """
 
 import os
@@ -34,6 +37,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import FreeCAD as App
 import Part
 import params
+
+def create_dovetail_socket_cutter(neck_w, flare_w, depth, height):
+    """Creates a female dovetail socket cutting tool."""
+    poly_pts = [
+        App.Vector(-neck_w / 2.0, 0.1, 0),
+        App.Vector(neck_w / 2.0, 0.1, 0),
+        App.Vector(flare_w / 2.0, -depth, 0),
+        App.Vector(-flare_w / 2.0, -depth, 0),
+        App.Vector(-neck_w / 2.0, 0.1, 0),
+    ]
+    wire = Part.makePolygon(poly_pts)
+    face = Part.Face(wire)
+    return face.extrude(App.Vector(0, 0, height))
 
 def construct_interface_case():
     """
@@ -183,12 +199,26 @@ def construct_interface_case():
         slot_cut = Part.makeBox(slot_w, wall_t + 4.0, slot_h, App.Vector(sx, d - wall_t - 2.0, slot_z_start))
         motor_slots.append(slot_cut)
         
-    # F) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
+    # F) Modular Sliding Dovetail Socket on Rear Wall (@ X = 55.0mm / W * 0.25):
+    dt_neck_w = params.DOVETAIL_NECK_WIDTH
+    dt_flare_w = params.DOVETAIL_FLARE_WIDTH
+    dt_depth = params.DOVETAIL_DEPTH
+    dt_floor = params.DOVETAIL_FLOOR_THICKNESS
+    dt_h = params.DOVETAIL_HEIGHT
+    
+    dt_cutter = create_dovetail_socket_cutter(dt_neck_w, dt_flare_w, dt_depth, dt_h + 1.0)
+    dt_x = w * 0.25  # 55.0mm
+    dt_cutter.translate(App.Vector(dt_x, d, dt_floor))
+    
+    # Push-out access hole through floor (Ø6.0mm) to easily tap out joiner
+    p_hole = Part.makeCylinder(3.0, dt_floor + 2.0, App.Vector(dt_x, d - dt_depth / 2.0, -1.0))
+    
+    # G) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring, dt_cutter, p_hole] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body

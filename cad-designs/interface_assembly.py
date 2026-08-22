@@ -1,15 +1,16 @@
 """
-Fabrica Cloth Folding Robot - Interface Module Assembly (Spacious High-Capacity Enclosure)
+Fabrica Cloth Folding Robot - Interface Module Assembly (Spacious High-Capacity Enclosure with Frame Joiner)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Integrates 3 Boards + User Interface Controls in a Spacious Flat Horizontal Rectangular Box Enclosure:
-1. Interface Case (interface_case.py) - Flat lower electronics chassis (220.0 x 120.0 x 45.0mm) with 4-sided toolless snap retention
+Integrates 3 Boards + User Interface Controls + Frame Joiner in a Spacious Flat Horizontal Rectangular Box Enclosure:
+1. Interface Case (interface_case.py) - Flat lower electronics chassis (220.0 x 120.0 x 45.0mm) with modular dovetail socket @ X=55.0mm
 2. Interface Control Faceplate (interface_panel.py) - Flat horizontal top deck (220.0 x 120.0 x 3.0mm) with round LED window
-3. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
-4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
-5. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
-6. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference)
-7. Circular Round Status LED Diffuser / Indicator (CAD Reference)
+3. Frame Joiner (frame_joiner.py) - Standard sliding dovetail bridge joiner locking case to base robot frame modules
+4. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
+5. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
+6. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
+7. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference)
+8. Circular Round Status LED Diffuser / Indicator (CAD Reference)
 """
 
 import os
@@ -24,6 +25,7 @@ import Part
 import params
 from interface_case import construct_interface_case
 from interface_panel import construct_interface_panel
+from frame_joiner import construct_frame_joiner
 
 def construct_pca9685_cad_reference():
     """
@@ -98,49 +100,47 @@ def construct_pdb_cad_reference():
             holes.append(h)
     pcb = pcb.cut(Part.makeCompound(holes))
     
-    # Input and output screw terminal blocks:
-    term_in = Part.makeBox(8.0, 15.0, 10.0, App.Vector(2.0, d / 2.0 - 7.5, t_pcb))
-    term_out = Part.makeBox(8.0, 24.0, 10.0, App.Vector(w - 10.0, d / 2.0 - 12.0, t_pcb))
-    inductor = Part.makeCylinder(6.0, 7.0, App.Vector(w / 2.0, d / 2.0, t_pcb))
-    heatsink = Part.makeBox(12.0, 16.0, 8.0, App.Vector(w / 2.0 - 6.0, d / 2.0 - 8.0, t_pcb))
+    ind = Part.makeBox(12.0, 12.0, 8.0, App.Vector(w / 2.0 - 6.0, d / 2.0 - 6.0, t_pcb))
+    t_in = Part.makeBox(10.0, 15.0, 10.0, App.Vector(2.0, (d - 15.0) / 2.0, t_pcb))
+    t_out = Part.makeBox(10.0, 24.0, 10.0, App.Vector(w - 12.0, (d - 24.0) / 2.0, t_pcb))
+    hs = Part.makeBox(15.0, 10.0, 12.0, App.Vector(15.0, d - 12.0, t_pcb))
     
-    return pcb.fuse([term_in, term_out, inductor, heatsink]).removeSplitter()
+    return pcb.fuse([ind, t_in, t_out, hs]).removeSplitter()
 
 def construct_button_16mm_cad_reference():
     """
-    CAD Reference solid for standard Ø16.0mm round tactile push button.
+    CAD Reference solid for standard 16mm momentary tactile push button switch.
     """
-    barrel = Part.makeCylinder(7.9, 18.0, App.Vector(0, 0, -18.0))
-    bezel = Part.makeCylinder(9.0, 2.5, App.Vector(0, 0, 0))
-    cap = Part.makeCylinder(6.5, 4.0, App.Vector(0, 0, 0))
-    terminals = Part.makeBox(4.0, 8.0, 5.0, App.Vector(-2.0, -4.0, -23.0))
-    return barrel.fuse([bezel, cap, terminals]).removeSplitter()
+    bezel = Part.makeCylinder(9.0, 2.0, App.Vector(0, 0, 0))
+    body = Part.makeCylinder(7.9, 15.0, App.Vector(0, 0, -15.0))
+    actuator = Part.makeCylinder(6.5, 3.5, App.Vector(0, 0, 2.0))
+    terminals = Part.makeBox(4.0, 1.0, 6.0, App.Vector(-2.0, -0.5, -21.0))
+    return bezel.fuse([body, actuator, terminals]).removeSplitter()
 
 def construct_led_diffuser_cad_reference():
     """
-    CAD Reference solid for circular round status LED diffuser / 5mm round LED indicator.
+    CAD Reference solid for 5mm round LED / snap-in bezel diffuser.
     """
-    body = Part.makeCylinder(2.5, 8.5, App.Vector(0, 0, -5.0))
-    dome = Part.makeSphere(2.5, App.Vector(0, 0, 3.5))
-    flange = Part.makeCylinder(3.0, 1.2, App.Vector(0, 0, -1.0))
-    leads = Part.makeBox(0.6, 2.54, 15.0, App.Vector(-0.3, -1.27, -20.0))
-    return body.fuse([dome, flange, leads]).removeSplitter()
+    lens = Part.makeCylinder(2.9, 4.0, App.Vector(0, 0, 0))
+    dome = Part.makeSphere(2.9, App.Vector(0, 0, 4.0))
+    flange = Part.makeCylinder(3.5, 1.2, App.Vector(0, 0, -1.2))
+    legs = Part.makeBox(1.5, 0.6, 12.0, App.Vector(-0.75, -0.3, -13.2))
+    return lens.fuse([dome, flange, legs]).removeSplitter()
 
 def build_assembly():
     """
-    Assembles all Phase 5 interface module components into a multi-body FreeCAD Document.
+    Constructs and positions all parts for the Interface Assembly.
     """
-    doc = App.newDocument("InterfaceModuleAssembly")
+    doc = App.newDocument("InterfaceAssemblyDoc")
+    h_case = 45.0
     
-    h_case = 45.0  # 45.0mm spacious height
-    
-    # 1. Base Flat Controller Case (45.0mm height):
+    # 1. Interface Case:
     case = construct_interface_case()
     
-    # 2. Top Flat Control Faceplate (at Z = 45.0mm):
+    # 2. Interface Panel (Flat Horizontal Top Faceplate):
     deck = construct_interface_panel()
     
-    # 3. PCA9685 Driver Board (Right Bay):
+    # 3. PCA9685 Servo Driver Board (Right Bay):
     pca = construct_pca9685_cad_reference()
     pca.translate(App.Vector(params.PANEL_WIDTH * 0.70 - 62.5 / 2.0, params.INTERFACE_PANEL_HEIGHT * 0.50 - 25.4 / 2.0, 8.0))
     
@@ -152,7 +152,11 @@ def build_assembly():
     pdb = construct_pdb_cad_reference()
     pdb.translate(App.Vector(38.0 - 45.0 / 2.0, 86.0 - 32.0 / 2.0, 8.0))
     
-    # 6. 4x Ø16.0mm Tactile Push Buttons:
+    # 6. Frame Joiner (Sliding Dovetail Bridge Joiner @ X=55.0mm):
+    joiner = construct_frame_joiner()
+    joiner.translate(App.Vector(params.PANEL_WIDTH * 0.25, params.INTERFACE_PANEL_HEIGHT + params.MODULE_GAP / 2.0, params.DOVETAIL_FLOOR_THICKNESS))
+    
+    # 7. 4x Ø16.0mm Tactile Push Buttons:
     btn_pitch = 28.0
     btn_cx = params.PANEL_WIDTH / 2.0
     btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
@@ -164,7 +168,7 @@ def build_assembly():
         btn.translate(App.Vector(bx, btn_y, h_case + 3.0))
         buttons.append(btn)
         
-    # 7. Status LED Diffuser / Round Indicator:
+    # 8. Status LED Diffuser / Round Indicator:
     led = construct_led_diffuser_cad_reference()
     led_y = params.INTERFACE_PANEL_HEIGHT * 0.72
     led.translate(App.Vector(btn_cx, led_y, h_case))
@@ -179,6 +183,11 @@ def build_assembly():
     obj_deck.Shape = deck
     if hasattr(obj_deck, "ViewObject") and obj_deck.ViewObject:
         obj_deck.ViewObject.ShapeColor = (0.95, 0.75, 0.15)  # Control Deck Yellow
+        
+    obj_joiner = doc.addObject("Part::Feature", "FrameJoiner")
+    obj_joiner.Shape = joiner
+    if hasattr(obj_joiner, "ViewObject") and obj_joiner.ViewObject:
+        obj_joiner.ViewObject.ShapeColor = (0.91, 0.62, 0.26)  # Joiner Amber
         
     obj_pca = doc.addObject("Part::Feature", "PCA9685_Board")
     obj_pca.Shape = pca
@@ -210,7 +219,7 @@ def build_assembly():
     doc.recompute()
     
     # Export full multi-body assembly compound:
-    assy_compound = Part.makeCompound([case, deck, pca, esp, pdb] + buttons + [led])
+    assy_compound = Part.makeCompound([case, deck, joiner, pca, esp, pdb] + buttons + [led])
     out_dir = params.EXPORT_DIR
     os.makedirs(out_dir, exist_ok=True)
     step_path = os.path.join(out_dir, "interface_assembly.step")

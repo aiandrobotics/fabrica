@@ -51,9 +51,9 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 - **Ventilation**: Passive convection cooling chimney slots located on the bottom base directly below the PDB, PCA9685 driver, and ESP32 board to prevent heat buildup.
 - **Fastening**: 4-sided toolless direct wall snap-fit system with 4x retention windows cut through the front/rear perimeter walls and 4x cantilever snap tabs on the panel, eliminating internal boss clutter.
 
-### 4. 16 Extended Full-Height Vertical Motor Wire Ports & Clean Interior Chamber
+### 4. 16 Extended Full-Height Vertical Motor Wire Ports & Modular Dovetail Joint
 - **16 Full-Height Vertical Slots**: 16 individual full-height vertical wire slots ($3.5\text{ mm} \times 32.0\text{ mm}$, reaching from $Z=5.0\text{ mm}$ near floor to $Z=37.0\text{ mm}$) on $6.0\text{ mm}$ pitch with $2.5\text{ mm}$ solid structural pillars between each slot directly behind the PCA9685 pin headers, allowing individual dedicated routing for each servo motor.
-- **Clean Floor & Chamber**: 100% smooth, unobstructed floor with zero internal wire traps, snubber posts, or saddle obstacles.
+- **Modular Dovetail Joint Socket**: Female sliding dovetail socket with bottom floor stop located at $X = 55.0\text{ mm}$ on the rear wall ($Y = 120.0\text{ mm}$) with a $\varnothing 6.0\text{ mm}$ bottom push-out access hole, mating with `frame_joiner.py` to rigidly anchor the interface case to any folding robot base frame module.
 - **Pull-Tension Isolation & Strain Relief**:
   - Dual Captive Zip-Tie Anchor Saddles: $12.0\text{ mm} \times 6.0\text{ mm}$ saddles with $3.0\text{ mm} \times 2.5\text{ mm}$ underpasses positioned right in front of the exit port. Tightening a zip-tie collar against the inner shoulder absorbs 100% of external cable pulling force, leaving zero mechanical tension on PCB pins or solder joints.
   - Dual S-Bend Friction Snubber Posts: $2\times \varnothing 6.0\text{ mm}$ cylindrical friction posts for optional hardware-free S-curve wire routing.
