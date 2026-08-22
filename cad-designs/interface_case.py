@@ -234,11 +234,12 @@ def construct_interface_case():
         Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(w - 16.0, d - 16.0, -0.1)),
     ]
     
-    # E) Extended Full-Height 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+    # E) Robust 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
     # 16 slots of 3.5mm width and 2.5mm solid structural pillars between them (pitch = 6.0mm)
-    # Extends vertically from Z = 5.0mm (near base floor) to Z = 37.0mm (total slot height = 32.0mm)
+    # Extends vertically from Z = 5.0mm (near floor) to Z = 30.0mm (total slot height = 25.0mm)
+    # Leaves a solid 8.0mm structural header beam between Z=30.0mm and the snap window at Z=38.0mm
     slot_w = 3.5
-    slot_h = 32.0
+    slot_h = 25.0
     slot_pitch = 6.0
     slot_z_start = 5.0
     slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # ~107.25mm
