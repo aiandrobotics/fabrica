@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Panel (Flat Horizontal Top Faceplate with Circular Round LED Window)
+Fabrica Cloth Folding Robot - Interface Panel (Flat Horizontal Top Faceplate with Direct Wall Snap-Lock Tabs)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -7,10 +7,10 @@ Features:
 2. 4x Standardized Ø16.0mm round tactile push button cutouts with 0.8mm chamfers
 3. Circular Round Status LED indicator window (Ø6.0mm with 0.8mm chamfer & Ø8.5mm underside retention pocket)
 4. 0.6mm Diamond micro-grip surface texture
-5. 4-Sided Toolless Screw-Free Interlocking Snap Retention System:
-   - Front: 2x Captive Under-Hook Lugs (sliding into case front retention pockets)
+5. 4-Sided Toolless Snap-Lock System mating with Direct Wall Holes:
+   - Front: 2x Cantilever Snap Tabs (clicking forward directly into front wall retention windows)
+   - Rear: 2x Cantilever Snap Tabs (clicking backward directly into rear wall retention windows)
    - Left & Right: Continuous Perimeter Register Down-Ribs (preventing lateral bowing/gapping)
-   - Rear: 2x Flexible Cantilever Snap-Latches (clicking into rear case detents)
 6. 100% screwless, clean top surface aesthetics
 """
 
@@ -27,7 +27,7 @@ import params
 
 def construct_interface_panel():
     """
-    Constructs the flat horizontal top control faceplate with 4-sided toolless snap-lock.
+    Constructs the flat horizontal top control faceplate with direct wall snap-lock tabs.
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
@@ -78,28 +78,34 @@ def construct_interface_panel():
     all_cuts = btn_cutters + led_cutters + [tex_compound]
     panel = flat_plate.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
-    # 5. 4-Sided Underside Toolless Interlocking Snap Features:
-    # A) 2x Front Hook Lugs (X=50, 170mm, Y=4.5mm):
-    front_hooks = []
-    for hx in [50.0, 170.0]:
-        hk_post = Part.makeBox(12.0, 1.8, 4.0, App.Vector(hx - 6.0, 4.5, h_case - 4.0))
-        hk_lip = Part.makeBox(12.0, 1.2, 1.5, App.Vector(hx - 6.0, 3.3, h_case - 4.0))
-        front_hooks.append(hk_post.fuse(hk_lip))
+    # 5. Snap Tabs Mating with Direct Wall Retention Windows:
+    # Wall retention windows on case are located at X in {50.0, 170.0mm}, width 12.0mm, Z in [38.0, 41.5mm]
+    tab_w = 10.0   # 10.0mm tab width inside 12.0mm hole (1.0mm side clearance)
+    tab_t = 1.6    # 1.6mm cantilever thickness
+    tab_reach = 8.0  # reaches from Z=45.0 down to Z=37.0mm
+    bead_h = 2.5
+    bead_protrusion = 1.2
+    
+    snap_tabs = []
+    # Front Cantilever Snap Tabs (at Y = 3.2mm to 4.8mm, bead extending forward to Y = 2.0mm into front wall hole):
+    for sx in [50.0, 170.0]:
+        f_arm = Part.makeBox(tab_w, tab_t, tab_reach, App.Vector(sx - tab_w / 2.0, 3.2, h_case - tab_reach))
+        f_bead = Part.makeBox(tab_w, bead_protrusion, bead_h, App.Vector(sx - tab_w / 2.0, 3.2 - bead_protrusion, h_case - 6.5))
+        snap_tabs.extend([f_arm, f_bead])
         
-    # B) Left & Right Continuous Perimeter Register Ribs (X=3.8mm, X=w-5.3mm):
+    # Rear Cantilever Snap Tabs (at Y = 115.2mm to 116.8mm, bead extending backward to Y = 118.0mm into rear wall hole):
+    for sx in [50.0, 170.0]:
+        r_arm = Part.makeBox(tab_w, tab_t, tab_reach, App.Vector(sx - tab_w / 2.0, d - 3.2 - tab_t, h_case - tab_reach))
+        r_bead = Part.makeBox(tab_w, bead_protrusion, bead_h, App.Vector(sx - tab_w / 2.0, d - 3.2, h_case - 6.5))
+        snap_tabs.extend([r_arm, r_bead])
+        
+    # Left & Right Continuous Perimeter Register Down-Ribs:
     rib_l = Part.makeBox(1.5, d - 14.0, 2.5, App.Vector(3.8, 7.0, h_case - 2.5))
     rib_r = Part.makeBox(1.5, d - 14.0, 2.5, App.Vector(w - 5.3, 7.0, h_case - 2.5))
     side_ribs = [rib_l, rib_r]
     
-    # C) 2x Rear Cantilever Snap-Latches (X=50, 170mm, Y=d-8.0mm):
-    rear_latches = []
-    for rx in [50.0, 170.0]:
-        latch_arm = Part.makeBox(10.0, 1.8, 6.0, App.Vector(rx - 5.0, d - 8.0, h_case - 6.0))
-        latch_bead = Part.makeBox(10.0, 1.2, 1.5, App.Vector(rx - 5.0, d - 6.5, h_case - 5.5))
-        rear_latches.append(latch_arm.fuse(latch_bead))
-        
-    underside_snaps = front_hooks + side_ribs + rear_latches
-    return panel.fuse(Part.makeCompound(underside_snaps)).removeSplitter()
+    underside_features = snap_tabs + side_ribs
+    return panel.fuse(Part.makeCompound(underside_features)).removeSplitter()
 
 def main():
     doc = App.newDocument("InterfacePanelDoc")

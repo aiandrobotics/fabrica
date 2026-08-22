@@ -1,5 +1,5 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with 16 Full-Height Vertical Wire Ports)
+Fabrica Cloth Folding Robot - Interface Case (Triple-Board High-Capacity Enclosure with Direct Wall Retention Ports)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
@@ -9,15 +9,13 @@ Features:
    - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 37.0 x 24.0mm pitch)
    - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle)
    - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
-3. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+3. Direct Wall Snap-Lock Retention Windows (Zero Internal Boss Clutter):
+   - 4x Retention windows cut directly through the front and rear perimeter walls (2 on Front, 2 on Rear @ X=50, 170mm)
+   - 100% unobstructed, smooth interior chamber maximizing cable routing volume
+4. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
    - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
    - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
    - Aligned directly behind the PCA9685 servo pin headers
-4. 4-Sided Toolless Screw-Free Interlocking Snap Retention System:
-   - Front Under-Hook Retention Pockets (2x @ X=50, 170mm)
-   - Left & Right Sidewall Alignment Registers preventing lateral bowing/gapping
-   - Rear Cantilever Snap-Catch Bosses (2x @ X=50, 170mm) with tactile click detents
-   - Rear Toolless Pry-Release Access Notches for easy finger/coin opening
 5. Wiring, Ports & Thermal Management:
    - Dual Captive Zip-Tie Strain-Relief Anchor Saddles (12.0 x 6.0mm) absorbing 100% of external pull force
    - S-Curve Friction Snubber Posts (2x Ø6.0mm) for hardware-free wire tension relief
@@ -25,6 +23,7 @@ Features:
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
    - Passive convection chimney cooling slots directly below all 3 boards
    - 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
+   - Rear Toolless Pry-Release Access Notches
 """
 
 import os
@@ -51,36 +50,11 @@ def construct_interface_case():
     # 1. Main outer rectangular solid:
     outer_box = Part.makeBox(w, d, h)
     
-    # 2. Hollow internal cavity (Offset by 3.0mm walls and 3.0mm floor):
+    # 2. Hollow internal cavity (Completely smooth walls, NO internal protruding bosses!):
     inner_cavity = Part.makeBox(w - 2 * wall_t, d - 2 * wall_t, h - floor_t + 2.0, App.Vector(wall_t, wall_t, floor_t))
     case_body = outer_box.cut(inner_cavity).removeSplitter()
     
-    # 3. Four-Sided Toolless Snap Retention Features on Case:
-    # A) Front Under-Hook Retention Bosses (2x @ X=50, 170mm, Y=wall_t):
-    front_hook_bosses = []
-    front_hook_pockets = []
-    for hx in [50.0, 170.0]:
-        h_solid = Part.makeBox(20.0, 7.0, 6.0, App.Vector(hx - 10.0, wall_t, h - 6.0))
-        h_pkt = Part.makeBox(16.0, 6.0, 7.0, App.Vector(hx - 8.0, wall_t - 0.5, h - 5.0))
-        front_hook_bosses.append(h_solid)
-        front_hook_pockets.append(h_pkt)
-        
-    # B) Rear Cantilever Snap Catches (2x @ X=50, 170mm, Y=d-wall_t):
-    rear_catch_bosses = []
-    for rx in [50.0, 170.0]:
-        c_solid = Part.makeBox(18.0, 6.0, 10.0, App.Vector(rx - 9.0, d - wall_t - 6.0, h - 10.0))
-        c_pkt = Part.makeBox(14.0, 5.0, 11.0, App.Vector(rx - 7.0, d - wall_t - 5.5, h - 9.0))
-        c_bar = Part.makeBox(14.0, 1.2, 2.0, App.Vector(rx - 7.0, d - wall_t - 2.0, h - 6.5))
-        c_full = c_solid.cut(c_pkt).fuse(c_bar).removeSplitter()
-        rear_catch_bosses.append(c_full)
-        
-    case_retention = front_hook_bosses + rear_catch_bosses
-    if case_retention:
-        case_body = case_body.fuse(Part.makeCompound(case_retention)).removeSplitter()
-    if front_hook_pockets:
-        case_body = case_body.cut(Part.makeCompound(front_hook_pockets)).removeSplitter()
-        
-    # 4. Internal Electronics Mounting (3 Distinct Functional Bays):
+    # 3. Internal Electronics Mounting (3 Distinct Functional Bays):
     # A) PCA9685 16-Channel PWM Servo Driver Standoffs (Right Bay):
     pca_cx = w * 0.70  # ~154.0mm
     pca_cy = d * 0.50  # 60.0mm
@@ -165,24 +139,38 @@ def construct_interface_case():
     elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + pdb_bosses + [saddle_mid, saddle_pdb, saddle_motor1, saddle_motor2, snubber1, snubber2]
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
-    # 5. External Port Cutouts:
-    # A) ESP32 Micro-USB / USB-C Port Cutout on Left Wall (X=0):
+    # 4. External Port & Wall Cutouts:
+    # A) Direct Wall Snap Retention Holes (4x: 2 on Front Wall, 2 on Rear Wall @ X=50, 170mm):
+    # Cut directly through the 3.0mm perimeter walls at Z = [38.0, 41.5mm]
+    snap_hole_w = 12.0
+    snap_hole_h = 3.5
+    snap_z = h - 7.0  # 38.0mm to 41.5mm
+    
+    wall_snap_holes = []
+    for sx in [50.0, 170.0]:
+        # Front wall hole (Y = 0 to 3.0mm):
+        f_hole = Part.makeBox(snap_hole_w, wall_t + 2.0, snap_hole_h, App.Vector(sx - snap_hole_w / 2.0, -1.0, snap_z))
+        # Rear wall hole (Y = 117.0 to 120.0mm):
+        r_hole = Part.makeBox(snap_hole_w, wall_t + 2.0, snap_hole_h, App.Vector(sx - snap_hole_w / 2.0, d - wall_t - 1.0, snap_z))
+        wall_snap_holes.extend([f_hole, r_hole])
+        
+    # B) Ports:
+    # ESP32 Micro-USB / USB-C Port Cutout on Left Wall (X=0):
     usb_w = 12.0
     usb_h = 7.5
     usb_z = floor_t + esp_standoff_h + 0.5
     usb_cut = Part.makeBox(wall_t + 2.0, usb_w, usb_h, App.Vector(-1.0, esp_cy - usb_w / 2.0, usb_z))
     
-    # B) DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
+    # DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
     dc_jack_r = params.DC_JACK_DIAMETER / 2.0  # 5.75mm
     dc_jack_y = pdb_cy  # 86.0mm
     dc_jack_z = 14.0
     dc_jack_cut = Part.makeCylinder(dc_jack_r, wall_t + 2.0, App.Vector(-1.0, dc_jack_y, dc_jack_z), App.Vector(1, 0, 0))
     
-    # C) ESP32 Header Pin Through-Floor Relief Slots:
+    # C) Relief and Cooling Slots:
     esp_pin_slot1 = Part.makeBox(42.0, 4.0, floor_t + 2.0, App.Vector(esp_cx - 21.0, esp_cy - 28.5 / 2.0 + 1.0 - 0.75, -1.0))
     esp_pin_slot2 = Part.makeBox(42.0, 4.0, floor_t + 2.0, App.Vector(esp_cx - 21.0, esp_cy + 28.5 / 2.0 - 3.5 - 0.75, -1.0))
     
-    # D) Passive Convection Chimney Cooling Slots in Base Floor for all 3 boards:
     cooling_slots = [esp_pin_slot1, esp_pin_slot2]
     for i in [-1, 0, 1]:
         slot_e = Part.makeBox(36.0, 2.5, floor_t + 2.0, App.Vector(esp_cx - 18.0, esp_cy + i * 6.0 - 1.25, -1.0))
@@ -194,7 +182,7 @@ def construct_interface_case():
         slot_pdb = Part.makeBox(28.0, 2.5, floor_t + 2.0, App.Vector(pdb_cx - 14.0, pdb_cy + i * 6.0 - 1.25, -1.0))
         cooling_slots.append(slot_pdb)
         
-    # E) 4x Bottom Anti-Slip Rubber Feet Sockets (Ø20.1mm x 2.0mm):
+    # D) 4x Bottom Anti-Slip Rubber Feet Sockets (Ø20.1mm x 2.0mm):
     foot_r = params.FOOT_PAD_DIA / 2.0
     foot_d = params.FOOT_PAD_DEPTH
     foot_sockets = [
@@ -204,7 +192,7 @@ def construct_interface_case():
         Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(w - 16.0, d - 16.0, -0.1)),
     ]
     
-    # F) Extended Full-Height 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
+    # E) Extended Full-Height 16 Discrete Vertical Motor Wire Slots (1 Slot Per Servo Motor):
     # 16 slots of 3.5mm width and 2.5mm solid structural pillars between them (pitch = 6.0mm)
     # Extends vertically from Z = 5.0mm (near base floor) to Z = 37.0mm (total slot height = 32.0mm)
     slot_w = 3.5
@@ -219,18 +207,18 @@ def construct_interface_case():
         slot_cut = Part.makeBox(slot_w, wall_t + 4.0, slot_h, App.Vector(sx, d - wall_t - 2.0, slot_z_start))
         motor_slots.append(slot_cut)
         
-    # G) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
+    # F) Pry-Release Access Notches on Rear Rim (2x @ X=50, 170mm) for toolless finger/coin release:
     pry_notches = [
         Part.makeBox(12.0, 3.0, 2.0, App.Vector(50.0 - 6.0, d - 2.0, h - 1.5)),
         Part.makeBox(12.0, 3.0, 2.0, App.Vector(170.0 - 6.0, d - 2.0, h - 1.5)),
     ]
     
-    # H) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
+    # G) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
     ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + motor_slots + pry_notches + cooling_slots + foot_sockets
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring] + wall_snap_holes + motor_slots + pry_notches + cooling_slots + foot_sockets
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body

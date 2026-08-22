@@ -49,7 +49,7 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 - **Enclosure Profile**: Spacious flat horizontal rectangular unibody box ($220.0\text{ mm} \ (W) \times 120.0\text{ mm} \ (D) \times 45.0\text{ mm} \ (H)$ chassis + $3.0\text{ mm}$ top plate, total $H = 48.0\text{ mm}$) providing $>25.0\text{ mm}$ overhead volume for wiring harnesses.
 - **Power Inlet**: $\varnothing 11.5\text{ mm}$ circular hole on left wall for standard panel-mount DC barrel jack (5.5×2.1mm) powering the high-current servo power bus directly into the PDB.
 - **Ventilation**: Passive convection cooling chimney slots located on the bottom base directly below the PDB, PCA9685 driver, and ESP32 board to prevent heat buildup.
-- **Fastening**: 4x corner M3 countersunk screws securing the faceplate to the lower case.
+- **Fastening**: 4-sided toolless direct wall snap-fit system with 4x retention windows cut through the front/rear perimeter walls and 4x cantilever snap tabs on the panel, eliminating internal boss clutter.
 
 ### 4. 16 Extended Full-Height Vertical Motor Wire Ports & Strain-Relief Architecture
 - **16 Full-Height Vertical Slots**: 16 individual full-height vertical wire slots ($3.5\text{ mm} \times 32.0\text{ mm}$, reaching from $Z=5.0\text{ mm}$ near floor to $Z=37.0\text{ mm}$) on $6.0\text{ mm}$ pitch with $2.5\text{ mm}$ solid structural pillars between each slot directly behind the PCA9685 pin headers, allowing individual dedicated routing for each servo motor.
