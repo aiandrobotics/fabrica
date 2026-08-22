@@ -1,11 +1,11 @@
 """
-Fabrica Cloth Folding Robot - Interface Panel (15° Angled Control Faceplate with 4-Sided Toolless Snap-Lock)
+Fabrica Cloth Folding Robot - Interface Panel (15° Angled Control Faceplate with Circular Round LED Window)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
 1. 15.0° forward-angled ergonomic user control deck
 2. 4x Standardized Ø16.0mm round tactile push button cutouts with 0.8mm chamfers
-3. Multi-color Status LED diffuser light pipe window with retention lip
+3. Circular Round Status LED indicator window (Ø6.0mm with 0.8mm chamfer & Ø8.5mm underside retention pocket)
 4. 0.6mm Diamond micro-grip surface texture
 5. 4-Sided Toolless Screw-Free Interlocking Retention System:
    - Front: 2x Captive Under-Hook Lugs (sliding into case front retention pockets)
@@ -27,7 +27,7 @@ import params
 
 def construct_interface_panel():
     """
-    Constructs the 15° angled top control faceplate with 4-sided toolless snap-lock.
+    Constructs the 15° angled top control faceplate with circular round LED aperture.
     """
     w = params.PANEL_WIDTH  # 220.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
@@ -53,12 +53,13 @@ def construct_interface_panel():
         chamfer = Part.makeCone(btn_r, btn_r + params.HOLE_CHAMFER, params.HOLE_CHAMFER + 0.1, App.Vector(bx, btn_y_flat, plate_t - params.HOLE_CHAMFER))
         btn_cutters.extend([cyl, chamfer])
         
-    # 3. Status LED Light Pipe Window:
+    # 3. Circular Round Status LED Window (Ø6.0mm with 0.8mm top chamfer & Ø8.5mm underside retention pocket):
     led_y_flat = deck_len * 0.72  # ~89.4mm
-    led_w = 14.6
-    led_h = 5.6
-    led_cut = Part.makeBox(led_w, led_h, plate_t + 4.0, App.Vector(btn_cx - led_w / 2.0, led_y_flat - led_h / 2.0, -2.0))
-    led_lip = Part.makeBox(led_w + 3.4, led_h + 3.4, 1.5, App.Vector(btn_cx - (led_w + 3.4) / 2.0, led_y_flat - (led_h + 3.4) / 2.0, -0.1))
+    led_r = 3.0  # Ø6.0mm hole (fits standard 5mm round LED / snap-in clip)
+    led_cut = Part.makeCylinder(led_r, plate_t + 4.0, App.Vector(btn_cx, led_y_flat, -2.0))
+    led_chamfer = Part.makeCone(led_r, led_r + params.HOLE_CHAMFER, params.HOLE_CHAMFER + 0.1, App.Vector(btn_cx, led_y_flat, plate_t - params.HOLE_CHAMFER))
+    led_lip = Part.makeCylinder(4.25, 1.5, App.Vector(btn_cx, led_y_flat, -0.1))
+    led_cutters = [led_cut, led_chamfer, led_lip]
     
     # 4. 0.6mm Diamond Micro-Grip Surface Texture:
     tex_cutters = []
@@ -77,7 +78,7 @@ def construct_interface_panel():
     tex_bound = Part.makeBox(w - 2 * 14.0, deck_len - 2 * 14.0, plate_t + 2.0, App.Vector(14.0, 14.0, -1.0))
     tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
     
-    all_cuts = btn_cutters + [led_cut, led_lip, tex_compound]
+    all_cuts = btn_cutters + led_cutters + [tex_compound]
     panel = flat_plate.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     # 5. 4-Sided Underside Toolless Interlocking Snap Features:

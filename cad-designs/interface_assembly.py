@@ -3,13 +3,13 @@ Fabrica Cloth Folding Robot - Interface Module Assembly
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Integrates 3 Boards + User Interface Controls:
-1. Interface Case (interface_case.py) - Lower electronics chassis
-2. Interface Control Faceplate (interface_panel.py) - 15° ergonomic top deck
+1. Interface Case (interface_case.py) - Lower electronics chassis with 4-sided toolless snap retention
+2. Interface Control Faceplate (interface_panel.py) - 15° ergonomic top deck with round LED window
 3. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
 4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
 5. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
 6. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference)
-7. Status LED Diffuser Light Pipe (CAD Reference)
+7. Circular Round Status LED Diffuser / Indicator (CAD Reference)
 """
 
 import os
@@ -118,11 +118,13 @@ def construct_button_16mm_cad_reference():
 
 def construct_led_diffuser_cad_reference():
     """
-    CAD Reference solid for multi-color status LED diffuser lens.
+    CAD Reference solid for circular round status LED diffuser / 5mm round LED indicator.
     """
-    lens = Part.makeBox(14.0, 5.0, 3.5, App.Vector(-7.0, -2.5, 0))
-    lip = Part.makeBox(17.0, 8.0, 1.0, App.Vector(-8.5, -4.0, -1.0))
-    return lens.fuse(lip).removeSplitter()
+    body = Part.makeCylinder(2.5, 8.5, App.Vector(0, 0, -5.0))
+    dome = Part.makeSphere(2.5, App.Vector(0, 0, 3.5))
+    flange = Part.makeCylinder(3.0, 1.2, App.Vector(0, 0, -1.0))
+    leads = Part.makeBox(0.6, 2.54, 15.0, App.Vector(-0.3, -1.27, -20.0))
+    return body.fuse([dome, flange, leads]).removeSplitter()
 
 def build_assembly():
     """
@@ -166,7 +168,7 @@ def build_assembly():
         btn.translate(App.Vector(0, 0, params.BASE_PANEL_THICKNESS))
         buttons.append(btn)
         
-    # 7. Status LED Diffuser:
+    # 7. Status LED Diffuser / Round Indicator:
     led = construct_led_diffuser_cad_reference()
     led_y_flat = deck_len * 0.72
     led.translate(App.Vector(btn_cx, led_y_flat, 0.0))

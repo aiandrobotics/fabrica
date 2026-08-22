@@ -42,7 +42,7 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
   - Hole Details: $0.8\text{ mm} \times 45^\circ$ top chamfer for flush bezel seating and smooth finger touch.
   - Intended Functions: `Button 1: Start / Fold`, `Button 2: Pause / Stop`, `Button 3: Mode / Preset Select`, `Button 4: Reset / Calibrate`.
 - **Multi-State Status LED Indicator**:
-  - Light Aperture: Dedicated $12.0 \times 4.0\text{ mm}$ rectangular or $\varnothing 5.0\text{ mm}$ circular diffuser window with internal retention lip.
+  - Light Aperture: Standardized **$\varnothing 6.0\text{ mm}$ circular round window** with $0.8\text{ mm} \times 45^\circ$ top chamfer and $\varnothing 8.5\text{ mm} \times 1.5\text{ mm}$ underside retention counterbore (fits standard 5mm round LEDs and snap-in clip bezels).
   - Purpose: Multi-color visual feedback (Ready, Active Fold Cycle, Paused, Fault/Stall, WiFi Connected).
 
 ### 3. Case Enclosure & Ergonomics
