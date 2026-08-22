@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-08-22
+- Updated Bambu Lab 3MF print project to `cad-designs/3d-print/fabrica-bambu-lab-256.3mf` configured for 256x256mm build volume.
+
 ## 2026-08-21
 - Implemented 50/50 split on `motorized_frame.py` left wall ($6.20\text{mm}$ total width), extending the outer $3.10\text{mm}$ to full height ($Z=27.2\text{mm}$) and the inner $3.10\text{mm}$ as a support ledge ($Z=25.8\text{mm}$); resized `motorized_servo_cover.py` to $60.8\text{mm}$ width ($X \in [-20.6, 40.2\text{mm}]$) to sit in a dedicated 3-wall captive recessed pocket.
 - Reduced `motorized_frame.py` motor wire pass-through conduit to a fitted $10.0\text{mm} \times 8.6\text{mm}$ port with $1.5\text{mm}$ corner fillets centered at $(Y=205.5\text{mm}, Z=15.0\text{mm})$, eliminating the oversized $20\text{mm}$ void and restoring a $5.45\text{mm}$ solid base wall and $7.9\text{mm}$ top rail bridge.
