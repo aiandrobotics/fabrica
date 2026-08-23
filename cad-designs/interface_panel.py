@@ -1,17 +1,17 @@
 """
-Fabrica Cloth Folding Robot - Interface Panel (Flat Horizontal Top Faceplate with Direct Wall Snap-Lock Tabs)
+Fabrica Cloth Folding Robot - Interface Control Faceplate (Compact Top Deck with Direct Wall Snap Legs)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
-1. Flat horizontal rectangular faceplate (220.0 x 120.0 x 3.0mm)
-2. 4x Standardized Ø16.0mm round tactile push button cutouts with 0.8mm chamfers
-3. Circular Round Status LED indicator window (Ø6.0mm with 0.8mm chamfer & Ø8.5mm underside retention pocket)
-4. 0.6mm Diamond micro-grip surface texture
-5. 4-Sided Toolless Snap-Lock System mating with Direct Wall Holes:
-   - Front: 2x Cantilever Snap Tabs (clicking forward directly into front wall retention windows)
-   - Rear: 2x Cantilever Snap Tabs (clicking backward directly into rear wall retention windows)
-   - Left & Right: Continuous Perimeter Register Down-Ribs (preventing lateral bowing/gapping)
-6. 100% screwless, clean top surface aesthetics
+1. Compact flat horizontal rectangular top deck (140.0 x 120.0 x 3.0mm, assembled Z = 45.0 to 48.0mm)
+2. 4-Sided Toolless Direct Wall Snap Retention System:
+   - 4x Cantilever Snap Legs (2 on Front Edge, 2 on Rear Edge @ X=35, 105mm)
+   - 10.0mm wide x 1.6mm thick x 8.0mm reach cantilever legs with 1.2mm outward detent beads
+   - Continuous 1.8mm side register down-ribs aligning against inner left/right chassis walls
+3. Standardized Human-Machine Interface (HMI) Controls:
+   - 4x Inline Ø16.0mm Tactile Push Button Cutouts (0.8mm chamfers, 24.0mm pitch, centered at X=70.0mm, Y=54.0mm)
+   - Circular Round Ø6.0mm Status LED Window (0.8mm top chamfer, Ø8.5mm x 1.2mm underside retention lip @ X=70.0mm, Y=86.4mm)
+4. Diamond Micro-Grip Surface Texture & 0.8mm Perimeter Chamfer
 """
 
 import os
@@ -27,85 +27,117 @@ import params
 
 def construct_interface_panel():
     """
-    Constructs the flat horizontal top control faceplate with direct wall snap-lock tabs.
+    Constructs the compact monolithic 3D printable flat horizontal top faceplate
+    with direct wall cantilever snap legs and continuous side register down-ribs.
     """
-    w = params.PANEL_WIDTH  # 220.0mm
+    w = params.INTERFACE_PANEL_WIDTH  # 140.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
-    h_case = 45.0  # 45.0mm base chassis height for spacious wiring
-    plate_t = 3.0  # 3.0mm faceplate thickness
+    t_panel = 3.0  # 3.0mm thick top faceplate
+    h_case = 45.0  # 45.0mm case chassis height
+    wall_t = params.WALL_THICKNESS  # 3.0mm
     
-    # 1. Base flat plate at Z = h_case (45.0mm):
-    flat_plate = Part.makeBox(w, d, plate_t, App.Vector(0, 0, h_case))
+    # 1. Main flat horizontal top deck:
+    deck = Part.makeBox(w, d, t_panel, App.Vector(0, 0, h_case))
     
-    # 2. 4x Standardized Ø16.0mm Tactile Push Button Cutouts:
-    btn_r = (params.BUTTON_HOLE_DIA + 0.6) / 2.0  # 8.3mm (0.6mm clearance)
-    btn_pitch = 28.0  # 28.0mm center-to-center pitch
-    btn_cx = w / 2.0  # 110.0mm
-    btn_y = d * 0.45  # 54.0mm
-    btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
+    # 2. Continuous Side Register Down-Ribs (Left & Right inner wall alignment):
+    rib_t = 1.8  # 1.8mm thick guide rib
+    rib_h = 3.5  # 3.5mm downward protrusion
+    rib_clearance = 0.25  # 0.25mm perimeter clearance
     
-    btn_cutters = []
-    for bx in btn_xs:
-        cyl = Part.makeCylinder(btn_r, plate_t + 4.0, App.Vector(bx, btn_y, h_case - 2.0))
-        chamfer = Part.makeCone(btn_r, btn_r + params.HOLE_CHAMFER, params.HOLE_CHAMFER + 0.1, App.Vector(bx, btn_y, h_case + plate_t - params.HOLE_CHAMFER))
-        btn_cutters.extend([cyl, chamfer])
-        
-    # 3. Circular Round Status LED Window (Ø6.0mm with 0.8mm top chamfer & Ø8.5mm underside retention pocket):
-    led_y = d * 0.72  # 86.4mm
-    led_r = 3.0  # Ø6.0mm hole (fits standard 5mm round LED / snap-in clip)
-    led_cut = Part.makeCylinder(led_r, plate_t + 4.0, App.Vector(btn_cx, led_y, h_case - 2.0))
-    led_chamfer = Part.makeCone(led_r, led_r + params.HOLE_CHAMFER, params.HOLE_CHAMFER + 0.1, App.Vector(btn_cx, led_y, h_case + plate_t - params.HOLE_CHAMFER))
-    led_lip = Part.makeCylinder(4.25, 1.5, App.Vector(btn_cx, led_y, h_case - 0.1))
-    led_cutters = [led_cut, led_chamfer, led_lip]
+    left_rib = Part.makeBox(
+        rib_t,
+        d - 2 * wall_t - 2 * rib_clearance,
+        rib_h,
+        App.Vector(wall_t + rib_clearance, wall_t + rib_clearance, h_case - rib_h)
+    )
+    right_rib = Part.makeBox(
+        rib_t,
+        d - 2 * wall_t - 2 * rib_clearance,
+        rib_h,
+        App.Vector(w - wall_t - rib_t - rib_clearance, wall_t + rib_clearance, h_case - rib_h)
+    )
     
-    # 4. 0.6mm Diamond Micro-Grip Surface Texture:
-    tex_cutters = []
-    tex_spacing = 14.0
-    tex_w = 0.6
-    tex_d = params.TEXTURE_HEIGHT
-    for i in range(-int(w), int(w + d * 1.5), int(tex_spacing)):
-        g1 = Part.makeBox(tex_w, d * 1.5, tex_d + 0.1)
-        g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
-        g1.translate(App.Vector(i, 0, h_case + plate_t - tex_d))
-        g2 = Part.makeBox(tex_w, d * 1.5, tex_d + 0.1)
-        g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
-        g2.translate(App.Vector(i, d, h_case + plate_t - tex_d))
-        tex_cutters.extend([g1, g2])
-        
-    tex_bound = Part.makeBox(w - 2 * 14.0, d - 2 * 14.0, plate_t + 2.0, App.Vector(14.0, 14.0, h_case - 1.0))
-    tex_compound = Part.makeCompound(tex_cutters).common(tex_bound)
-    
-    all_cuts = btn_cutters + led_cutters + [tex_compound]
-    panel = flat_plate.cut(Part.makeCompound(all_cuts)).removeSplitter()
-    
-    # 5. Snap Tabs Mating with Direct Wall Retention Windows:
-    # Wall retention windows on case are located at X in {50.0, 170.0mm}, width 12.0mm, Z in [38.0, 41.5mm]
-    tab_w = 10.0   # 10.0mm tab width inside 12.0mm hole (1.0mm side clearance)
-    tab_t = 1.6    # 1.6mm cantilever thickness
-    tab_reach = 8.0  # reaches from Z=45.0 down to Z=37.0mm
-    bead_h = 2.5
-    bead_protrusion = 1.2
+    # 3. Direct Wall Snap Legs (4x: 2 Front, 2 Rear @ X=35, 105mm):
+    snap_w = 10.0  # 10.0mm wide cantilever leg
+    snap_t = 1.6  # 1.6mm thickness
+    snap_reach = 8.0  # 8.0mm downward reach into chassis
+    detent_w = snap_w
+    detent_reach = 2.0  # 2.0mm vertical height of detent bead
+    detent_h = 1.2  # 1.2mm outward projection into wall window
     
     snap_tabs = []
-    # Front Cantilever Snap Tabs (at Y = 3.2mm to 4.8mm, bead extending forward to Y = 2.0mm into front wall hole):
-    for sx in [50.0, 170.0]:
-        f_arm = Part.makeBox(tab_w, tab_t, tab_reach, App.Vector(sx - tab_w / 2.0, 3.2, h_case - tab_reach))
-        f_bead = Part.makeBox(tab_w, bead_protrusion, bead_h, App.Vector(sx - tab_w / 2.0, 3.2 - bead_protrusion, h_case - 6.5))
-        snap_tabs.extend([f_arm, f_bead])
+    for sx in [35.0, 105.0]:
+        # Front Snap Tab (clicks into front wall window @ Y=0):
+        f_leg = Part.makeBox(
+            snap_w, snap_t, snap_reach,
+            App.Vector(sx - snap_w / 2.0, wall_t + rib_clearance, h_case - snap_reach)
+        )
+        f_bead = Part.makeBox(
+            detent_w, detent_h, detent_reach,
+            App.Vector(sx - snap_w / 2.0, wall_t + rib_clearance - detent_h, h_case - 7.0)
+        )
+        snap_tabs.extend([f_leg, f_bead])
         
-    # Rear Cantilever Snap Tabs (at Y = 115.2mm to 116.8mm, bead extending backward to Y = 118.0mm into rear wall hole):
-    for sx in [50.0, 170.0]:
-        r_arm = Part.makeBox(tab_w, tab_t, tab_reach, App.Vector(sx - tab_w / 2.0, d - 3.2 - tab_t, h_case - tab_reach))
-        r_bead = Part.makeBox(tab_w, bead_protrusion, bead_h, App.Vector(sx - tab_w / 2.0, d - 3.2, h_case - 6.5))
-        snap_tabs.extend([r_arm, r_bead])
+        # Rear Snap Tab (clicks into rear wall window @ Y=120):
+        r_leg = Part.makeBox(
+            snap_w, snap_t, snap_reach,
+            App.Vector(sx - snap_w / 2.0, d - wall_t - rib_clearance - snap_t, h_case - snap_reach)
+        )
+        r_bead = Part.makeBox(
+            detent_w, detent_h, detent_reach,
+            App.Vector(sx - snap_w / 2.0, d - wall_t - rib_clearance, h_case - 7.0)
+        )
+        snap_tabs.extend([r_leg, r_bead])
         
-    # Left & Right Continuous Perimeter Register Down-Ribs:
-    rib_l = Part.makeBox(1.5, d - 14.0, 2.5, App.Vector(3.8, 7.0, h_case - 2.5))
-    rib_r = Part.makeBox(1.5, d - 14.0, 2.5, App.Vector(w - 5.3, 7.0, h_case - 2.5))
-    side_ribs = [rib_l, rib_r]
+    deck = deck.fuse(Part.makeCompound([left_rib, right_rib] + snap_tabs)).removeSplitter()
     
-    underside_features = snap_tabs + side_ribs
-    return panel.fuse(Part.makeCompound(underside_features)).removeSplitter()
+    # 4. 4x Standardized Ø16.0mm Tactile Push Button Cutouts:
+    btn_r = params.BUTTON_HOLE_DIA / 2.0  # 8.0mm
+    btn_pitch = 24.0
+    btn_cx = w / 2.0  # 70.0mm
+    btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
+    btn_y = d * 0.45  # 54.0mm
+    
+    btn_cuts = []
+    for bx in btn_xs:
+        cut = Part.makeCylinder(btn_r, t_panel + 2.0, App.Vector(bx, btn_y, h_case - 1.0))
+        c_top = Part.makeCone(
+            btn_r + params.HOLE_CHAMFER, btn_r, params.HOLE_CHAMFER,
+            App.Vector(bx, btn_y, h_case + t_panel - params.HOLE_CHAMFER)
+        )
+        btn_cuts.extend([cut, c_top])
+        
+    # 5. Status LED Diffuser Window (Ø6.0mm round):
+    led_r = 3.0  # Ø6.0mm round hole
+    led_y = d * 0.72  # 86.4mm
+    led_cut = Part.makeCylinder(led_r, t_panel + 2.0, App.Vector(btn_cx, led_y, h_case - 1.0))
+    led_c_top = Part.makeCone(
+        led_r + params.HOLE_CHAMFER, led_r, params.HOLE_CHAMFER,
+        App.Vector(btn_cx, led_y, h_case + t_panel - params.HOLE_CHAMFER)
+    )
+    led_lip = Part.makeCylinder(4.25, 1.2, App.Vector(btn_cx, led_y, h_case - 0.1))
+    
+    # 6. Diamond Grip Surface Texture Grooves (0.6mm depth):
+    tex_cuts = []
+    tex_h = params.TEXTURE_HEIGHT
+    num_grooves = 16
+    g_step = (w - 30.0) / num_grooves
+    for i in range(num_grooves + 1):
+        gx = 15.0 + i * g_step
+        g_box = Part.makeBox(0.8, d - 24.0, tex_h + 0.1, App.Vector(gx - 0.4, 12.0, h_case + t_panel - tex_h))
+        tex_cuts.append(g_box)
+        
+    # 7. 0.8mm Perimeter Top Edge Chamfer:
+    ef_cutter = Part.makeBox(w + 10.0, d + 10.0, 0.8, App.Vector(-5.0, -5.0, h_case + t_panel - 0.8))
+    ef_inner = Part.makeBox(w - 1.6, d - 1.6, 1.0, App.Vector(0.8, 0.8, h_case + t_panel - 0.9))
+    ef_ring = ef_cutter.cut(ef_inner)
+    
+    all_cuts = btn_cuts + [led_cut, led_c_top, led_lip, ef_ring] + tex_cuts
+    deck = deck.cut(Part.makeCompound(all_cuts)).removeSplitter()
+    
+    return deck
+
+construct_controller_panel = construct_interface_panel  # Backward compatibility alias
 
 def main():
     doc = App.newDocument("InterfacePanelDoc")

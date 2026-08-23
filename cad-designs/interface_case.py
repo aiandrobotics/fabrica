@@ -1,28 +1,29 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Triple-Board Enclosure with Integrated Male Dovetail & Wire Raceway)
+Fabrica Cloth Folding Robot - Interface Case (Compact Triple-Board Enclosure with Integrated Dovetail)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
-1. Spacious flat horizontal rectangular box chassis (220.0 x 120.0 x 45.0mm)
+1. Compact flat horizontal rectangular box chassis (140.0 x 120.0 x 45.0mm)
+   - Width reduced to 140.0mm (41% narrower than 220mm frame width) by arranging PDB vertically alongside ESP32 & PCA9685
    - 45.0mm chassis height provides >25mm of generous overhead space for wire routing
-2. Houses 3 Circuit Boards:
-   - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 37.0 x 24.0mm pitch)
-   - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle)
-   - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch)
+2. Houses 3 Circuit Boards in Compact Spatial Layout:
+   - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 24.0 x 37.0mm pitch, Left Bay @ X=25mm)
+   - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle, Front-Right Bay @ X=88mm, Y=32mm)
+   - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch, Rear-Right Bay @ X=88mm, Y=88mm)
 3. Direct Wall Snap-Lock Retention Windows (Zero Internal Boss Clutter):
-   - 4x Retention windows cut directly through the front and rear perimeter walls (2 on Front, 2 on Rear @ X=50, 170mm)
+   - 4x Retention windows cut directly through the front and rear perimeter walls (2 on Front, 2 on Rear @ X=35, 105mm)
    - 100% unobstructed, smooth interior chamber maximizing cable routing volume
-4. 16 Extended Full-Height Vertical Motor Wire Slots (1 Slot Per Servo Motor):
-   - 16x vertical wire ports (3.5mm wide x 32.0mm high, extending from Z=5.0mm near the floor to Z=37.0mm)
-   - Robust 2.5mm solid structural pillars between adjacent slots preventing wire tangling and maximizing wall stiffness
-   - Aligned directly behind the PCA9685 servo pin headers (X in [107.25, 200.75mm])
-5. Integrated External Male Sliding Dovetail Key with Standard Wire Raceway (@ X = 55.0mm):
+4. 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor):
+   - 16x vertical wire ports (4.0mm wide x 16.0mm high, extending from Z=8.0mm to Z=24.0mm)
+   - Solid 3.0mm structural pillars between adjacent slots (7.0mm pitch) aligned directly with PCA9685 pin headers
+   - Leaves a solid 14.0mm header beam below snap windows
+5. Integrated External Male Sliding Dovetail Key with Standard Wire Raceway (@ X = 70.0mm / Centered):
    - Flared male sliding dovetail key matching frame_joiner geometry (11.6mm neck -> 17.6mm flare, 12mm height)
    - High-capacity internal wire raceway conduit (6.8 x 8.6mm with 1.0mm fillets) passing directly through the dovetail arm into the enclosure
    - Slides directly into the female dovetail socket of any Fabrica robot base frame module without loose joiners
 6. Ports & Thermal Management:
-   - High-current DC Power Barrel Jack (Ø11.5mm) aligned directly with PDB input
-   - ESP32 USB programming / debug port cutout (12.0 x 7.5mm)
+   - High-current DC Power Barrel Jack (Ø11.5mm) on Left Wall (X=0) feeding PDB input directly
+   - ESP32 USB programming / debug port cutout (12.0 x 7.5mm) on Front Wall (Y=0)
    - Passive convection chimney cooling slots directly below all 3 boards
    - 4x Anti-slip rubber foot sockets (Ø20.1 x 2.0mm)
    - Continuous 100% flush top perimeter rim
@@ -41,12 +42,12 @@ import params
 
 def construct_interface_case():
     """
-    Constructs the monolithic 3D printable high-capacity flat rectangular electronics chassis
+    Constructs the compact monolithic 3D printable high-capacity flat rectangular electronics chassis
     with an integrated external male sliding dovetail key and continuous internal wire raceway.
     """
-    w = params.PANEL_WIDTH  # 220.0mm
+    w = params.INTERFACE_PANEL_WIDTH  # 140.0mm compact width
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
-    h = 45.0  # 45.0mm increased rectangular box chassis height for spacious wiring
+    h = 45.0  # 45.0mm spacious height for wiring
     wall_t = params.WALL_THICKNESS  # 3.0mm
     floor_t = 3.0  # 3.0mm solid bottom floor
     
@@ -58,52 +59,11 @@ def construct_interface_case():
     case_body = outer_box.cut(inner_cavity).removeSplitter()
     
     # 3. Internal Electronics Mounting (3 Distinct Functional Bays):
-    # A) PCA9685 16-Channel PWM Servo Driver Standoffs (Right Bay):
-    pca_cx = w * 0.70  # ~154.0mm
-    pca_cy = d * 0.50  # 60.0mm
-    pca_pitch_x = 55.88
-    pca_pitch_y = 19.05
-    pca_standoff_h = 5.0
-    pca_boss_r = 2.5  # Ø5.0mm boss
-    pca_pilot_r = 1.1  # Ø2.2mm core hole for M2.5 screw
-    
-    pca_bosses = []
-    for dx in [-pca_pitch_x / 2.0, pca_pitch_x / 2.0]:
-        for dy in [-pca_pitch_y / 2.0, pca_pitch_y / 2.0]:
-            bx = pca_cx + dx
-            by = pca_cy + dy
-            boss = Part.makeCylinder(pca_boss_r, floor_t + pca_standoff_h, App.Vector(bx, by, 0))
-            pilot = Part.makeCylinder(pca_pilot_r, pca_standoff_h + 1.0, App.Vector(bx, by, floor_t))
-            pca_bosses.append(boss.cut(pilot))
-            
-    # B) ESP32 DevKit Standoffs & Universal Retention Cradle (Lower-Left Bay):
-    esp_cx = 58.0
-    esp_cy = 44.0
-    esp_pitch_x = 46.0
-    esp_pitch_y = 23.0
-    esp_standoff_h = 5.0
-    esp_boss_r = 3.0
-    esp_pilot_r = 1.3
-    
-    esp_bosses = []
-    for dx in [-esp_pitch_x / 2.0, esp_pitch_x / 2.0]:
-        for dy in [-esp_pitch_y / 2.0, pca_pitch_y / 2.0]:
-            bx = esp_cx + dx
-            by = esp_cy + dy
-            boss = Part.makeCylinder(esp_boss_r, floor_t + esp_standoff_h, App.Vector(bx, by, 0))
-            pilot = Part.makeCylinder(esp_pilot_r, pca_standoff_h + 1.0, App.Vector(bx, by, floor_t))
-            esp_bosses.append(boss.cut(pilot))
-            
-    # ESP32 Perimeter Alignment Cradle:
-    cradle_box = Part.makeBox(54.0, 31.0, 3.5, App.Vector(esp_cx - 27.0, esp_cy - 15.5, floor_t))
-    cradle_pocket = Part.makeBox(52.0, 29.0, 4.0, App.Vector(esp_cx - 26.0, esp_cy - 14.5, floor_t))
-    esp_cradle = cradle_box.cut(cradle_pocket)
-    
-    # C) Power Distribution Board (PDB) Standoffs (Upper-Left Bay):
-    pdb_cx = 38.0
-    pdb_cy = 86.0
-    pdb_pitch_x = 37.0
-    pdb_pitch_y = 24.0
+    # A) Power Distribution Board (PDB) Standoffs (Left Bay - Oriented Vertically along Y):
+    pdb_cx = 25.0
+    pdb_cy = 60.0
+    pdb_pitch_x = 24.0
+    pdb_pitch_y = 37.0
     pdb_standoff_h = 5.0
     pdb_boss_r = 3.0
     pdb_pilot_r = 1.3
@@ -117,20 +77,60 @@ def construct_interface_case():
             pilot = Part.makeCylinder(pdb_pilot_r, pdb_standoff_h + 1.0, App.Vector(bx, by, floor_t))
             pdb_bosses.append(boss.cut(pilot))
             
-    elec_mounts = pca_bosses + esp_bosses + [esp_cradle] + pdb_bosses
+    # B) ESP32 DevKit Standoffs & Universal Retention Cradle (Front-Right Bay - Oriented along Y):
+    esp_cx = 88.0
+    esp_cy = 35.0
+    esp_pitch_x = 23.0
+    esp_pitch_y = 46.0
+    esp_standoff_h = 5.0
+    esp_boss_r = 3.0
+    esp_pilot_r = 1.3
+    
+    esp_bosses = []
+    for dx in [-esp_pitch_x / 2.0, esp_pitch_x / 2.0]:
+        for dy in [-esp_pitch_y / 2.0, esp_pitch_y / 2.0]:
+            bx = esp_cx + dx
+            by = esp_cy + dy
+            boss = Part.makeCylinder(esp_boss_r, floor_t + esp_standoff_h, App.Vector(bx, by, 0))
+            pilot = Part.makeCylinder(esp_pilot_r, esp_standoff_h + 1.0, App.Vector(bx, by, floor_t))
+            esp_bosses.append(boss.cut(pilot))
+            
+    # ESP32 Perimeter Alignment Cradle:
+    cradle_box = Part.makeBox(31.0, 54.0, 3.5, App.Vector(esp_cx - 15.5, esp_cy - 27.0, floor_t))
+    cradle_pocket = Part.makeBox(29.0, 52.0, 4.0, App.Vector(esp_cx - 14.5, esp_cy - 26.0, floor_t))
+    esp_cradle = cradle_box.cut(cradle_pocket)
+    
+    # C) PCA9685 16-Channel PWM Servo Driver Standoffs (Rear-Right Bay):
+    pca_cx = 88.0
+    pca_cy = 88.0
+    pca_pitch_x = 55.88
+    pca_pitch_y = 19.05
+    pca_standoff_h = 5.0
+    pca_boss_r = 2.5
+    pca_pilot_r = 1.1
+    
+    pca_bosses = []
+    for dx in [-pca_pitch_x / 2.0, pca_pitch_x / 2.0]:
+        for dy in [-pca_pitch_y / 2.0, pca_pitch_y / 2.0]:
+            bx = pca_cx + dx
+            by = pca_cy + dy
+            boss = Part.makeCylinder(pca_boss_r, floor_t + pca_standoff_h, App.Vector(bx, by, 0))
+            pilot = Part.makeCylinder(pca_pilot_r, pca_standoff_h + 1.0, App.Vector(bx, by, floor_t))
+            pca_bosses.append(boss.cut(pilot))
+            
+    elec_mounts = pdb_bosses + esp_bosses + [esp_cradle] + pca_bosses
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
-    # 4. Integrated External Male Dovetail Key on Rear Wall (@ X = 55.0mm / W * 0.25):
-    # Matches exact cross-section and shape of frame_joiner.py:
+    # 4. Integrated External Male Dovetail Key on Rear Wall (Centered at X = w / 2 = 70.0mm):
     dt_clearance = params.DOVETAIL_CLEARANCE  # 0.20mm
     gap = params.MODULE_GAP  # 20.0mm
     neck_w = params.DOVETAIL_NECK_WIDTH - (2.0 * dt_clearance)  # 11.60mm
     flare_w = params.DOVETAIL_FLARE_WIDTH - (2.0 * dt_clearance)  # 17.60mm
     dt_depth = params.DOVETAIL_DEPTH - dt_clearance  # 11.80mm
     dt_height = params.DOVETAIL_HEIGHT  # 12.0mm (Z in [3.0, 15.0mm])
-    bridge_w = params.DOVETAIL_FLARE_WIDTH  # 18.0mm bridge arm width
+    bridge_w = params.DOVETAIL_FLARE_WIDTH  # 18.0mm
     
-    dt_x = w * 0.25  # 55.0mm
+    dt_x = w / 2.0  # 70.0mm
     y_seam = d  # 120.0mm
     y_frame_face = y_seam + gap  # 140.0mm
     y_tip = y_frame_face + dt_depth  # 151.80mm
@@ -162,10 +162,9 @@ def construct_interface_case():
     case_body = case_body.fuse(dt_male_solid).removeSplitter()
     
     # High-Capacity Internal Wire Raceway Conduit (6.8mm x 8.6mm with 1.0mm Fillets) matching frame_joiner:
-    # Extends continuously from tip (Y=153mm) through bridge and case wall into cavity (Y=115mm):
     raceway_w = 6.8
     raceway_h = 8.6
-    center_z = params.DOVETAIL_FLOOR_THICKNESS + (dt_height / 2.0)  # 3.0 + 6.0 = 9.0mm
+    center_z = params.DOVETAIL_FLOOR_THICKNESS + (dt_height / 2.0)
     raceway_box = Part.makeBox(
         raceway_w,
         (y_tip - y_seam) + wall_t + 6.0,
@@ -183,46 +182,41 @@ def construct_interface_case():
         pass
         
     # 5. External Port & Wall Cutouts:
-    # A) Direct Wall Snap Retention Holes (4x: 2 on Front Wall, 2 on Rear Wall @ X=50, 170mm):
+    # A) Direct Wall Snap Retention Holes (4x: 2 on Front Wall, 2 on Rear Wall @ X=35, 105mm):
     snap_hole_w = 12.0
     snap_hole_h = 3.5
     snap_z = h - 7.0  # 38.0mm to 41.5mm
     
     wall_snap_holes = []
-    for sx in [50.0, 170.0]:
-        # Front wall hole (Y = 0 to 3.0mm):
+    for sx in [35.0, 105.0]:
         f_hole = Part.makeBox(snap_hole_w, wall_t + 2.0, snap_hole_h, App.Vector(sx - snap_hole_w / 2.0, -1.0, snap_z))
-        # Rear wall hole (Y = 117.0 to 120.0mm):
         r_hole = Part.makeBox(snap_hole_w, wall_t + 2.0, snap_hole_h, App.Vector(sx - snap_hole_w / 2.0, d - wall_t - 1.0, snap_z))
         wall_snap_holes.extend([f_hole, r_hole])
         
     # B) Ports:
-    # ESP32 Micro-USB / USB-C Port Cutout on Left Wall (X=0):
-    usb_w = 12.0
-    usb_h = 7.5
-    usb_z = floor_t + esp_standoff_h + 0.5
-    usb_cut = Part.makeBox(wall_t + 2.0, usb_w, usb_h, App.Vector(-1.0, esp_cy - usb_w / 2.0, usb_z))
-    
-    # DC Power Barrel Jack (Ø11.5mm) on Left Wall directly feeding PDB input:
-    dc_jack_r = params.DC_JACK_DIAMETER / 2.0  # 5.75mm
-    dc_jack_y = pdb_cy  # 86.0mm
+    # DC Power Barrel Jack (Ø11.5mm) on Left Wall (X=0) feeding PDB:
+    dc_jack_r = params.DC_JACK_DIAMETER / 2.0
+    dc_jack_y = pdb_cy  # 60.0mm
     dc_jack_z = 14.0
     dc_jack_cut = Part.makeCylinder(dc_jack_r, wall_t + 2.0, App.Vector(-1.0, dc_jack_y, dc_jack_z), App.Vector(1, 0, 0))
     
-    # C) Relief and Cooling Slots:
-    esp_pin_slot1 = Part.makeBox(42.0, 4.0, floor_t + 2.0, App.Vector(esp_cx - 21.0, esp_cy - 28.5 / 2.0 + 1.0 - 0.75, -1.0))
-    esp_pin_slot2 = Part.makeBox(42.0, 4.0, floor_t + 2.0, App.Vector(esp_cx - 21.0, esp_cy + 28.5 / 2.0 - 3.5 - 0.75, -1.0))
+    # ESP32 Micro-USB / USB-C Port Cutout on Front Wall (Y=0):
+    usb_w = 12.0
+    usb_h = 7.5
+    usb_z = floor_t + esp_standoff_h + 0.5
+    usb_cut = Part.makeBox(usb_w, wall_t + 2.0, usb_h, App.Vector(esp_cx - usb_w / 2.0, -1.0, usb_z))
     
-    cooling_slots = [esp_pin_slot1, esp_pin_slot2]
+    # C) Relief and Cooling Slots:
+    cooling_slots = []
+    # PDB Cooling Slots:
     for i in [-1, 0, 1]:
-        slot_e = Part.makeBox(36.0, 2.5, floor_t + 2.0, App.Vector(esp_cx - 18.0, esp_cy + i * 6.0 - 1.25, -1.0))
-        cooling_slots.append(slot_e)
-    for i in [-2, -1, 0, 1, 2]:
-        slot_p = Part.makeBox(48.0, 2.5, floor_t + 2.0, App.Vector(pca_cx - 24.0, pca_cy + i * 5.0 - 1.25, -1.0))
-        cooling_slots.append(slot_p)
+        cooling_slots.append(Part.makeBox(20.0, 2.5, floor_t + 2.0, App.Vector(pdb_cx - 10.0, pdb_cy + i * 8.0 - 1.25, -1.0)))
+    # ESP32 Cooling Slots:
     for i in [-1, 0, 1]:
-        slot_pdb = Part.makeBox(28.0, 2.5, floor_t + 2.0, App.Vector(pdb_cx - 14.0, pdb_cy + i * 6.0 - 1.25, -1.0))
-        cooling_slots.append(slot_pdb)
+        cooling_slots.append(Part.makeBox(36.0, 2.5, floor_t + 2.0, App.Vector(esp_cx - 18.0, esp_cy + i * 6.0 - 1.25, -1.0)))
+    # PCA9685 Cooling Slots:
+    for i in [-1, 0, 1]:
+        cooling_slots.append(Part.makeBox(45.0, 2.5, floor_t + 2.0, App.Vector(pca_cx - 22.5, pca_cy + i * 6.0 - 1.25, -1.0)))
         
     # D) 4x Bottom Anti-Slip Rubber Feet Sockets (Ø20.1mm x 2.0mm):
     foot_r = params.FOOT_PAD_DIA / 2.0
@@ -235,14 +229,13 @@ def construct_interface_case():
     ]
     
     # E) Standardized 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor):
-    # 16 slots of 4.0mm width x 16.0mm height with 3.0mm solid structural pillars between them (pitch = 7.0mm)
-    # Extends vertically from Z = 8.0mm (aligned with PCA9685 PCB deck) to Z = 24.0mm
-    # Leaves a generous 14.0mm solid structural header beam between Z=24.0mm and the snap window at Z=38.0mm
+    # 16 slots of 4.0mm width x 16.0mm height (Z in [8.0, 24.0mm]) on 6.0mm pitch (2.0mm solid pillars)
+    # Total span = 15 * 6.0 + 4.0 = 94.0mm, centered at pca_cx = 88.0mm (X in [41.0, 135.0mm])
     slot_w = 4.0
     slot_h = 16.0
-    slot_pitch = 7.0  # 4.0mm hole + 3.0mm solid pillar gap
+    slot_pitch = 6.0
     slot_z_start = 8.0
-    slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # 99.5mm
+    slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # 41.0mm
     
     motor_slots = []
     for i in range(16):

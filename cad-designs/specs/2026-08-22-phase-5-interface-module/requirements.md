@@ -41,19 +41,32 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
   - Spacing: Equidistant linear arrangement along the 15° angled top deck ($28.0\text{ mm}$ center-to-center pitch).
   - Hole Details: $0.8\text{ mm} \times 45^\circ$ top chamfer for flush bezel seating and smooth finger touch.
   - Intended Functions: `Button 1: Start / Fold`, `Button 2: Pause / Stop`, `Button 3: Mode / Preset Select`, `Button 4: Reset / Calibrate`.
-- **Multi-State Status LED Indicator**:
-  - Light Aperture: Standardized **$\varnothing 6.0\text{ mm}$ circular round window** with $0.8\text{ mm} \times 45^\circ$ top chamfer and $\varnothing 8.5\text{ mm} \times 1.5\text{ mm}$ underside retention counterbore (fits standard 5mm round LEDs and snap-in clip bezels).
-  - Purpose: Multi-color visual feedback (Ready, Active Fold Cycle, Paused, Fault/Stall, WiFi Connected).
+### 1. Compact Flat Horizontal Form Factor & Multi-Board Architecture
+- **Dimensions**: Outer rectangular chassis dimensions of $140.0\text{ mm} \ (W) \times 120.0\text{ mm} \ (D) \times 45.0\text{ mm} \ (H)$, assembled height of $48.0\text{ mm}$ with top faceplate.
+- **Volume Optimization**: Width reduced to $140.0\text{ mm}$ (41% narrower footprint) by arranging the Power Distribution Board vertically alongside the ESP32 and PCA9685 boards.
+- **Direct Wall Snap-Fit System**: 4x Cantilever snap tabs integrated directly on the panel clicking into 4x matching through-wall retention windows ($12.0\text{ mm} \times 3.5\text{ mm}$) cut through the front and rear perimeter walls (at $X \in \{35.0, 105.0\text{ mm}\}$), eliminating internal mounting bosses and maximizing internal routing volume.
+- **Top Interaction Controls**:
+  - 4x Standardized $\varnothing 16.0\text{ mm}$ round button holes with $0.8\text{ mm}$ top entry chamfers on $24.0\text{ mm}$ inline pitch.
+  - 1x Standardized circular round $\varnothing 6.0\text{ mm}$ status LED window with $0.8\text{ mm}$ top chamfer and $\varnothing 8.5\text{ mm} \times 1.2\text{ mm}$ underside retention lip.
 
-### 3. Case Enclosure & Ergonomics
-- **Enclosure Profile**: Spacious flat horizontal rectangular unibody box ($220.0\text{ mm} \ (W) \times 120.0\text{ mm} \ (D) \times 45.0\text{ mm} \ (H)$ chassis + $3.0\text{ mm}$ top plate, total $H = 48.0\text{ mm}$) with a 100% continuous flush top perimeter rim and $>25.0\text{ mm}$ overhead volume for wiring harnesses.
-- **Power Inlet**: $\varnothing 11.5\text{ mm}$ circular hole on left wall for standard panel-mount DC barrel jack (5.5×2.1mm) powering the high-current servo power bus directly into the PDB.
+### 2. Triple-Board Internal Mounting Bays
+1. **Power Distribution Board (PDB) / Buck Converter (Left Bay)**:
+   - Mounting Pattern: $24.0\text{ mm} \ (X) \times 37.0\text{ mm} \ (Y)$ M3 hole pitch for $32.0\text{ mm} \times 45.0\text{ mm}$ PCB oriented vertically along Y.
+   - External Port: $\varnothing 11.5\text{ mm}$ high-current DC barrel jack (5.5×2.1mm) on Left Wall ($X=0$) directly feeding the PDB screw terminals.
+2. **ESP32 Microcontroller Board (Front-Right Bay)**:
+   - Mounting Pattern: $23.0\text{ mm} \ (X) \times 46.0\text{ mm} \ (Y)$ M3 hole pitch for $28.5\text{ mm} \times 51.5\text{ mm}$ PCB oriented along Y.
+   - External Port: $12.0\text{ mm} \times 7.5\text{ mm}$ Micro-USB / USB-C cutout on Front Wall ($Y=0$) for firmware flashing and telemetry.
+3. **PCA9685 16-Channel PWM Servo Driver (Rear-Right Bay)**:
+   - Mounting Pattern: $55.88\text{ mm} \ (X) \times 19.05\text{ mm} \ (Y)$ ($2.20" \times 0.75"$) M2.5 hole pitch for $62.5\text{ mm} \times 25.4\text{ mm}$ PCB.
+   - Pin Orientation: 16 servo pin headers face directly towards the rear wall wire slots.
+
+### 3. Thermal & Structural Integrity
 - **Ventilation**: Passive convection cooling chimney slots located on the bottom base directly below the PDB, PCA9685 driver, and ESP32 board to prevent heat buildup.
 - **Fastening**: 4-sided toolless direct wall snap-fit system with 4x retention windows cut through the front/rear perimeter walls and 4x cantilever snap tabs on the panel, eliminating internal boss clutter.
 
 ### 4. 16 Discrete Motor Wire Ports & Integrated Dovetail Wire Raceway
-- **16 Discrete Vertical Slots**: 16 individual vertical wire slots ($4.0\text{ mm} \times 16.0\text{ mm}$, reaching from $Z=8.0\text{ mm}$ to $Z=24.0\text{ mm}$) on $7.0\text{ mm}$ pitch with $3.0\text{ mm}$ solid structural pillars between each slot directly behind the PCA9685 pin headers, allowing individual dedicated routing for each servo motor.
-- **Integrated External Male Dovetail Key with Wire Raceway**: Flared male sliding dovetail key with exact size and shape matching `frame_joiner.py` ($11.6\text{ mm}$ neck $\rightarrow$ $17.6\text{ mm}$ flare, $12.0\text{ mm}$ height, $45^\circ$ entry chamfers) with a high-capacity internal wire raceway conduit ($6.8\text{ mm} \times 8.6\text{ mm}$ with $1.0\text{ mm}$ corner fillets) passing directly through the dovetail arm into the enclosure.
+- **16 Discrete Vertical Slots**: 16 individual vertical wire slots ($4.0\text{ mm} \times 16.0\text{ mm}$, reaching from $Z=8.0\text{ mm}$ to $Z=24.0\text{ mm}$) on $6.0\text{ mm}$ pitch with $2.0\text{ mm}$ solid structural pillars between each slot directly behind the PCA9685 pin headers, allowing individual dedicated routing for each servo motor.
+- **Integrated External Male Dovetail Key with Wire Raceway**: Flared male sliding dovetail key centered at $X = 70.0\text{ mm}$ with exact size and shape matching `frame_joiner.py` ($11.6\text{ mm}$ neck $\rightarrow$ $17.6\text{ mm}$ flare, $12.0\text{ mm}$ height, $45^\circ$ entry chamfers) with a high-capacity internal wire raceway conduit ($6.8\text{ mm} \times 8.6\text{ mm}$ with $1.0\text{ mm}$ corner fillets) passing directly through the dovetail arm into the enclosure.
 - **Pull-Tension Isolation & Strain Relief**:
   - Dual Captive Zip-Tie Anchor Saddles: $12.0\text{ mm} \times 6.0\text{ mm}$ saddles with $3.0\text{ mm} \times 2.5\text{ mm}$ underpasses positioned right in front of the exit port. Tightening a zip-tie collar against the inner shoulder absorbs 100% of external cable pulling force, leaving zero mechanical tension on PCB pins or solder joints.
   - Dual S-Bend Friction Snubber Posts: $2\times \varnothing 6.0\text{ mm}$ cylindrical friction posts for optional hardware-free S-curve wire routing.

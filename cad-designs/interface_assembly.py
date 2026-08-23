@@ -1,15 +1,15 @@
 """
-Fabrica Cloth Folding Robot - Interface Module Assembly (Spacious High-Capacity Enclosure with Integrated Dovetail)
+Fabrica Cloth Folding Robot - Interface Module Assembly (Compact High-Capacity Enclosure)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
-Integrates 3 Boards + User Interface Controls in a Spacious Flat Horizontal Rectangular Box Enclosure:
-1. Interface Case (interface_case.py) - Flat lower electronics chassis (220.0 x 120.0 x 45.0mm) with integrated male dovetail @ X=55.0mm
-2. Interface Control Faceplate (interface_panel.py) - Flat horizontal top deck (220.0 x 120.0 x 3.0mm) with round LED window
-3. Power Distribution Board (PDB) / Buck Converter (CAD Reference)
-4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference)
-5. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference)
-6. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference)
-7. Circular Round Status LED Diffuser / Indicator (CAD Reference)
+Integrates 3 Boards + User Interface Controls in a Compact Flat Horizontal Rectangular Box Enclosure:
+1. Interface Case (interface_case.py) - Compact lower electronics chassis (140.0 x 120.0 x 45.0mm) with integrated male dovetail @ X=70.0mm
+2. Interface Control Faceplate (interface_panel.py) - Compact top deck (140.0 x 120.0 x 3.0mm) with round LED window
+3. Power Distribution Board (PDB) / Buck Converter (CAD Reference - Left Bay @ X=25mm, Y=60mm)
+4. ESP32 DevKit V1 / NodeMCU-32S Microcontroller Board (CAD Reference - Front-Right Bay @ X=88mm, Y=32mm)
+5. PCA9685 16-Channel 12-Bit PWM Servo Driver Board (CAD Reference - Rear-Right Bay @ X=88mm, Y=88mm)
+6. 4x Standardized Ø16.0mm Round Tactile Push Buttons (CAD Reference - Inline row @ Y=54mm)
+7. Circular Round Status LED Diffuser / Indicator (CAD Reference @ X=70mm, Y=86.4mm)
 """
 
 import os
@@ -82,15 +82,15 @@ def construct_esp32_cad_reference():
 def construct_pdb_cad_reference():
     """
     CAD Reference solid for 5V/6V High-Current Power Distribution Board with screw terminals.
-    PCB Footprint: 45.0 x 32.0 x 1.6mm with 4x M3 mounting holes (37.0 x 24.0mm pitch).
+    Oriented along Y: 32.0mm (X) x 45.0mm (Y) x 1.6mm with 4x M3 mounting holes (24.0 x 37.0mm pitch).
     """
-    w = 45.0
-    d = 32.0
+    w = 32.0
+    d = 45.0
     t_pcb = 1.6
     
     pcb = Part.makeBox(w, d, t_pcb)
-    pitch_x = 37.0
-    pitch_y = 24.0
+    pitch_x = 24.0
+    pitch_y = 37.0
     holes = []
     for dx in [-pitch_x / 2.0, pitch_x / 2.0]:
         for dy in [-pitch_y / 2.0, pitch_y / 2.0]:
@@ -99,9 +99,9 @@ def construct_pdb_cad_reference():
     pcb = pcb.cut(Part.makeCompound(holes))
     
     ind = Part.makeBox(12.0, 12.0, 8.0, App.Vector(w / 2.0 - 6.0, d / 2.0 - 6.0, t_pcb))
-    t_in = Part.makeBox(10.0, 15.0, 10.0, App.Vector(2.0, (d - 15.0) / 2.0, t_pcb))
-    t_out = Part.makeBox(10.0, 24.0, 10.0, App.Vector(w - 12.0, (d - 24.0) / 2.0, t_pcb))
-    hs = Part.makeBox(15.0, 10.0, 12.0, App.Vector(15.0, d - 12.0, t_pcb))
+    t_in = Part.makeBox(15.0, 10.0, 10.0, App.Vector((w - 15.0) / 2.0, 2.0, t_pcb))
+    t_out = Part.makeBox(24.0, 10.0, 10.0, App.Vector((w - 24.0) / 2.0, d - 12.0, t_pcb))
+    hs = Part.makeBox(10.0, 15.0, 12.0, App.Vector(w - 12.0, 15.0, t_pcb))
     
     return pcb.fuse([ind, t_in, t_out, hs]).removeSplitter()
 
@@ -127,34 +127,38 @@ def construct_led_diffuser_cad_reference():
 
 def build_assembly():
     """
-    Constructs and positions all parts for the Interface Assembly.
+    Constructs and positions all parts for the Compact Interface Assembly.
     """
     doc = App.newDocument("InterfaceAssemblyDoc")
+    w = params.INTERFACE_PANEL_WIDTH  # 140.0mm
+    d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
     h_case = 45.0
     
     # 1. Interface Case (with integrated male dovetail key):
     case = construct_interface_case()
     
-    # 2. Interface Panel (Flat Horizontal Top Faceplate):
+    # 2. Interface Panel (Compact Flat Horizontal Top Faceplate):
     deck = construct_interface_panel()
     
-    # 3. PCA9685 Servo Driver Board (Right Bay):
+    # 3. PCA9685 Servo Driver Board (Rear-Right Bay @ X=88mm, Y=88mm):
     pca = construct_pca9685_cad_reference()
-    pca.translate(App.Vector(params.PANEL_WIDTH * 0.70 - 62.5 / 2.0, params.INTERFACE_PANEL_HEIGHT * 0.50 - 25.4 / 2.0, 8.0))
+    pca.translate(App.Vector(88.0 - 62.5 / 2.0, 88.0 - 25.4 / 2.0, 8.0))
     
-    # 4. ESP32 DevKit Board (Lower-Left Bay):
+    # 4. ESP32 DevKit Board (Front-Right Bay @ X=88mm, Y=35mm):
     esp = construct_esp32_cad_reference()
-    esp.translate(App.Vector(58.0 - 51.5 / 2.0, 44.0 - 28.5 / 2.0, 8.0))
+    # Rotated so USB port faces front wall (Y=0):
+    esp.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
+    esp.translate(App.Vector(88.0 + 28.5 / 2.0, 35.0 - 51.5 / 2.0, 8.0))
     
-    # 5. Power Distribution Board (Upper-Left Bay):
+    # 5. Power Distribution Board (Left Bay @ X=25mm, Y=60mm):
     pdb = construct_pdb_cad_reference()
-    pdb.translate(App.Vector(38.0 - 45.0 / 2.0, 86.0 - 32.0 / 2.0, 8.0))
+    pdb.translate(App.Vector(25.0 - 32.0 / 2.0, 60.0 - 45.0 / 2.0, 8.0))
     
     # 6. 4x Ø16.0mm Tactile Push Buttons:
-    btn_pitch = 28.0
-    btn_cx = params.PANEL_WIDTH / 2.0
+    btn_pitch = 24.0
+    btn_cx = w / 2.0  # 70.0mm
     btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
-    btn_y = params.INTERFACE_PANEL_HEIGHT * 0.45
+    btn_y = d * 0.45  # 54.0mm
     
     buttons = []
     for bx in btn_xs:
@@ -164,7 +168,7 @@ def build_assembly():
         
     # 7. Status LED Diffuser / Round Indicator:
     led = construct_led_diffuser_cad_reference()
-    led_y = params.INTERFACE_PANEL_HEIGHT * 0.72
+    led_y = d * 0.72  # 86.4mm
     led.translate(App.Vector(btn_cx, led_y, h_case))
     
     # Add objects to document with standard aesthetic color palette:
@@ -215,7 +219,7 @@ def build_assembly():
     stl_path = os.path.join(out_dir, "interface_assembly.stl")
     assy_compound.exportStep(step_path)
     assy_compound.exportStl(stl_path)
-    print("=== Interface Assembly Exported Successfully ===")
+    print("=== Compact Interface Assembly Exported Successfully ===")
     print("STEP:", step_path)
     print("STL:", stl_path)
     print("BoundBox:", assy_compound.BoundBox)
