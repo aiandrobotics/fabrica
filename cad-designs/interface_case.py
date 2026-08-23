@@ -235,14 +235,14 @@ def construct_interface_case():
     ]
     
     # E) Standardized 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor):
-    # 16 slots of 4.0mm width x 16.0mm height with 2.0mm solid structural pillars between them (pitch = 6.0mm)
+    # 16 slots of 4.0mm width x 16.0mm height with 3.0mm solid structural pillars between them (pitch = 7.0mm)
     # Extends vertically from Z = 8.0mm (aligned with PCA9685 PCB deck) to Z = 24.0mm
     # Leaves a generous 14.0mm solid structural header beam between Z=24.0mm and the snap window at Z=38.0mm
     slot_w = 4.0
     slot_h = 16.0
-    slot_pitch = 6.0
+    slot_pitch = 7.0  # 4.0mm hole + 3.0mm solid pillar gap
     slot_z_start = 8.0
-    slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # 107.0mm
+    slot_start_x = pca_cx - (15 * slot_pitch + slot_w) / 2.0  # 99.5mm
     
     motor_slots = []
     for i in range(16):
