@@ -121,7 +121,7 @@ def construct_interface_case():
     elec_mounts = pdb_bosses + esp_bosses + [esp_cradle] + pca_bosses
     case_body = case_body.fuse(Part.makeCompound(elec_mounts)).removeSplitter()
     
-    # 4. Integrated External Male Dovetail Key on Rear Wall (Centered at X = w / 2 = 70.0mm):
+    # 4. Integrated External Male Dovetail Key on Left End of Rear Wall (@ X = 25.0mm / behind PDB):
     dt_clearance = params.DOVETAIL_CLEARANCE  # 0.20mm
     gap = params.MODULE_GAP  # 20.0mm
     neck_w = params.DOVETAIL_NECK_WIDTH - (2.0 * dt_clearance)  # 11.60mm
@@ -130,7 +130,7 @@ def construct_interface_case():
     dt_height = params.DOVETAIL_HEIGHT  # 12.0mm (Z in [3.0, 15.0mm])
     bridge_w = params.DOVETAIL_FLARE_WIDTH  # 18.0mm
     
-    dt_x = w / 2.0  # 70.0mm
+    dt_x = 25.0  # Left end of rear wall, behind PDB where no motor wire holes exist
     y_seam = d  # 120.0mm
     y_frame_face = y_seam + gap  # 140.0mm
     y_tip = y_frame_face + dt_depth  # 151.80mm
