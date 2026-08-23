@@ -41,9 +41,9 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
   - Spacing: Equidistant linear arrangement along the 15° angled top deck ($28.0\text{ mm}$ center-to-center pitch).
   - Hole Details: $0.8\text{ mm} \times 45^\circ$ top chamfer for flush bezel seating and smooth finger touch.
   - Intended Functions: `Button 1: Start / Fold`, `Button 2: Pause / Stop`, `Button 3: Mode / Preset Select`, `Button 4: Reset / Calibrate`.
-### 1. Compact Flat Horizontal Form Factor & Multi-Board Architecture
+### 1. Compact Ergonomic Form Factor & Multi-Board Architecture
 - **Dimensions**: Outer rectangular chassis dimensions of $140.0\text{ mm} \ (W) \times 120.0\text{ mm} \ (D) \times 45.0\text{ mm} \ (H)$, assembled height of $48.0\text{ mm}$ with top faceplate.
-- **Volume Optimization**: Width reduced to $140.0\text{ mm}$ (41% narrower footprint) by arranging the Power Distribution Board vertically alongside the ESP32 and PCA9685 boards.
+- **Ergonomic Styling**: Sleek **$R = 8.0\text{ mm}$ filleted vertical corners** across both lower chassis and top panel, eliminating sharp boxy corners for a modern, tactile enclosure.
 - **Direct Wall Snap-Fit System**: 4x Cantilever snap tabs integrated directly on the panel clicking into 4x matching through-wall retention windows ($12.0\text{ mm} \times 3.5\text{ mm}$) cut through the front and rear perimeter walls (at $X \in \{35.0, 105.0\text{ mm}\}$), eliminating internal mounting bosses and maximizing internal routing volume.
 - **Top Interaction Controls**:
   - 4x Standardized $\varnothing 16.0\text{ mm}$ round button holes with $0.8\text{ mm}$ top entry chamfers on widened **$30.0\text{ mm}$ inline pitch** ($14.0\text{ mm}$ edge-to-edge gap).

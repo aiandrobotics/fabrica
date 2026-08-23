@@ -1,26 +1,26 @@
 """
-Fabrica Cloth Folding Robot - Interface Case (Compact Triple-Board Enclosure with Integrated Dovetail)
+Fabrica Cloth Folding Robot - Interface Case (Compact Triple-Board Enclosure with Filleted Rounded Corners)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
-1. Compact flat horizontal rectangular box chassis (140.0 x 120.0 x 45.0mm)
+1. Compact ergonomic rectangular enclosure chassis (140.0 x 120.0 x 45.0mm)
+   - Sleek R=8.0mm filleted vertical corners removing all sharp boxy edges for a premium consumer aesthetic
    - Width reduced to 140.0mm (41% narrower than 220mm frame width) by arranging PDB vertically alongside ESP32 & PCA9685
    - 45.0mm chassis height provides >25mm of generous overhead space for wire routing
 2. Houses 3 Circuit Boards in Compact Spatial Layout:
    - Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module (M3 standoffs @ 24.0 x 37.0mm pitch, Left Bay @ X=25mm)
-   - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 46.0 x 23.0mm pitch + perimeter cradle, Front-Right Bay @ X=88mm, Y=32mm)
+   - ESP32 DevKit V1 / NodeMCU-32S (M3 standoffs @ 23.0 x 46.0mm pitch + perimeter cradle, Front-Right Bay @ X=88mm, Y=35mm)
    - PCA9685 16-Channel 12-Bit PWM Servo Driver Board (M2.5 standoffs @ 55.88 x 19.05mm pitch, Rear-Right Bay @ X=88mm, Y=88mm)
 3. Direct Wall Snap-Lock Retention Windows (Zero Internal Boss Clutter):
    - 4x Retention windows cut directly through the front and rear perimeter walls (2 on Front, 2 on Rear @ X=35, 105mm)
    - 100% unobstructed, smooth interior chamber maximizing cable routing volume
 4. 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor):
    - 16x vertical wire ports (4.0mm wide x 16.0mm high, extending from Z=8.0mm to Z=24.0mm)
-   - Solid 3.0mm structural pillars between adjacent slots (7.0mm pitch) aligned directly with PCA9685 pin headers
-   - Leaves a solid 14.0mm header beam below snap windows
-5. Integrated External Male Sliding Dovetail Key with Standard Wire Raceway (@ X = 70.0mm / Centered):
+   - Solid 2.0mm structural pillars between adjacent slots (6.0mm pitch) aligned directly with PCA9685 pin headers on the right half of rear wall
+5. Integrated External Male Sliding Dovetail Key with Standard Wire Raceway on Left End (@ X = 25.0mm / behind PDB):
    - Flared male sliding dovetail key matching frame_joiner geometry (11.6mm neck -> 17.6mm flare, 12mm height)
-   - High-capacity internal wire raceway conduit (6.8 x 8.6mm with 1.0mm fillets) passing directly through the dovetail arm into the enclosure
-   - Slides directly into the female dovetail socket of any Fabrica robot base frame module without loose joiners
+   - High-capacity internal wire raceway conduit (6.8 x 8.6mm with 1.0mm fillets) passing directly through the dovetail arm into the enclosure power bay
+   - Completely isolated from motor wire slots on the right half of rear wall
 6. Ports & Thermal Management:
    - High-current DC Power Barrel Jack (Ø11.5mm) on Left Wall (X=0) feeding PDB input directly
    - ESP32 USB programming / debug port cutout (12.0 x 7.5mm) on Front Wall (Y=0)
@@ -40,22 +40,52 @@ import FreeCAD as App
 import Part
 import params
 
+def make_rounded_box(w, d, h, r):
+    """
+    Constructs a solid rectangular box with 4 rounded vertical corners of radius r.
+    Origin at (0, 0, 0).
+    """
+    p1 = App.Vector(r, 0, 0)
+    p2 = App.Vector(w - r, 0, 0)
+    p3 = App.Vector(w, r, 0)
+    p4 = App.Vector(w, d - r, 0)
+    p5 = App.Vector(w - r, d, 0)
+    p6 = App.Vector(r, d, 0)
+    p7 = App.Vector(0, d - r, 0)
+    p8 = App.Vector(0, r, 0)
+    
+    edge_bottom = Part.makeLine(p1, p2)
+    arc_br = Part.Edge(Part.Arc(p2, App.Vector(w - r * (1.0 - math.sin(math.pi / 4.0)), r * (1.0 - math.sin(math.pi / 4.0)), 0), p3))
+    edge_right = Part.makeLine(p3, p4)
+    arc_tr = Part.Edge(Part.Arc(p4, App.Vector(w - r * (1.0 - math.sin(math.pi / 4.0)), d - r * (1.0 - math.sin(math.pi / 4.0)), 0), p5))
+    edge_top = Part.makeLine(p5, p6)
+    arc_tl = Part.Edge(Part.Arc(p6, App.Vector(r * (1.0 - math.sin(math.pi / 4.0)), d - r * (1.0 - math.sin(math.pi / 4.0)), 0), p7))
+    edge_left = Part.makeLine(p7, p8)
+    arc_bl = Part.Edge(Part.Arc(p8, App.Vector(r * (1.0 - math.sin(math.pi / 4.0)), r * (1.0 - math.sin(math.pi / 4.0)), 0), p1))
+    
+    wire = Part.Wire([edge_bottom, arc_br, edge_right, arc_tr, edge_top, arc_tl, edge_left, arc_bl])
+    face = Part.Face(wire)
+    return face.extrude(App.Vector(0, 0, h))
+
 def construct_interface_case():
     """
-    Constructs the compact monolithic 3D printable high-capacity flat rectangular electronics chassis
-    with an integrated external male sliding dovetail key and continuous internal wire raceway.
+    Constructs the compact monolithic 3D printable electronics chassis
+    with sleek R=8.0mm filleted vertical corners, integrated dovetail key, and internal wire raceway.
     """
     w = params.INTERFACE_PANEL_WIDTH  # 140.0mm compact width
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
     h = 45.0  # 45.0mm spacious height for wiring
     wall_t = params.WALL_THICKNESS  # 3.0mm
     floor_t = 3.0  # 3.0mm solid bottom floor
+    corner_r = 8.0  # 8.0mm sleek corner fillet radius
     
-    # 1. Main outer rectangular solid:
-    outer_box = Part.makeBox(w, d, h)
+    # 1. Main outer rounded rectangular solid:
+    outer_box = make_rounded_box(w, d, h, corner_r)
     
-    # 2. Hollow internal cavity (Completely smooth walls, 100% solid floor and rear wall):
-    inner_cavity = Part.makeBox(w - 2 * wall_t, d - 2 * wall_t, h - floor_t + 2.0, App.Vector(wall_t, wall_t, floor_t))
+    # 2. Hollow internal cavity:
+    inner_r = max(1.0, corner_r - wall_t)  # 5.0mm inner corner radius
+    inner_cavity = make_rounded_box(w - 2 * wall_t, d - 2 * wall_t, h - floor_t + 2.0, inner_r)
+    inner_cavity.translate(App.Vector(wall_t, wall_t, floor_t))
     case_body = outer_box.cut(inner_cavity).removeSplitter()
     
     # 3. Internal Electronics Mounting (3 Distinct Functional Bays):
@@ -146,8 +176,7 @@ def construct_interface_case():
         App.Vector(dt_x + bridge_w / 2.0, y_seam - 1.0, 0),
         App.Vector(dt_x - bridge_w / 2.0, y_seam - 1.0, 0),
     ]
-    dt_wire = Part.makePolygon(dt_pts)
-    dt_face = Part.Face(dt_wire)
+    dt_face = Part.Face(Part.makePolygon(dt_pts))
     dt_male_solid = dt_face.extrude(App.Vector(0, 0, dt_height))
     dt_male_solid.translate(App.Vector(0, 0, params.DOVETAIL_FLOOR_THICKNESS))
     
@@ -208,13 +237,10 @@ def construct_interface_case():
     
     # C) Relief and Cooling Slots:
     cooling_slots = []
-    # PDB Cooling Slots:
     for i in [-1, 0, 1]:
         cooling_slots.append(Part.makeBox(20.0, 2.5, floor_t + 2.0, App.Vector(pdb_cx - 10.0, pdb_cy + i * 8.0 - 1.25, -1.0)))
-    # ESP32 Cooling Slots:
     for i in [-1, 0, 1]:
-        cooling_slots.append(Part.makeBox(36.0, 2.5, floor_t + 2.0, App.Vector(esp_cx - 18.0, esp_cy + i * 6.0 - 1.25, -1.0)))
-    # PCA9685 Cooling Slots:
+        cooling_slots.append(Part.makeBox(20.0, 2.5, floor_t + 2.0, App.Vector(esp_cx - 10.0, esp_cy + i * 8.0 - 1.25, -1.0)))
     for i in [-1, 0, 1]:
         cooling_slots.append(Part.makeBox(45.0, 2.5, floor_t + 2.0, App.Vector(pca_cx - 22.5, pca_cy + i * 6.0 - 1.25, -1.0)))
         
@@ -228,9 +254,7 @@ def construct_interface_case():
         Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(w - 16.0, d - 16.0, -0.1)),
     ]
     
-    # E) Standardized 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor):
-    # 16 slots of 4.0mm width x 16.0mm height (Z in [8.0, 24.0mm]) on 6.0mm pitch (2.0mm solid pillars)
-    # Total span = 15 * 6.0 + 4.0 = 94.0mm, centered at pca_cx = 88.0mm (X in [41.0, 135.0mm])
+    # E) Standardized 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor on Right Half of Rear Wall):
     slot_w = 4.0
     slot_h = 16.0
     slot_pitch = 6.0
@@ -245,7 +269,8 @@ def construct_interface_case():
         
     # F) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
-    ef_inner = Part.makeBox(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
+    ef_inner = make_rounded_box(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, max(0.5, corner_r - params.ELEPHANTS_FOOT_CHAMFER))
+    ef_inner.translate(App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
     all_cuts = [usb_cut, dc_jack_cut, ef_ring, raceway_box] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets

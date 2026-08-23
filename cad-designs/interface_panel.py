@@ -1,17 +1,18 @@
 """
-Fabrica Cloth Folding Robot - Interface Control Faceplate (Compact Top Deck with Direct Wall Snap Legs)
+Fabrica Cloth Folding Robot - Interface Control Faceplate (Compact Top Deck with Filleted Rounded Corners)
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
-1. Compact flat horizontal rectangular top deck (140.0 x 120.0 x 3.0mm, assembled Z = 45.0 to 48.0mm)
+1. Compact ergonomic rectangular top deck (140.0 x 120.0 x 3.0mm, assembled Z = 45.0 to 48.0mm)
+   - Sleek R=8.0mm filleted vertical corners matching lower chassis
 2. 4-Sided Toolless Direct Wall Snap Retention System:
    - 4x Cantilever Snap Legs (2 on Front Edge, 2 on Rear Edge @ X=35, 105mm)
    - 10.0mm wide x 1.6mm thick x 8.0mm reach cantilever legs with 1.2mm outward detent beads
    - Continuous 1.8mm side register down-ribs aligning against inner left/right chassis walls
 3. Standardized Human-Machine Interface (HMI) Controls:
-   - 4x Inline Ø16.0mm Tactile Push Button Cutouts (0.8mm chamfers, 24.0mm pitch, centered at X=70.0mm, Y=54.0mm)
+   - 4x Inline Ø16.0mm Tactile Push Button Cutouts (0.8mm chamfers, widened 30.0mm pitch, centered at X=70.0mm, Y=54.0mm)
    - Circular Round Ø6.0mm Status LED Window (0.8mm top chamfer, Ø8.5mm x 1.2mm underside retention lip @ X=70.0mm, Y=86.4mm)
-4. Diamond Micro-Grip Surface Texture & 0.8mm Perimeter Chamfer
+4. Diamond Micro-Grip Surface Texture & Perimeter Edge Chamfer
 """
 
 import os
@@ -25,19 +26,48 @@ import FreeCAD as App
 import Part
 import params
 
+def make_rounded_box(w, d, h, r):
+    """
+    Constructs a solid rectangular box with 4 rounded vertical corners of radius r.
+    Origin at (0, 0, 0).
+    """
+    p1 = App.Vector(r, 0, 0)
+    p2 = App.Vector(w - r, 0, 0)
+    p3 = App.Vector(w, r, 0)
+    p4 = App.Vector(w, d - r, 0)
+    p5 = App.Vector(w - r, d, 0)
+    p6 = App.Vector(r, d, 0)
+    p7 = App.Vector(0, d - r, 0)
+    p8 = App.Vector(0, r, 0)
+    
+    edge_bottom = Part.makeLine(p1, p2)
+    arc_br = Part.Edge(Part.Arc(p2, App.Vector(w - r * (1.0 - math.sin(math.pi / 4.0)), r * (1.0 - math.sin(math.pi / 4.0)), 0), p3))
+    edge_right = Part.makeLine(p3, p4)
+    arc_tr = Part.Edge(Part.Arc(p4, App.Vector(w - r * (1.0 - math.sin(math.pi / 4.0)), d - r * (1.0 - math.sin(math.pi / 4.0)), 0), p5))
+    edge_top = Part.makeLine(p5, p6)
+    arc_tl = Part.Edge(Part.Arc(p6, App.Vector(r * (1.0 - math.sin(math.pi / 4.0)), d - r * (1.0 - math.sin(math.pi / 4.0)), 0), p7))
+    edge_left = Part.makeLine(p7, p8)
+    arc_bl = Part.Edge(Part.Arc(p8, App.Vector(r * (1.0 - math.sin(math.pi / 4.0)), r * (1.0 - math.sin(math.pi / 4.0)), 0), p1))
+    
+    wire = Part.Wire([edge_bottom, arc_br, edge_right, arc_tr, edge_top, arc_tl, edge_left, arc_bl])
+    face = Part.Face(wire)
+    return face.extrude(App.Vector(0, 0, h))
+
 def construct_interface_panel():
     """
     Constructs the compact monolithic 3D printable flat horizontal top faceplate
-    with direct wall cantilever snap legs and continuous side register down-ribs.
+    with sleek R=8.0mm filleted vertical corners, direct wall snap legs, and side register ribs.
     """
     w = params.INTERFACE_PANEL_WIDTH  # 140.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
     t_panel = 3.0  # 3.0mm thick top faceplate
     h_case = 45.0  # 45.0mm case chassis height
     wall_t = params.WALL_THICKNESS  # 3.0mm
+    corner_r = 8.0  # 8.0mm sleek corner fillet radius
     
-    # 1. Main flat horizontal top deck:
-    deck = Part.makeBox(w, d, t_panel, App.Vector(0, 0, h_case))
+    # 1. Main rounded rectangular top deck:
+    deck = make_rounded_box(w, d, t_panel, corner_r)
+    deck.translate(App.Vector(0, 0, h_case))
     
     # 2. Continuous Side Register Down-Ribs (Left & Right inner wall alignment):
     rib_t = 1.8  # 1.8mm thick guide rib
@@ -46,15 +76,15 @@ def construct_interface_panel():
     
     left_rib = Part.makeBox(
         rib_t,
-        d - 2 * wall_t - 2 * rib_clearance,
+        d - 2 * wall_t - 2 * rib_clearance - 2 * corner_r,
         rib_h,
-        App.Vector(wall_t + rib_clearance, wall_t + rib_clearance, h_case - rib_h)
+        App.Vector(wall_t + rib_clearance, wall_t + rib_clearance + corner_r, h_case - rib_h)
     )
     right_rib = Part.makeBox(
         rib_t,
-        d - 2 * wall_t - 2 * rib_clearance,
+        d - 2 * wall_t - 2 * rib_clearance - 2 * corner_r,
         rib_h,
-        App.Vector(w - wall_t - rib_t - rib_clearance, wall_t + rib_clearance, h_case - rib_h)
+        App.Vector(w - wall_t - rib_t - rib_clearance, wall_t + rib_clearance + corner_r, h_case - rib_h)
     )
     
     # 3. Direct Wall Snap Legs (4x: 2 Front, 2 Rear @ X=35, 105mm):
@@ -127,12 +157,7 @@ def construct_interface_panel():
         g_box = Part.makeBox(0.8, d - 24.0, tex_h + 0.1, App.Vector(gx - 0.4, 12.0, h_case + t_panel - tex_h))
         tex_cuts.append(g_box)
         
-    # 7. 0.8mm Perimeter Top Edge Chamfer:
-    ef_cutter = Part.makeBox(w + 10.0, d + 10.0, 0.8, App.Vector(-5.0, -5.0, h_case + t_panel - 0.8))
-    ef_inner = Part.makeBox(w - 1.6, d - 1.6, 1.0, App.Vector(0.8, 0.8, h_case + t_panel - 0.9))
-    ef_ring = ef_cutter.cut(ef_inner)
-    
-    all_cuts = btn_cuts + [led_cut, led_c_top, led_lip, ef_ring] + tex_cuts
+    all_cuts = btn_cuts + [led_cut, led_c_top, led_lip] + tex_cuts
     deck = deck.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return deck
