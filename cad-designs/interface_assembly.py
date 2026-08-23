@@ -155,7 +155,7 @@ def build_assembly():
     pdb.translate(App.Vector(25.0 - 32.0 / 2.0, 60.0 - 45.0 / 2.0, 8.0))
     
     # 6. 4x Ø16.0mm Tactile Push Buttons:
-    btn_pitch = 24.0
+    btn_pitch = 30.0  # 30.0mm pitch
     btn_cx = w / 2.0  # 70.0mm
     btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
     btn_y = d * 0.45  # 54.0mm

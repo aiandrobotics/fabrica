@@ -46,7 +46,7 @@ Phase 5 covers the complete 3D mechanical CAD modeling, parametric definitions, 
 - **Volume Optimization**: Width reduced to $140.0\text{ mm}$ (41% narrower footprint) by arranging the Power Distribution Board vertically alongside the ESP32 and PCA9685 boards.
 - **Direct Wall Snap-Fit System**: 4x Cantilever snap tabs integrated directly on the panel clicking into 4x matching through-wall retention windows ($12.0\text{ mm} \times 3.5\text{ mm}$) cut through the front and rear perimeter walls (at $X \in \{35.0, 105.0\text{ mm}\}$), eliminating internal mounting bosses and maximizing internal routing volume.
 - **Top Interaction Controls**:
-  - 4x Standardized $\varnothing 16.0\text{ mm}$ round button holes with $0.8\text{ mm}$ top entry chamfers on $24.0\text{ mm}$ inline pitch.
+  - 4x Standardized $\varnothing 16.0\text{ mm}$ round button holes with $0.8\text{ mm}$ top entry chamfers on widened **$30.0\text{ mm}$ inline pitch** ($14.0\text{ mm}$ edge-to-edge gap).
   - 1x Standardized circular round $\varnothing 6.0\text{ mm}$ status LED window with $0.8\text{ mm}$ top chamfer and $\varnothing 8.5\text{ mm} \times 1.2\text{ mm}$ underside retention lip.
 
 ### 2. Triple-Board Internal Mounting Bays

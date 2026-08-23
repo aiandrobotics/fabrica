@@ -93,7 +93,7 @@ def construct_interface_panel():
     
     # 4. 4x Standardized Ø16.0mm Tactile Push Button Cutouts:
     btn_r = params.BUTTON_HOLE_DIA / 2.0  # 8.0mm
-    btn_pitch = 24.0
+    btn_pitch = 30.0  # 30.0mm pitch (14.0mm edge-to-edge gap between Ø16mm holes)
     btn_cx = w / 2.0  # 70.0mm
     btn_xs = [btn_cx - 1.5 * btn_pitch, btn_cx - 0.5 * btn_pitch, btn_cx + 0.5 * btn_pitch, btn_cx + 1.5 * btn_pitch]
     btn_y = d * 0.45  # 54.0mm
