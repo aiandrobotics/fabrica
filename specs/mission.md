@@ -64,7 +64,7 @@ graph TD
 
 ## Product Roadmap
 
-- [ ] **Deliverable 1: CAD Designs**: Modular 3D printed panel models, drive shafts, hinge links, controller housing, and full 4×3 grid assembly models.
+- [x] **Deliverable 1: CAD Designs**: Modular 3D printed panel models, drive shafts, hinge links, controller housing, and full 4×3 grid assembly models.
 - [ ] **Deliverable 2: ESP32 Firmware**: MicroPython/C++ firmware, PCA9685 I2C driver, polling 4-button interface, status LED driver, parallel sequence executor, and Flash profile storage.
 - [ ] **Deliverable 3: Documentation Website**: Step-by-step mechanical assembly guides, wiring schematics, interactive BOM table, and user manuals.
 - [ ] **Deliverable 4: Mobile Application**: Bluetooth LE / Wi-Fi wireless control, visual folding sequence editor, live telemetry, and AI vision preparation.

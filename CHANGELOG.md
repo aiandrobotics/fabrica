@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-23
+- Completed **Phase 6: Full Garment Folding Grid Assembly** (`cad-designs/assembly.py`):
+  - Validated universal 6-module garment folding robot assembly combining 2 Base Modules, 2 Follower Modules, 2 Motorized Modules with direct-drive MG996R servos, servo adapters, servo covers, end pivot pins, and 7 interlocking click-lock dovetail frame joiners.
+  - Verified 0.00000 mm³ interference across all components and exported production `assembly.step` and `assembly.stl`.
+  - Updated `cad-designs/specs/roadmap.md` and `specs/mission.md` marking CAD designs and full assembly as completed.
+  - Updated `firmware/README.md` with firmware specification requirements and hardware architecture details.
+
 ## 2026-08-22
 - Implemented **Phase 5: Interface Module & Electronics Enclosure**:
   - Added `interface_case.py` ($140.0 \times 120.0 \times 45.0\text{ mm}$ compact ergonomic electronics chassis, total assembled $H = 48.0\text{ mm}$, 41% width reduction) featuring sleek $R=8.0\text{ mm}$ filleted vertical corners removing all sharp boxy edges, housing 3 internal circuit boards in an optimized layout: PDB mounted vertically along the left bay (M3 standoffs @ $24.0 \times 37.0\text{ mm}$ pitch), ESP32 DevKit mounted in the front-right bay (M3 standoffs @ $23.0 \times 46.0\text{ mm}$ pitch + cradle), and PCA9685 16-channel PWM servo driver mounted in the rear-right bay (M2.5 standoffs @ $55.88 \times 19.05\text{ mm}$ pitch), with a clean unobstructed floor, continuous 100% flush top perimeter rim, integrated external male sliding dovetail key located on the left end of the rear wall ($X = 25.0\text{ mm}$, $Y = 120.0\text{ mm}$ behind the PDB where no wire holes exist) matching the exact size, flared shape, and $6.8 \times 8.6\text{ mm}$ internal wire raceway of `frame_joiner.py` to route wire harnesses directly from robot base frames into the case power bay, direct wall retention windows cut through the front and rear perimeter walls eliminating internal boss clutter, 16 discrete motor wire slots ($4.0 \times 16.0\text{ mm}$, $Z \in [8.0, 24.0\text{ mm}]$) on $6.0\text{ mm}$ pitch ($2.0\text{ mm}$ solid pillars) on the right half of the rear wall directly behind the PCA9685 servo pin headers, $\varnothing 11.5\text{ mm}$ DC power barrel jack on the left wall, $12.0 \times 7.5\text{ mm}$ USB programming port on the front wall, and passive convection cooling chimneys under all 3 boards.

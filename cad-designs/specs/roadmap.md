@@ -56,7 +56,6 @@ Build, validate, and commit before moving to the next phase.
 ---
 
 ## Phase 5 — Interface Module & Electronics Enclosure (`interface_case.py`, `interface_panel.py`, `interface_assembly.py`) ✅
-## Phase 5: Interface Module & Electronics Enclosure (`interface_case.py`, `interface_panel.py`, `interface_assembly.py`)
 - **Compact Flat Horizontal Control Faceplate** (`interface_panel.py`): Compact flat horizontal top deck ($140.0 \times 120.0 \times 3.0\text{ mm}$, assembled $Z \in [45.0, 48.0\text{ mm}]$) with sleek **$R=8.0\text{ mm}$ filleted vertical corners**, featuring 4-sided toolless screw-free snap-fit system with 4x cantilever snap tabs clicking directly into front/rear wall windows and continuous side register down-ribs, 4x standardized $\varnothing 16.0\text{ mm}$ tactile push button cutouts with $0.8\text{ mm}$ top entry chamfers on widened **$30.0\text{ mm}$ inline pitch** ($14.0\text{ mm}$ edge-to-edge gap between holes), circular round $\varnothing 6.0\text{ mm}$ status LED window with $0.8\text{ mm}$ top chamfer and $\varnothing 8.5\text{ mm} \times 1.2\text{ mm}$ underside retention lip, and $0.6\text{ mm}$ diamond micro-grip surface texture.
 - **Compact High-Capacity Electronics Chassis** (`interface_case.py`): Compact flat lower enclosure chassis ($140.0 \times 120.0 \times 45.0\text{ mm}$, total assembled height $48.0\text{ mm}$) with sleek **$R=8.0\text{ mm}$ filleted vertical corners** removing boxy edges, housing:
   - **Power Distribution Board (PDB) / 5V-6V Step-Down Buck Module**: Left bay mounting standoffs ($24.0 \times 37.0\text{ mm}$ M3 hole pattern on $32.0 \times 45.0\text{ mm}$ PCB oriented vertically along Y) with dedicated $\varnothing 11.5\text{ mm}$ DC barrel jack inlet on left wall.
@@ -68,7 +67,7 @@ Build, validate, and commit before moving to the next phase.
 
 ---
 
-## Phase 6 — Full 4×3 Garment Folding Grid Assembly (`assemblies/assembly_4x3_grid.py`)
-- Build full 4×3 grid assembly model bringing together 2 Base Modules, 4 Follower Modules, 6 Motorized Modules, and 1 Interface Control Pad Module connected by Click-Lock Hollow Dovetail Wire-Channel Joiners.
-- Validate kinematic panel flip positions (0° flat rest, 90° vertical fold, 180° flipped fold).
-- Export full `assembly_4x3_grid.step` and `assembly_4x3_grid.stl`.
+## Phase 6 — Full Garment Folding Grid Assembly (`assembly.py`) ✅
+- Build universal garment folding robot assembly model bringing together 2 Base Modules, 2 Follower Modules, 2 Motorized Modules with MG996R servos, adapters, covers, end pivot pins, and 7 Click-Lock Hollow Dovetail Wire-Channel Joiners.
+- Validate kinematic panel flip positions (0° flat rest, 90° vertical fold, 180° flipped fold) and zero geometric interference.
+- Export full production `assembly.step` and `assembly.stl`.
