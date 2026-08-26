@@ -63,3 +63,7 @@ ios/Pods/
 # Temporary Files
 tmp/
 *.tmp
+
+# ESP-IDF
+sdkconfig
+sdkconfig.old
