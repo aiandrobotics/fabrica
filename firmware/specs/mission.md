@@ -105,10 +105,10 @@ graph TD
 | **MCU** | ESP32 Dev Board v1 (ESP-WROOM-32) | — | 240 MHz dual-core, 520KB SRAM, 4MB Flash |
 | **PWM Driver** | PCA9685 16-Channel 12-Bit Driver | I2C (SDA: `GPIO 21`, SCL: `GPIO 22`) | 50 Hz PWM frequency, I2C address `0x40` |
 | **Status LED** | 5mm Diffused Red/Blue LED | `GPIO 2` | Active-high visual status indicator |
-| **Button 1 (B1)** | Tactile Push Button | `GPIO 0` (BOOT / Pull-up) | Preset 1 / Cycle & Nudge Flap |
-| **Button 2 (B2)** | Tactile Push Button | `GPIO 4` (Pull-up) | Preset 2 / Stage & Hold Flap ($30^\circ$) |
-| **Button 3 (B3)** | Tactile Push Button | `GPIO 16` (Pull-up) | Preset 3 / Lock Step & Drop Flaps |
-| **Button 4 (B4)** | Tactile Push Button | `GPIO 17` (Pull-up) | Preset 4 / Save to NVS & Exit |
+| **Button 1 (B1)** | Tactile Push Button | `GPIO 4` (Pull-up) | Preset 1 / Cycle & Nudge Flap |
+| **Button 2 (B2)** | Tactile Push Button | `GPIO 16` (Pull-up) | Preset 2 / Stage & Hold Flap ($30^\circ$) |
+| **Button 3 (B3)** | Tactile Push Button | `GPIO 17` (Pull-up) | Preset 3 / Lock Step & Drop Flaps |
+| **Button 4 (B4)** | Tactile Push Button | `GPIO 5` (Pull-up) | Preset 4 / Save to NVS & Exit |
 | **Servos** | MG996R High-Torque Servos (up to 16) | PCA9685 Channels 0–15 | $0^\circ$ to $180^\circ$ panel actuation |
 
 ---

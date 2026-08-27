@@ -11,6 +11,8 @@
 
 #include "config.h"
 #include "command.h"
+#include "led.h"
+#include "buttons.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -35,7 +37,7 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
-    ESP_LOGI(TAG, " Phase 1: Project Skeleton & Diagnostics Initialized");
+    ESP_LOGI(TAG, " Phase 2: UI Subsystem (Buttons & Non-Blocking LED) Ready");
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
@@ -99,5 +101,49 @@ void app_main(void)
              STATUS_LED_GPIO, BTN1_GPIO, BTN2_GPIO, BTN3_GPIO, BTN4_GPIO, I2C_SDA_GPIO, I2C_SCL_GPIO);
     ESP_LOGI(TAG, "PCA9685 Driver: Addr=0x%02X, PWM Freq=%d Hz, Channels=%d",
              PCA9685_I2C_ADDR, PCA9685_PWM_FREQ_HZ, TOTAL_SERVO_CHANNELS);
-    ESP_LOGI(TAG, "System Ready. Core 0/1 ready for driver initialization in subsequent phases.");
+
+    /* 3. Initialize Status LED Engine (Core 1) */
+    err = led_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize Status LED engine: %s", esp_err_to_name(err));
+        return;
+    }
+
+    /* 4. Initialize 4-Button Subsystem (Core 1) */
+    buttons_set_command_queue(xCommandQueue);
+    err = buttons_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize 4-Button subsystem: %s", esp_err_to_name(err));
+        return;
+    }
+
+    ESP_LOGI(TAG, "UI Subsystem running on Core 1. Awaiting button events...");
+
+    /* 5. Command Queue Consumer Loop */
+    command_t cmd;
+    while (1) {
+        if (xQueueReceive(xCommandQueue, &cmd, portMAX_DELAY) == pdTRUE) {
+            ESP_LOGI(TAG, "[CMD RECEIVED] Type: %d, Source: %d, Preset: %d",
+                     cmd.type, cmd.source, cmd.payload.preset_id);
+
+            switch (cmd.type) {
+                case CMD_RUN_PRESET:
+                    ESP_LOGI(TAG, "-> Daily Run Mode: Triggered Preset %d", cmd.payload.preset_id);
+                    /* Provide brief locked feedback pulse for verification */
+                    led_set_state(LED_STATE_STEP_LOCKED);
+                    break;
+                case CMD_ENTER_PROGRAM_MODE:
+                    ESP_LOGI(TAG, "-> Visual Staging Mode: Entered programming for Preset %d", cmd.payload.preset_id);
+                    led_set_state(LED_STATE_PROGRAMMING);
+                    break;
+                case CMD_EMERGENCY_STOP:
+                    ESP_LOGW(TAG, "-> EMERGENCY STOP Triggered!");
+                    led_set_state(LED_STATE_ESTOP);
+                    break;
+                default:
+                    ESP_LOGI(TAG, "-> Unhandled command type: %d", cmd.type);
+                    break;
+            }
+        }
+    }
 }

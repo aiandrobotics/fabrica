@@ -80,10 +80,10 @@ graph LR
 | Signal Name | ESP32 GPIO | Direction | Configuration | Active State | Description |
 |---|---|---|---|---|---|
 | `PIN_STATUS_LED` | `GPIO_NUM_2` | Output | Push-Pull / No Pull | High (1) | Visual status indicator LED (Built-in on DevKit) |
-| `PIN_BTN_1` | `GPIO_NUM_0` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B1: Preset 1 Routine / Cycle & Nudge Flap ($15^\circ$) |
-| `PIN_BTN_2` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B2: Preset 2 Routine / Stage & Toggle Flap ($30^\circ$) |
-| `PIN_BTN_3` | `GPIO_NUM_16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B3: Preset 3 Routine / Lock Step & Drop Flaps |
-| `PIN_BTN_4` | `GPIO_NUM_17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B4: Preset 4 Routine / Save to NVS & Exit |
+| `PIN_BTN_1` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B1: Preset 1 Routine / Cycle & Nudge Flap ($15^\circ$) |
+| `PIN_BTN_2` | `GPIO_NUM_16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B2: Preset 2 Routine / Stage & Toggle Flap ($30^\circ$) |
+| `PIN_BTN_3` | `GPIO_NUM_17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B3: Preset 3 Routine / Lock Step & Drop Flaps |
+| `PIN_BTN_4` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B4: Preset 4 Routine / Save to NVS & Exit |
 | `PIN_I2C_SDA` | `GPIO_NUM_21` | I/O | Open-Drain + External/Internal Pull-Up | — | I2C Data line connected to PCA9685 SDA |
 | `PIN_I2C_SCL` | `GPIO_NUM_22` | Output | Open-Drain + External/Internal Pull-Up | — | I2C Clock line connected to PCA9685 SCL |
 
