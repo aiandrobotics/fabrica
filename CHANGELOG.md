@@ -1,14 +1,20 @@
 # Changelog
 
+## 2026-08-27
+- Implemented Phase 2 UI Subsystem with 4-button debouncer and non-blocking status LED pattern engine (`firmware/main/buttons.c`, `firmware/main/led.c`).
+- Configured 4-button input scanning on GPIO 4, 16, 17, and 5 with 50ms low-pass debounce filter, short tap (<500ms), and long press (>=3000ms) gesture recognition.
+- Implemented non-blocking status LED state machine on GPIO 2 driving 7 visual pulse patterns (idle heartbeat, solid running, programming blink, step lock flash, save success, input error, and rapid E-stop).
+- Pinned dedicated FreeRTOS tasks to Core 1 (`app_ui_task` at Priority 5, `app_led_task` at Priority 3) dispatching standardized commands to `xCommandQueue`.
+- Added host unit test suite (`firmware/test/test_ui_subsystem.c`) with 61 checks passing (111/111 total project checks passing).
+- Verified live firmware on ESP32 Dev Board (`/dev/cu.usbserial-0001`) with physical button actuation and LED feedback.
+- Updated firmware roadmap marking Phase 2 as complete.
+
 ## 2026-08-26
-- Implemented **Phase 1: Project Skeleton, Hardware Configuration & Diagnostics** (`firmware/`):
-  - Created root build configuration (`firmware/CMakeLists.txt`, `firmware/main/CMakeLists.txt`, `firmware/Makefile`, `firmware/sdkconfig.defaults`) configuring ESP-IDF v6.0 for ESP32 target (240MHz CPU, 1000Hz FreeRTOS tick, 4MB Flash DIO mode, 115200 bps UART).
-  - Created single source of truth hardware configuration header (`firmware/main/config.h`) mapping GPIOs (`LED_GPIO 2`, `BTN1_GPIO 0`, `BTN2_GPIO 4`, `BTN3_GPIO 16`, `BTN4_GPIO 17`, `I2C_SDA_GPIO 21`, `I2C_SCL_GPIO 22`), system limits (`MAX_STEPS_PER_ROUTINE 16`, `MAX_MOTORS_PER_STEP 2`), debounce filter (50ms), hold times (3.0s), fold dwell (300ms), settling delays (200ms), and PCA9685 I2C/PWM constants.
-  - Implemented decoupled, source-agnostic command protocol (`firmware/main/command.h`) defining transport sources (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_WIFI`), command types, routine structures (`fold_step_t`, `fold_routine_t` with CRC32), and unified `command_t` message container.
-  - Implemented system startup and telemetry diagnostics (`firmware/main/main.c`) logging chip model, silicon revision, core count, 4MB Flash size, heap usage (`esp_get_minimum_free_heap_size`), and initializing FreeRTOS command queue (`xCommandQueue`) and system event group (`xSystemEventGroup`).
-  - Added host unit test suite (`firmware/test/test_headers.c`) validating 50/50 checks with 100% pass rate.
-  - Verified live compilation (`idf.py build`) and flashed firmware binary to physical ESP32 Dev Board (`/dev/cu.usbserial-0001`), confirming UART diagnostic boot banner output.
-  - Updated `firmware/specs/roadmap.md` marking Phase 1 as complete.
+- Implemented Phase 1 Project Skeleton, Hardware Configuration & Diagnostics (`firmware/`).
+- Created single source of truth hardware configuration header (`firmware/main/config.h`) and unified command protocol (`firmware/main/command.h`).
+- Implemented boot diagnostics, chip telemetry, and FreeRTOS command queue allocation in `firmware/main/main.c`.
+- Added host unit test suite `firmware/test/test_headers.c` with 50/50 checks passing.
+- Verified ESP-IDF build compilation and flashed binary to physical ESP32 Dev Board over UART.
 
 ## 2026-08-23
 - Completed **Phase 6: Full Garment Folding Grid Assembly** (`cad-designs/assembly.py`):

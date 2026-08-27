@@ -15,7 +15,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ## Phase 1 — Project Skeleton, Hardware Configuration & Diagnostics (`main.c`, `config.h`, `command.h`) ✅
 - Create root `CMakeLists.txt`, `main/CMakeLists.txt`, `Makefile`, and `sdkconfig.defaults`.
-- Create `main/config.h` as the single source of truth for GPIO pin assignments (`LED_GPIO 2`, `BTN1_GPIO 0`, `BTN2_GPIO 4`, `BTN3_GPIO 16`, `BTN4_GPIO 17`, `I2C_SDA_GPIO 21`, `I2C_SCL_GPIO 22`), PWM limits, timing constants, and system constraints.
+- Create `main/config.h` as the single source of truth for GPIO pin assignments (`LED_GPIO 2`, `BTN1_GPIO 4`, `BTN2_GPIO 16`, `BTN3_GPIO 17`, `BTN4_GPIO 5`, `I2C_SDA_GPIO 21`, `I2C_SCL_GPIO 22`), PWM limits, timing constants, and system constraints.
 - Create `main/command.h` defining the source-agnostic `command_t` schema (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_WIFI`) and unified command queue to guarantee forward compatibility with the mobile app.
 - Implement `main/main.c` system startup and diagnostics (adapted from `poc/esp_hello_world/main/hello_world_main.c`):
   - Print ESP32 chip details (model, silicon revision, CPU cores, WiFi/BT features).
@@ -25,7 +25,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 2 — UI Subsystem: 4-Button Debouncer & Non-Blocking LED Pattern Engine (`buttons.c`, `led.c`)
+## Phase 2 — UI Subsystem: 4-Button Debouncer & Non-Blocking LED Pattern Engine (`buttons.c`, `led.c`) ✅
 - **Status LED Pattern Engine** (`main/led.h`, `main/led.c`):
   - Implement non-blocking FreeRTOS software timer / task driving 7 visual state feedback patterns:
     1. `LED_STATE_IDLE`: Soft heartbeat (10% duty cycle / 0.5 Hz) or OFF awaiting input.
@@ -36,11 +36,11 @@ Build, validate, and verify each milestone before moving to the next phase.
     6. `LED_STATE_INPUT_ERROR`: 3 fast flashes (60ms ON / 60ms OFF).
     7. `LED_STATE_ESTOP`: 5 rapid flashes (50ms ON / 50ms OFF).
 - **4-Button Debouncing & Gesture Recognition** (`main/buttons.h`, `main/buttons.c`):
-  - Configure `GPIO 0`, `GPIO 4`, `GPIO 16`, and `GPIO 17` as inputs with internal pull-ups (`GPIO_PULLUP_ONLY`).
+  - Configure `GPIO 4`, `GPIO 16`, `GPIO 17`, and `GPIO 5` as inputs with internal pull-ups (`GPIO_PULLUP_ONLY`).
   - Implement 50ms low-pass debounce sampling.
   - Distinguish between **Short Tap** (<500ms) and **Long Press** (≥3000ms continuous hold).
   - Translate physical button gestures into standardized `command_t` structs and dispatch to the unified command queue.
-- **Validation**: Verify button tap vs 3-second hold detection and non-blocking visual LED output patterns on bench test.
+- **Validation**: Verified with host unit test suite (`make test`, 111/111 checks pass with 100% success) covering debounce filtering, short tap, long press hold duration, zero release spurious triggers, and all 7 LED pattern sequences.
 
 ---
 

@@ -16,10 +16,10 @@ extern "C" {
 
 #define STATUS_LED_GPIO              2   /* Built-in Status LED (Active High) */
 
-#define BTN1_GPIO                    0   /* Button 1: Preset 1 / Cycle Flap */
-#define BTN2_GPIO                    4   /* Button 2: Preset 2 / Stage Flap */
-#define BTN3_GPIO                    16  /* Button 3: Preset 3 / Lock Step */
-#define BTN4_GPIO                    17  /* Button 4: Preset 4 / Save & Exit */
+#define BTN1_GPIO                    4   /* Button 1: Preset 1 / Cycle Flap */
+#define BTN2_GPIO                    16  /* Button 2: Preset 2 / Stage Flap */
+#define BTN3_GPIO                    17  /* Button 3: Preset 3 / Lock Step */
+#define BTN4_GPIO                    5   /* Button 4: Preset 4 / Save & Exit */
 
 #define I2C_SDA_GPIO                 21  /* PCA9685 I2C Data line (SDA) */
 #define I2C_SCL_GPIO                 22  /* PCA9685 I2C Clock line (SCL) */

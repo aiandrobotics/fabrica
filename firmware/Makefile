@@ -18,3 +18,4 @@ clean:
 
 test:
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_headers test/test_headers.c && /tmp/test_headers
+	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_ui_subsystem main/led.c main/buttons.c test/test_ui_subsystem.c && /tmp/test_ui_subsystem
