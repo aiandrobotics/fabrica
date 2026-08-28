@@ -13,6 +13,7 @@
 #include "command.h"
 #include "led.h"
 #include "buttons.h"
+#include "pca9685.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -37,7 +38,7 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
-    ESP_LOGI(TAG, " Phase 2: UI Subsystem (Buttons & Non-Blocking LED) Ready");
+    ESP_LOGI(TAG, " Phase 3: I2C PCA9685 16-Channel PWM Servo Driver Ready");
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
@@ -117,9 +118,17 @@ void app_main(void)
         return;
     }
 
-    ESP_LOGI(TAG, "UI Subsystem running on Core 1. Awaiting button events...");
+    /* 5. Initialize PCA9685 16-Channel PWM Servo Driver (I2C Master on Core 0) */
+    err = pca9685_init();
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "PCA9685 initialization returned: %s (Check I2C bus wiring/pullups)", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "PCA9685 driver ready. All 16 channels initialized to home position (0 deg).");
+    }
 
-    /* 5. Command Queue Consumer Loop */
+    ESP_LOGI(TAG, "System initialization complete. Awaiting button & motion commands...");
+
+    /* 6. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
         if (xQueueReceive(xCommandQueue, &cmd, portMAX_DELAY) == pdTRUE) {
@@ -129,15 +138,31 @@ void app_main(void)
             switch (cmd.type) {
                 case CMD_RUN_PRESET:
                     ESP_LOGI(TAG, "-> Daily Run Mode: Triggered Preset %d", cmd.payload.preset_id);
-                    /* Provide brief locked feedback pulse for verification */
+                    /* Provide locked feedback pulse and demonstrate channel articulation */
                     led_set_state(LED_STATE_STEP_LOCKED);
+                    /* Test pulse: nudge corresponding servo channel (0 to 3) */
+                    if (cmd.payload.preset_id >= 1 && cmd.payload.preset_id <= 4) {
+                        uint8_t target_ch = (uint8_t)(cmd.payload.preset_id - 1);
+                        pca9685_nudge_channel(target_ch);
+                        vTaskDelay(pdMS_TO_TICKS(200));
+                        pca9685_home_all();
+                    }
                     break;
                 case CMD_ENTER_PROGRAM_MODE:
                     ESP_LOGI(TAG, "-> Visual Staging Mode: Entered programming for Preset %d", cmd.payload.preset_id);
                     led_set_state(LED_STATE_PROGRAMMING);
                     break;
+                case CMD_CYCLE_NUDGE_MOTOR:
+                    ESP_LOGI(TAG, "-> Cycle Nudge Motor: Channel %d", cmd.payload.jog_param.channel);
+                    pca9685_nudge_channel(cmd.payload.jog_param.channel);
+                    break;
+                case CMD_STAGE_TOGGLE_MOTOR:
+                    ESP_LOGI(TAG, "-> Stage Motor: Channel %d", cmd.payload.jog_param.channel);
+                    pca9685_stage_channel(cmd.payload.jog_param.channel);
+                    break;
                 case CMD_EMERGENCY_STOP:
-                    ESP_LOGW(TAG, "-> EMERGENCY STOP Triggered!");
+                    ESP_LOGW(TAG, "-> EMERGENCY STOP Triggered! Homing all servos...");
+                    pca9685_home_all();
                     led_set_state(LED_STATE_ESTOP);
                     break;
                 default:
