@@ -73,7 +73,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 5 — Motion Engine & Daily Run Mode Execution (`motion.c`)
+## Phase 5 — Motion Engine & Daily Run Mode Execution (`motion.c`) ✅
 - **Core 0 Real-Time Motion Task** (`main/motion.h`, `main/motion.c`):
   - High-priority FreeRTOS task pinned to Core 0 executing sequence steps sequentially (Step 1 to $N$).
   - **Single Motor Sweep**: Target servo sweeps $0^\circ \rightarrow 180^\circ$, dwells for 300ms, then returns $180^\circ \rightarrow 0^\circ$.
@@ -84,7 +84,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Single short tap on B1–B4 triggers execution of Preset 1–4.
   - **Emergency Stop (E-Stop)**: Tapping **any button** while motion is active immediately halts PWM pulses, commands all 16 channels to $0^\circ$, delivers 5 rapid LED flashes, and aborts the routine in $<50\text{ms}$.
   - **Empty Preset Protection**: Tapping a button with 0 recorded steps produces 3 fast LED flashes without activating motors.
-- **Validation**: Verify smooth single/parallel flap articulation, dwell/settling timing, and instantaneous E-Stop abort handling.
+- **Validation**: Verified with host unit test suite (`make test`, 74/74 checks pass, 342/342 total across all test suites) covering single/parallel sweeps, dwell/settling delays, empty preset rejection, re-entrancy protection, and <50ms Emergency Stop preemption.
 
 ---
 

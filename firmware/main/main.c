@@ -15,6 +15,7 @@
 #include "buttons.h"
 #include "pca9685.h"
 #include "storage.h"
+#include "motion.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -39,7 +40,7 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
-    ESP_LOGI(TAG, " Phase 4: NVS Storage Sequence Manager Ready");
+    ESP_LOGI(TAG, " Phase 5: Motion Engine & Daily Run Mode Execution Ready");
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
@@ -142,9 +143,17 @@ void app_main(void)
         }
     }
 
+    /* 7. Initialize Core 0 Real-Time Motion Engine */
+    err = motion_init(xCommandQueue, xSystemEventGroup);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize Motion Engine: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "Real-Time Motion Engine initialized on Core 0.");
+    }
+
     ESP_LOGI(TAG, "System initialization complete. Awaiting button & motion commands...");
 
-    /* 7. Command Queue Consumer Loop */
+    /* 8. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
         if (xQueueReceive(xCommandQueue, &cmd, portMAX_DELAY) == pdTRUE) {
@@ -154,24 +163,11 @@ void app_main(void)
             switch (cmd.type) {
                 case CMD_RUN_PRESET:
                     ESP_LOGI(TAG, "-> Daily Run Mode: Triggered Preset %d", cmd.payload.preset_id);
-                    /* Load routine from NVS storage */
-                    if (cmd.payload.preset_id >= 1 && cmd.payload.preset_id <= TOTAL_PRESET_COUNT) {
-                        fold_routine_t active_routine;
-                        esp_err_t load_err = storage_load_routine(cmd.payload.preset_id, &active_routine);
-                        if (load_err == ESP_OK) {
-                            ESP_LOGI(TAG, "   Routine loaded: %d steps, CRC: 0x%08" PRIX32,
-                                     active_routine.step_count, active_routine.checksum);
-                        }
-                    }
-                    /* Provide locked feedback pulse and demonstrate channel articulation */
-                    led_set_state(LED_STATE_STEP_LOCKED);
-                    /* Test pulse: nudge corresponding servo channel (0 to 3) */
-                    if (cmd.payload.preset_id >= 1 && cmd.payload.preset_id <= 4) {
-                        uint8_t target_ch = (uint8_t)(cmd.payload.preset_id - 1);
-                        pca9685_nudge_channel(target_ch);
-                        vTaskDelay(pdMS_TO_TICKS(200));
-                        pca9685_home_all();
-                    }
+                    motion_trigger_preset(cmd.payload.preset_id);
+                    break;
+                case CMD_RUN_RAW_SEQUENCE:
+                    ESP_LOGI(TAG, "-> Raw Sequence: Triggered %d steps", cmd.payload.raw_routine.step_count);
+                    motion_execute_routine(&cmd.payload.raw_routine);
                     break;
                 case CMD_ENTER_PROGRAM_MODE:
                     ESP_LOGI(TAG, "-> Visual Staging Mode: Entered programming for Preset %d", cmd.payload.preset_id);
@@ -187,8 +183,7 @@ void app_main(void)
                     break;
                 case CMD_EMERGENCY_STOP:
                     ESP_LOGW(TAG, "-> EMERGENCY STOP Triggered! Homing all servos...");
-                    pca9685_home_all();
-                    led_set_state(LED_STATE_ESTOP);
+                    motion_emergency_stop();
                     break;
                 default:
                     ESP_LOGI(TAG, "-> Unhandled command type: %d", cmd.type);

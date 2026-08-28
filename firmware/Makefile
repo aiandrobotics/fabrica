@@ -21,4 +21,5 @@ test:
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_ui_subsystem main/led.c main/buttons.c test/test_ui_subsystem.c && /tmp/test_ui_subsystem
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_pca9685 main/pca9685.c test/test_pca9685.c -lm && /tmp/test_pca9685
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_storage main/storage.c test/test_storage.c && /tmp/test_storage
+	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_motion main/led.c main/pca9685.c main/storage.c main/motion.c test/test_motion.c -lm && /tmp/test_motion
 

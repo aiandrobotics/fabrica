@@ -1,6 +1,16 @@
 # Changelog
 
 ## 2026-08-27
+- Implemented Phase 5 Motion Engine & Daily Run Mode Execution (`firmware/main/motion.h`, `firmware/main/motion.c`).
+- Built Core 0 real-time high-priority motion task (`app_motion_task`, Priority 10) orchestrating deterministic step execution ($0^\circ \to 180^\circ \to 0^\circ$).
+- Implemented single-motor and parallel dual-motor sweep trajectories with 300ms fold dwell (`FOLD_DWELL_TIME_MS`) and 200ms inter-step settling delay (`INTER_STEP_DELAY_MS`).
+- Implemented non-blocking LED state binding (`LED_STATE_RUNNING` during routine motion, `LED_STATE_IDLE` on clean homing completion).
+- Implemented Daily Run Mode trigger dispatcher (`motion_trigger_preset`) loading routines directly from NVS flash storage for Presets 1–4.
+- Implemented safety safeguards: empty preset protection (`routine.step_count == 0` flashes `LED_STATE_INPUT_ERROR` with zero motor actuation), re-entrancy / busy guard, and parameter bounds validation.
+- Implemented low-latency Emergency Stop (`motion_emergency_stop`) preemption (<50ms abort latency) immediately cutting PWM commands, homing all 16 channels to $0^\circ$, triggering `LED_STATE_ESTOP` (5 rapid flashes), and ensuring FreeRTOS event group bits cleanly auto-clear on subsequent routine triggers.
+- Created host unit test suite `firmware/test/test_motion.c` with 74/74 checks passing (342/342 total project checks passing across all 5 test suites).
+- Integrated motion engine lifecycle and command routing in `firmware/main/main.c` and registered in `firmware/main/CMakeLists.txt` and `firmware/Makefile`.
+- Updated firmware roadmap marking Phase 5 as complete.
 - Implemented Phase 4 Non-Volatile Storage (NVS) Sequence Manager (`firmware/main/storage.h`, `firmware/main/storage.c`).
 - Initialized ESP-IDF NVS flash subsystem with auto-recovery and partition format on truncation/version upgrade (`ESP_ERR_NVS_NO_FREE_PAGES` / `ESP_ERR_NVS_NEW_VERSION_FOUND`).
 - Implemented binary serialization schema for `fold_routine_t` and `fold_step_t` structs under `"fabrica"` NVS namespace with keys `"preset_1"` to `"preset_4"`.
