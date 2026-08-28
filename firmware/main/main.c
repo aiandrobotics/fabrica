@@ -16,6 +16,7 @@
 #include "pca9685.h"
 #include "storage.h"
 #include "motion.h"
+#include "state_machine.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -40,7 +41,7 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
-    ESP_LOGI(TAG, " Phase 5: Motion Engine & Daily Run Mode Execution Ready");
+    ESP_LOGI(TAG, " Phase 6: Visual Staging Programming Mode & State Machine Ready");
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
@@ -151,43 +152,26 @@ void app_main(void)
         ESP_LOGI(TAG, "Real-Time Motion Engine initialized on Core 0.");
     }
 
+    /* 8. Initialize System State Machine Coordinator */
+    err = state_machine_init(xCommandQueue, xSystemEventGroup);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize State Machine: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "System State Machine initialized.");
+    }
+
     ESP_LOGI(TAG, "System initialization complete. Awaiting button & motion commands...");
 
-    /* 8. Command Queue Consumer Loop */
+    /* 9. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
         if (xQueueReceive(xCommandQueue, &cmd, portMAX_DELAY) == pdTRUE) {
-            ESP_LOGI(TAG, "[CMD RECEIVED] Type: %d, Source: %d, Preset: %d",
+            ESP_LOGI(TAG, "[CMD RECEIVED] Type: %d, Source: %d, Preset/Payload: %d",
                      cmd.type, cmd.source, cmd.payload.preset_id);
 
-            switch (cmd.type) {
-                case CMD_RUN_PRESET:
-                    ESP_LOGI(TAG, "-> Daily Run Mode: Triggered Preset %d", cmd.payload.preset_id);
-                    motion_trigger_preset(cmd.payload.preset_id);
-                    break;
-                case CMD_RUN_RAW_SEQUENCE:
-                    ESP_LOGI(TAG, "-> Raw Sequence: Triggered %d steps", cmd.payload.raw_routine.step_count);
-                    motion_execute_routine(&cmd.payload.raw_routine);
-                    break;
-                case CMD_ENTER_PROGRAM_MODE:
-                    ESP_LOGI(TAG, "-> Visual Staging Mode: Entered programming for Preset %d", cmd.payload.preset_id);
-                    led_set_state(LED_STATE_PROGRAMMING);
-                    break;
-                case CMD_CYCLE_NUDGE_MOTOR:
-                    ESP_LOGI(TAG, "-> Cycle Nudge Motor: Channel %d", cmd.payload.jog_param.channel);
-                    pca9685_nudge_channel(cmd.payload.jog_param.channel);
-                    break;
-                case CMD_STAGE_TOGGLE_MOTOR:
-                    ESP_LOGI(TAG, "-> Stage Motor: Channel %d", cmd.payload.jog_param.channel);
-                    pca9685_stage_channel(cmd.payload.jog_param.channel);
-                    break;
-                case CMD_EMERGENCY_STOP:
-                    ESP_LOGW(TAG, "-> EMERGENCY STOP Triggered! Homing all servos...");
-                    motion_emergency_stop();
-                    break;
-                default:
-                    ESP_LOGI(TAG, "-> Unhandled command type: %d", cmd.type);
-                    break;
+            esp_err_t proc_err = state_machine_process_command(&cmd);
+            if (proc_err != ESP_OK) {
+                ESP_LOGW(TAG, "Command processing returned: %s (0x%x)", esp_err_to_name(proc_err), proc_err);
             }
         }
     }

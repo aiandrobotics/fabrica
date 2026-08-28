@@ -7,6 +7,7 @@
 #include "command.h"
 #include "buttons.h"
 #include "motion.h"
+#include "state_machine.h"
 
 #ifdef ESP_PLATFORM
 #include "freertos/FreeRTOS.h"
@@ -103,6 +104,50 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
     return detected_gesture;
 }
 
+command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, system_state_t current_state)
+{
+    command_t cmd;
+    memset(&cmd, 0, sizeof(cmd));
+    cmd.source = SOURCE_PHYSICAL_BUTTON;
+
+    if (btn_idx >= BTN_ID_COUNT) {
+        return cmd;
+    }
+
+    if (gesture == GESTURE_SHORT_TAP) {
+        if (current_state == STATE_RUNNING_MOTION || motion_is_busy()) {
+            cmd.type = CMD_EMERGENCY_STOP;
+        } else if (current_state == STATE_IDLE_RUN) {
+            cmd.type = CMD_RUN_PRESET;
+            cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
+        } else if (current_state == STATE_PROGRAMMING) {
+            switch (btn_idx) {
+                case BTN_ID_1:
+                    cmd.type = CMD_CYCLE_NUDGE_MOTOR;
+                    break;
+                case BTN_ID_2:
+                    cmd.type = CMD_STAGE_TOGGLE_MOTOR;
+                    break;
+                case BTN_ID_3:
+                    cmd.type = CMD_LOCK_STEP;
+                    break;
+                case BTN_ID_4:
+                    cmd.type = CMD_SAVE_EXIT_PROGRAM;
+                    break;
+                default:
+                    break;
+            }
+        }
+    } else if (gesture == GESTURE_LONG_PRESS) {
+        if (current_state == STATE_IDLE_RUN) {
+            cmd.type = CMD_ENTER_PROGRAM_MODE;
+            cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
+        }
+    }
+
+    return cmd;
+}
+
 #ifdef ESP_PLATFORM
 void buttons_set_command_queue(QueueHandle_t queue)
 {
@@ -117,25 +162,28 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
         return;
     }
 
-    command_t cmd;
-    memset(&cmd, 0, sizeof(cmd));
-    cmd.source = SOURCE_PHYSICAL_BUTTON;
-    cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
+    system_state_t cur_state = state_machine_get_state();
+    command_t cmd = buttons_translate_gesture(btn_idx, gesture, cur_state);
 
     if (gesture == GESTURE_SHORT_TAP) {
-        if (motion_is_busy()) {
-            cmd.type = CMD_EMERGENCY_STOP;
+        if (cur_state == STATE_RUNNING_MOTION || motion_is_busy()) {
             ESP_LOGW(TAG, "[BUTTON B%d] Pressed while motion is active -> Triggered EMERGENCY STOP!", btn_idx + 1);
             motion_emergency_stop();
-        } else {
-            cmd.type = CMD_RUN_PRESET;
+        } else if (cur_state == STATE_IDLE_RUN) {
             ESP_LOGI(TAG, "[BUTTON B%d] Short Tap detected -> Dispatched CMD_RUN_PRESET (Preset %d)",
                      btn_idx + 1, cmd.payload.preset_id);
+        } else if (cur_state == STATE_PROGRAMMING) {
+            ESP_LOGI(TAG, "[BUTTON B%d] Short Tap in Program Mode -> Dispatched Command Type %d",
+                     btn_idx + 1, cmd.type);
         }
     } else if (gesture == GESTURE_LONG_PRESS) {
-        cmd.type = CMD_ENTER_PROGRAM_MODE;
-        ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_PROGRAM_MODE (Preset %d)",
-                 btn_idx + 1, cmd.payload.preset_id);
+        if (cur_state == STATE_IDLE_RUN) {
+            ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_PROGRAM_MODE (Preset %d)",
+                     btn_idx + 1, cmd.payload.preset_id);
+        } else {
+            /* Ignore long press while already in programming mode or running motion */
+            return;
+        }
     } else {
         return;
     }
@@ -157,7 +205,7 @@ void buttons_process_tick(uint32_t elapsed_ms)
 }
 
 /**
- * @brief Dedicated FreeRTOS task running on Core 1 for button scanning.
+ * @brief Dedicated FreeRTOS task running on Core 1 for button scanning and state timer.
  */
 static void app_ui_task(void *pvParameters)
 {
@@ -171,6 +219,7 @@ static void app_ui_task(void *pvParameters)
     while (1) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         buttons_process_tick(10);
+        state_machine_tick(10);
     }
 }
 

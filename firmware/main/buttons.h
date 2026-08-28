@@ -14,6 +14,7 @@ typedef int esp_err_t;
 #endif
 #include "config.h"
 #include "command.h"
+#include "state_machine.h"
 
 #ifdef ESP_PLATFORM
 #include "freertos/FreeRTOS.h"
@@ -76,6 +77,16 @@ void buttons_process_tick(uint32_t elapsed_ms);
  * @return Detected gesture, if any on this tick.
  */
 button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t elapsed_ms);
+
+/**
+ * @brief Translate a physical button index and detected gesture into a system command_t
+ *        based on current system operating state.
+ * @param btn_idx Button index (0 to 3).
+ * @param gesture Detected gesture (GESTURE_SHORT_TAP or GESTURE_LONG_PRESS).
+ * @param current_state Current operating state (STATE_IDLE_RUN, STATE_RUNNING_MOTION, STATE_PROGRAMMING).
+ * @return Standardized command_t structure.
+ */
+command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, system_state_t current_state);
 
 /**
  * @brief Reset internal debouncing and gesture tracking state across all channels.

@@ -18,8 +18,8 @@ clean:
 
 test:
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_headers test/test_headers.c && /tmp/test_headers
-	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_ui_subsystem main/led.c main/buttons.c test/test_ui_subsystem.c && /tmp/test_ui_subsystem
+	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_ui_subsystem main/led.c main/buttons.c main/state_machine.c main/pca9685.c main/storage.c main/motion.c test/test_ui_subsystem.c -lm && /tmp/test_ui_subsystem
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_pca9685 main/pca9685.c test/test_pca9685.c -lm && /tmp/test_pca9685
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_storage main/storage.c test/test_storage.c && /tmp/test_storage
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_motion main/led.c main/pca9685.c main/storage.c main/motion.c test/test_motion.c -lm && /tmp/test_motion
-
+	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_state_machine main/led.c main/buttons.c main/pca9685.c main/storage.c main/motion.c main/state_machine.c test/test_state_machine.c -lm && /tmp/test_state_machine
