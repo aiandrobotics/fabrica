@@ -6,6 +6,7 @@
 #include "config.h"
 #include "command.h"
 #include "buttons.h"
+#include "motion.h"
 
 #ifdef ESP_PLATFORM
 #include "freertos/FreeRTOS.h"
@@ -122,9 +123,15 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
     cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
 
     if (gesture == GESTURE_SHORT_TAP) {
-        cmd.type = CMD_RUN_PRESET;
-        ESP_LOGI(TAG, "[BUTTON B%d] Short Tap detected -> Dispatched CMD_RUN_PRESET (Preset %d)",
-                 btn_idx + 1, cmd.payload.preset_id);
+        if (motion_is_busy()) {
+            cmd.type = CMD_EMERGENCY_STOP;
+            ESP_LOGW(TAG, "[BUTTON B%d] Pressed while motion is active -> Triggered EMERGENCY STOP!", btn_idx + 1);
+            motion_emergency_stop();
+        } else {
+            cmd.type = CMD_RUN_PRESET;
+            ESP_LOGI(TAG, "[BUTTON B%d] Short Tap detected -> Dispatched CMD_RUN_PRESET (Preset %d)",
+                     btn_idx + 1, cmd.payload.preset_id);
+        }
     } else if (gesture == GESTURE_LONG_PRESS) {
         cmd.type = CMD_ENTER_PROGRAM_MODE;
         ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_PROGRAM_MODE (Preset %d)",

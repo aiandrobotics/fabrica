@@ -8,6 +8,7 @@
 #include "config.h"
 #include "command.h"
 #include "storage.h"
+#include "motion.h"
 
 static int test_count = 0;
 static int pass_count = 0;
@@ -134,6 +135,23 @@ void test_storage_headers(void)
     TEST_ASSERT(strcmp(STORAGE_PRESET_KEY_PREFIX, "preset_") == 0, "STORAGE_PRESET_KEY_PREFIX is 'preset_'");
 }
 
+void test_motion_headers(void)
+{
+    printf("Testing motion.h constants and enums...\n");
+    TEST_ASSERT(MOTION_TASK_STACK_SIZE == 4096, "MOTION_TASK_STACK_SIZE is 4096");
+    TEST_ASSERT(MOTION_TASK_PRIORITY == 10, "MOTION_TASK_PRIORITY is 10");
+    TEST_ASSERT(MOTION_ABORT_CHECK_MS == 10, "MOTION_ABORT_CHECK_MS is 10ms");
+
+    TEST_ASSERT(MOTION_STATUS_IDLE == 0, "MOTION_STATUS_IDLE is 0");
+    TEST_ASSERT(MOTION_STATUS_RUNNING == 1, "MOTION_STATUS_RUNNING is 1");
+    TEST_ASSERT(MOTION_STATUS_STOPPING == 2, "MOTION_STATUS_STOPPING is 2");
+    TEST_ASSERT(MOTION_STATUS_ABORTED == 3, "MOTION_STATUS_ABORTED is 3");
+
+    TEST_ASSERT(MOTION_EVENT_START_BIT == 1, "MOTION_EVENT_START_BIT is 1");
+    TEST_ASSERT(MOTION_EVENT_ESTOP_BIT == 2, "MOTION_EVENT_ESTOP_BIT is 2");
+    TEST_ASSERT(MOTION_EVENT_COMPLETE_BIT == 4, "MOTION_EVENT_COMPLETE_BIT is 4");
+}
+
 int main(void)
 {
     printf("============================================================\n");
@@ -143,6 +161,7 @@ int main(void)
     test_config_constants();
     test_command_structures();
     test_storage_headers();
+    test_motion_headers();
 
     printf("------------------------------------------------------------\n");
     printf(" Test Results: %d / %d checks passed (100%% Success)\n", pass_count, test_count);
