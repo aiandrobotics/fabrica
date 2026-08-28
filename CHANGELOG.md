@@ -1,13 +1,15 @@
 # Changelog
 
 ## 2026-08-27
+- Migrated PCA9685 driver to ESP-IDF v5.2+ `driver/i2c_master.h` bus and device handle architecture, resolving driver deprecation warnings.
 - Implemented Phase 3 I2C PCA9685 16-Channel PWM Servo Driver (`firmware/main/pca9685.h`, `firmware/main/pca9685.c`).
-- Configured ESP32 I2C Master peripheral on GPIO 21 (SDA) and GPIO 22 (SCL) at 100 kHz with FreeRTOS mutex bus synchronization.
+- Configured ESP32 I2C Master peripheral on GPIO 21 (SDA) and GPIO 22 (SCL) at 100 kHz.
 - Configured PCA9685 controller at address `0x40`: prescale set to 121 (50 Hz PWM / 20ms period), Auto-Increment enabled, and totem-pole output drivers configured.
 - Implemented high-precision 12-bit angle-to-PWM conversion ($0^\circ \to 180^\circ \implies 500\,\mu\text{s} \to 2500\,\mu\text{s} \implies 102 \to 512$ counts) with mechanical boundary clamping.
 - Added API functions for single-channel positioning, synchronized 16-bit multi-channel mask updates, homing all 16 servos to $0^\circ$, physical $15^\circ$ identification nudges, and $30^\circ$ visual staging holds.
 - Integrated PCA9685 driver initialization and servo actuation commands into `firmware/main/main.c`.
 - Created host unit test suite `firmware/test/test_pca9685.c` with 82/82 checks passing (193/193 total project checks passing across all test suites).
+- Verified live firmware on ESP32 Dev Board (`/dev/cu.usbserial-0001`) with physical button actuation and live servo articulation.
 - Updated firmware roadmap marking Phase 3 as complete.
 - Implemented Phase 2 UI Subsystem with 4-button debouncer and non-blocking status LED pattern engine (`firmware/main/buttons.c`, `firmware/main/led.c`).
 - Configured 4-button input scanning on GPIO 4, 16, 17, and 5 with 50ms low-pass debounce filter, short tap (<500ms), and long press (>=3000ms) gesture recognition.
