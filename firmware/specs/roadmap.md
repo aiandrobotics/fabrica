@@ -59,15 +59,17 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 4 — Non-Volatile Storage (NVS) Sequence Manager (`storage.c`)
+## Phase 4 — Non-Volatile Storage (NVS) Sequence Manager (`storage.c`) ✅
 - **NVS Partition Initialization & Management** (`main/storage.h`, `main/storage.c`):
-  - Initialize ESP-IDF NVS flash subsystem (`nvs_flash_init()`) with auto-erase on partition corruption.
-  - Define binary serialization schema for `fold_routine_t` (Presets 1–4, up to 16 steps, max 2 motors per step, CRC32 checksum).
-- **CRUD Operations**:
-  - `storage_save_routine(preset_id, &routine)`: Write sequence blob and update CRC checksum.
-  - `storage_load_routine(preset_id, &routine)`: Read and validate blob with CRC verification; fallback to empty/default on failure.
-  - `storage_init_factory_defaults()`: Seed default factory folding sequences (T-shirt, Pants, Towel) on initial first boot.
-- **Validation**: Verify sequence persistence, power-cut tolerance, and CRC validation across reboot cycles.
+  - Initialize ESP-IDF NVS flash subsystem (`nvs_flash_init()`) with auto-erase and re-init on partition truncation or version update (`ESP_ERR_NVS_NO_FREE_PAGES` / `ESP_ERR_NVS_NEW_VERSION_FOUND`).
+  - Implemented binary serialization schema for `fold_routine_t` and `fold_step_t` (Presets 1–4, up to 16 steps, max 2 motors per step).
+  - Implemented IEEE 802.3 standard CRC32 integrity validation engine (`0xEDB88320` polynomial) to detect bit-rot and incomplete writes.
+- **CRUD Operations & Factory Seeding**:
+  - `storage_save_routine(preset_id, &routine)`: Atomic NVS blob write with automatic CRC32 calculation.
+  - `storage_load_routine(preset_id, &routine)`: Read blob with CRC verification; graceful fallback to factory defaults on corruption or uninitialized slots.
+  - `storage_erase_routine(preset_id)`: Remove individual preset slot from NVS.
+  - `storage_init_factory_defaults()` / `storage_get_default_routine()`: Seed 4 default folding sequences (Adult T-shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen) on initial boot using `"preset_init"` flag.
+- **Validation**: Verified with host unit test suite (`make test`, 65/65 checks pass, 261/261 total across all test suites) covering CRC32 determinism, bit-mutation sensitivity, save/load/erase cycles, corruption fallbacks, boundary parameter rejection, and factory preset seeding.
 
 ---
 

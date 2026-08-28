@@ -14,6 +14,7 @@
 #include "led.h"
 #include "buttons.h"
 #include "pca9685.h"
+#include "storage.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -38,7 +39,7 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
-    ESP_LOGI(TAG, " Phase 3: I2C PCA9685 16-Channel PWM Servo Driver Ready");
+    ESP_LOGI(TAG, " Phase 4: NVS Storage Sequence Manager Ready");
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
@@ -126,9 +127,24 @@ void app_main(void)
         ESP_LOGI(TAG, "PCA9685 driver ready. All 16 channels initialized to home position (0 deg).");
     }
 
+    /* 6. Initialize Non-Volatile Storage (NVS) Sequence Manager */
+    err = storage_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize NVS storage manager: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "NVS Storage Manager initialized successfully. Loading presets...");
+        for (uint8_t id = 1; id <= TOTAL_PRESET_COUNT; id++) {
+            fold_routine_t routine;
+            if (storage_load_routine(id, &routine) == ESP_OK) {
+                ESP_LOGI(TAG, "  [Preset %d] Loaded: %d steps, Checksum: 0x%08" PRIX32,
+                         id, routine.step_count, routine.checksum);
+            }
+        }
+    }
+
     ESP_LOGI(TAG, "System initialization complete. Awaiting button & motion commands...");
 
-    /* 6. Command Queue Consumer Loop */
+    /* 7. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
         if (xQueueReceive(xCommandQueue, &cmd, portMAX_DELAY) == pdTRUE) {
@@ -138,6 +154,15 @@ void app_main(void)
             switch (cmd.type) {
                 case CMD_RUN_PRESET:
                     ESP_LOGI(TAG, "-> Daily Run Mode: Triggered Preset %d", cmd.payload.preset_id);
+                    /* Load routine from NVS storage */
+                    if (cmd.payload.preset_id >= 1 && cmd.payload.preset_id <= TOTAL_PRESET_COUNT) {
+                        fold_routine_t active_routine;
+                        esp_err_t load_err = storage_load_routine(cmd.payload.preset_id, &active_routine);
+                        if (load_err == ESP_OK) {
+                            ESP_LOGI(TAG, "   Routine loaded: %d steps, CRC: 0x%08" PRIX32,
+                                     active_routine.step_count, active_routine.checksum);
+                        }
+                    }
                     /* Provide locked feedback pulse and demonstrate channel articulation */
                     led_set_state(LED_STATE_STEP_LOCKED);
                     /* Test pulse: nudge corresponding servo channel (0 to 3) */
