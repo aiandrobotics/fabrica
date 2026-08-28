@@ -9,39 +9,20 @@
 
 #ifdef ESP_PLATFORM
 #include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "esp_log.h"
 #include "esp_rom_sys.h"
 
 static const char *TAG = "FABRICA_PCA9685";
-static SemaphoreHandle_t s_i2c_mutex = NULL;
-static bool s_driver_installed = false;
+static i2c_master_bus_handle_t s_i2c_bus_handle = NULL;
+static i2c_master_dev_handle_t s_pca9685_dev_handle = NULL;
 
-#define I2C_TIMEOUT_TICKS   pdMS_TO_TICKS(100)
-
-static inline bool i2c_lock(void)
-{
-    if (s_i2c_mutex == NULL) {
-        return false;
-    }
-    return (xSemaphoreTake(s_i2c_mutex, I2C_TIMEOUT_TICKS) == pdTRUE);
-}
-
-static inline void i2c_unlock(void)
-{
-    if (s_i2c_mutex != NULL) {
-        xSemaphoreGive(s_i2c_mutex);
-    }
-}
+#define I2C_TIMEOUT_MS   100
 #else
 /* Host testing mock storage */
 static uint8_t s_mock_regs[256];
 static bool s_mock_probe_success = true;
-
-static inline bool i2c_lock(void) { return true; }
-static inline void i2c_unlock(void) {}
 #endif
 
 /* ========================================================================= */
@@ -74,20 +55,10 @@ uint16_t pca9685_angle_to_counts(float angle_deg)
 esp_err_t pca9685_probe(void)
 {
 #ifdef ESP_PLATFORM
-    if (!i2c_lock()) {
-        return ESP_ERR_TIMEOUT;
+    if (s_i2c_bus_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
     }
-
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (PCA9685_I2C_ADDR << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_stop(cmd);
-
-    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, pdMS_TO_TICKS(50));
-    i2c_cmd_link_delete(cmd);
-
-    i2c_unlock();
-
+    esp_err_t ret = i2c_master_probe(s_i2c_bus_handle, PCA9685_I2C_ADDR, I2C_TIMEOUT_MS);
     if (ret != ESP_OK) {
         return ESP_ERR_NOT_FOUND;
     }
@@ -102,24 +73,14 @@ esp_err_t pca9685_probe(void)
 
 esp_err_t pca9685_write_reg(uint8_t reg, uint8_t val)
 {
-    if (!i2c_lock()) {
-        return ESP_ERR_TIMEOUT;
-    }
-
 #ifdef ESP_PLATFORM
+    if (s_pca9685_dev_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
     uint8_t write_buf[2] = {reg, val};
-    esp_err_t ret = i2c_master_write_to_device(
-        I2C_NUM_0,
-        PCA9685_I2C_ADDR,
-        write_buf,
-        sizeof(write_buf),
-        I2C_TIMEOUT_TICKS
-    );
-    i2c_unlock();
-    return ret;
+    return i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
 #else
     s_mock_regs[reg] = val;
-    i2c_unlock();
     return ESP_OK;
 #endif
 }
@@ -130,25 +91,13 @@ esp_err_t pca9685_read_reg(uint8_t reg, uint8_t *val)
         return ESP_ERR_INVALID_ARG;
     }
 
-    if (!i2c_lock()) {
-        return ESP_ERR_TIMEOUT;
-    }
-
 #ifdef ESP_PLATFORM
-    esp_err_t ret = i2c_master_write_read_device(
-        I2C_NUM_0,
-        PCA9685_I2C_ADDR,
-        &reg,
-        1,
-        val,
-        1,
-        I2C_TIMEOUT_TICKS
-    );
-    i2c_unlock();
-    return ret;
+    if (s_pca9685_dev_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    return i2c_master_transmit_receive(s_pca9685_dev_handle, &reg, 1, val, 1, I2C_TIMEOUT_MS);
 #else
     *val = s_mock_regs[reg];
-    i2c_unlock();
     return ESP_OK;
 #endif
 }
@@ -160,41 +109,40 @@ esp_err_t pca9685_read_reg(uint8_t reg, uint8_t *val)
 esp_err_t pca9685_init(void)
 {
 #ifdef ESP_PLATFORM
-    ESP_LOGI(TAG, "Initializing I2C Master on SDA: GPIO %d, SCL: GPIO %d @ %d Hz...",
+    ESP_LOGI(TAG, "Initializing I2C Master Bus on SDA: GPIO %d, SCL: GPIO %d @ %d Hz...",
              I2C_SDA_GPIO, I2C_SCL_GPIO, PCA9685_I2C_FREQ_HZ);
 
-    /* 1. Allocate bus mutex */
-    if (s_i2c_mutex == NULL) {
-        s_i2c_mutex = xSemaphoreCreateMutex();
-        if (s_i2c_mutex == NULL) {
-            ESP_LOGE(TAG, "Failed to create I2C bus mutex!");
-            return ESP_ERR_NO_MEM;
+    /* 1. Initialize modern I2C Master Bus Handle */
+    if (s_i2c_bus_handle == NULL) {
+        i2c_master_bus_config_t bus_config = {
+            .i2c_port = I2C_NUM_0,
+            .sda_io_num = (gpio_num_t)I2C_SDA_GPIO,
+            .scl_io_num = (gpio_num_t)I2C_SCL_GPIO,
+            .clk_source = I2C_CLK_SRC_DEFAULT,
+            .glitch_ignore_cnt = 7,
+            .flags.enable_internal_pullup = true,
+        };
+
+        esp_err_t err = i2c_new_master_bus(&bus_config, &s_i2c_bus_handle);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to create I2C master bus: %s", esp_err_to_name(err));
+            return err;
         }
     }
 
-    /* 2. Configure I2C peripheral */
-    if (!s_driver_installed) {
-        i2c_config_t conf = {
-            .mode = I2C_MODE_MASTER,
-            .sda_io_num = I2C_SDA_GPIO,
-            .scl_io_num = I2C_SCL_GPIO,
-            .sda_pullup_en = GPIO_PULLUP_ENABLE,
-            .scl_pullup_en = GPIO_PULLUP_ENABLE,
-            .master.clk_speed = PCA9685_I2C_FREQ_HZ,
+    /* 2. Add PCA9685 Device to Bus */
+    if (s_pca9685_dev_handle == NULL) {
+        i2c_device_config_t dev_config = {
+            .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+            .device_address = PCA9685_I2C_ADDR,
+            .scl_speed_hz = PCA9685_I2C_FREQ_HZ,
         };
 
-        esp_err_t err = i2c_param_config(I2C_NUM_0, &conf);
+        esp_err_t err = i2c_master_bus_add_device(s_i2c_bus_handle, &dev_config, &s_pca9685_dev_handle);
         if (err != ESP_OK) {
-            ESP_LOGE(TAG, "i2c_param_config failed: %s", esp_err_to_name(err));
+            ESP_LOGE(TAG, "Failed to add PCA9685 device handle: %s", esp_err_to_name(err));
             return err;
         }
-
-        err = i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0);
-        if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
-            ESP_LOGE(TAG, "i2c_driver_install failed: %s", esp_err_to_name(err));
-            return err;
-        }
-        s_driver_installed = true;
     }
 #endif
 
@@ -262,25 +210,15 @@ esp_err_t pca9685_set_pwm(uint8_t channel, uint16_t on_count, uint16_t off_count
         (uint8_t)((off_count >> 8) & 0x0F)
     };
 
-    if (!i2c_lock()) {
-        return ESP_ERR_TIMEOUT;
-    }
-
 #ifdef ESP_PLATFORM
-    esp_err_t ret = i2c_master_write_to_device(
-        I2C_NUM_0,
-        PCA9685_I2C_ADDR,
-        write_buf,
-        sizeof(write_buf),
-        I2C_TIMEOUT_TICKS
-    );
-    i2c_unlock();
-    return ret;
+    if (s_pca9685_dev_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    return i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
 #else
     for (int i = 0; i < 4; i++) {
         s_mock_regs[PCA9685_CHANNEL_ON_L(channel) + i] = write_buf[1 + i];
     }
-    i2c_unlock();
     return ESP_OK;
 #endif
 }
@@ -295,20 +233,11 @@ esp_err_t pca9685_set_all_pwm(uint16_t on_count, uint16_t off_count)
         (uint8_t)((off_count >> 8) & 0x0F)
     };
 
-    if (!i2c_lock()) {
-        return ESP_ERR_TIMEOUT;
-    }
-
 #ifdef ESP_PLATFORM
-    esp_err_t ret = i2c_master_write_to_device(
-        I2C_NUM_0,
-        PCA9685_I2C_ADDR,
-        write_buf,
-        sizeof(write_buf),
-        I2C_TIMEOUT_TICKS
-    );
-    i2c_unlock();
-    return ret;
+    if (s_pca9685_dev_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    return i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
 #else
     for (int i = 0; i < 4; i++) {
         s_mock_regs[PCA9685_REG_ALL_LED_ON_L + i] = write_buf[1 + i];
@@ -320,7 +249,6 @@ esp_err_t pca9685_set_all_pwm(uint16_t on_count, uint16_t off_count)
         s_mock_regs[PCA9685_CHANNEL_OFF_L(ch)]    = (uint8_t)(off_count & 0xFF);
         s_mock_regs[PCA9685_CHANNEL_OFF_H(ch)]    = (uint8_t)((off_count >> 8) & 0x0F);
     }
-    i2c_unlock();
     return ESP_OK;
 #endif
 }
