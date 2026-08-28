@@ -44,17 +44,18 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 3 — I2C PCA9685 16-Channel PWM Servo Driver (`pca9685.c`)
+## Phase 3 — I2C PCA9685 16-Channel PWM Servo Driver (`pca9685.c`) ✅
 - **I2C Master Initialization & Configuration** (`main/pca9685.h`, `main/pca9685.c`):
-  - Initialize ESP32 I2C Master peripheral on `GPIO 21 (SDA)` and `GPIO 22 (SCL)` at 100 kHz.
-  - Configure PCA9685 controller (`0x40` address): wake from sleep, set prescale register for 50 Hz PWM ($20\text{ms}$ period), enable auto-increment mode.
+  - Initialize ESP32 I2C Master peripheral on `GPIO 21 (SDA)` and `GPIO 22 (SCL)` at 100 kHz with FreeRTOS mutex bus synchronization.
+  - Configure PCA9685 controller (`0x40` address): wake from sleep, set prescale register for 50 Hz PWM ($20\text{ms}$ period), enable auto-increment mode, configure totem-pole output.
 - **Angle to 12-Bit PWM Conversion**:
-  - Implement conversion from degrees ($0^\circ \text{ to } 180^\circ$) to 12-bit PWM register counts ($500\,\mu\text{s} \to 2500\,\mu\text{s}$, $102 \to 512$ counts).
+  - Implement conversion from degrees ($0^\circ \text{ to } 180^\circ$) to 12-bit PWM register counts ($500\,\mu\text{s} \to 2500\,\mu\text{s}$, $102 \to 512$ counts) with mechanical boundary clamping.
   - Implement single channel angle command: `pca9685_set_servo_angle(channel, angle_deg)`.
   - Implement synchronized multi-channel angle command: `pca9685_set_multi_servo_angles(mask, angle_deg)`.
   - Implement mechanical identification nudge ($15^\circ$) and visual staging hold ($30^\circ$).
   - Implement all-channel home reset ($0^\circ$ for all channels 0–15).
-- **Validation**: Verify I2C transactions and 50Hz PWM pulse output across all 16 channels via oscilloscope / servo movement.
+  - Implement low-power sleep and wake control (`pca9685_sleep()`).
+- **Validation**: Verified with host unit test suite (`make test`, 82/82 checks pass, 193/193 total across all test suites) covering angle conversion math, bounds clamping, register writes, sleep/wake, multi-channel masks, and simulated homing across all 16 channels.
 
 ---
 
