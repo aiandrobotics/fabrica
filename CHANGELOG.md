@@ -1,6 +1,15 @@
 # Changelog
 
 ## 2026-08-27
+- Implemented Phase 4 Non-Volatile Storage (NVS) Sequence Manager (`firmware/main/storage.h`, `firmware/main/storage.c`).
+- Initialized ESP-IDF NVS flash subsystem with auto-recovery and partition format on truncation/version upgrade (`ESP_ERR_NVS_NO_FREE_PAGES` / `ESP_ERR_NVS_NEW_VERSION_FOUND`).
+- Implemented binary serialization schema for `fold_routine_t` and `fold_step_t` structs under `"fabrica"` NVS namespace with keys `"preset_1"` to `"preset_4"`.
+- Implemented standard IEEE 802.3 CRC32 integrity validation engine (`0xEDB88320` polynomial) covering serialized sequence payloads to guard against flash corruption and incomplete writes.
+- Implemented full CRUD sequence operations (`storage_save_routine`, `storage_load_routine`, `storage_erase_routine`) with graceful fallbacks to factory defaults on corruption or uninitialized slots.
+- Seeded factory default routines for 4 standard garment profiles: Preset 1 (Adult T-Shirt, 3 steps), Preset 2 (Long-Sleeve Shirt, 3 steps), Preset 3 (Trousers/Jeans, 2 steps), and Preset 4 (Towel/Linen, 3 steps).
+- Created host unit test suite `firmware/test/test_storage.c` with 65/65 checks passing (261/261 total project checks passing across all 4 test suites).
+- Integrated NVS storage manager initialization and preset boot diagnostics into `firmware/main/main.c`.
+- Updated firmware roadmap marking Phase 4 as complete.
 - Migrated PCA9685 driver to ESP-IDF v5.2+ `driver/i2c_master.h` bus and device handle architecture, resolving driver deprecation warnings.
 - Implemented Phase 3 I2C PCA9685 16-Channel PWM Servo Driver (`firmware/main/pca9685.h`, `firmware/main/pca9685.c`).
 - Configured ESP32 I2C Master peripheral on GPIO 21 (SDA) and GPIO 22 (SCL) at 100 kHz.

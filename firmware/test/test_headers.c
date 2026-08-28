@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "command.h"
+#include "storage.h"
 
 static int test_count = 0;
 static int pass_count = 0;
@@ -125,6 +126,14 @@ void test_command_structures(void)
     TEST_ASSERT(cmd_estop.type == CMD_EMERGENCY_STOP, "command_t E-Stop assignment");
 }
 
+void test_storage_headers(void)
+{
+    printf("Testing storage.h constants and namespaces...\n");
+    TEST_ASSERT(strcmp(STORAGE_NVS_NAMESPACE, "fabrica") == 0, "STORAGE_NVS_NAMESPACE is 'fabrica'");
+    TEST_ASSERT(strcmp(STORAGE_INIT_KEY, "preset_init") == 0, "STORAGE_INIT_KEY is 'preset_init'");
+    TEST_ASSERT(strcmp(STORAGE_PRESET_KEY_PREFIX, "preset_") == 0, "STORAGE_PRESET_KEY_PREFIX is 'preset_'");
+}
+
 int main(void)
 {
     printf("============================================================\n");
@@ -133,6 +142,7 @@ int main(void)
 
     test_config_constants();
     test_command_structures();
+    test_storage_headers();
 
     printf("------------------------------------------------------------\n");
     printf(" Test Results: %d / %d checks passed (100%% Success)\n", pass_count, test_count);
