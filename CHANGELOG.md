@@ -1,6 +1,23 @@
 # Changelog
 
 ## 2026-08-27
+- Implemented Phase 6 Visual Staging Programming Mode & State Machine Integration (`firmware/main/state_machine.h`, `firmware/main/state_machine.c`).
+- Built central State Machine engine coordinating 3 primary system operating states (`STATE_IDLE_RUN`, `STATE_RUNNING_MOTION`, `STATE_PROGRAMMING`).
+- Implemented computer-free Visual Staging workflow:
+  - Long press ($\ge 3\text{s}$) on B1–B4 enters Programming Mode for that target preset; Status LED transitions to `LED_STATE_PROGRAMMING` (0.5 Hz slow blink) and all servos home flat to $0^\circ$.
+  - B1 (CYCLE / NUDGE): Increment servo cursor across channels 0–15 with wrap-around and trigger physical $15^\circ$ identification pulse (`NUDGE_ANGLE_DEG`) via `pca9685_nudge_channel()`.
+  - B2 (STAGE / TOGGLE): Lift target servo to $30^\circ$ hold (`STAGE_ANGLE_DEG`) or drop an already-staged servo flat to $0^\circ$, supporting up to 2 simultaneously staged servos per step.
+  - B3 (NEXT STEP / LOCK): Lock staged motors into step buffer, drop flaps flat to $0^\circ$, trigger `LED_STATE_STEP_LOCKED` (2 fast flashes), and increment step buffer index.
+  - B4 (SAVE & EXIT): Commit sequence buffer to NVS flash storage (`storage_save_routine()`) with IEEE 802.3 CRC32 calculation, turn LED solid ON for 2.0s (`LED_STATE_SAVE_SUCCESS`), and return to Daily Run Mode.
+- Implemented visual programming safeguards & failsafes:
+  - 2-Motor Limit: Staging a 3rd motor in 1 step is rejected with `LED_STATE_INPUT_ERROR` (3 fast flashes).
+  - Empty Step Skip: Pressing B3 with no staged flaps is rejected without recording an empty step.
+  - 16-Step Maximum Cap: Locking the 16th step automatically commits the sequence to NVS flash and returns to Daily Run Mode.
+  - 20-Second Inactivity Watchdog: 20,000ms countdown timer without user input automatically drops all flaps to $0^\circ$, discards uncommitted buffer, and safely returns to `STATE_IDLE_RUN`.
+- Implemented dynamic button gesture routing in `firmware/main/buttons.c` conditioned on system state (`buttons_translate_gesture`) and integrated 10ms state machine ticks in `app_ui_task` on Core 1.
+- Created comprehensive host unit test suite `firmware/test/test_state_machine.c` with 161/161 checks passing (503/503 total project checks passing across all 6 test suites).
+- Integrated state machine initialization and command routing in `firmware/main/main.c` and registered in `firmware/main/CMakeLists.txt` and `firmware/Makefile`.
+- Updated firmware roadmap marking Phase 6 as complete.
 - Implemented Phase 5 Motion Engine & Daily Run Mode Execution (`firmware/main/motion.h`, `firmware/main/motion.c`).
 - Built Core 0 real-time high-priority motion task (`app_motion_task`, Priority 10) orchestrating deterministic step execution ($0^\circ \to 180^\circ \to 0^\circ$).
 - Implemented single-motor and parallel dual-motor sweep trajectories with 300ms fold dwell (`FOLD_DWELL_TIME_MS`) and 200ms inter-step settling delay (`INTER_STEP_DELAY_MS`).

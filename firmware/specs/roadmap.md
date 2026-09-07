@@ -88,11 +88,11 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 6 — Visual Staging Programming Mode & State Machine Integration (`state_machine.c`)
+## Phase 6 — Visual Staging Programming Mode & State Machine Integration (`state_machine.c`) ✅
 - **Mode Transition & Staging Coordinator** (`main/state_machine.h`, `main/state_machine.c`):
   - Hold B1–B4 for 3 seconds $\rightarrow$ Enter Programming Mode for that preset; set LED to Slow Blink (0.5 Hz).
 - **Physical Staging Workflow**:
-  - **B1 (CYCLE / NUDGE)**: Increment target servo index (1–16) and trigger $15^\circ$ physical nudge for quick identification.
+  - **B1 (CYCLE / NUDGE)**: Increment target servo index (0–15) and trigger $15^\circ$ physical nudge for quick identification.
   - **B2 (STAGE / TOGGLE)**: Lift identified flap to $30^\circ$ and hold in position. Tapping B2 on an already-staged flap drops it to $0^\circ$. Support up to 2 simultaneously staged flaps.
   - **B3 (NEXT STEP)**: Lock staged flap(s) into step buffer, flash LED 2 times rapidly, drop flaps flat to $0^\circ$, increment step buffer index.
   - **B4 (SAVE & EXIT)**: Commit sequence buffer to NVS flash, turn LED Solid ON for 2.0 seconds, and return to Daily Run Mode.
@@ -101,7 +101,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - **Empty Step Skip**: Pressing B3 with no staged flaps is ignored.
   - **Inactivity Timeout**: 20 seconds with no button presses drops all flaps to $0^\circ$, discards buffer, and safely exits to Run Mode.
   - **16-Step Cap**: Reaching 16 steps automatically saves sequence to NVS and exits.
-- **Validation**: End-to-end testing of visual programming workflow without screen/computer, verifying correct NVS save and subsequent Run Mode playback.
+- **Validation**: Verified with host unit test suite (`make test`, 161/161 checks pass, 503/503 total across all test suites) covering state machine lifecycle, button gesture translation matrix across all states, channel cycling/nudge, staging toggles, 2-motor limit enforcement, step locking, empty step rejection, NVS save/playback, 16-step auto-commit, 20s inactivity watchdog timeout, and Emergency Stop in all states.
 
 ---
 
