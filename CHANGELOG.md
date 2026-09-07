@@ -1,6 +1,9 @@
 # Changelog
 
 ## 2026-09-07
+- Updated firmware specifications (`mission.md`, `tech-stack.md`, `roadmap.md`) establishing complete BLE mobile app integration requirements across execution, control, button configuration, and visual feedback.
+- Defined packed binary wire framing protocol on Control Point (`FAB1`) with standardized opcodes for remote execution, calibration jogging, robot identification, and LED modes.
+- Added re-entrancy protection, empty preset validation, active motion sequence write locks, integer motor jog lifecycle with thermal cutoffs, and 1:1 mobile UI status mirroring via 30-byte telemetry.
 - Implemented Phase 7 End-to-End System Validation, Stress Testing & Preset Library (`firmware/`).
 - Standardized factory preset library in `firmware/main/storage.c` for 4 garment profiles (Adult T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
 - Defined physical servo flap channel constants in `firmware/main/config.h` (`SERVO_FLAP_LEFT`, `SERVO_FLAP_RIGHT`, `SERVO_FLAP_BOTTOM`, `SERVO_FLAP_TOP`).

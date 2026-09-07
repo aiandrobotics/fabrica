@@ -66,10 +66,11 @@ graph TD
 ### 1. Unified Command Architecture & Mobile Integration
 * **Source-Independent Command Pipeline**: Core firmware logic (Motion Engine, State Machine, NVS Storage) is fully decoupled from physical inputs. All events are formatted as standardized `command_t` objects (with source metadata: `SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_INTERNAL_TIMER`) and posted to a unified FreeRTOS command queue.
 * **Mobile App Integration**: The firmware provides native mobile app integration via Apache NimBLE GATT services on Core 1:
-  - **Wireless Button Configuration**: Remotely record, edit, and organize folding sequences per button (Buttons 1–4) from the mobile app over BLE.
-  - **Start/Stop Sequence Execution**: Remotely trigger, stop, or emergency abort folding routines directly from the mobile app.
-  - **Client-Side Garment Profiles (Stateless Robot Execution)**: Custom garment profiles (e.g. T-Shirts, Hoodies, Jeans, Towels, Kids Wear), categorization, and profile sharing are managed client-side in the mobile app. The ESP32 acts as a high-performance execution engine: users can preview any profile directly on the robot (`CMD_RUN_RAW_SEQUENCE`) or bind a profile to physical Buttons 1–4 (`CMD_SET_BUTTON_SEQUENCE`).
-  - **Real-Time Status & Motor Telemetry**: Stream sequence execution progress (active step, total steps, progress %) and live motor positions ($0^\circ-180^\circ$ for channels 0–15) in real time at 10 Hz over BLE without requiring expensive hardware current sensors.
+  - **Wireless Button Configuration**: Remotely record, edit, and organize folding sequences per button (Buttons 1–4) over BLE via canonical `FAB3` transport, supporting active motion write locks (`CMD_STATUS_ERR_BUSY`), auto-CRC32 calculation on zero-checksum writes, and factory default restoration (`CMD_RESTORE_FACTORY_PRESETS`).
+  - **Start/Stop Sequence Execution**: Remotely trigger, stop, or emergency abort folding routines directly from the mobile app, protected by busy re-entrancy guards (`CMD_STATUS_ERR_BUSY`), empty sequence validation (`CMD_STATUS_ERR_INVALID_STEP`), and dedicated 100% completion notifications.
+  - **Client-Side Garment Profiles (Stateless Robot Execution)**: Custom garment profiles (e.g. T-Shirts, Hoodies, Jeans, Towels, Kids Wear), categorization, and profile sharing are managed client-side in the mobile app. The ESP32 acts as a high-performance execution engine: users can preview any profile directly on the robot (`CMD_RUN_RAW_SEQUENCE`, reporting `active_button_id == 0`) or bind a profile to physical Buttons 1–4 (`CMD_SET_BUTTON_SEQUENCE` or `FAB3` write).
+  - **Real-Time Status, LED Mirroring & Motor Telemetry**: Stream sequence execution progress (active step, total steps, progress %), visual LED state mirroring (for 1:1 mobile app UI sync), and live motor positions ($0^\circ-180^\circ$ for channels 0–15) in real time at 10 Hz over BLE without requiring expensive hardware current sensors.
+  - **Unit Identification & Calibration**: Wirelessly trigger visual unit identification (`CMD_IDENTIFY_ROBOT`, 3.0s LED pulse train), configure LED mode (`CMD_SET_LED_MODE`: Auto, Manual Override, Stealth/Night Mode), and perform live integer servo angle jogging (`CMD_JOG_MOTOR_ANGLE`) with motion safety interlocks, 10s thermal de-energize cutoffs, and 15s auto-home exit.
   - **Proof-of-Presence BLE Security**: First-time connection from an unbonded mobile device requires a physical button press on the robot during a 30-second authorization window (which suppresses routine execution). Up to 4 trusted devices are bonded in NVS (`"ble_bonds"`, with automatic FIFO eviction on a 5th device and manual B1+B4 5-second factory reset) for instant, frictionless auto-reconnection on subsequent launches.
   - **Lightweight On-Device Storage**: NVS stores only the 4 user-programmed button sequences, bonded BLE identity keys, and factory defaults, eliminating firmware reflashes when new garment types are created.
 
@@ -92,7 +93,7 @@ graph TD
 * **Safety Failsafes**: Automatic 20-second inactivity timeout, empty step rejection, and 2-motor-per-step enforcement.
 
 ### 4. Visual Feedback Engine (LED Controller)
-* Non-blocking software timer / task driving 9 distinct status patterns:
+* Non-blocking software timer / task driving 10 distinct status patterns with strict preemption restoration:
   1. **Idle / Ready**: Soft heartbeat (10% duty cycle / 0.5 Hz) or OFF awaiting input.
   2. **Running Sequence**: Solid ON throughout the entire motion cycle.
   3. **Programming Mode**: Slow blink (1.0s ON / 1.0s OFF / 0.5 Hz).
@@ -101,7 +102,10 @@ graph TD
   6. **Input Error / Limit Reached**: 3 fast flashes (60ms ON / 60ms OFF).
   7. **Emergency Stop (E-Stop)**: 5 rapid flashes (50ms ON / 50ms OFF).
   8. **BLE Pairing Window**: Fast double-blink (100ms ON / 100ms OFF / 100ms ON / 500ms OFF) awaiting physical button press to authorize a new mobile device.
-  9. **BLE Connected**: Solid ON for 1.0 second confirming connection, then returns to Idle heartbeat.
+  9. **BLE Connected**: Solid ON for 1.0 second confirming connection, restoring prior base state.
+  10. **Identify Robot**: 3 fast double-blinks (100ms ON / 100ms OFF / 100ms ON / 500ms OFF) for 3.0 seconds, restoring prior base state.
+* **Visual Mode Control (`CMD_SET_LED_MODE`)**: Supports runtime selection between Auto (State-driven), Manual Pattern Override (`led_state_t`), and Stealth/Night Mode (suppresses idle heartbeat while preserving motion/error alerts).
+* **Strict Preemption Hierarchy**: Transient patterns (4, 5, 6, 9, 10) automatically preserve and restore the underlying base state (`return_to_prior_base = true`) to prevent display glitches across state transitions.
 
 ---
 
@@ -134,10 +138,11 @@ graph TD
 
 - **100% Deterministic Execution**: Zero dropped FreeRTOS ticks, zero blocking delays on Core 1 UI loop, and precise $\pm 10\text{ms}$ motion timing on Core 0.
 - **Zero-Latency E-Stop / Stop**: Start/stop commands and emergency stop trigger within $< 50\text{ms}$ of button tap or wireless BLE command, cutting active PWM commands and homing all panels.
-- **Real-Time Telemetry**: 10 Hz streaming of sequence execution progress and live motor angles (channels 0–15) over BLE notifications without requiring hardware current sensors.
-- **Reliable Button Sequence Persistence**: 100% NVS data persistence for the 4 user-programmed button sequences and factory defaults across reboots and power cuts with CRC32 integrity checks.
-- **Stateless Mobile Profile Execution**: Zero-friction client-side garment profile management, supporting direct execution of custom routines (`CMD_RUN_RAW_SEQUENCE`) and 1-touch binding to physical buttons (`CMD_SET_BUTTON_SEQUENCE`).
+- **Real-Time Telemetry & LED Mirroring**: 10 Hz streaming of packed 30-byte telemetry frames (`telemetry_packet_t`: system state, LED state mirroring, active button ID, step progress, all 16 motor angles, and command status) over BLE notifications without requiring hardware current sensors.
+- **Fail-Safe Mobile Control**: Re-entrancy guards rejecting concurrent execution requests (`CMD_STATUS_ERR_BUSY`), empty sequence validation (`CMD_STATUS_ERR_INVALID_STEP`), motion safety interlocks prohibiting servo jogging during running cycles or E-Stop, 15-second calibration auto-home, and `<50ms` E-Stop preemption with BLE clear recovery.
+- **Reliable Button Sequence Persistence**: 100% NVS data persistence for the 4 user-programmed button sequences and factory defaults across reboots and power cuts with CRC32 integrity checks, active motion sequence write locks (`ERR_BUSY`), and auto-CRC calculation on zero-checksum writes.
+- **Stateless Mobile Profile Execution**: Zero-friction client-side garment profile management, supporting direct preview execution of custom routines (`CMD_RUN_RAW_SEQUENCE`, reporting `active_button_id == 0`) and 1-touch binding to physical buttons (`CMD_SET_BUTTON_SEQUENCE` or `FAB3`).
 - **Proof-of-Presence BLE Security**: 100% rejection of unauthorized BLE centrals unless authorized via physical button press within a 30-second pairing window; seamless auto-reconnect for up to 4 bonded devices in NVS.
-- **Robust Error Handling**: Graceful rejection of invalid inputs (3rd motor stage attempts, empty step locks, empty preset executions) with clear visual and wireless BLE feedback.
+- **Robust Error Handling**: Graceful rejection of invalid inputs (3rd motor stage attempts, empty step locks, out-of-bounds channels) with clear visual and wireless BLE feedback.
 - **Unified Transport Ingress**: Decoupled command pipeline supporting physical buttons and NimBLE GATT feeding a single thread-safe FreeRTOS queue.
 - **Clean ESP-IDF Build**: Clean compilation under ESP-IDF CMake / Ninja build system with zero compiler warnings.

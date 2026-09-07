@@ -146,20 +146,28 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Register custom Primary Service `0000FAB0-0000-1000-8000-00805F9B34FB`:
     1. **Control Point Characteristic (`FAB1` / `0000FAB1-0000-1000-8000-00805F9B34FB`)**:
        - Permissions: Write / Write Without Response.
-       - Ingests binary command packets from the mobile app (Start/Stop, Remote Staging, Step Editing, Motor Jog, E-Stop) and dispatches to `xCommandQueue` with `SOURCE_BLE`.
+       - Packed Binary Wire Protocol: Implements standardized `[1B Opcode][Payload]` framing ($1\text{B}$ to $55\text{B}$) with zero compiler struct padding across iOS / Android / Flutter.
+       - Ingests binary command packets (Start/Stop, Raw Preview, Staging, Step Editing, Integer Motor Jog, E-Stop, Factory Reset, Identify, LED Mode) and dispatches to `xCommandQueue` with `SOURCE_BLE`.
     2. **Sequence Progress & Motor Telemetry Characteristic (`FAB2` / `0000FAB2-0000-1000-8000-00805F9B34FB`)**:
        - Permissions: Notify / Read.
-       - Streams 10 Hz packed binary telemetry frames (`telemetry_packet_t`, 29 bytes) containing real-time sequence progress, all 16 motor positions, and last command status (no hardware current sensing needed).
+       - Streams 10 Hz packed binary telemetry frames (`telemetry_packet_t`, 30 bytes) containing real-time system state, visual LED state mirroring, sequence progress, all 16 motor positions, and last command status (no hardware current sensing needed).
     3. **Button Sequence Configuration Characteristic (`FAB3` / `0000FAB3-0000-1000-8000-00805F9B34FB`)**:
        - Permissions: Read / Write / Notify.
+       - **Canonical Transport**: Primary GATT interface for all button sequence reads and writes.
        - **Strict Binary Struct Packing**: Uses `__attribute__((packed))` for `fold_step_t` (3 bytes: 1B count + 2B motor IDs) and `fold_routine_t` (53 bytes: 1B step_count + 48B steps + 4B CRC32) with zero internal padding.
        - GATT Read returns the complete 212-byte table ($4 \times 53\text{ bytes}$) of all 4 button sequences in a single transfer.
        - GATT Write accepts either a 54-byte single button update (1-byte button ID + 53-byte `fold_routine_t`) or the full 212-byte table.
+       - **Active Motion Write Lock**: Strictly rejects GATT writes to `FAB3` while `system_state == STATE_RUNNING_MOTION` with `ERR_BUSY`.
+       - **Auto-CRC Calculation & Zero-Padding**: Computes IEEE 802.3 CRC32 across all 49 bytes preceding checksum with zero-padded unused slots; if `checksum == 0`, firmware auto-computes valid CRC before NVS commit; if non-zero, validates and rejects corrupted payloads with `ERR_CRC_MISMATCH`.
        - GATT Notify automatically alerts mobile clients whenever button sequences change on-device.
+- **Visual Feedback & Device Identification Engine**:
+  - Expose `CMD_IDENTIFY_ROBOT` command to pulse status LED for 3.0 seconds (3 fast double-blinks) to visually locate unit during BLE scanning.
+  - Expose `CMD_SET_LED_MODE` to allow mobile app to configure visual mode: `0 = Auto` (State-driven), `1 = Manual Pattern Override` (`led_state_t`), `2 = Stealth/Night Mode` (suppresses idle heartbeat).
+  - Strict LED Preemption Hierarchy: Transient states (`LED_STATE_BLE_CONNECTED`, `LED_STATE_STEP_LOCKED`, `LED_STATE_SAVE_SUCCESS`, `CMD_IDENTIFY_ROBOT`) preserve and restore underlying base state (`return_to_prior_base = true`) to prevent display glitches across state transitions.
 - **Unified Command Queue Ingress**:
   - Translate GATT write events directly into standardized `command_t` instances and inject into `xCommandQueue` without modifying Core 0 motion mechanics.
 - **Validation**:
-  - Host mock test suite verifying NimBLE GATT table registration, DIS service descriptors, authorization window timing and button suppression, bond eviction and hardware reset, struct packing byte counts, MTU negotiation, and command queue injection.
+  - Host mock test suite verifying NimBLE GATT table registration, DIS service descriptors, authorization window timing and button suppression, bond eviction and hardware reset, struct packing byte counts, MTU negotiation, command queue injection, and identify LED pulsing.
   - Live hardware verification with nRF Connect / LightBlue on iOS/Android over `/dev/cu.usbserial-0001`.
 
 ---
@@ -167,14 +175,24 @@ Build, validate, and verify each milestone before moving to the next phase.
 ## Phase 9 — Mobile Configuration & Remote Execution (`remote_cmd.c`, `command.h`, `state_machine.c`)
 - **Start / Stop Sequence Execution from Mobile App**:
   - Start routine execution: Wirelessly trigger saved Button 1–4 routines (`CMD_RUN_PRESET`).
-  - Preview raw routine: Execute temporary unsaved sequence payloads directly (`CMD_RUN_RAW_SEQUENCE`) allowing users to preview fold sequences before committing them to a button.
+  - **Re-Entrancy / Busy Guard**: If `CMD_RUN_PRESET` or `CMD_RUN_RAW_SEQUENCE` is received while motion is active (`motion_is_busy()`), command is safely rejected and reports `ERR_BUSY` in telemetry without interrupting active cycle.
+  - **Empty Preset Validation**: If targeted preset has `step_count == 0`, immediately reject execution with `ERR_INVALID_STEP`.
+  - **Execution Completion Notification**: At final step completion, emit a dedicated telemetry frame with `step_progress_pct = 100` and `last_cmd_status = OK` before transitioning cleanly to `STATE_IDLE_RUN`.
+  - **Stateless Raw Routine Execution & Validation**:
+    - Execute temporary unsaved sequence payloads directly (`CMD_RUN_RAW_SEQUENCE`) allowing users to preview fold sequences before committing them to a button.
+    - Pre-validate routine before execution: Enforce $1 \le \text{step\_count} \le 16$, $1 \le \text{motor\_count} \le 2$, and valid channel indices ($0 \le \text{id} \le 15$); reject invalid payloads with `ERR_INVALID_STEP` or `ERR_MOTOR_BOUNDS`.
+    - Telemetry indicator: `active_button_id` reports `0` during raw preview execution to distinguish from stored buttons 1–4.
   - Stop routine execution: Cleanly stop active folding sequence (`CMD_STOP_SEQUENCE`) and return all flaps to $0^\circ$ home.
   - Wireless Emergency Stop: Instant `<50ms` preemptive abort (`CMD_EMERGENCY_STOP`) immediately cutting PWM pulses and homing all 16 panels.
   - **E-Stop Clear & Recovery over BLE**: Sending `CMD_STOP_SEQUENCE` over BLE (or tapping any physical button) resets `STATE_ESTOP` back to `STATE_IDLE_RUN`.
 - **Client-Side Garment Profiles (Stateless Execution Model)**:
   - Dynamic garment profile catalog, fabric tags, custom folding routines, and user-to-user sharing (JSON/QR) live 100% on the mobile application.
   - Mobile app can preview and execute any garment profile on the robot without modifying on-device NVS slots (`CMD_RUN_RAW_SEQUENCE`).
-  - Mobile app can bind any garment profile to physical Buttons 1–4 via 1-touch sync (`CMD_SET_BUTTON_SEQUENCE`), requiring zero firmware updates for new garment profiles.
+  - Mobile app can bind any garment profile to physical Buttons 1–4 via 1-touch sync (`CMD_SET_BUTTON_SEQUENCE` or `FAB3` write), requiring zero firmware updates for new garment profiles.
+- **Button Management & Factory Reset**:
+  - Direct 4-button sequence overwrite/sync (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`) over BLE with strict $1 \le \text{button\_id} \le 4$ range enforcement.
+  - **Write Interlock during Motion**: Reject button sequence writes with `ERR_BUSY` if motion is currently running.
+  - Factory Default Reset: `CMD_RESTORE_FACTORY_PRESETS` command restores Buttons 1–4 to hardcoded default folding routines in NVS.
 - **Wireless Button Sequence Recording & Editing**:
   - Remotely record, edit, and organize folding sequences per button (Buttons 1–4) over BLE:
     - Remote entry into programming mode for target button (`CMD_ENTER_PROGRAM_MODE`).
@@ -182,6 +200,7 @@ Build, validate, and verify each milestone before moving to the next phase.
     - Remote flap staging: Toggle flap staged ($30^\circ$) or resting ($0^\circ$) (`CMD_STAGE_TOGGLE_MOTOR`).
     - Remote step locking: Commit staged flaps into routine step buffer (`CMD_LOCK_STEP`).
     - Remote save & exit: Commit accumulated sequence to target button slot in NVS (`CMD_SAVE_EXIT_PROGRAM`).
+  - Remote Staging Feedback: Expose 16-bit staged motor bitmask and active cursor channel so the mobile UI mirrors staged flaps in real time.
 - **Remote Sequence Editor Backend**:
   - Direct step manipulation API (`CMD_REMOTE_EDIT_STEP`):
     - Insert new step at index $k$.
@@ -189,32 +208,39 @@ Build, validate, and verify each milestone before moving to the next phase.
     - Update active motor IDs and dwell parameters for step $k$.
     - Reorder step sequence.
   - Routine payload validation: Enforce maximum 16 steps, maximum 2 motors per step, valid channel bounds (0–15), and CRC32 integrity.
-  - **Immediate Command Feedback**: Command execution or validation failures (e.g. `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`) update `last_cmd_status` in the telemetry packet for instant mobile UI toast feedback.
-  - Direct 4-button sequence overwrite/sync (`CMD_SET_BUTTON_SEQUENCE`) over BLE.
-- **Live Servo Jog & Calibration Mode**:
-  - Live position jog (`CMD_JOG_MOTOR_ANGLE`, $0.0^\circ$ to $180.0^\circ$ with $0.5^\circ$ resolution) for interactive visual calibration of resting angle ($0^\circ$) and fold angle ($180^\circ$) from mobile app sliders.
+  - **Immediate Command Feedback**: Command execution or validation failures (e.g. `ERR_BUSY`, `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`, `ERR_INVALID_ARG`) update `last_cmd_status` in the telemetry packet for instant mobile UI toast feedback.
+- **Live Servo Jog, Calibration Mode & Thermal Protection**:
+  - Integer position jog (`CMD_JOG_MOTOR_ANGLE`: `[channel (0-15)][angle_deg (0-180)]`) for interactive visual calibration from mobile app sliders.
+  - **State Transition**: Sending jog command from Idle transitions machine to `STATE_CALIBRATING`.
+  - **Motion Safety Interlock**: Strictly reject `CMD_JOG_MOTOR_ANGLE` if `system_state == RUNNING_MOTION` or `ESTOP` to prevent mechanical binding and gear stripping.
+  - **Auto-Home & Inactivity Exit**: 15-second inactivity watchdog or `CMD_STOP_SEQUENCE` automatically homes all jogged channels back to $0^\circ$ and returns to `STATE_IDLE_RUN`.
+  - **Thermal Safety Cutoff**: Stationary servos in calibration mode automatically de-energize after 10 seconds to prevent servo motor coil burnout.
 - **Validation**:
-  - Host unit tests covering remote start/stop execution triggers, raw sequence preview execution, wireless E-Stop preemption and BLE reset recovery, remote staging sequence recording, step insertion/deletion/reordering, error status code reporting, and servo jog angle clamping.
+  - Host unit tests covering remote start/stop execution triggers, busy re-entrancy rejection, raw sequence validation and preview execution, wireless E-Stop preemption and BLE reset recovery, factory preset restoration, remote staging sequence recording, step insertion/deletion/reordering, error status code reporting, and servo jog safety interlocks.
 
 ---
 
 ## Phase 10 — Real-Time Telemetry & Button Sync (`telemetry.c`)
 - **High-Rate Telemetry Streaming Engine (`app_telemetry_task`, Core 1)**:
-  - 10 Hz packed binary telemetry packet (`telemetry_packet_t`, 29 bytes):
+  - 10 Hz packed binary telemetry packet (`telemetry_packet_t`, 30 bytes):
     - `system_state`: Current operational state (`IDLE`, `RUNNING`, `PROGRAMMING`, `ESTOP`, `ERROR`, `CALIBRATING`).
+    - `led_state`: Current visual feedback pattern (`IDLE`, `RUNNING`, `PROGRAMMING`, `STEP_LOCKED`, `SAVE_SUCCESS`, `INPUT_ERROR`, `ESTOP`, `BLE_PAIRING`, `BLE_CONNECTED`) for 1:1 mobile UI mirroring.
     - `active_button_id`: Currently executing button routine (1 to 4, or 0 if raw preview / idle).
-    - `execution_progress`: Active step number, total steps, step progress percentage, and elapsed step time (ms).
+    - `current_step_idx`: Active step number (0-indexed, 0 to 15).
+    - `total_steps`: Total steps in active routine.
+    - `step_progress_pct`: Current step completion percentage (0-100%).
+    - `elapsed_step_time_ms`: Elapsed time in active step (ms).
     - `channel_angles`: Live angular positions for all 16 PCA9685 servo channels ($0^\circ \text{ to } 180^\circ$).
-    - `last_cmd_status`: Status code of last received command (`OK`, `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`).
-    - `system_health`: Free internal heap (bytes), minimum heap watermark, BLE RSSI, sequence counter, error bitmask.
+    - `last_cmd_status`: Status code of last received command (`OK`, `ERR_BUSY`, `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`, `ERR_INVALID_ARG`).
+    - `system_health`: Free internal heap (KB), minimum heap watermark, BLE RSSI, sequence counter, error bitmask.
     - Note: Omits hardware current sensing to minimize BOM costs; safety stall prevention is fully addressed via physical clearances and <50ms E-Stop.
   - Event-Driven Push Notifications:
-    - Immediate BLE notifications on state transitions (Routine started, Step completed, Sequence stopped, E-Stop triggered, Routine saved).
+    - Immediate BLE notifications on state transitions (Routine started, Step completed, Routine finished 100%, Sequence stopped, E-Stop triggered, Routine saved).
 - **Button Configuration Synchronization**:
   - Automatically notifies subscribed mobile clients via `FAB3` whenever a button sequence is modified (either via physical buttons or over BLE).
   - Allows mobile app to fetch or verify all 4 button sequences on connection (`CMD_GET_BUTTON_CONFIG`) to maintain 100% synchronization.
 - **Validation**:
-  - Host unit tests verifying packed telemetry serialization, 10 Hz streaming timer determinism, command status reflection, event notification triggers, and button configuration sync dispatch.
+  - Host unit tests verifying packed telemetry serialization, 10 Hz streaming timer determinism, LED state mirroring, command status reflection, event notification triggers, and button configuration sync dispatch.
 
 ---
 
@@ -225,14 +251,21 @@ Build, validate, and verify each milestone before moving to the next phase.
     1. Scan & connect over BLE GAP (`Fabrica-XXXX`) and negotiate ATT MTU $\ge 247$ bytes.
     2. Proof-of-Presence pairing authorization: verify 30s window timeout disconnects unbonded devices; verify physical button press authorizes and bonds while suppressing motion execution; verify subsequent auto-reconnect without button press.
     3. Verify bond capacity limits (5th device FIFO eviction) and manual B1+B4 5-second bond clear reset.
-    4. Read current 4-button sequence configuration (`FAB3`) in 212-byte packed table transfer.
-    5. Remotely edit Button 1 sequence (insert, delete, reorder steps) and commit to NVS over BLE.
-    6. Execute stateless client garment profile preview directly without modifying NVS (`CMD_RUN_RAW_SEQUENCE`).
-    7. Start sequence execution from mobile app (`CMD_RUN_PRESET` 1).
-    8. Stream 10 Hz real-time sequence progress and live motor angles (`FAB2`).
-    9. Send stop / emergency stop command from mobile app during mid-sweep and verify $<50\text{ms}$ preemption.
-    10. Clear E-Stop lock over BLE via `CMD_STOP_SEQUENCE` and verify return to `STATE_IDLE_RUN`.
-    11. Trigger execution via physical button tap and verify mobile app receives real-time sequence progress and button sync notifications.
+    4. Send `CMD_IDENTIFY_ROBOT` and verify 3.0s LED pulse confirmation.
+    5. Test `CMD_SET_LED_MODE`: verify Mode 2 (Stealth/Night) disables idle heartbeat; verify Mode 0 restores normal operation.
+    6. Read current 4-button sequence configuration (`FAB3`) in 212-byte packed table transfer.
+    7. Remotely edit Button 1 sequence (insert, delete, reorder steps) and commit to NVS over BLE with auto-CRC32 calculation.
+    8. Execute stateless client garment profile preview directly without modifying NVS (`CMD_RUN_RAW_SEQUENCE`), verifying `active_button_id == 0`.
+    9. Test empty preset execution guard: attempt `CMD_RUN_PRESET` on 0-step sequence and verify rejection with `ERR_INVALID_STEP`.
+    10. Start sequence execution from mobile app (`CMD_RUN_PRESET` 1); send concurrent `CMD_RUN_PRESET` 2 mid-execution and verify rejection with `ERR_BUSY`.
+    11. Attempt GATT write to `FAB3` during active motion and verify write lock rejection with `ERR_BUSY`.
+    12. Stream 10 Hz real-time sequence progress, LED state mirroring, and live motor angles (`FAB2`); verify final completion packet (`progress == 100%`, `status == OK`).
+    13. Attempt `CMD_JOG_MOTOR_ANGLE` during active motion and verify safety rejection with `ERR_BUSY`.
+    14. From Idle, send `CMD_JOG_MOTOR_ANGLE` and verify transition to `STATE_CALIBRATING`; verify stationary 10s thermal de-energize; verify 15s timeout auto-homes all jogged channels back to $0^\circ$ and returns to `STATE_IDLE_RUN`.
+    15. Send stop / emergency stop command from mobile app during mid-sweep and verify $<50\text{ms}$ preemption.
+    16. Clear E-Stop lock over BLE via `CMD_STOP_SEQUENCE` and verify return to `STATE_IDLE_RUN`.
+    17. Trigger execution via physical button tap and verify mobile app receives real-time sequence progress and button sync notifications.
+    18. Execute `CMD_RESTORE_FACTORY_PRESETS` and verify NVS resets to factory defaults.
 - **Multi-Source Concurrency & Priority Arbitration**:
   - Concurrent physical button tap vs wireless mobile command arbitration.
   - E-Stop priority enforcement across physical buttons and BLE commands.
