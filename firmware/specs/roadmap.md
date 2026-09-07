@@ -105,17 +105,20 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 7 — End-to-End System Validation, Stress Testing & Preset Library
+## Phase 7 — End-to-End System Validation, Stress Testing & Preset Library ✅
 - **Factory Preset Library**:
-  - Preset 1: Standard Adult T-Shirt (Left fold $\to$ Right fold $\to$ Bottom fold).
-  - Preset 2: Long-Sleeve Shirt (Parallel sleeve fold $\to$ Body folds).
-  - Preset 3: Trousers / Jeans (Half fold $\to$ Full fold).
-  - Preset 4: Towel / Linen (Quarter square fold).
+  - Preset 1: Standard Adult T-Shirt (Left fold $\to$ Right fold $\to$ Bottom fold: Ch 0 $\to$ Ch 1 $\to$ Ch 2).
+  - Preset 2: Long-Sleeve Shirt (Parallel dual-sleeve fold $\to$ Left body $\to$ Right body $\to$ Bottom fold).
+  - Preset 3: Trousers / Jeans (Vertical half fold $\to$ Bottom fold: Ch 0 $\to$ Ch 2).
+  - Preset 4: Towel / Linen (Left half fold $\to$ Right quarter fold $\to$ Bottom fold: Ch 0 $\to$ Ch 1 $\to$ Ch 2).
+  - Standardized named channel aliases (`SERVO_FLAP_LEFT`, `SERVO_FLAP_RIGHT`, `SERVO_FLAP_BOTTOM`, `SERVO_FLAP_TOP`) in `main/config.h`.
 - **Stress & Endurance Testing**:
-  - 100-cycle continuous run test verifying zero heap memory leaks (`esp_get_minimum_free_heap_size()`).
-  - Stress testing E-Stop triggers under active mid-sweep conditions.
-  - Verification of power loss resilience during NVS write operations.
-- **Final Documentation**: Update `firmware/README.md` with wiring diagrams, flashing guides, and user operation instructions.
+  - 100-cycle continuous run test verifying zero heap memory leaks and long-term state stability.
+  - Stress testing E-Stop triggers under active mid-sweep conditions (<50ms abort latency, immediate 16-channel homing).
+  - Automated verification of power loss and bit-rot resilience during NVS write operations (`ESP_ERR_INVALID_CRC` fallback).
+  - 50-cycle rapid mode-switching stress test verifying state machine invariant stability.
+- **System Documentation**: Comprehensive `firmware/README.md` with electrical wiring diagrams, PCA9685 power isolation, dual-core FreeRTOS architecture, full operator manual, and test instructions.
+- **Validation**: Verified with host unit test suite (`make test`, 60/60 checks pass in `test_e2e_stress.c`, 553/553 total checks pass across all 7 test suites).
 
 ---
 

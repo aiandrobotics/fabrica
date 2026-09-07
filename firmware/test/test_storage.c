@@ -91,11 +91,12 @@ void test_factory_defaults(void)
     /* Preset 2: Long-Sleeve Shirt */
     err = storage_get_default_routine(2, &routine);
     TEST_ASSERT(err == ESP_OK, "storage_get_default_routine(2) returns ESP_OK");
-    TEST_ASSERT(routine.step_count == 3, "Preset 2 has 3 steps");
+    TEST_ASSERT(routine.step_count == 4, "Preset 2 has 4 steps");
     TEST_ASSERT(routine.steps[0].motor_count == 2 && routine.steps[0].motor_ids[0] == 0 && routine.steps[0].motor_ids[1] == 1,
                 "Preset 2 Step 1 is Parallel sleeve folds (Ch 0 + Ch 1)");
-    TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 2, "Preset 2 Step 2 is Left body fold (Ch 2)");
-    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 3, "Preset 2 Step 3 is Right body fold (Ch 3)");
+    TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 0, "Preset 2 Step 2 is Left body fold (Ch 0)");
+    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 1, "Preset 2 Step 3 is Right body fold (Ch 1)");
+    TEST_ASSERT(routine.steps[3].motor_count == 1 && routine.steps[3].motor_ids[0] == 2, "Preset 2 Step 4 is Bottom fold (Ch 2)");
     TEST_ASSERT(routine.checksum == storage_compute_crc32(&routine), "Preset 2 checksum is valid");
 
     /* Preset 3: Trousers / Jeans */
@@ -103,7 +104,7 @@ void test_factory_defaults(void)
     TEST_ASSERT(err == ESP_OK, "storage_get_default_routine(3) returns ESP_OK");
     TEST_ASSERT(routine.step_count == 2, "Preset 3 has 2 steps");
     TEST_ASSERT(routine.steps[0].motor_count == 1 && routine.steps[0].motor_ids[0] == 0, "Preset 3 Step 1 is Vertical fold (Ch 0)");
-    TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 1, "Preset 3 Step 2 is Bottom fold (Ch 1)");
+    TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 2, "Preset 3 Step 2 is Bottom fold (Ch 2)");
     TEST_ASSERT(routine.checksum == storage_compute_crc32(&routine), "Preset 3 checksum is valid");
 
     /* Preset 4: Towel / Linen */
@@ -177,7 +178,7 @@ void test_storage_crud_operations(void)
     memset(&loaded, 0, sizeof(loaded));
     err = storage_load_routine(2, &loaded);
     TEST_ASSERT(err == ESP_OK, "storage_load_routine(2) on erased key falls back to factory default with ESP_OK");
-    TEST_ASSERT(loaded.step_count == 3, "Fallback Preset 2 has default 3 steps");
+    TEST_ASSERT(loaded.step_count == 4, "Fallback Preset 2 has default 4 steps");
     TEST_ASSERT(loaded.steps[0].motor_count == 2, "Fallback Preset 2 Step 1 has default 2 motors");
 }
 
