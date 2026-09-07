@@ -23,3 +23,4 @@ test:
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_storage main/storage.c test/test_storage.c && /tmp/test_storage
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_motion main/led.c main/pca9685.c main/storage.c main/motion.c test/test_motion.c -lm && /tmp/test_motion
 	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_state_machine main/led.c main/buttons.c main/pca9685.c main/storage.c main/motion.c main/state_machine.c test/test_state_machine.c -lm && /tmp/test_state_machine
+	gcc -Wall -Wextra -Werror -I./main -o /tmp/test_e2e_stress main/led.c main/buttons.c main/pca9685.c main/storage.c main/motion.c main/state_machine.c test/test_e2e_stress.c -lm && /tmp/test_e2e_stress

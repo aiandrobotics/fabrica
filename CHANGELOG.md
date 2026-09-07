@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-07
+- Implemented Phase 7 End-to-End System Validation, Stress Testing & Preset Library (`firmware/`).
+- Standardized factory preset library in `firmware/main/storage.c` for 4 garment profiles (Adult T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
+- Defined physical servo flap channel constants in `firmware/main/config.h` (`SERVO_FLAP_LEFT`, `SERVO_FLAP_RIGHT`, `SERVO_FLAP_BOTTOM`, `SERVO_FLAP_TOP`).
+- Created dedicated end-to-end stress and endurance test suite in `firmware/test/test_e2e_stress.c`.
+- Verified 100-cycle continuous routine execution with zero memory leaks and steady heap stability.
+- Validated mid-sweep Emergency Stop preemption across all motion phases with <50ms abort latency and immediate 16-channel homing flat to 0 degrees.
+- Verified NVS flash power-loss and bit-rot resilience with automatic CRC32 corruption detection and safe fallback to default factory routines.
+- Tested 50 rapid mode-switching stress cycles verifying state machine invariant stability.
+- Registered `test_e2e_stress` in `firmware/Makefile`, achieving 553/553 checks passing across all 7 test suites.
+- Rewrote `firmware/README.md` into a comprehensive system guide covering wiring schematics, power isolation, dual-core architecture, and operator manual.
+- Updated firmware roadmap marking Phase 7 as complete.
+
 ## 2026-08-27
 - Implemented Phase 6 Visual Staging Programming Mode & State Machine Integration (`firmware/main/state_machine.h`, `firmware/main/state_machine.c`).
 - Built central State Machine engine coordinating 3 primary system operating states (`STATE_IDLE_RUN`, `STATE_RUNNING_MOTION`, `STATE_PROGRAMMING`).

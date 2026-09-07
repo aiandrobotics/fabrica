@@ -35,6 +35,15 @@ extern "C" {
 #define COMMAND_QUEUE_LENGTH         16  /* Unified command queue capacity */
 
 /* ========================================================================= */
+/* Physical Servo Flap Channel Assignments (Standard Folding Grid)          */
+/* ========================================================================= */
+
+#define SERVO_FLAP_LEFT              0   /* Left side folding flap */
+#define SERVO_FLAP_RIGHT             1   /* Right side folding flap */
+#define SERVO_FLAP_BOTTOM            2   /* Bottom / waist folding flap */
+#define SERVO_FLAP_TOP               3   /* Top / collar folding flap */
+
+/* ========================================================================= */
 /* System Timing Parameters (Milliseconds)                                   */
 /* ========================================================================= */
 

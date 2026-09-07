@@ -60,6 +60,12 @@ void test_config_constants(void)
     TEST_ASSERT(PCA9685_PRESCALE_VAL == 121, "PCA9685_PRESCALE_VAL is 121");
     TEST_ASSERT(SERVO_MIN_PULSE_US == 500, "SERVO_MIN_PULSE_US is 500 us");
     TEST_ASSERT(SERVO_MAX_PULSE_US == 2500, "SERVO_MAX_PULSE_US is 2500 us");
+
+    printf("Testing config.h servo flap channel assignments...\n");
+    TEST_ASSERT(SERVO_FLAP_LEFT == 0, "SERVO_FLAP_LEFT is Channel 0");
+    TEST_ASSERT(SERVO_FLAP_RIGHT == 1, "SERVO_FLAP_RIGHT is Channel 1");
+    TEST_ASSERT(SERVO_FLAP_BOTTOM == 2, "SERVO_FLAP_BOTTOM is Channel 2");
+    TEST_ASSERT(SERVO_FLAP_TOP == 3, "SERVO_FLAP_TOP is Channel 3");
 }
 
 void test_command_structures(void)
