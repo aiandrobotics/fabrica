@@ -28,7 +28,7 @@ idf.py build
 - **Pass Criteria**:
   - Zero compilation errors.
   - Zero compiler warnings (`-Wall -Wextra -Werror` clean).
-  - Internal DRAM free $\ge 120\text{ KB}$ for future Phase 8 wireless connectivity.
+  - Internal DRAM free $\ge 120\text{ KB}$ for Phase 8 BLE mobile connectivity.
 
 ---
 

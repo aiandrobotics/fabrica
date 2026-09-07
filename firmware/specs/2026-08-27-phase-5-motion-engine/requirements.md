@@ -60,8 +60,8 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 
 1. **Visual Staging Programming Mode**:
    - Programming mode state transitions, B1 cycle/nudge, B2 staging/holding, B3 step locking, and B4 saving to NVS are deferred to **Phase 6** (`state_machine.c`).
-2. **Wireless BLE / Wi-Fi Execution**:
-   - Wireless transport ingestion and mobile app synchronization are deferred to **Phase 8**.
+2. **Wireless BLE Mobile Execution**:
+   - Wireless transport ingestion and mobile app synchronization are implemented in **Phase 8**.
 3. **Servo Speed / Velocity Acceleration Profiles**:
    - Smooth multi-point S-curve or velocity ramping profiles are non-goals for Phase 5; direct target positioning is standard for MG996R servos.
 4. **Current / Stall Sensing Feedback**:

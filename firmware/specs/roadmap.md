@@ -16,7 +16,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 ## Phase 1 — Project Skeleton, Hardware Configuration & Diagnostics (`main.c`, `config.h`, `command.h`) ✅
 - Create root `CMakeLists.txt`, `main/CMakeLists.txt`, `Makefile`, and `sdkconfig.defaults`.
 - Create `main/config.h` as the single source of truth for GPIO pin assignments (`LED_GPIO 2`, `BTN1_GPIO 4`, `BTN2_GPIO 16`, `BTN3_GPIO 17`, `BTN4_GPIO 5`, `I2C_SDA_GPIO 21`, `I2C_SCL_GPIO 22`), PWM limits, timing constants, and system constraints.
-- Create `main/command.h` defining the source-agnostic `command_t` schema (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_WIFI`) and unified command queue to guarantee forward compatibility with the mobile app.
+- Create `main/command.h` defining the source-agnostic `command_t` schema (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`) and unified command queue to guarantee forward compatibility with the mobile app.
 - Implement `main/main.c` system startup and diagnostics (adapted from `poc/esp_hello_world/main/hello_world_main.c`):
   - Print ESP32 chip details (model, silicon revision, CPU cores, WiFi/BT features).
   - Print SPI flash size and monitor heap memory via `esp_get_minimum_free_heap_size()`.
@@ -122,15 +122,140 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 8 — Future Expansion: Mobile App Wireless Integration (BLE / Wi-Fi) [Post-MVP]
-- **Transport Abstraction Implementation**:
-  - Activate `transport_interface_t` for wireless ingress/egress.
-- **Bluetooth Low Energy (BLE) GATT Driver**:
-  - Implement NimBLE GATT service (`0000FAB0-0000-1000-8000-00805F9B34FB`) on Core 1.
-  - Add Control Point Characteristic for wireless routine triggers, manual motor jogging, and wireless E-Stop.
-  - Add Telemetry Characteristic streaming live status (10 Hz).
-  - Add Profile Transfer Characteristic for bidirectional NVS sequence synchronization with the mobile app.
-- **Wi-Fi & Local WebSockets Interface**:
-  - Implement lightweight WebSocket / REST RPC interface for local network discovery and remote control.
-- **Validation**: Bi-directional communication test with cross-platform mobile app simulator, verifying routine streaming, real-time motor jog, and wireless emergency stop without touching Core 0 motion engine code.
+## Phase 8 — Wireless Transport: NimBLE GATT Server (`ble_transport.c`, `nimble`)
+- **NimBLE Stack Initialization & Task Allocation**:
+  - Initialize Apache NimBLE stack on Core 1 (`app_ble_task`, Priority 4, 4KB stack) to maintain zero jitter on Core 0 real-time motion.
+  - Implement BLE GAP advertising engine broadcasting service UUID `0000FAB0-0000-1000-8000-00805F9B34FB` with human-readable device name (`Fabrica-XXXX` from last 2 MAC bytes).
+  - Configure low-latency connection parameters (connection interval: 7.5ms–15ms, slave latency: 0, supervision timeout: 4000ms).
+  - Enforce mandatory ATT MTU exchange immediately upon connection ($\ge 247$ bytes, up to 512 bytes) to guarantee single-packet transfers for telemetry and sequence tables.
+  - Implement single active central connection policy (`max_connections = 1`; stops advertising while connected).
+  - Implement automatic advertising restart on mobile app disconnect and connection watchdog.
+- **Proof-of-Presence BLE Security & Bonding Engine**:
+  - When an unbonded mobile central connects, trigger a 30-second Physical Authorization Window.
+  - Command status LED to `LED_STATE_BLE_PAIRING` (fast double-blink).
+  - Require physical button press on robot (B1–B4) to authorize pairing and store bonding keys in NVS (`"ble_bonds"`, up to 4 trusted devices).
+  - **Motion Suppression during Pairing**: While the 30-second authorization window is active, the first physical button press strictly authorizes the BLE bond and suppresses triggering routine execution.
+  - **Bond Lifecycle & Eviction**: Support up to 4 bonded devices; if a 5th mobile device pairs, the oldest bond is evicted automatically (FIFO/LRU).
+  - **Hardware Bond Reset**: Holding physical buttons B1 + B4 simultaneously for 5 seconds at power-on or in idle clears all stored bonds in `"ble_bonds"` and confirms with 3 fast LED flashes.
+  - Command status LED to `LED_STATE_BLE_CONNECTED` (solid 1.0s confirmation pulse) upon successful authorization or auto-reconnect.
+  - If no physical button is pressed within 30 seconds, automatically terminate the connection (`ble_gap_terminate`).
+  - Seamless auto-reconnect for previously bonded mobile devices without requiring a physical button press.
+- **Standard Device Information Service (DIS `0x180A`)**:
+  - Expose Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer (`0x2A29`: `"Fabrica Robotics"`) for mobile app version handshakes.
+- **Fabrica Primary GATT Service Architecture**:
+  - Register custom Primary Service `0000FAB0-0000-1000-8000-00805F9B34FB`:
+    1. **Control Point Characteristic (`FAB1` / `0000FAB1-0000-1000-8000-00805F9B34FB`)**:
+       - Permissions: Write / Write Without Response.
+       - Ingests binary command packets from the mobile app (Start/Stop, Remote Staging, Step Editing, Motor Jog, E-Stop) and dispatches to `xCommandQueue` with `SOURCE_BLE`.
+    2. **Sequence Progress & Motor Telemetry Characteristic (`FAB2` / `0000FAB2-0000-1000-8000-00805F9B34FB`)**:
+       - Permissions: Notify / Read.
+       - Streams 10 Hz packed binary telemetry frames (`telemetry_packet_t`, 29 bytes) containing real-time sequence progress, all 16 motor positions, and last command status (no hardware current sensing needed).
+    3. **Button Sequence Configuration Characteristic (`FAB3` / `0000FAB3-0000-1000-8000-00805F9B34FB`)**:
+       - Permissions: Read / Write / Notify.
+       - **Strict Binary Struct Packing**: Uses `__attribute__((packed))` for `fold_step_t` (3 bytes: 1B count + 2B motor IDs) and `fold_routine_t` (53 bytes: 1B step_count + 48B steps + 4B CRC32) with zero internal padding.
+       - GATT Read returns the complete 212-byte table ($4 \times 53\text{ bytes}$) of all 4 button sequences in a single transfer.
+       - GATT Write accepts either a 54-byte single button update (1-byte button ID + 53-byte `fold_routine_t`) or the full 212-byte table.
+       - GATT Notify automatically alerts mobile clients whenever button sequences change on-device.
+- **Unified Command Queue Ingress**:
+  - Translate GATT write events directly into standardized `command_t` instances and inject into `xCommandQueue` without modifying Core 0 motion mechanics.
+- **Validation**:
+  - Host mock test suite verifying NimBLE GATT table registration, DIS service descriptors, authorization window timing and button suppression, bond eviction and hardware reset, struct packing byte counts, MTU negotiation, and command queue injection.
+  - Live hardware verification with nRF Connect / LightBlue on iOS/Android over `/dev/cu.usbserial-0001`.
+
+---
+
+## Phase 9 — Mobile Configuration & Remote Execution (`remote_cmd.c`, `command.h`, `state_machine.c`)
+- **Start / Stop Sequence Execution from Mobile App**:
+  - Start routine execution: Wirelessly trigger saved Button 1–4 routines (`CMD_RUN_PRESET`).
+  - Preview raw routine: Execute temporary unsaved sequence payloads directly (`CMD_RUN_RAW_SEQUENCE`) allowing users to preview fold sequences before committing them to a button.
+  - Stop routine execution: Cleanly stop active folding sequence (`CMD_STOP_SEQUENCE`) and return all flaps to $0^\circ$ home.
+  - Wireless Emergency Stop: Instant `<50ms` preemptive abort (`CMD_EMERGENCY_STOP`) immediately cutting PWM pulses and homing all 16 panels.
+  - **E-Stop Clear & Recovery over BLE**: Sending `CMD_STOP_SEQUENCE` over BLE (or tapping any physical button) resets `STATE_ESTOP` back to `STATE_IDLE_RUN`.
+- **Client-Side Garment Profiles (Stateless Execution Model)**:
+  - Dynamic garment profile catalog, fabric tags, custom folding routines, and user-to-user sharing (JSON/QR) live 100% on the mobile application.
+  - Mobile app can preview and execute any garment profile on the robot without modifying on-device NVS slots (`CMD_RUN_RAW_SEQUENCE`).
+  - Mobile app can bind any garment profile to physical Buttons 1–4 via 1-touch sync (`CMD_SET_BUTTON_SEQUENCE`), requiring zero firmware updates for new garment profiles.
+- **Wireless Button Sequence Recording & Editing**:
+  - Remotely record, edit, and organize folding sequences per button (Buttons 1–4) over BLE:
+    - Remote entry into programming mode for target button (`CMD_ENTER_PROGRAM_MODE`).
+    - Remote flap identification: Cycle motor index and trigger $15^\circ$ nudge (`CMD_CYCLE_NUDGE_MOTOR`).
+    - Remote flap staging: Toggle flap staged ($30^\circ$) or resting ($0^\circ$) (`CMD_STAGE_TOGGLE_MOTOR`).
+    - Remote step locking: Commit staged flaps into routine step buffer (`CMD_LOCK_STEP`).
+    - Remote save & exit: Commit accumulated sequence to target button slot in NVS (`CMD_SAVE_EXIT_PROGRAM`).
+- **Remote Sequence Editor Backend**:
+  - Direct step manipulation API (`CMD_REMOTE_EDIT_STEP`):
+    - Insert new step at index $k$.
+    - Delete step at index $k$.
+    - Update active motor IDs and dwell parameters for step $k$.
+    - Reorder step sequence.
+  - Routine payload validation: Enforce maximum 16 steps, maximum 2 motors per step, valid channel bounds (0–15), and CRC32 integrity.
+  - **Immediate Command Feedback**: Command execution or validation failures (e.g. `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`) update `last_cmd_status` in the telemetry packet for instant mobile UI toast feedback.
+  - Direct 4-button sequence overwrite/sync (`CMD_SET_BUTTON_SEQUENCE`) over BLE.
+- **Live Servo Jog & Calibration Mode**:
+  - Live position jog (`CMD_JOG_MOTOR_ANGLE`, $0.0^\circ$ to $180.0^\circ$ with $0.5^\circ$ resolution) for interactive visual calibration of resting angle ($0^\circ$) and fold angle ($180^\circ$) from mobile app sliders.
+- **Validation**:
+  - Host unit tests covering remote start/stop execution triggers, raw sequence preview execution, wireless E-Stop preemption and BLE reset recovery, remote staging sequence recording, step insertion/deletion/reordering, error status code reporting, and servo jog angle clamping.
+
+---
+
+## Phase 10 — Real-Time Telemetry & Button Sync (`telemetry.c`)
+- **High-Rate Telemetry Streaming Engine (`app_telemetry_task`, Core 1)**:
+  - 10 Hz packed binary telemetry packet (`telemetry_packet_t`, 29 bytes):
+    - `system_state`: Current operational state (`IDLE`, `RUNNING`, `PROGRAMMING`, `ESTOP`, `ERROR`, `CALIBRATING`).
+    - `active_button_id`: Currently executing button routine (1 to 4, or 0 if raw preview / idle).
+    - `execution_progress`: Active step number, total steps, step progress percentage, and elapsed step time (ms).
+    - `channel_angles`: Live angular positions for all 16 PCA9685 servo channels ($0^\circ \text{ to } 180^\circ$).
+    - `last_cmd_status`: Status code of last received command (`OK`, `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`).
+    - `system_health`: Free internal heap (bytes), minimum heap watermark, BLE RSSI, sequence counter, error bitmask.
+    - Note: Omits hardware current sensing to minimize BOM costs; safety stall prevention is fully addressed via physical clearances and <50ms E-Stop.
+  - Event-Driven Push Notifications:
+    - Immediate BLE notifications on state transitions (Routine started, Step completed, Sequence stopped, E-Stop triggered, Routine saved).
+- **Button Configuration Synchronization**:
+  - Automatically notifies subscribed mobile clients via `FAB3` whenever a button sequence is modified (either via physical buttons or over BLE).
+  - Allows mobile app to fetch or verify all 4 button sequences on connection (`CMD_GET_BUTTON_CONFIG`) to maintain 100% synchronization.
+- **Validation**:
+  - Host unit tests verifying packed telemetry serialization, 10 Hz streaming timer determinism, command status reflection, event notification triggers, and button configuration sync dispatch.
+
+---
+
+## Phase 11 — End-to-End System Validation & Mobile Integration (`test_mobile_integration.c`)
+- **Cross-Platform Mobile App Test Harness**:
+  - Automated Python / C mock mobile client simulating mobile app BLE central over GATT.
+  - Comprehensive end-to-end integration workflows:
+    1. Scan & connect over BLE GAP (`Fabrica-XXXX`) and negotiate ATT MTU $\ge 247$ bytes.
+    2. Proof-of-Presence pairing authorization: verify 30s window timeout disconnects unbonded devices; verify physical button press authorizes and bonds while suppressing motion execution; verify subsequent auto-reconnect without button press.
+    3. Verify bond capacity limits (5th device FIFO eviction) and manual B1+B4 5-second bond clear reset.
+    4. Read current 4-button sequence configuration (`FAB3`) in 212-byte packed table transfer.
+    5. Remotely edit Button 1 sequence (insert, delete, reorder steps) and commit to NVS over BLE.
+    6. Execute stateless client garment profile preview directly without modifying NVS (`CMD_RUN_RAW_SEQUENCE`).
+    7. Start sequence execution from mobile app (`CMD_RUN_PRESET` 1).
+    8. Stream 10 Hz real-time sequence progress and live motor angles (`FAB2`).
+    9. Send stop / emergency stop command from mobile app during mid-sweep and verify $<50\text{ms}$ preemption.
+    10. Clear E-Stop lock over BLE via `CMD_STOP_SEQUENCE` and verify return to `STATE_IDLE_RUN`.
+    11. Trigger execution via physical button tap and verify mobile app receives real-time sequence progress and button sync notifications.
+- **Multi-Source Concurrency & Priority Arbitration**:
+  - Concurrent physical button tap vs wireless mobile command arbitration.
+  - E-Stop priority enforcement across physical buttons and BLE commands.
+  - Mobile disconnect robustness: Abrupt BLE disconnection during active motion allows running fold cycle to finish safely and return to Idle.
+- **Endurance & Memory Leak Verification**:
+  - 200-cycle continuous run test with active 10 Hz telemetry streaming and periodic button sequence read/writes over BLE.
+  - Verification of zero FreeRTOS heap memory leaks, zero stack overflows, and minimum free internal SRAM $>190\text{ KB}$.
+- **System Documentation**:
+  - Update `firmware/README.md` with BLE GATT UUID tables, packet specifications, button configuration sync flows, and mobile pairing guides.
+- **Validation**:
+  - Host unit test suite (`make test`) passing 100% of checks across all 11 phases.
+
+---
+
+## Future Roadmap — AI Garment Vision Recognition
+- **Mobile Vision Classification Model**:
+  - Camera snapshot of garment spread on folding bed captured via mobile application.
+  - On-device edge neural network (CoreML / TensorFlow Lite) or cloud inference to classify garment category (t-shirt, collared shirt, trousers, shorts, towel) and detect size/thickness.
+  - Automated selection and BLE dispatch of recommended folding sequence and dwell parameters to the robot.
+- **Adaptive Closed-Loop Fold Quality Inspection**:
+  - Post-fold visual inspection via smartphone camera to verify fold symmetry and squareness.
+  - Anomaly detection to flag misfolds, fabric slippage, or fabric bunching with adaptive recovery routines.
+
+
+
 

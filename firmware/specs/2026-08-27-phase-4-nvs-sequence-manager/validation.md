@@ -34,7 +34,7 @@
   idf.py build
   ```
 - [ ] Verify compilation completes with **0 warnings** and **0 errors** under `-Wall -Wextra`.
-- [ ] Confirm memory usage maintains $\ge 120\text{ KB}$ free heap headroom for future wireless networking.
+- [ ] Confirm memory usage maintains $\ge 120\text{ KB}$ free heap headroom for Phase 8 BLE mobile networking.
 
 ### 3. Integrated Makefile Test Suite
 - [ ] Run automated host test suite across all modules:

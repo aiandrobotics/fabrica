@@ -1,9 +1,10 @@
 # Fabrica Mobile Application
 
-This folder contains the source code for the mobile application designed to interface with the Fabrica Cloth Folding Robot wirelessly over Bluetooth LE / Wi-Fi.
+This folder contains the source code for the mobile application designed to interface with the Fabrica Cloth Folding Robot wirelessly over Bluetooth Low Energy (BLE).
 
 ## Features
 
-- **Wireless Configuration**: Remotely record, edit, and organize folding sequences per button
-- **Telemetry & Diagnostics**: Monitor servo current, system status, and sequence execution in real-time
-- **Garment Profiles**: Save and share custom folding profiles for various garment types
+- **Wireless Configuration**: Remotely record, edit, and organize folding sequences per button over BLE
+- **Execution Control**: Start, stop, and emergency abort folding sequences directly from the mobile app
+- **Real-Time Status & Motor Telemetry**: Monitor sequence execution progress and live motor positions in real time
+- **Garment Profiles**: Save, manage, and share custom folding profiles client-side within the mobile app, with 1-touch sync to the robot's physical buttons

@@ -77,7 +77,7 @@ Phase 2 delivers the physical User Interface (UI) front-panel subsystem for the 
 - NVS flash read/write operations (Phase 4).
 - Core 0 motion trajectory generation (Phase 5).
 - Full multi-step Visual Staging programming workflow (Phase 6).
-- Wireless BLE/Wi-Fi event reception (Phase 8).
+- Wireless BLE event reception (Phase 8).
 
 ---
 

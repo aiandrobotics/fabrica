@@ -44,7 +44,7 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 4. **Autonomous Corruption Recovery**:
    - Corrupted NVS records must never halt or freeze the robot. Detection of invalid CRC32 checksums must gracefully fall back to factory presets and log diagnostic warnings.
 5. **Separation of Concerns for Wireless Expansion**:
-   - Maintain the decoupled command architecture (`command_t` and `cmd_source_t`) without adding BLE/Wi-Fi code in this phase, preserving $\ge 120\text{ KB}$ internal DRAM headroom for Phase 8.
+   - Maintain the decoupled command architecture (`command_t` and `cmd_source_t`) without adding BLE code in this phase, preserving $\ge 120\text{ KB}$ internal DRAM headroom for Phase 8.
 
 ---
 
@@ -59,15 +59,15 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 | **Max Motors Per Step** | 2 motors (`MAX_MOTORS_PER_STEP`) | Servo current draw & kinematics |
 | **Emergency Stop Latency** | $< 50\text{ ms}$ from trigger to PWM abort | Safety requirement |
 | **Servo Timing** | 300ms fold dwell, 200ms inter-step delay | Fabric settling mechanics |
-| **SRAM Headroom** | $\ge 120\text{ KB}$ DRAM free | Reserved for future Phase 8 BLE/Wi-Fi |
+| **SRAM Headroom** | $\ge 120\text{ KB}$ DRAM free | Reserved for Phase 8 BLE Mobile Integration |
 | **NVS Integrity** | IEEE 802.3 CRC32 polynomial (`0xEDB88320`) | Bit-rot and power loss protection |
 
 ---
 
 ## Non-goals
 
-1. **BLE / Wi-Fi Stack Implementation**:
-   - Wireless transport implementation (GATT server, WebSockets) is deferred to **Phase 8**.
+1. **BLE Stack Implementation**:
+   - Wireless transport implementation (NimBLE GATT server) is handled in **Phase 8**.
 2. **Dynamic Calibration / Trim Offsets**:
    - Per-servo angle calibration via serial CLI is out of scope; standard servo PWM pulse boundaries ($500\,\mu\text{s} \to 2500\,\mu\text{s}$) are maintained.
 3. **Dynamic Preset Count Expansion**:

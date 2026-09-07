@@ -60,8 +60,8 @@ The Visual Staging Programming Mode & State Machine Integration subsystem provid
 
 ## Non-goals
 
-1. **Wireless BLE / Wi-Fi Sequence Upload**:
-   - Sequence creation over Bluetooth GATT or Wi-Fi WebSockets is deferred to **Phase 8**.
+1. **Wireless BLE Mobile Sequence Upload**:
+   - Sequence creation and editing over Bluetooth Low Energy (NimBLE GATT) is implemented in **Phase 8 & Phase 9**.
 2. **Reverse Step Undo / Step Edit**:
    - Editing intermediate steps in a recorded sequence is not supported in the computer-free 4-button UI; users record from Step 1 or overwrite via a new programming session.
 3. **Arbitrary Servo Angle Teaching**:

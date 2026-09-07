@@ -57,8 +57,7 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 ### 4. Scalable Command Protocol & Data Structures (`command.h`)
 - **Transport Sources (`cmd_source_t`)**:
   - `SOURCE_PHYSICAL_BUTTON`: Front panel 4-button control deck.
-  - `SOURCE_BLE`: Bluetooth Low Energy GATT service (future mobile app).
-  - `SOURCE_WIFI`: Wi-Fi / Local WebSocket JSON RPC interface (future mobile app / smart home).
+  - `SOURCE_BLE`: Bluetooth Low Energy GATT service (mobile app).
   - `SOURCE_INTERNAL_TIMER`: Inactivity timeouts and safety watchdog triggers.
 - **Command Types (`cmd_type_t`)**:
   - `CMD_RUN_PRESET`: Trigger saved preset routine (Preset 1–4).
@@ -120,7 +119,7 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 
 ## Constraints
 - **Zero Dynamic Allocation in Motion Loop**: Real-time queues and structs must use fixed-size static allocations.
-- **Forward Compatibility**: Header structures in `command.h` must not require modifications when Phase 8 BLE / Wi-Fi transports are activated.
+- **Forward Compatibility**: Header structures in `command.h` must not require modifications when Phase 8 BLE transport is activated.
 - **SDK Independence**: Headers must cleanly compile under host C compilers for unit testing without hard dependencies on target-only ESP-IDF assembly macros.
 
 ---
@@ -129,7 +128,7 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 - Active I2C transactions or servo motor movement (covered in Phase 3 & Phase 5).
 - Button interrupt service routines or debouncing tasks (covered in Phase 2).
 - NVS flash read/write operations (covered in Phase 4).
-- BLE / Wi-Fi network stack activation (covered in Phase 8).
+- BLE network stack activation (covered in Phase 8).
 
 ---
 

@@ -24,8 +24,8 @@ The Fabrica mission encompasses four primary, interconnected project deliverable
    - A modern, interactive web-based documentation portal providing step-by-step 3D assembly guides, electrical wiring schematics, an interactive Bill of Materials (BOM), operation manuals, and troubleshooting flows.
 
 4. **Mobile Application (`mobile-app/`)**:
-   - A cross-platform mobile application providing wireless (Wi-Fi/Bluetooth LE) connectivity to the ESP32.
-   - Enables visual sequence creation, pattern management, live telemetry/diagnostics, remote control, and a foundation for future AI-powered garment vision recognition.
+   - A cross-platform mobile application providing wireless Bluetooth Low Energy (BLE) connectivity to the ESP32.
+   - Enables visual sequence creation, button sequence configuration (Buttons 1–4), start/stop execution, real-time sequence progress and motor position monitoring, and client-side garment profile management.
 
 ---
 
@@ -42,7 +42,7 @@ graph TD
 
     User([User]) -->|Physical Buttons| Interface[Control Pad & LED]
     User -->|Wireless Control| App
-    App -.->|Wi-Fi / Bluetooth| Firmware
+    App -.->|Bluetooth LE (BLE)| Firmware
     Interface --> Firmware
     Firmware -->|I2C / PWM| Servos[Servo Motor Array]
     CAD -->|3D Printed Parts| Panels[Modular Panels & Frame]
@@ -58,16 +58,17 @@ graph TD
 2. **Modular & Scalable Mechanical Design**: Support customizable grid arrangements (2×2, 4×3 standard, 4×4, 5×5, 6×6, or custom non-square layouts) supporting up to **16 motorized modules** paired with follower and base panels.
 3. **Dual Operating Modes**: Standalone computer-free operation via physical button interface alongside full wireless control via the mobile application.
 4. **Fluid Parallel Motion Execution**: Synchronized multi-motor execution allowing opposite panel flips to occur simultaneously, producing human-like motion and reducing cycle time by ~40%.
-5. **Ecosystem & AI Expansion**: Provide a foundation for wireless mobile app connectivity (Wi-Fi/Bluetooth) and future AI-powered fabric/garment vision recognition.
+5. **Future AI Vision Expansion**: Camera-based fabric/garment vision recognition to automatically identify clothing types and suggest optimal folding parameters.
 
 ---
 
 ## Product Roadmap
 
 - [x] **Deliverable 1: CAD Designs**: Modular 3D printed panel models, drive shafts, hinge links, controller housing, and full 4×3 grid assembly models.
-- [ ] **Deliverable 2: ESP32 Firmware**: MicroPython/C++ firmware, PCA9685 I2C driver, polling 4-button interface, status LED driver, parallel sequence executor, and Flash profile storage.
+- [ ] **Deliverable 2: ESP32 Firmware**: Embedded C firmware, PCA9685 I2C driver, 4-button debounced interface, status LED driver, parallel sequence executor, Flash sequence storage, and native NimBLE GATT mobile integration.
 - [ ] **Deliverable 3: Documentation Website**: Step-by-step mechanical assembly guides, wiring schematics, interactive BOM table, and user manuals.
-- [ ] **Deliverable 4: Mobile Application**: Bluetooth LE / Wi-Fi wireless control, visual folding sequence editor, live telemetry, and AI vision preparation.
+- [ ] **Deliverable 4: Mobile Application**: Bluetooth Low Energy (BLE) wireless control, sequence configuration per button, start/stop execution, real-time motor progress streaming, and client-side garment profiles.
+- [ ] **Future Expansion: AI Vision Recognition**: On-device or cloud-based AI garment classification from smartphone camera snapshot.
 
 ---
 

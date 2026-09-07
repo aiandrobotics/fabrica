@@ -105,7 +105,7 @@ uint16_t pca9685_angle_to_counts(float angle_deg);
 - Trajectory pacing, intermediate stepping, or dwell delays (Phase 5 Motion Engine).
 - Storing or retrieving sequence presets from NVS flash (Phase 4).
 - User input handling or physical button state reading (Phase 2 UI Subsystem).
-- Wireless BLE/Wi-Fi PCA9685 control (Phase 8).
+- Wireless BLE PCA9685 control (Phase 8).
 
 ---
 

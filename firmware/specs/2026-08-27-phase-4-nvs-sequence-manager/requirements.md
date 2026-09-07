@@ -168,7 +168,7 @@ uint32_t storage_compute_crc32(const fold_routine_t *routine);
 - Direct servo actuation or I2C communication (Phase 3 PCA9685 Driver & Phase 5 Motion Engine).
 - Button scanning or debouncing (Phase 2 UI Subsystem).
 - Live trajectory sequencing or dwell execution (Phase 5 Motion Engine).
-- Wireless preset synchronization over BLE/Wi-Fi (Phase 8 Mobile App Integration).
+- Wireless preset synchronization over BLE (Phase 8 Mobile App Integration).
 
 ---
 
