@@ -2,19 +2,15 @@
 
 ## 2026-09-07
 - Implemented Phase 7 End-to-End System Validation, Stress Testing & Preset Library (`firmware/`).
-- Standardized factory preset library in `firmware/main/storage.c` with realistic garment kinematics and physical flap mappings:
-  - Preset 1: Adult T-Shirt (3 steps: Left Flap $\to$ Right Flap $\to$ Bottom Flap).
-  - Preset 2: Long-Sleeve Shirt (4 steps: Parallel dual-sleeve fold $\to$ Left body fold $\to$ Right body fold $\to$ Bottom fold).
-  - Preset 3: Trousers / Jeans (2 steps: Vertical half fold $\to$ Bottom fold).
-  - Preset 4: Towel / Linen (3 steps: Left half fold $\to$ Right quarter fold $\to$ Bottom final fold).
+- Standardized factory preset library in `firmware/main/storage.c` for 4 garment profiles (Adult T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
 - Defined physical servo flap channel constants in `firmware/main/config.h` (`SERVO_FLAP_LEFT`, `SERVO_FLAP_RIGHT`, `SERVO_FLAP_BOTTOM`, `SERVO_FLAP_TOP`).
-- Created dedicated end-to-end stress & endurance test suite `firmware/test/test_e2e_stress.c` covering:
-  - 100-cycle continuous routine execution with zero memory leaks and heap stability.
-  - Mid-sweep Emergency Stop preemption across all motion phases (outward sweep, fold dwell, return sweep, and inter-step settling delay) with $<50\text{ms}$ abort latency and immediate 16-channel homing.
-  - NVS flash power-loss and bit-rot resilience with automatic CRC32 corruption detection and fallback to factory defaults.
-  - 50-cycle rapid mode switching stress test verifying state machine invariant stability.
-- Updated `firmware/Makefile` to register `test_e2e_stress` in `make test`, achieving 553/553 checks passing across all 7 test suites.
-- Rewrote `firmware/README.md` into a comprehensive system guide covering hardware wiring schematics, power isolation, dual-core architecture, full operator manual, and testing instructions.
+- Created dedicated end-to-end stress and endurance test suite in `firmware/test/test_e2e_stress.c`.
+- Verified 100-cycle continuous routine execution with zero memory leaks and steady heap stability.
+- Validated mid-sweep Emergency Stop preemption across all motion phases with <50ms abort latency and immediate 16-channel homing flat to 0 degrees.
+- Verified NVS flash power-loss and bit-rot resilience with automatic CRC32 corruption detection and safe fallback to default factory routines.
+- Tested 50 rapid mode-switching stress cycles verifying state machine invariant stability.
+- Registered `test_e2e_stress` in `firmware/Makefile`, achieving 553/553 checks passing across all 7 test suites.
+- Rewrote `firmware/README.md` into a comprehensive system guide covering wiring schematics, power isolation, dual-core architecture, and operator manual.
 - Updated firmware roadmap marking Phase 7 as complete.
 
 ## 2026-08-27
