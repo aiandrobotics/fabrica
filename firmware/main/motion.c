@@ -97,6 +97,9 @@ static bool motion_delay_ms(uint32_t duration_ms, bool poll_abort)
 /* Public Lifecycle and Status APIs                                          */
 /* ========================================================================= */
 
+/**
+ * @brief Reset motion engine internal state, flags, and event bits to IDLE.
+ */
 void motion_reset_state(void)
 {
     s_motion_status = MOTION_STATUS_IDLE;
@@ -112,11 +115,21 @@ void motion_reset_state(void)
 #endif
 }
 
+/**
+ * @brief Query current motion engine execution status.
+ *
+ * @return Active motion_status_t enum.
+ */
 motion_status_t motion_get_status(void)
 {
     return s_motion_status;
 }
 
+/**
+ * @brief Check if motion engine is actively articulating servos.
+ *
+ * @return true if running or stopping, false if idle or aborted.
+ */
 bool motion_is_busy(void)
 {
     return (s_motion_status == MOTION_STATUS_RUNNING ||
@@ -127,6 +140,17 @@ bool motion_is_busy(void)
 /* Step & Routine Articulation Engines                                       */
 /* ========================================================================= */
 
+/**
+ * @brief Execute a single folding step (single servo or parallel dual servos).
+ *
+ * Articulation Profile:
+ *   1. Forward sweep: Rotate target channel(s) 0° -> 180°
+ *   2. Fold dwell: Hold at 180° for FOLD_DWELL_TIME_MS (300ms), polling abort every 10ms
+ *   3. Return sweep: Rotate channel(s) back 180° -> 0°
+ *
+ * @param step Pointer to fold_step_t containing motor count and channel IDs.
+ * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
+ */
 esp_err_t motion_execute_step(const fold_step_t *step)
 {
     if (step == NULL) {
@@ -190,6 +214,16 @@ esp_err_t motion_execute_step(const fold_step_t *step)
     return ESP_OK;
 }
 
+/**
+ * @brief Execute a complete multi-step folding routine sequentially.
+ *
+ * Iterates through all steps, applying an inter-step settling delay of 200ms
+ * between steps. Checks for E-Stop abort before and during every motion step.
+ * On completion, homes all channels and returns LED to IDLE.
+ *
+ * @param routine Pointer to fold_routine_t structure.
+ * @return ESP_OK on success, ESP_ERR_TIMEOUT on E-Stop, or ESP error code.
+ */
 esp_err_t motion_execute_routine(const fold_routine_t *routine)
 {
     if (routine == NULL) {
@@ -285,6 +319,12 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
     return ESP_OK;
 }
 
+/**
+ * @brief Load a preset routine from NVS storage and trigger Daily Run Mode execution.
+ *
+ * @param preset_id Target preset ID (1 to 4).
+ * @return ESP_OK on success, or an ESP-IDF error code.
+ */
 esp_err_t motion_trigger_preset(uint8_t preset_id)
 {
     if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
@@ -321,6 +361,11 @@ esp_err_t motion_trigger_preset(uint8_t preset_id)
     return motion_execute_routine(&routine);
 }
 
+/**
+ * @brief Immediately halt active motion, set abort flags, home servos, and flash LED.
+ *
+ * @return ESP_OK on success.
+ */
 esp_err_t motion_emergency_stop(void)
 {
     s_abort_requested = true;
@@ -347,6 +392,11 @@ esp_err_t motion_emergency_stop(void)
 /* ========================================================================= */
 
 #ifdef ESP_PLATFORM
+/**
+ * @brief Core 0 FreeRTOS task supervising motion engine execution and safety.
+ *
+ * @param pvParameters Unused task parameters pointer.
+ */
 static void app_motion_task(void *pvParameters)
 {
     (void)pvParameters;
@@ -359,6 +409,13 @@ static void app_motion_task(void *pvParameters)
     }
 }
 
+/**
+ * @brief Initialize the Real-Time Motion Engine and spawn app_motion_task on Core 0.
+ *
+ * @param cmd_queue Handle to the system command queue.
+ * @param evt_group Handle to the system event group.
+ * @return ESP_OK on success, or ESP_ERR_NO_MEM on failure.
+ */
 esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
 {
     ESP_LOGI(TAG, "Initializing Real-Time Motion Engine on Core 0...");
@@ -386,6 +443,13 @@ esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
     return ESP_OK;
 }
 #else
+/**
+ * @brief Initialize motion engine for off-target simulation/unit testing.
+ *
+ * @param cmd_queue Mock command queue handle.
+ * @param evt_group Mock event group handle.
+ * @return ESP_OK on success.
+ */
 esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
 {
     s_cmd_queue_handle = cmd_queue;

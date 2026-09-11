@@ -35,6 +35,12 @@ static EventGroupHandle_t s_evt_group_handle = NULL;
 /* Helper Functions                                                          */
 /* ========================================================================= */
 
+/**
+ * @brief Check whether a specific servo channel is currently staged in the active step.
+ *
+ * @param channel Servo channel index (0 to 15).
+ * @return true if staged (lifted to 30°), false if unstaged.
+ */
 static bool is_channel_staged(uint8_t channel)
 {
     for (uint8_t i = 0; i < s_context.staged_motor_count; i++) {
@@ -49,22 +55,42 @@ static bool is_channel_staged(uint8_t channel)
 /* Public API Implementation                                                 */
 /* ========================================================================= */
 
+/**
+ * @brief Reset the state machine to STATE_IDLE_RUN and zero the staging context.
+ */
 void state_machine_reset(void)
 {
     s_system_state = STATE_IDLE_RUN;
     memset(&s_context, 0, sizeof(s_context));
 }
 
+/**
+ * @brief Get the current system operating state.
+ *
+ * @return Active system_state_t (STATE_IDLE_RUN, STATE_RUNNING_MOTION, or STATE_PROGRAMMING).
+ */
 system_state_t state_machine_get_state(void)
 {
     return s_system_state;
 }
 
+/**
+ * @brief Get a read-only pointer to the visual staging programming context.
+ *
+ * @return Pointer to internal staging_context_t structure.
+ */
 const staging_context_t *state_machine_get_context(void)
 {
     return &s_context;
 }
 
+/**
+ * @brief Initialize the System State Machine and bind IPC queue/event primitives.
+ *
+ * @param cmd_queue Handle to the system command queue.
+ * @param evt_group Handle to the system event group.
+ * @return ESP_OK on success.
+ */
 esp_err_t state_machine_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
 {
 #ifdef ESP_PLATFORM
@@ -80,6 +106,14 @@ esp_err_t state_machine_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_gro
     return ESP_OK;
 }
 
+/**
+ * @brief Periodic timer tick to manage the 20-second programming inactivity watchdog.
+ *
+ * If no user interaction occurs within PROGRAMMING_TIMEOUT_MS (20s) while in
+ * STATE_PROGRAMMING, discards staged buffers, homes all servos, and reverts to STATE_IDLE_RUN.
+ *
+ * @param elapsed_ms Milliseconds elapsed since last tick (typically 10ms).
+ */
 void state_machine_tick(uint32_t elapsed_ms)
 {
     if (s_system_state == STATE_PROGRAMMING) {
@@ -98,6 +132,18 @@ void state_machine_tick(uint32_t elapsed_ms)
     }
 }
 
+/**
+ * @brief Process and dispatch an incoming command according to current system state.
+ *
+ * Evaluates state transitions and handles actions:
+ *   - CMD_EMERGENCY_STOP: Global preemption, aborts motion, homes servos, reverts to IDLE.
+ *   - STATE_IDLE_RUN: Triggers presets or transitions into STATE_PROGRAMMING.
+ *   - STATE_RUNNING_MOTION: Blocks non-emergency commands.
+ *   - STATE_PROGRAMMING: Handles B1 nudge cycle, B2 staging toggle, B3 step lock, and B4 save & exit.
+ *
+ * @param cmd Pointer to incoming command_t.
+ * @return ESP_OK on success, or an ESP-IDF error code on rejection.
+ */
 esp_err_t state_machine_process_command(const command_t *cmd)
 {
     if (cmd == NULL) {

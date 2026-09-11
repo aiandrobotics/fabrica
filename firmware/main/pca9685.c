@@ -29,6 +29,15 @@ static bool s_mock_probe_success = true;
 /* Angle to PWM Conversion Math                                              */
 /* ========================================================================= */
 
+/**
+ * @brief Convert target angle in degrees (0.0° to 180.0°) to 12-bit PWM timer counts.
+ *
+ * Uses linear interpolation across the standard 500µs to 2500µs servo pulse range
+ * over a 20,000µs (50Hz) frame period across 4096 counts.
+ *
+ * @param angle_deg Target angle (clamped between 0.0° and 180.0°).
+ * @return 12-bit OFF count value (typically ~102 counts for 0°, ~512 counts for 180°).
+ */
 uint16_t pca9685_angle_to_counts(float angle_deg)
 {
     /* Enforce safe mechanical boundaries */
@@ -52,6 +61,11 @@ uint16_t pca9685_angle_to_counts(float angle_deg)
 /* Low-Level I2C Register Read / Write Operations                           */
 /* ========================================================================= */
 
+/**
+ * @brief Probe the I2C bus to check if the PCA9685 responds at address 0x40.
+ *
+ * @return ESP_OK if device ACKed, ESP_ERR_NOT_FOUND if no response.
+ */
 esp_err_t pca9685_probe(void)
 {
 #ifdef ESP_PLATFORM
@@ -71,6 +85,13 @@ esp_err_t pca9685_probe(void)
 #endif
 }
 
+/**
+ * @brief Write a single byte to a PCA9685 internal register over I2C.
+ *
+ * @param reg Register address (0x00 to 0xFF).
+ * @param val Byte value to write.
+ * @return ESP_OK on success, or an I2C communication error.
+ */
 esp_err_t pca9685_write_reg(uint8_t reg, uint8_t val)
 {
 #ifdef ESP_PLATFORM
@@ -85,6 +106,13 @@ esp_err_t pca9685_write_reg(uint8_t reg, uint8_t val)
 #endif
 }
 
+/**
+ * @brief Read a single byte from a PCA9685 internal register over I2C.
+ *
+ * @param reg Register address to read.
+ * @param val Pointer to receive the read byte.
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if val is NULL.
+ */
 esp_err_t pca9685_read_reg(uint8_t reg, uint8_t *val)
 {
     if (val == NULL) {
@@ -106,6 +134,19 @@ esp_err_t pca9685_read_reg(uint8_t reg, uint8_t *val)
 /* Initialization & Configuration                                            */
 /* ========================================================================= */
 
+/**
+ * @brief Initialize I2C bus master, configure PCA9685 registers for 50Hz, and home all servos.
+ *
+ * Steps performed:
+ *   1. Initialize ESP32 I2C Master bus (SDA: GPIO 21, SCL: GPIO 22 @ 400kHz).
+ *   2. Attach PCA9685 device handle at I2C address 0x40.
+ *   3. Probe bus presence.
+ *   4. Configure internal clock prescaler for 50Hz RC servo PWM.
+ *   5. Enable Auto-Increment (AI) and Totem-Pole outputs.
+ *   6. Reset all 16 channels to 0° (home).
+ *
+ * @return ESP_OK on success, or an ESP-IDF error code on failure.
+ */
 esp_err_t pca9685_init(void)
 {
 #ifdef ESP_PLATFORM
@@ -196,6 +237,16 @@ esp_err_t pca9685_init(void)
 /* PWM Output & Servo Articulation APIs                                      */
 /* ========================================================================= */
 
+/**
+ * @brief Set the 12-bit ON and OFF counts for an individual PWM channel (0 to 15).
+ *
+ * Writes LEDn_ON_L, LEDn_ON_H, LEDn_OFF_L, and LEDn_OFF_H registers in a single transaction.
+ *
+ * @param channel Servo channel (0 to 15).
+ * @param on_count 12-bit ON tick (typically 0).
+ * @param off_count 12-bit OFF tick (0 to 4095).
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if channel >= 16.
+ */
 esp_err_t pca9685_set_pwm(uint8_t channel, uint16_t on_count, uint16_t off_count)
 {
     if (channel >= TOTAL_SERVO_CHANNELS) {
@@ -223,6 +274,15 @@ esp_err_t pca9685_set_pwm(uint8_t channel, uint16_t on_count, uint16_t off_count
 #endif
 }
 
+/**
+ * @brief Set PWM ON and OFF counts simultaneously across all 16 channels.
+ *
+ * Uses the PCA9685 ALL_LED broadcast registers (0xFA..0xFD) for instant single-transaction update.
+ *
+ * @param on_count 12-bit ON tick.
+ * @param off_count 12-bit OFF tick.
+ * @return ESP_OK on success.
+ */
 esp_err_t pca9685_set_all_pwm(uint16_t on_count, uint16_t off_count)
 {
     uint8_t write_buf[5] = {
@@ -253,6 +313,15 @@ esp_err_t pca9685_set_all_pwm(uint16_t on_count, uint16_t off_count)
 #endif
 }
 
+/**
+ * @brief Set the target angle in degrees for a single servo channel.
+ *
+ * Converts angle_deg to 12-bit PWM count and writes to the channel.
+ *
+ * @param channel Target channel index (0 to 15).
+ * @param angle_deg Target angle (0.0° to 180.0°).
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if channel >= 16.
+ */
 esp_err_t pca9685_set_servo_angle(uint8_t channel, float angle_deg)
 {
     if (channel >= TOTAL_SERVO_CHANNELS) {
@@ -263,6 +332,15 @@ esp_err_t pca9685_set_servo_angle(uint8_t channel, float angle_deg)
     return pca9685_set_pwm(channel, 0, off_count);
 }
 
+/**
+ * @brief Synchronously set multiple servo channels to the same angle using a bitmask.
+ *
+ * If channel_mask is 0xFFFF (all channels), uses the fast ALL_LED broadcast registers.
+ *
+ * @param channel_mask 16-bit mask where bit N corresponds to channel N.
+ * @param angle_deg Target angle in degrees for all masked channels.
+ * @return ESP_OK on success.
+ */
 esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)
 {
     uint16_t off_count = pca9685_angle_to_counts(angle_deg);
@@ -285,22 +363,45 @@ esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)
     return ESP_OK;
 }
 
+/**
+ * @brief Reset all 16 servo channels to flat resting home position (0.0 deg / 102 counts).
+ *
+ * @return ESP_OK on success.
+ */
 esp_err_t pca9685_home_all(void)
 {
     uint16_t home_counts = pca9685_angle_to_counts(HOME_ANGLE_DEG);
     return pca9685_set_all_pwm(0, home_counts);
 }
 
+/**
+ * @brief Move a channel to the 15° nudge angle for visual cursor identification.
+ *
+ * @param channel Target channel index (0 to 15).
+ * @return ESP_OK on success.
+ */
 esp_err_t pca9685_nudge_channel(uint8_t channel)
 {
     return pca9685_set_servo_angle(channel, NUDGE_ANGLE_DEG);
 }
 
+/**
+ * @brief Move a channel to the 30° staged angle to indicate inclusion in the active step.
+ *
+ * @param channel Target channel index (0 to 15).
+ * @return ESP_OK on success.
+ */
 esp_err_t pca9685_stage_channel(uint8_t channel)
 {
     return pca9685_set_servo_angle(channel, STAGE_ANGLE_DEG);
 }
 
+/**
+ * @brief Put PCA9685 into low-power sleep mode or wake it back up.
+ *
+ * @param enable true to enter sleep (oscillator off), false to wake up with restart.
+ * @return ESP_OK on success.
+ */
 esp_err_t pca9685_sleep(bool enable)
 {
     uint8_t mode1 = 0;
@@ -326,27 +427,53 @@ esp_err_t pca9685_sleep(bool enable)
 /* Test Harness Mock Helper Functions (Host-Only)                            */
 /* ========================================================================= */
 #ifndef ESP_PLATFORM
+/**
+ * @brief Reset mock register array and probe state for host testing.
+ */
 void pca9685_mock_reset(void)
 {
     memset(s_mock_regs, 0, sizeof(s_mock_regs));
     s_mock_probe_success = true;
 }
 
+/**
+ * @brief Read a simulated register value from the host mock.
+ *
+ * @param reg Register address.
+ * @return Stored register byte value.
+ */
 uint8_t pca9685_mock_get_reg(uint8_t reg)
 {
     return s_mock_regs[reg];
 }
 
+/**
+ * @brief Set a simulated register value in the host mock.
+ *
+ * @param reg Register address.
+ * @param val Byte value to inject.
+ */
 void pca9685_mock_set_reg(uint8_t reg, uint8_t val)
 {
     s_mock_regs[reg] = val;
 }
 
+/**
+ * @brief Control simulated probe ACK behavior in host mock.
+ *
+ * @param success true to simulate ACK, false to simulate NACK/timeout.
+ */
 void pca9685_mock_set_probe_success(bool success)
 {
     s_mock_probe_success = success;
 }
 
+/**
+ * @brief Read the combined 12-bit OFF count for a channel from host mock registers.
+ *
+ * @param channel Channel index (0 to 15).
+ * @return 12-bit OFF count value.
+ */
 uint16_t pca9685_mock_get_channel_off_count(uint8_t channel)
 {
     if (channel >= TOTAL_SERVO_CHANNELS) {

@@ -51,6 +51,14 @@ static uint32_t crc32_ieee(const uint8_t *data, size_t len)
     return ~crc;
 }
 
+/**
+ * @brief Compute the IEEE 802.3 32-bit CRC checksum over a folding routine structure.
+ *
+ * Computes the checksum over all bytes preceding the `checksum` field in `fold_routine_t`.
+ *
+ * @param routine Pointer to fold_routine_t.
+ * @return 32-bit computed CRC32 value.
+ */
 uint32_t storage_compute_crc32(const fold_routine_t *routine)
 {
     if (routine == NULL) {
@@ -65,6 +73,16 @@ uint32_t storage_compute_crc32(const fold_routine_t *routine)
 /* Helper Functions                                                          */
 /* ========================================================================= */
 
+/**
+ * @brief Generate the NVS key string corresponding to a preset ID.
+ *
+ * Formats keys as "preset_1", "preset_2", etc.
+ *
+ * @param preset_id Preset index (1 to 4).
+ * @param key_buf Destination buffer for key string.
+ * @param max_len Maximum length of key_buf.
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if parameters are invalid.
+ */
 static esp_err_t get_preset_key(uint8_t preset_id, char *key_buf, size_t max_len)
 {
     if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT || key_buf == NULL) {
@@ -78,6 +96,19 @@ static esp_err_t get_preset_key(uint8_t preset_id, char *key_buf, size_t max_len
 /* Factory Default Folding Sequences                                         */
 /* ========================================================================= */
 
+/**
+ * @brief Populate a routine structure with factory default folding steps.
+ *
+ * Factory Presets:
+ *   - Preset 1: Adult T-Shirt (3 steps: Left -> Right -> Bottom)
+ *   - Preset 2: Long-Sleeve Shirt (4 steps: Parallel sleeves -> Left -> Right -> Bottom)
+ *   - Preset 3: Trousers / Jeans (2 steps: Vertical fold -> Bottom fold)
+ *   - Preset 4: Towel / Linen (3 steps: Half fold -> Quarter fold -> Final fold)
+ *
+ * @param preset_id Target preset (1 to 4).
+ * @param routine Pointer to destination fold_routine_t structure.
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if preset_id is invalid or routine is NULL.
+ */
 esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine)
 {
     if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT || routine == NULL) {
@@ -157,6 +188,15 @@ esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine
 /* NVS CRUD Storage Operations                                               */
 /* ========================================================================= */
 
+/**
+ * @brief Save a folding routine to Non-Volatile Storage (NVS) with CRC32 protection.
+ *
+ * Automatically recomputes the CRC32 checksum before persisting as a binary blob.
+ *
+ * @param preset_id Target preset slot (1 to 4).
+ * @param routine Pointer to fold_routine_t structure to save.
+ * @return ESP_OK on success, or an NVS write error code.
+ */
 esp_err_t storage_save_routine(uint8_t preset_id, const fold_routine_t *routine)
 {
     if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT || routine == NULL) {
@@ -222,6 +262,16 @@ esp_err_t storage_save_routine(uint8_t preset_id, const fold_routine_t *routine)
 #endif
 }
 
+/**
+ * @brief Load a folding routine from NVS and verify its CRC32 integrity.
+ *
+ * If the entry is not found or fails CRC validation, automatically restores and returns
+ * the factory default sequence for that preset slot to ensure fault tolerance.
+ *
+ * @param preset_id Target preset slot (1 to 4).
+ * @param routine Pointer to destination fold_routine_t buffer.
+ * @return ESP_OK on clean load or factory fallback, ESP_ERR_INVALID_CRC if corruption was recovered.
+ */
 esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine)
 {
     if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT || routine == NULL) {
@@ -287,6 +337,12 @@ esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine)
     return ESP_OK;
 }
 
+/**
+ * @brief Erase a custom preset sequence from NVS storage.
+ *
+ * @param preset_id Target preset slot (1 to 4).
+ * @return ESP_OK on success.
+ */
 esp_err_t storage_erase_routine(uint8_t preset_id)
 {
     if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
@@ -328,6 +384,13 @@ esp_err_t storage_erase_routine(uint8_t preset_id)
 /* Factory Defaults Seeding & Initialization                                 */
 /* ========================================================================= */
 
+/**
+ * @brief Seed factory default folding sequences for Presets 1..4 into NVS flash.
+ *
+ * Marks the initialization flag in NVS to prevent redundant writes on subsequent boots.
+ *
+ * @return ESP_OK on success, or an error code on failure.
+ */
 esp_err_t storage_init_factory_defaults(void)
 {
 #ifdef ESP_PLATFORM
@@ -377,6 +440,13 @@ esp_err_t storage_init_factory_defaults(void)
     return ESP_OK;
 }
 
+/**
+ * @brief Initialize the NVS flash partition and seed factory defaults if first boot.
+ *
+ * Automatically recovers from truncated partitions or version changes by reformatting.
+ *
+ * @return ESP_OK on success, or an ESP-IDF error code.
+ */
 esp_err_t storage_init(void)
 {
 #ifdef ESP_PLATFORM
@@ -442,11 +512,20 @@ esp_err_t storage_init(void)
 /* Test Harness Mock Helper Functions (Host-Only)                            */
 /* ========================================================================= */
 #ifndef ESP_PLATFORM
+/**
+ * @brief Reset mock NVS entries for host testing.
+ */
 void storage_mock_reset(void)
 {
     memset(s_mock_nvs, 0, sizeof(s_mock_nvs));
 }
 
+/**
+ * @brief Inject byte-level corruption into a mock NVS entry to test CRC recovery.
+ *
+ * @param key Key name of target entry.
+ * @param byte_offset Offset within stored blob to invert.
+ */
 void storage_mock_corrupt_key(const char *key, size_t byte_offset)
 {
     for (int i = 0; i < MOCK_NVS_MAX_ENTRIES; i++) {
@@ -459,6 +538,12 @@ void storage_mock_corrupt_key(const char *key, size_t byte_offset)
     }
 }
 
+/**
+ * @brief Check if a key exists in mock NVS storage.
+ *
+ * @param key Key name to look up.
+ * @return true if key exists, false otherwise.
+ */
 bool storage_mock_key_exists(const char *key)
 {
     for (int i = 0; i < MOCK_NVS_MAX_ENTRIES; i++) {

@@ -25,7 +25,9 @@ QueueHandle_t xCommandQueue = NULL;
 EventGroupHandle_t xSystemEventGroup = NULL;
 
 /**
- * @brief Print comprehensive chip diagnostics and system telemetry.
+ * @brief Print comprehensive chip diagnostics and system telemetry to UART console.
+ *
+ * Logs chip revision, core count, clock frequency, flash size, free heap, and tick rate.
  */
 static void print_system_diagnostics(void)
 {
@@ -60,7 +62,13 @@ static void print_system_diagnostics(void)
 }
 
 /**
- * @brief Initialize FreeRTOS inter-task communication queues and event groups.
+ * @brief Allocate and initialize FreeRTOS inter-task communication queues and event groups.
+ *
+ * Creates:
+ *   - xCommandQueue: Thread-safe FIFO for button gestures and motion commands.
+ *   - xSystemEventGroup: Bitflags for motion synchronization and emergency stops.
+ *
+ * @return ESP_OK on success, ESP_ERR_NO_MEM on heap allocation failure.
  */
 static esp_err_t init_ipc_primitives(void)
 {
@@ -88,6 +96,9 @@ static esp_err_t init_ipc_primitives(void)
 
 /**
  * @brief Application entrypoint executing on Core 0.
+ *
+ * Orchestrates subsystem initialization (LED, Buttons, PCA9685, NVS Storage,
+ * Motion Engine, State Machine), then enters the main command consumer event loop.
  */
 void app_main(void)
 {

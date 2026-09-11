@@ -32,6 +32,9 @@ static const uint8_t s_btn_gpios[BTN_ID_COUNT] = {
 /* Button debouncing and hold state array */
 static button_state_t s_buttons[BTN_ID_COUNT];
 
+/**
+ * @brief Reset internal debounce filter timers and gesture state for all buttons.
+ */
 void buttons_reset_all(void)
 {
     for (int i = 0; i < BTN_ID_COUNT; i++) {
@@ -44,6 +47,12 @@ void buttons_reset_all(void)
     }
 }
 
+/**
+ * @brief Get the debounced stable logic level for a button channel.
+ *
+ * @param btn_idx Button channel index (0 to 3 for B1..B4).
+ * @return 0 if pressed (active-low), 1 if released, 1 if invalid index.
+ */
 int buttons_get_stable_state(uint8_t btn_idx)
 {
     if (btn_idx >= BTN_ID_COUNT) {
@@ -52,6 +61,18 @@ int buttons_get_stable_state(uint8_t btn_idx)
     return s_buttons[btn_idx].current_stable_state;
 }
 
+/**
+ * @brief Feed a raw GPIO reading into the debounce filter and gesture detector.
+ *
+ * Applies a low-pass filter window (50ms debounce). Once stable:
+ *   - Short tap is triggered on release if pressed for < 500ms.
+ *   - Long press is triggered immediately once held for >= 3000ms.
+ *
+ * @param btn_idx Button index (0 to 3).
+ * @param raw_level Current instantaneous GPIO logic level (0 = pressed, 1 = released).
+ * @param elapsed_ms Milliseconds elapsed since last sample.
+ * @return Detected button_gesture_t (GESTURE_NONE, GESTURE_SHORT_TAP, or GESTURE_LONG_PRESS).
+ */
 button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t elapsed_ms)
 {
     if (btn_idx >= BTN_ID_COUNT) {
@@ -104,6 +125,24 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
     return detected_gesture;
 }
 
+/**
+ * @brief Map a button gesture and active system state to a concrete system command.
+ *
+ * Routing Rules:
+ *   - Any short tap during STATE_RUNNING_MOTION -> CMD_EMERGENCY_STOP.
+ *   - Short tap in STATE_IDLE_RUN -> CMD_RUN_PRESET (Preset 1..4).
+ *   - Long press (>=3s) in STATE_IDLE_RUN -> CMD_ENTER_PROGRAM_MODE (Preset 1..4).
+ *   - Short tap in STATE_PROGRAMMING:
+ *       B1: CMD_CYCLE_NUDGE_MOTOR (nudge 15 deg / advance channel)
+ *       B2: CMD_STAGE_TOGGLE_MOTOR (lift 30 deg / drop 0 deg)
+ *       B3: CMD_LOCK_STEP (commit step to buffer)
+ *       B4: CMD_SAVE_EXIT_PROGRAM (write to NVS and exit)
+ *
+ * @param btn_idx Button index (0 to 3).
+ * @param gesture Detected gesture (GESTURE_SHORT_TAP or GESTURE_LONG_PRESS).
+ * @param current_state Current system_state_t.
+ * @return Constructed command_t structure ready for queue dispatch.
+ */
 command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, system_state_t current_state)
 {
     command_t cmd;
@@ -149,11 +188,25 @@ command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, s
 }
 
 #ifdef ESP_PLATFORM
+/**
+ * @brief Bind the FreeRTOS command queue handle for event dispatching.
+ *
+ * @param queue Handle to the system command queue.
+ */
 void buttons_set_command_queue(QueueHandle_t queue)
 {
     s_cmd_queue = queue;
 }
 
+/**
+ * @brief Translate gesture into a command and push to FreeRTOS command queue.
+ *
+ * If motion is currently active, immediately triggers motion_emergency_stop()
+ * without waiting for queue processing to ensure sub-millisecond safety latency.
+ *
+ * @param btn_idx Button index (0 to 3).
+ * @param gesture Detected gesture.
+ */
 static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
 {
     QueueHandle_t target_q = (s_cmd_queue != NULL) ? s_cmd_queue : xCommandQueue;
@@ -193,6 +246,11 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
     }
 }
 
+/**
+ * @brief Sample all 4 button GPIOs, step debounce filters, and dispatch gestures.
+ *
+ * @param elapsed_ms Milliseconds elapsed since previous tick (typically 10ms).
+ */
 void buttons_process_tick(uint32_t elapsed_ms)
 {
     for (uint8_t i = 0; i < BTN_ID_COUNT; i++) {
@@ -206,6 +264,11 @@ void buttons_process_tick(uint32_t elapsed_ms)
 
 /**
  * @brief Dedicated FreeRTOS task running on Core 1 for button scanning and state timer.
+ *
+ * Executes periodically on a 10ms tick, sampling GPIOs with 50ms low-pass debounce,
+ * and stepping the programming mode inactivity watchdog.
+ *
+ * @param pvParameters Unused task parameters pointer.
  */
 static void app_ui_task(void *pvParameters)
 {
@@ -223,6 +286,13 @@ static void app_ui_task(void *pvParameters)
     }
 }
 
+/**
+ * @brief Initialize the 4-button hardware subsystem and spawn Core 1 UI task.
+ *
+ * Configures GPIO 4, 16, 17, 5 with internal pull-up resistors and creates app_ui_task.
+ *
+ * @return ESP_OK on success, or an ESP-IDF error code on failure.
+ */
 esp_err_t buttons_init(void)
 {
     ESP_LOGI(TAG, "Initializing 4-Button Subsystem: B1=GPIO%d, B2=GPIO%d, B3=GPIO%d, B4=GPIO%d...",
@@ -270,11 +340,21 @@ esp_err_t buttons_init(void)
     return ESP_OK;
 }
 #else
+/**
+ * @brief Process button ticks (stub for host testing).
+ *
+ * @param elapsed_ms Milliseconds elapsed.
+ */
 void buttons_process_tick(uint32_t elapsed_ms)
 {
     (void)elapsed_ms;
 }
 
+/**
+ * @brief Initialize button subsystem for off-target simulation/unit testing.
+ *
+ * @return ESP_OK on success.
+ */
 esp_err_t buttons_init(void)
 {
     buttons_reset_all();
