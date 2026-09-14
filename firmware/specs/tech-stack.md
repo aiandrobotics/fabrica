@@ -152,9 +152,12 @@ graph LR
 | `PROGRAMMING_TIMEOUT_MS` | `20000` ms | Inactivity timeout auto-exiting Programming Mode |
 | `FOLD_DWELL_TIME_MS` | `300` ms | Dwell time holding flap at $180^\circ$ before returning |
 | `INTER_STEP_DELAY_MS` | `200` ms | Settling delay between consecutive folding steps |
-| `TELEMETRY_STREAM_HZ` | `10` Hz | Real-time sequence progress and motor angle streaming rate |
-| `BLE_CONN_INTERVAL_MIN_MS` | `7.5f` ms | Minimum BLE connection interval (low latency) |
-| `BLE_CONN_INTERVAL_MAX_MS` | `15.0f` ms | Maximum BLE connection interval |
+| `TELEMETRY_STREAM_ACTIVE_HZ` | `10` Hz | Active sequence execution & calibration streaming rate |
+| `TELEMETRY_STREAM_IDLE_HZ` | `1` Hz | Idle/Programming low-power battery-saving streaming rate |
+| `BLE_CONN_INTERVAL_MIN_MS` | `15.0f` ms | Minimum BLE connection interval (Apple Accessory compliant: 12 units) |
+| `BLE_CONN_INTERVAL_MAX_MS` | `30.0f` ms | Maximum BLE connection interval (Apple Accessory compliant: 24 units) |
+| `BLE_CONN_SLAVE_LATENCY` | `0` | Slave latency (no skipped connection events) |
+| `BLE_SUPERVISION_TIMEOUT_MS` | `4000` ms | Supervision timeout (Apple compliant $\le 6000\text{ms}$) |
 | `NUDGE_ANGLE_DEG` | `15.0f` | Motor identification sweep angle |
 | `STAGE_ANGLE_DEG` | `30.0f` | Visual staging hold angle |
 | `HOME_ANGLE_DEG` | `0.0f` | Flat panel rest position |
@@ -178,13 +181,13 @@ typedef struct __attribute__((packed)) {
 typedef struct __attribute__((packed)) {
     uint8_t step_count;                       // Number of steps in sequence (1 to 16)
     fold_step_t steps[MAX_STEPS_PER_ROUTINE]; // Array of sequence steps (48 bytes)
-    uint32_t checksum;                        // CRC32 integrity validation checksum (4 bytes)
+    uint32_t checksum;                        // IEEE 802.3 CRC32 checksum (4 bytes, Little-Endian)
 } fold_routine_t;
 ```
 
 ### 2. High-Speed Sequence Progress & Motor Telemetry Packet (`telemetry_packet_t`)
 
-Packed 30-byte binary frame broadcast at 10 Hz over BLE Notify (`FAB2`):
+Packed 30-byte binary frame broadcast over BLE Notify (`FAB2`) with adaptive streaming (10 Hz in active motion, 1 Hz when idle). Multi-byte integers are strictly **Little-Endian**:
 
 ```c
 typedef struct __attribute__((packed)) {
@@ -194,13 +197,13 @@ typedef struct __attribute__((packed)) {
     uint8_t current_step_idx;        // Active step index (0-indexed, 0 to 15)
     uint8_t total_steps;             // Total steps in active routine (1 to 16)
     uint8_t step_progress_pct;       // Current step completion percentage (0-100%)
-    uint16_t elapsed_step_time_ms;   // Elapsed time in active step (ms)
+    uint16_t elapsed_step_time_ms;   // Elapsed time in active step (ms, Little-Endian)
     uint8_t channel_angles[16];      // Live angles for channels 0-15 (0 to 180 deg)
     uint8_t last_cmd_status;         // cmd_status_t (0: OK, 1: ERR_BUSY, 2: ERR_INVALID_STEP, 3: ERR_MOTOR_BOUNDS, 4: ERR_ROUTINE_FULL, 5: ERR_CRC_MISMATCH, 6: ERR_INVALID_ARG)
-    uint16_t free_heap_kb;           // ESP32 internal free DRAM in KB
-    int8_t ble_rssi_dbm;             // BLE RSSI in dBm (-128 if disconnected)
+    uint16_t free_heap_kb;           // ESP32 internal free DRAM in KB (Little-Endian)
+    int8_t ble_rssi_dbm;             // BLE RSSI in dBm (-128 if disconnected, signed int8)
     uint8_t error_code;              // Error bitmask (BIT0=I2C_Fail, BIT1=NVS_Fail, etc.)
-    uint16_t sequence_counter;       // Monotonically increasing packet counter
+    uint16_t sequence_counter;       // Monotonically increasing packet counter (Little-Endian)
 } telemetry_packet_t;
 ```
 
@@ -361,38 +364,41 @@ typedef struct {
 
 | Characteristic | UUID | Properties | MTU / Size | Function |
 |---|---|---|---|---|
-| **Control Point (`FAB1`)** | `0000FAB1-...` | Write, Write Without Resp | $\le 64$ Bytes | Ingests binary commands: Start/Stop, Staging, Edit, Jog, Identify, Factory Reset, E-Stop |
-| **Status & Telemetry (`FAB2`)** | `0000FAB2-...` | Notify, Read | $30$ Bytes | Streams 10 Hz sequence progress, LED state mirroring, live motor positions, and last command status |
-| **Button Config Sync (`FAB3`)** | `0000FAB3-...` | Read, Write, Notify | $212$ Bytes | Reads/writes 4 button sequences (`fold_routine_t`, packed); auto-CRC; notifies on changes |
+| **Control Point (`FAB1`)** | `0000FAB1-...` | Write, Write Without Resp | $\le 64$ Bytes | Ingests binary commands: Start/Stop, Staging, Edit, Jog, Identify, Factory Reset, E-Stop. Dual-mode write semantics (NoRsp vs WithRsp). |
+| **Status & Telemetry (`FAB2`)** | `0000FAB2-...` | Notify, Read | $30$ Bytes | Streams adaptive telemetry (10 Hz motion, 1 Hz idle), LED state mirroring, live motor positions. Exposes CCCD (`0x2902`). |
+| **Button Config Sync (`FAB3`)** | `0000FAB3-...` | Read, Write, Notify | $212$ Bytes | Reads/writes 4 button sequences (`fold_routine_t`, packed); auto-CRC; notifies on changes. Exposes CCCD (`0x2902`). |
 
 #### 2. Control Point (`FAB1`) Binary Wire Framing Protocol
 
-All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payload]`) ensuring zero compiler struct padding or endianness ambiguity on iOS / Android / Flutter:
+All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payload]`) ensuring zero compiler struct padding or endianness ambiguity on iOS / Android / Flutter. Multi-byte integers are strictly Little-Endian:
 
-| Opcode (`uint8_t`) | Command Enumeration | Wire Payload Structure | Total Wire Size | Functional Description & Validation Rules |
-|---|---|---|---|---|
-| `0x00` | `CMD_RUN_PRESET` | `[uint8_t preset_id (1-4)]` | 2 Bytes | Starts saved routine. Rejected if motion busy (`ERR_BUSY`) or empty sequence (`ERR_INVALID_STEP`). |
-| `0x01` | `CMD_RUN_RAW_SEQUENCE` | `[53B fold_routine_t]` | 54 Bytes | Previews unsaved sequence payload directly. Reports `active_button_id == 0`. |
-| `0x02` | `CMD_STOP_SEQUENCE` | *(None)* | 1 Byte | Cleanly stops active folding motion, homes all flaps, and clears `STATE_ESTOP` back to `STATE_IDLE_RUN`. |
-| `0x03` | `CMD_EMERGENCY_STOP` | *(None)* | 1 Byte | Instant $<50\text{ms}$ preemption halting PWM output and returning all 16 servos to $0^\circ$ home. |
-| `0x04` | `CMD_ENTER_PROGRAM_MODE` | `[uint8_t preset_id (1-4)]` | 2 Bytes | Transitions machine into visual staging mode for target button. |
-| `0x05` | `CMD_CYCLE_NUDGE_MOTOR` | *(None)* | 1 Byte | Increments active flap channel and pulses $15^\circ$ identification sweep. |
-| `0x06` | `CMD_STAGE_TOGGLE_MOTOR` | *(None)* | 1 Byte | Toggles targeted flap between staged ($30^\circ$) and rest ($0^\circ$). |
-| `0x07` | `CMD_LOCK_STEP` | *(None)* | 1 Byte | Commits staged flaps into step buffer, drops flaps to $0^\circ$, and advances step index. |
-| `0x08` | `CMD_SAVE_EXIT_PROGRAM` | *(None)* | 1 Byte | Commits accumulated staging buffer to NVS for active button and exits to Idle. |
-| `0x09` | `CMD_REMOTE_EDIT_STEP` | `[5B step_edit_param_t]` | 6 Bytes | Low-level step manipulation in staging mode (`[1B action][1B step_idx][3B step_data]`). |
-| `0x0A` | `CMD_SET_BUTTON_SEQUENCE`| `[1B button_id][53B fold_routine_t]` | 55 Bytes | Sets button routine (wire alias for `FAB3` single-button write). |
-| `0x0B` | `CMD_GET_BUTTON_CONFIG` | *(None)* | 1 Byte | Triggers single-shot configuration notification push over `FAB3`. |
-| `0x0C` | `CMD_RESTORE_FACTORY_PRESETS`| *(None)* | 1 Byte | Restores Buttons 1–4 to factory default routines in NVS and dispatches notify on `FAB3`. |
-| `0x0D` | `CMD_JOG_MOTOR_ANGLE` | `[1B channel (0-15)][1B angle_deg (0-180)]` | 3 Bytes | Calibration jog. Interlocked to reject during active motion or E-Stop (`ERR_BUSY`). |
-| `0x0E` | `CMD_IDENTIFY_ROBOT` | *(None)* | 1 Byte | Triggers 3.0s visual locator pulse train (`LED_STATE_IDENTIFY`) on status LED. |
-| `0x0F` | `CMD_SET_LED_MODE` | `[1B mode (0-2)][1B param]` | 3 Bytes | Mode: 0=Auto (State Machine), 1=Direct Override (`param` = `led_state_t`), 2=Stealth/Night (disables idle heartbeat). |
-| `0x10` | `CMD_GET_TELEMETRY` | *(None)* | 1 Byte | Requests single-shot telemetry frame push over `FAB2`. |
-| `0x11` | `CMD_SET_TELEMETRY_STREAM`| `[uint8_t enable (0 or 1)]` | 2 Bytes | Enables (1) or disables (0) automatic 10 Hz telemetry streaming on `FAB2`. |
+| Opcode (`uint8_t`) | Command Enumeration | Recommended Write Type | Wire Payload Structure | Total Wire Size | Functional Description & Validation Rules |
+|---|---|---|---|---|---|
+| `0x00` | `CMD_RUN_PRESET` | Write With Response | `[uint8_t preset_id (1-4)]` | 2 Bytes | Starts saved routine. Rejected if motion busy (`ERR_BUSY`) or empty sequence (`ERR_INVALID_STEP`). |
+| `0x01` | `CMD_RUN_RAW_SEQUENCE` | Write With Response | `[53B fold_routine_t]` | 54 Bytes | Previews unsaved sequence payload directly. Reports `active_button_id == 0`. |
+| `0x02` | `CMD_STOP_SEQUENCE` | Write Without Response | *(None)* | 1 Byte | Cleanly stops active folding motion, homes all flaps, and clears `STATE_ESTOP` back to `STATE_IDLE_RUN`. |
+| `0x03` | `CMD_EMERGENCY_STOP` | Write Without Response | *(None)* | 1 Byte | Instant $<50\text{ms}$ preemption halting PWM output and returning all 16 servos to $0^\circ$ home. |
+| `0x04` | `CMD_ENTER_PROGRAM_MODE` | Write With Response | `[uint8_t preset_id (1-4)]` | 2 Bytes | Transitions machine into visual staging mode for target button. |
+| `0x05` | `CMD_CYCLE_NUDGE_MOTOR` | Write Without Response | *(None)* | 1 Byte | Increments active flap channel and pulses $15^\circ$ identification sweep. |
+| `0x06` | `CMD_STAGE_TOGGLE_MOTOR` | Write Without Response | *(None)* | 1 Byte | Toggles targeted flap between staged ($30^\circ$) and rest ($0^\circ$). |
+| `0x07` | `CMD_LOCK_STEP` | Write With Response | *(None)* | 1 Byte | Commits staged flaps into step buffer, drops flaps to $0^\circ$, and advances step index. |
+| `0x08` | `CMD_SAVE_EXIT_PROGRAM` | Write With Response | *(None)* | 1 Byte | Commits accumulated staging buffer to NVS for active button and exits to Idle. |
+| `0x09` | `CMD_REMOTE_EDIT_STEP` | Write With Response | `[5B step_edit_param_t]` | 6 Bytes | Low-level step manipulation in staging mode (`[1B action][1B step_idx][3B step_data]`). |
+| `0x0A` | `CMD_SET_BUTTON_SEQUENCE`| Write With Response | `[1B button_id][53B fold_routine_t]` | 55 Bytes | Sets button routine (wire alias for `FAB3` single-button write). |
+| `0x0B` | `CMD_GET_BUTTON_CONFIG` | Write With Response | *(None)* | 1 Byte | Triggers single-shot configuration notification push over `FAB3`. |
+| `0x0C` | `CMD_RESTORE_FACTORY_PRESETS`| Write With Response | *(None)* | 1 Byte | Restores Buttons 1–4 to factory default routines in NVS and dispatches notify on `FAB3`. |
+| `0x0D` | `CMD_JOG_MOTOR_ANGLE` | Write Without Response | `[1B channel (0-15)][1B angle_deg (0-180)]` | 3 Bytes | Calibration jog. Interlocked to reject during active motion or E-Stop (`ERR_BUSY`). |
+| `0x0E` | `CMD_IDENTIFY_ROBOT` | Write Without Response | *(None)* | 1 Byte | Triggers 3.0s visual locator pulse train (`LED_STATE_IDENTIFY`) on status LED. |
+| `0x0F` | `CMD_SET_LED_MODE` | Write With Response | `[1B mode (0-2)][1B param]` | 3 Bytes | Mode: 0=Auto (State Machine), 1=Direct Override (`param` = `led_state_t`), 2=Stealth/Night (disables idle heartbeat). |
+| `0x10` | `CMD_GET_TELEMETRY` | Write With Response | *(None)* | 1 Byte | Requests single-shot telemetry frame push over `FAB2`. |
+| `0x11` | `CMD_SET_TELEMETRY_STREAM`| Write With Response | `[uint8_t enable (0 or 1)]` | 2 Bytes | Enables (1) or disables (0) automatic telemetry streaming on `FAB2`. |
 
 #### 3. Subsystem Protocol Rules & Safety Semantics:
 
-* **Control Point (`FAB1`) & Execution Flow**:
+* **Control Point (`FAB1`) & Dual-Mode Write Execution Flow**:
+  - **Write Semantics**:
+    - `Write Without Response`: Employed for safety and real-time interactive commands (`CMD_EMERGENCY_STOP`, `CMD_STOP_SEQUENCE`, `CMD_JOG_MOTOR_ANGLE`, `CMD_CYCLE_NUDGE_MOTOR`, `CMD_STAGE_TOGGLE_MOTOR`). Eliminates GATT round-trip ACK latency to guarantee $<50\text{ms}$ preemption.
+    - `Write With Response`: Employed for sequence transfers, configuration, and NVS commits (`CMD_RUN_RAW_SEQUENCE`, `CMD_SET_BUTTON_SEQUENCE`, `CMD_SAVE_EXIT_PROGRAM`, `FAB3` writes). Ensures the central client receives application/GATT confirmation of data receipt.
   - **Re-Entrancy Guard**: If `CMD_RUN_PRESET` or `CMD_RUN_RAW_SEQUENCE` is received while motion is active (`system_state == STATE_RUNNING_MOTION`), the command is safely rejected with `CMD_STATUS_ERR_BUSY` in telemetry without interrupting the active cycle.
   - **Empty Preset Validation**: If `CMD_RUN_PRESET` targets a preset with `step_count == 0`, firmware immediately rejects the execution with `CMD_STATUS_ERR_INVALID_STEP` and does not engage Core 0 motion tasks.
   - **Execution Completion Event**: When the final step finishes, the firmware emits a dedicated telemetry packet with `step_progress_pct = 100`, `current_step_idx = total_steps - 1`, and `last_cmd_status = CMD_STATUS_OK` before transitioning cleanly to `STATE_IDLE_RUN`.
@@ -415,8 +421,15 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
   - **Auto-CRC Calculation**: If write payload provides `checksum == 0`, firmware auto-computes the valid IEEE 802.3 CRC32 before committing to NVS; if non-zero, validates and rejects with `CMD_STATUS_ERR_CRC_MISMATCH` if corrupted.
   - **GATT Notify**: Automatically dispatched to mobile client whenever any button routine is modified (locally via visual staging, remotely over BLE, or via factory preset restore).
 
-* **Telemetry (`FAB2`)**:
-  - Emits packed 30-byte `telemetry_packet_t` at 10 Hz containing system state, LED state mirroring (for 1:1 mobile app UI synchronization), active button ID (0 for raw preview), active step, progress %, 16 channel angles, and `last_cmd_status` (no hardware current sensing required).
+* **Adaptive Telemetry (`FAB2`) & CCCD Management**:
+  - **Adaptive Streaming Rate**:
+    - Active Streaming ($10\text{ Hz}$): Active during `STATE_RUNNING_MOTION` and `STATE_CALIBRATING`.
+    - Idle Streaming ($1\text{ Hz}$ or Event-Driven): Active during `STATE_IDLE_RUN` and `STATE_PROGRAMMING`. Drastically reduces mobile power drain and prevents background application suspension on iOS.
+  - **CCCD Handling (`0x2902`)**:
+    - Both `FAB2` and `FAB3` expose standard Client Characteristic Configuration Descriptors (`0x2902`).
+    - On Android, the central mobile application must serialize asynchronous descriptor write operations (queueing `writeDescriptor` and awaiting `onDescriptorWrite` before subscribing to the subsequent characteristic) to conform with Android's single-threaded BLE queue.
+  - **Packet Structure**: Emits packed 30-byte `telemetry_packet_t` containing system state, LED state mirroring (for 1:1 mobile app UI synchronization), active button ID (0 for raw preview), active step, progress %, 16 channel angles, and `last_cmd_status` (no hardware current sensing required).
+  - **Endianness**: All multi-byte values (`elapsed_step_time_ms`, `free_heap_kb`, `sequence_counter`) are explicitly serialized as Little-Endian.
 
 #### 4. Mobile UI Visual Style Mapping Guide (`led_state_t`)
 
@@ -443,7 +456,7 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
 * **Firmware Revision String (`0x2A26`)**: `"v1.13.0"` (used for mobile app protocol compatibility handshake)
 * **Manufacturer Name String (`0x2A29`)**: `"Fabrica Robotics"`
 
-### 3. Proof-of-Presence BLE Security & Bonding Architecture
+### 3. Proof-of-Presence BLE Security, Bonding & RPA Privacy Architecture
 
 * **Single Active Central Policy**: `max_connections = 1`. The robot stops advertising while connected to a mobile app to prevent connection hijacking.
 * **First-Time Pairing Authorization**:
@@ -451,6 +464,9 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
   - The Status LED flashes `LED_STATE_BLE_PAIRING` (fast double-blink).
   - The user must physically press **any button (B1–B4)** on the robot to authorize pairing.
   - **Motion Suppression during Pairing**: While the 30-second authorization window is active, the first physical button press strictly authorizes the BLE bond and suppresses triggering routine execution.
+  - **Resolvable Private Address (RPA) & Privacy Resolution**:
+    - Both iOS and Android 10+ rotate Bluetooth MAC addresses every 15 minutes using RPAs.
+    - Storing bonded devices in NVS (`"ble_bonds"`, up to 4 trusted devices) leverages NimBLE SMP Identity Resolving Key (IRK) exchange (or persistent application-level UUID auth tokens stored in NVS and mobile secure storage: iOS Keychain / Android Keystore) so that rotating RPAs are recognized seamlessly across reconnections without breaking bonds.
   - **Bond Lifecycle & Eviction**: Supports up to 4 bonded devices in NVS (`"ble_bonds"`). When a 5th phone pairs, the oldest bond is evicted automatically (FIFO/LRU).
   - **Hardware Bond Factory Reset**: Holding physical buttons B1 + B4 simultaneously for 5 seconds at power-on or in idle clears all stored bonds in `"ble_bonds"` and confirms with 3 fast LED flashes.
   - Upon button press, the phone's identity key is securely bonded and stored into NVS (`"ble_bonds"` namespace).
@@ -463,10 +479,20 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
 
 ### 4. Advertising & Connection Parameters
 
-* **Device Name**: `Fabrica-XXXX` (where `XXXX` is derived from the last 2 bytes of the ESP32 BT MAC address).
+* **Advertising Packet Split (31-Byte Limit & iOS Background Scanning)**:
+  - **Primary Advertisement Packet (21 Bytes)**: Flags (3B) + Complete List of 128-bit Service Class UUIDs (`0000FAB0-...`, 18B) $\le 31\text{B}$ legacy limit. Mandatory for iOS CoreBluetooth background scan discovery (`scanForPeripherals(withServices:)`).
+  - **Scan Response Packet (14 Bytes)**: Complete Local Name (`Fabrica-XXXX`, 14B derived from the last 2 bytes of the ESP32 BT MAC address) to guarantee immediate human-readable name resolution upon active scanning on both iOS and Android.
 * **Advertising Interval**: 100ms (fast advertising on startup or disconnect).
-* **Connection Interval**: Min 7.5ms / Max 15ms (ensures low-latency responsive mobile jog control and $<50\text{ms}$ E-Stop delivery).
-* **Mandatory ATT MTU Exchange**: Firmware negotiates ATT MTU $\ge 247$ bytes immediately upon connection (supports up to 512 bytes) to guarantee single-packet transfers for 30-byte telemetry and 212-byte sequence tables.
+* **Connection Interval (Apple Accessory Guidelines Compliant)**:
+  - Connection Interval Min: `15.0ms` (12 units)
+  - Connection Interval Max: `30.0ms` (24 units)
+  - Slave Latency: `0`
+  - Supervision Timeout: `4000ms` (satisfies $\le 6000\text{ms}$ and $> 3 \times \text{Interval Max} \times (\text{Latency}+1)$).
+  - On Android, the mobile application requests `gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)` upon connection to achieve optimal ~11.25ms–15ms intervals.
+* **ATT MTU Exchange (iOS Auto vs Android Explicit)**:
+  - Firmware supports ATT MTU negotiation up to 512 bytes ($\ge 247$ bytes minimum) for single-packet telemetry and sequence table transfers.
+  - Automatically handles central-initiated MTU exchange on iOS (185–517 bytes).
+  - Android clients explicitly invoke `gatt.requestMtu(512)` upon connection and await `onMtuChanged` prior to calling `gatt.discoverServices()`.
 
 ---
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-14
+- Updated BLE firmware specifications with cross-platform iOS and Android mobile app requirements (`mission.md`, `tech-stack.md`, `roadmap.md`).
+- Split BLE advertising payload to fit 31-byte legacy limit with 128-bit Service UUID in primary advertisement for iOS background scanning and device name in scan response.
+- Configured low-latency connection parameters (15ms-30ms) compliant with Apple Bluetooth Accessory Design Guidelines.
+- Added adaptive telemetry streaming (10 Hz in active motion, 1 Hz when idle) to conserve mobile battery and eliminate iOS background throttling.
+- Defined dual-mode GATT write semantics (`Write Without Response` for time-critical commands, `Write With Response` for sequence/NVS commits).
+- Added Resolvable Private Address (RPA) privacy handling and Little-Endian wire encoding standards across telemetry and sequence data structures.
+
 ## 2026-09-07
 - Updated firmware specifications (`mission.md`, `tech-stack.md`, `roadmap.md`) establishing complete BLE mobile app integration requirements across execution, control, button configuration, and visual feedback.
 - Defined packed binary wire framing protocol on Control Point (`FAB1`) with standardized opcodes for remote execution, calibration jogging, robot identification, and LED modes.
