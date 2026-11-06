@@ -82,38 +82,42 @@ void test_factory_defaults(void)
     /* Preset 1: Adult T-Shirt */
     esp_err_t err = storage_get_default_routine(1, &routine);
     TEST_ASSERT(err == ESP_OK, "storage_get_default_routine(1) returns ESP_OK");
-    TEST_ASSERT(routine.step_count == 3, "Preset 1 has 3 steps");
+    TEST_ASSERT(routine.step_count == 4, "Preset 1 has 4 steps");
     TEST_ASSERT(routine.steps[0].motor_count == 1 && routine.steps[0].motor_ids[0] == 0, "Preset 1 Step 1 is Left fold (Ch 0)");
     TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 1, "Preset 1 Step 2 is Right fold (Ch 1)");
     TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 2, "Preset 1 Step 3 is Bottom fold (Ch 2)");
+    TEST_ASSERT(routine.steps[3].motor_count == 1 && routine.steps[3].motor_ids[0] == 3, "Preset 1 Step 4 is Top collar fold (Ch 3)");
     TEST_ASSERT(routine.checksum == storage_compute_crc32(&routine), "Preset 1 checksum is valid");
 
     /* Preset 2: Long-Sleeve Shirt */
     err = storage_get_default_routine(2, &routine);
     TEST_ASSERT(err == ESP_OK, "storage_get_default_routine(2) returns ESP_OK");
-    TEST_ASSERT(routine.step_count == 4, "Preset 2 has 4 steps");
+    TEST_ASSERT(routine.step_count == 5, "Preset 2 has 5 steps");
     TEST_ASSERT(routine.steps[0].motor_count == 2 && routine.steps[0].motor_ids[0] == 0 && routine.steps[0].motor_ids[1] == 1,
                 "Preset 2 Step 1 is Parallel sleeve folds (Ch 0 + Ch 1)");
-    TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 0, "Preset 2 Step 2 is Left body fold (Ch 0)");
-    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 1, "Preset 2 Step 3 is Right body fold (Ch 1)");
-    TEST_ASSERT(routine.steps[3].motor_count == 1 && routine.steps[3].motor_ids[0] == 2, "Preset 2 Step 4 is Bottom fold (Ch 2)");
+    TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 3, "Preset 2 Step 2 is Top collar fold (Ch 3)");
+    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 0, "Preset 2 Step 3 is Left body fold (Ch 0)");
+    TEST_ASSERT(routine.steps[3].motor_count == 1 && routine.steps[3].motor_ids[0] == 1, "Preset 2 Step 4 is Right body fold (Ch 1)");
+    TEST_ASSERT(routine.steps[4].motor_count == 1 && routine.steps[4].motor_ids[0] == 2, "Preset 2 Step 5 is Bottom fold (Ch 2)");
     TEST_ASSERT(routine.checksum == storage_compute_crc32(&routine), "Preset 2 checksum is valid");
 
     /* Preset 3: Trousers / Jeans */
     err = storage_get_default_routine(3, &routine);
     TEST_ASSERT(err == ESP_OK, "storage_get_default_routine(3) returns ESP_OK");
-    TEST_ASSERT(routine.step_count == 2, "Preset 3 has 2 steps");
+    TEST_ASSERT(routine.step_count == 3, "Preset 3 has 3 steps");
     TEST_ASSERT(routine.steps[0].motor_count == 1 && routine.steps[0].motor_ids[0] == 0, "Preset 3 Step 1 is Vertical fold (Ch 0)");
     TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 2, "Preset 3 Step 2 is Bottom fold (Ch 2)");
+    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 3, "Preset 3 Step 3 is Top waistband fold (Ch 3)");
     TEST_ASSERT(routine.checksum == storage_compute_crc32(&routine), "Preset 3 checksum is valid");
 
     /* Preset 4: Towel / Linen */
     err = storage_get_default_routine(4, &routine);
     TEST_ASSERT(err == ESP_OK, "storage_get_default_routine(4) returns ESP_OK");
-    TEST_ASSERT(routine.step_count == 3, "Preset 4 has 3 steps");
+    TEST_ASSERT(routine.step_count == 4, "Preset 4 has 4 steps");
     TEST_ASSERT(routine.steps[0].motor_count == 1 && routine.steps[0].motor_ids[0] == 0, "Preset 4 Step 1 is Half fold (Ch 0)");
     TEST_ASSERT(routine.steps[1].motor_count == 1 && routine.steps[1].motor_ids[0] == 1, "Preset 4 Step 2 is Quarter fold (Ch 1)");
-    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 2, "Preset 4 Step 3 is Press fold (Ch 2)");
+    TEST_ASSERT(routine.steps[2].motor_count == 1 && routine.steps[2].motor_ids[0] == 2, "Preset 4 Step 3 is Bottom fold (Ch 2)");
+    TEST_ASSERT(routine.steps[3].motor_count == 1 && routine.steps[3].motor_ids[0] == 3, "Preset 4 Step 4 is Top final fold (Ch 3)");
     TEST_ASSERT(routine.checksum == storage_compute_crc32(&routine), "Preset 4 checksum is valid");
 
     /* Invalid Preset ID checks */
@@ -145,7 +149,7 @@ void test_storage_crud_operations(void)
     fold_routine_t loaded;
     err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_OK, "storage_load_routine(1) returns ESP_OK");
-    TEST_ASSERT(loaded.step_count == 3, "Loaded Preset 1 has 3 steps");
+    TEST_ASSERT(loaded.step_count == 4, "Loaded Preset 1 has 4 steps");
     TEST_ASSERT(loaded.steps[0].motor_ids[0] == 0, "Loaded Preset 1 Step 1 motor ID is 0");
 
     /* 3. Save a Custom Routine to Preset 2 */
@@ -178,7 +182,7 @@ void test_storage_crud_operations(void)
     memset(&loaded, 0, sizeof(loaded));
     err = storage_load_routine(2, &loaded);
     TEST_ASSERT(err == ESP_OK, "storage_load_routine(2) on erased key falls back to factory default with ESP_OK");
-    TEST_ASSERT(loaded.step_count == 4, "Fallback Preset 2 has default 4 steps");
+    TEST_ASSERT(loaded.step_count == 5, "Fallback Preset 2 has default 5 steps");
     TEST_ASSERT(loaded.steps[0].motor_count == 2, "Fallback Preset 2 Step 1 has default 2 motors");
 }
 
@@ -199,7 +203,7 @@ void test_corruption_and_boundary_handling(void)
     fold_routine_t loaded;
     esp_err_t err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_ERR_INVALID_CRC, "Corrupted blob detected and returns ESP_ERR_INVALID_CRC");
-    TEST_ASSERT(loaded.step_count == 3, "Corrupted load falls back to default factory routine (3 steps)");
+    TEST_ASSERT(loaded.step_count == 4, "Corrupted load falls back to default factory routine (4 steps)");
     TEST_ASSERT(loaded.steps[0].motor_ids[0] == 0, "Corrupted load fallback has correct factory motor ID (0)");
     TEST_ASSERT(loaded.checksum == storage_compute_crc32(&loaded), "Fallback routine has valid recalculated CRC");
 

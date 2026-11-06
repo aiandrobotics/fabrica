@@ -100,10 +100,10 @@ static esp_err_t get_preset_key(uint8_t preset_id, char *key_buf, size_t max_len
  * @brief Populate a routine structure with factory default folding steps.
  *
  * Factory Presets:
- *   - Preset 1: Adult T-Shirt (3 steps: Left -> Right -> Bottom)
- *   - Preset 2: Long-Sleeve Shirt (4 steps: Parallel sleeves -> Left -> Right -> Bottom)
- *   - Preset 3: Trousers / Jeans (2 steps: Vertical fold -> Bottom fold)
- *   - Preset 4: Towel / Linen (3 steps: Half fold -> Quarter fold -> Final fold)
+ *   - Preset 1: Adult T-Shirt (4 steps: Left -> Right -> Bottom -> Top)
+ *   - Preset 2: Long-Sleeve Shirt (5 steps: Parallel sleeves -> Top -> Left -> Right -> Bottom)
+ *   - Preset 3: Trousers / Jeans (3 steps: Vertical fold -> Bottom fold -> Top fold)
+ *   - Preset 4: Towel / Linen (4 steps: Half fold -> Quarter fold -> Bottom fold -> Top fold)
  *
  * @param preset_id Target preset (1 to 4).
  * @param routine Pointer to destination fold_routine_t structure.
@@ -119,8 +119,8 @@ esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine
 
     switch (preset_id) {
         case 1:
-            /* Preset 1: Adult T-Shirt (3 Steps: Left -> Right -> Bottom) */
-            routine->step_count = 3;
+            /* Preset 1: Adult T-Shirt (4 Steps: Left -> Right -> Bottom -> Top) */
+            routine->step_count = 4;
             /* Step 1: Left fold (Flap Left - Ch 0) */
             routine->steps[0].motor_count = 1;
             routine->steps[0].motor_ids[0] = SERVO_FLAP_LEFT;
@@ -130,49 +130,61 @@ esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine
             /* Step 3: Bottom fold (Flap Bottom - Ch 2) */
             routine->steps[2].motor_count = 1;
             routine->steps[2].motor_ids[0] = SERVO_FLAP_BOTTOM;
+            /* Step 4: Top / collar fold (Flap Top - Ch 3) */
+            routine->steps[3].motor_count = 1;
+            routine->steps[3].motor_ids[0] = SERVO_FLAP_TOP;
             break;
 
         case 2:
-            /* Preset 2: Long-Sleeve Shirt (4 Steps: Parallel sleeves -> Left -> Right -> Bottom) */
-            routine->step_count = 4;
+            /* Preset 2: Long-Sleeve Shirt (5 Steps: Parallel sleeves -> Top -> Left -> Right -> Bottom) */
+            routine->step_count = 5;
             /* Step 1: Parallel sleeve folds (Left & Right Flaps synchronously) */
             routine->steps[0].motor_count = 2;
             routine->steps[0].motor_ids[0] = SERVO_FLAP_LEFT;
             routine->steps[0].motor_ids[1] = SERVO_FLAP_RIGHT;
-            /* Step 2: Left body fold (Flap Left - Ch 0) */
+            /* Step 2: Top collar fold (Flap Top - Ch 3) */
             routine->steps[1].motor_count = 1;
-            routine->steps[1].motor_ids[0] = SERVO_FLAP_LEFT;
-            /* Step 3: Right body fold (Flap Right - Ch 1) */
+            routine->steps[1].motor_ids[0] = SERVO_FLAP_TOP;
+            /* Step 3: Left body fold (Flap Left - Ch 0) */
             routine->steps[2].motor_count = 1;
-            routine->steps[2].motor_ids[0] = SERVO_FLAP_RIGHT;
-            /* Step 4: Bottom fold (Flap Bottom - Ch 2) */
+            routine->steps[2].motor_ids[0] = SERVO_FLAP_LEFT;
+            /* Step 4: Right body fold (Flap Right - Ch 1) */
             routine->steps[3].motor_count = 1;
-            routine->steps[3].motor_ids[0] = SERVO_FLAP_BOTTOM;
+            routine->steps[3].motor_ids[0] = SERVO_FLAP_RIGHT;
+            /* Step 5: Bottom fold (Flap Bottom - Ch 2) */
+            routine->steps[4].motor_count = 1;
+            routine->steps[4].motor_ids[0] = SERVO_FLAP_BOTTOM;
             break;
 
         case 3:
-            /* Preset 3: Trousers / Jeans (2 Steps: Vertical half fold -> Bottom fold) */
-            routine->step_count = 2;
+            /* Preset 3: Trousers / Jeans (3 Steps: Vertical fold -> Bottom fold -> Top fold) */
+            routine->step_count = 3;
             /* Step 1: Vertical fold (Flap Left - Ch 0) */
             routine->steps[0].motor_count = 1;
             routine->steps[0].motor_ids[0] = SERVO_FLAP_LEFT;
             /* Step 2: Bottom fold (Flap Bottom - Ch 2) */
             routine->steps[1].motor_count = 1;
             routine->steps[1].motor_ids[0] = SERVO_FLAP_BOTTOM;
+            /* Step 3: Top waistband fold (Flap Top - Ch 3) */
+            routine->steps[2].motor_count = 1;
+            routine->steps[2].motor_ids[0] = SERVO_FLAP_TOP;
             break;
 
         case 4:
-            /* Preset 4: Towel / Linen (3 Steps: Half fold -> Quarter fold -> Final fold) */
-            routine->step_count = 3;
+            /* Preset 4: Towel / Linen (4 Steps: Half fold -> Quarter fold -> Bottom fold -> Top fold) */
+            routine->step_count = 4;
             /* Step 1: Left half fold (Flap Left - Ch 0) */
             routine->steps[0].motor_count = 1;
             routine->steps[0].motor_ids[0] = SERVO_FLAP_LEFT;
             /* Step 2: Right quarter fold (Flap Right - Ch 1) */
             routine->steps[1].motor_count = 1;
             routine->steps[1].motor_ids[0] = SERVO_FLAP_RIGHT;
-            /* Step 3: Bottom final fold (Flap Bottom - Ch 2) */
+            /* Step 3: Bottom fold (Flap Bottom - Ch 2) */
             routine->steps[2].motor_count = 1;
             routine->steps[2].motor_ids[0] = SERVO_FLAP_BOTTOM;
+            /* Step 4: Top final fold (Flap Top - Ch 3) */
+            routine->steps[3].motor_count = 1;
+            routine->steps[3].motor_ids[0] = SERVO_FLAP_TOP;
             break;
 
         default:

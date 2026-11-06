@@ -41,50 +41,58 @@ void test_factory_preset_library_standardization(void)
 
     fold_routine_t r1, r2, r3, r4;
 
-    /* Preset 1: Adult T-Shirt (3 Steps) */
+    /* Preset 1: Adult T-Shirt (4 Steps) */
     TEST_ASSERT(storage_load_routine(1, &r1) == ESP_OK, "Preset 1 loads from NVS");
-    TEST_ASSERT(r1.step_count == 3, "Preset 1 has 3 steps");
+    TEST_ASSERT(r1.step_count == 4, "Preset 1 has 4 steps");
     TEST_ASSERT(r1.steps[0].motor_count == 1 && r1.steps[0].motor_ids[0] == SERVO_FLAP_LEFT,
                 "Preset 1 Step 1 is Left Flap (Ch 0)");
     TEST_ASSERT(r1.steps[1].motor_count == 1 && r1.steps[1].motor_ids[0] == SERVO_FLAP_RIGHT,
                 "Preset 1 Step 2 is Right Flap (Ch 1)");
     TEST_ASSERT(r1.steps[2].motor_count == 1 && r1.steps[2].motor_ids[0] == SERVO_FLAP_BOTTOM,
                 "Preset 1 Step 3 is Bottom Flap (Ch 2)");
+    TEST_ASSERT(r1.steps[3].motor_count == 1 && r1.steps[3].motor_ids[0] == SERVO_FLAP_TOP,
+                "Preset 1 Step 4 is Top Collar Flap (Ch 3)");
     TEST_ASSERT(r1.checksum == storage_compute_crc32(&r1), "Preset 1 CRC32 is valid");
 
-    /* Preset 2: Long-Sleeve Shirt (4 Steps) */
+    /* Preset 2: Long-Sleeve Shirt (5 Steps) */
     TEST_ASSERT(storage_load_routine(2, &r2) == ESP_OK, "Preset 2 loads from NVS");
-    TEST_ASSERT(r2.step_count == 4, "Preset 2 has 4 steps");
+    TEST_ASSERT(r2.step_count == 5, "Preset 2 has 5 steps");
     TEST_ASSERT(r2.steps[0].motor_count == 2 &&
                 r2.steps[0].motor_ids[0] == SERVO_FLAP_LEFT &&
                 r2.steps[0].motor_ids[1] == SERVO_FLAP_RIGHT,
                 "Preset 2 Step 1 is Parallel Dual-Sleeve (Left + Right)");
-    TEST_ASSERT(r2.steps[1].motor_count == 1 && r2.steps[1].motor_ids[0] == SERVO_FLAP_LEFT,
-                "Preset 2 Step 2 is Left Body Fold (Ch 0)");
-    TEST_ASSERT(r2.steps[2].motor_count == 1 && r2.steps[2].motor_ids[0] == SERVO_FLAP_RIGHT,
-                "Preset 2 Step 3 is Right Body Fold (Ch 1)");
-    TEST_ASSERT(r2.steps[3].motor_count == 1 && r2.steps[3].motor_ids[0] == SERVO_FLAP_BOTTOM,
-                "Preset 2 Step 4 is Bottom Fold (Ch 2)");
+    TEST_ASSERT(r2.steps[1].motor_count == 1 && r2.steps[1].motor_ids[0] == SERVO_FLAP_TOP,
+                "Preset 2 Step 2 is Top Collar Fold (Ch 3)");
+    TEST_ASSERT(r2.steps[2].motor_count == 1 && r2.steps[2].motor_ids[0] == SERVO_FLAP_LEFT,
+                "Preset 2 Step 3 is Left Body Fold (Ch 0)");
+    TEST_ASSERT(r2.steps[3].motor_count == 1 && r2.steps[3].motor_ids[0] == SERVO_FLAP_RIGHT,
+                "Preset 2 Step 4 is Right Body Fold (Ch 1)");
+    TEST_ASSERT(r2.steps[4].motor_count == 1 && r2.steps[4].motor_ids[0] == SERVO_FLAP_BOTTOM,
+                "Preset 2 Step 5 is Bottom Fold (Ch 2)");
     TEST_ASSERT(r2.checksum == storage_compute_crc32(&r2), "Preset 2 CRC32 is valid");
 
-    /* Preset 3: Trousers / Jeans (2 Steps) */
+    /* Preset 3: Trousers / Jeans (3 Steps) */
     TEST_ASSERT(storage_load_routine(3, &r3) == ESP_OK, "Preset 3 loads from NVS");
-    TEST_ASSERT(r3.step_count == 2, "Preset 3 has 2 steps");
+    TEST_ASSERT(r3.step_count == 3, "Preset 3 has 3 steps");
     TEST_ASSERT(r3.steps[0].motor_count == 1 && r3.steps[0].motor_ids[0] == SERVO_FLAP_LEFT,
                 "Preset 3 Step 1 is Vertical Fold (Ch 0)");
     TEST_ASSERT(r3.steps[1].motor_count == 1 && r3.steps[1].motor_ids[0] == SERVO_FLAP_BOTTOM,
                 "Preset 3 Step 2 is Bottom Fold (Ch 2)");
+    TEST_ASSERT(r3.steps[2].motor_count == 1 && r3.steps[2].motor_ids[0] == SERVO_FLAP_TOP,
+                "Preset 3 Step 3 is Top Waistband Fold (Ch 3)");
     TEST_ASSERT(r3.checksum == storage_compute_crc32(&r3), "Preset 3 CRC32 is valid");
 
-    /* Preset 4: Towel / Linen (3 Steps) */
+    /* Preset 4: Towel / Linen (4 Steps) */
     TEST_ASSERT(storage_load_routine(4, &r4) == ESP_OK, "Preset 4 loads from NVS");
-    TEST_ASSERT(r4.step_count == 3, "Preset 4 has 3 steps");
+    TEST_ASSERT(r4.step_count == 4, "Preset 4 has 4 steps");
     TEST_ASSERT(r4.steps[0].motor_count == 1 && r4.steps[0].motor_ids[0] == SERVO_FLAP_LEFT,
                 "Preset 4 Step 1 is Left Half Fold (Ch 0)");
     TEST_ASSERT(r4.steps[1].motor_count == 1 && r4.steps[1].motor_ids[0] == SERVO_FLAP_RIGHT,
                 "Preset 4 Step 2 is Right Quarter Fold (Ch 1)");
     TEST_ASSERT(r4.steps[2].motor_count == 1 && r4.steps[2].motor_ids[0] == SERVO_FLAP_BOTTOM,
-                "Preset 4 Step 3 is Bottom Final Fold (Ch 2)");
+                "Preset 4 Step 3 is Bottom Fold (Ch 2)");
+    TEST_ASSERT(r4.steps[3].motor_count == 1 && r4.steps[3].motor_ids[0] == SERVO_FLAP_TOP,
+                "Preset 4 Step 4 is Top Final Fold (Ch 3)");
     TEST_ASSERT(r4.checksum == storage_compute_crc32(&r4), "Preset 4 CRC32 is valid");
 }
 
@@ -246,7 +254,7 @@ void test_nvs_power_loss_and_corruption_resilience(void)
     memset(&loaded, 0, sizeof(loaded));
     esp_err_t err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_ERR_INVALID_CRC, "Corrupted blob detected with ESP_ERR_INVALID_CRC");
-    TEST_ASSERT(loaded.step_count == 3, "Gracefully restored default factory Preset 1 (3 steps)");
+    TEST_ASSERT(loaded.step_count == 4, "Gracefully restored default factory Preset 1 (4 steps)");
     TEST_ASSERT(loaded.steps[0].motor_ids[0] == SERVO_FLAP_LEFT, "Restored Step 1 is Left Flap (Ch 0)");
 
     /* 3. Corrupt payload byte inside steps array */
@@ -256,7 +264,7 @@ void test_nvs_power_loss_and_corruption_resilience(void)
     memset(&loaded, 0, sizeof(loaded));
     err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_ERR_INVALID_CRC, "Step array byte corruption detected with ESP_ERR_INVALID_CRC");
-    TEST_ASSERT(loaded.step_count == 3, "Restored default factory Preset 1 (3 steps)");
+    TEST_ASSERT(loaded.step_count == 4, "Restored default factory Preset 1 (4 steps)");
 
     /* 4. Corrupt stored checksum itself */
     storage_save_routine(1, &custom);
@@ -265,14 +273,14 @@ void test_nvs_power_loss_and_corruption_resilience(void)
     memset(&loaded, 0, sizeof(loaded));
     err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_ERR_INVALID_CRC, "Checksum byte corruption detected with ESP_ERR_INVALID_CRC");
-    TEST_ASSERT(loaded.step_count == 3, "Restored default factory Preset 1 (3 steps)");
+    TEST_ASSERT(loaded.step_count == 4, "Restored default factory Preset 1 (4 steps)");
 
     /* 5. Erased / Uninitialized Key Fallback */
     TEST_ASSERT(storage_erase_routine(1) == ESP_OK, "Erase Preset 1 succeeds");
     memset(&loaded, 0, sizeof(loaded));
     err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_OK, "Loading erased preset falls back to factory default with ESP_OK");
-    TEST_ASSERT(loaded.step_count == 3, "Loaded erased preset has 3 default steps");
+    TEST_ASSERT(loaded.step_count == 4, "Loaded erased preset has 4 default steps");
 }
 
 /* ========================================================================= */

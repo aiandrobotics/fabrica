@@ -167,7 +167,7 @@ void test_factory_reset_and_live_jog(void)
     TEST_ASSERT(led_get_state() == LED_STATE_SAVE_SUCCESS, "LED set to LED_STATE_SAVE_SUCCESS after factory restore");
 
     fold_routine_t r3;
-    TEST_ASSERT(storage_load_routine(3, &r3) == ESP_OK && r3.step_count == 2 && r3.steps[0].motor_ids[0] == SERVO_FLAP_LEFT,
+    TEST_ASSERT(storage_load_routine(3, &r3) == ESP_OK && r3.step_count == 3 && r3.steps[0].motor_ids[0] == SERVO_FLAP_LEFT,
                 "Preset 3 restored to factory default Trousers routine");
 
     /* 2. Live Servo Jog from mobile app */
