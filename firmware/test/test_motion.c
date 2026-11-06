@@ -35,7 +35,7 @@ void test_motion_lifecycle(void)
     printf("Testing Motion Engine Lifecycle & Status APIs...\n");
 
     motion_reset_state();
-    TEST_ASSERT(motion_init(NULL, NULL) == ESP_OK, "motion_init() returns ESP_OK");
+    TEST_ASSERT(motion_init(NULL) == ESP_OK, "motion_init() returns ESP_OK");
     TEST_ASSERT(motion_get_status() == MOTION_STATUS_IDLE, "Initial status is MOTION_STATUS_IDLE");
     TEST_ASSERT(motion_is_busy() == false, "Initial motion_is_busy() returns false");
 

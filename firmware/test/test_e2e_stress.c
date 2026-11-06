@@ -101,7 +101,7 @@ void test_100_cycle_endurance_and_stability(void)
     storage_init();
     motion_reset_state();
     state_machine_reset();
-    state_machine_init(NULL, NULL);
+    state_machine_init();
 
     int total_cycles = 100;
     int successful_cycles = 0;
@@ -152,7 +152,7 @@ void test_mid_sweep_emergency_stop_preemption(void)
     pca9685_init();
     motion_reset_state();
     state_machine_reset();
-    state_machine_init(NULL, NULL);
+    state_machine_init();
 
     /* 1. Simulate active motion: channels swept to 180 degrees */
     pca9685_set_servo_angle(SERVO_FLAP_LEFT, FOLD_ANGLE_DEG);
@@ -276,45 +276,44 @@ void test_nvs_power_loss_and_corruption_resilience(void)
 }
 
 /* ========================================================================= */
-/* Test 5: Rapid Mode Invariant & Inactivity Stress                          */
+/* Test 5: Rapid Wireless Sequence Sync, Jog & E-Stop Stress                 */
 /* ========================================================================= */
 
 void test_rapid_mode_invariants_and_watchdog(void)
 {
-    printf("Testing Rapid Mode Invariant Stress & Inactivity Watchdog...\n");
+    printf("Testing Rapid Wireless Sequence Sync, Servo Jog & E-Stop Stress...\n");
 
     pca9685_mock_reset();
     pca9685_init();
     storage_init();
     motion_reset_state();
     state_machine_reset();
-    state_machine_init(NULL, NULL);
+    state_machine_init();
 
-    /* Stress test 50 rapid mode cycles (Run -> Program -> Stage -> E-Stop -> Idle) */
+    /* Stress test 50 rapid wireless update -> jog -> E-Stop cycles */
     for (int i = 0; i < 50; i++) {
-        /* 1. Enter Programming Mode */
-        command_t cmd_prog;
-        memset(&cmd_prog, 0, sizeof(cmd_prog));
-        cmd_prog.type = CMD_ENTER_PROGRAM_MODE;
-        cmd_prog.source = SOURCE_PHYSICAL_BUTTON;
-        cmd_prog.payload.preset_id = (uint8_t)((i % TOTAL_PRESET_COUNT) + 1);
+        /* 1. Save custom sequence from mobile app */
+        command_t cmd_save;
+        memset(&cmd_save, 0, sizeof(cmd_save));
+        cmd_save.type = CMD_SET_BUTTON_SEQUENCE;
+        cmd_save.source = SOURCE_BLE;
+        cmd_save.payload.button_sync.preset_id = (uint8_t)((i % TOTAL_PRESET_COUNT) + 1);
+        cmd_save.payload.button_sync.routine.step_count = 1;
+        cmd_save.payload.button_sync.routine.steps[0].motor_count = 1;
+        cmd_save.payload.button_sync.routine.steps[0].motor_ids[0] = (uint8_t)(i % TOTAL_SERVO_CHANNELS);
 
-        esp_err_t err = state_machine_process_command(&cmd_prog);
+        esp_err_t err = state_machine_process_command(&cmd_save);
         assert(err == ESP_OK);
-        assert(state_machine_get_state() == STATE_PROGRAMMING);
+        assert(state_machine_get_state() == STATE_IDLE_RUN);
 
-        /* 2. Cycle and Stage a channel */
-        command_t cmd_cycle;
-        memset(&cmd_cycle, 0, sizeof(cmd_cycle));
-        cmd_cycle.type = CMD_CYCLE_NUDGE_MOTOR;
-        cmd_cycle.source = SOURCE_PHYSICAL_BUTTON;
-        state_machine_process_command(&cmd_cycle);
-
-        command_t cmd_stage;
-        memset(&cmd_stage, 0, sizeof(cmd_stage));
-        cmd_stage.type = CMD_STAGE_TOGGLE_MOTOR;
-        cmd_stage.source = SOURCE_PHYSICAL_BUTTON;
-        state_machine_process_command(&cmd_stage);
+        /* 2. Jog a motor channel from mobile app */
+        command_t cmd_jog;
+        memset(&cmd_jog, 0, sizeof(cmd_jog));
+        cmd_jog.type = CMD_JOG_MOTOR_ANGLE;
+        cmd_jog.source = SOURCE_BLE;
+        cmd_jog.payload.jog_param.channel = (uint8_t)(i % TOTAL_SERVO_CHANNELS);
+        cmd_jog.payload.jog_param.angle_deg = 45.0f;
+        state_machine_process_command(&cmd_jog);
 
         /* 3. Interrupt with Emergency Stop */
         command_t cmd_estop;
@@ -325,20 +324,12 @@ void test_rapid_mode_invariants_and_watchdog(void)
 
         assert(state_machine_get_state() == STATE_IDLE_RUN);
     }
-    TEST_ASSERT(true, "50 rapid mode switching cycles executed without deadlock");
+    TEST_ASSERT(true, "50 rapid wireless sync, jog, and E-Stop cycles executed without deadlock");
 
-    /* Verify Inactivity Watchdog in Programming Mode */
-    command_t cmd_prog;
-    memset(&cmd_prog, 0, sizeof(cmd_prog));
-    cmd_prog.type = CMD_ENTER_PROGRAM_MODE;
-    cmd_prog.payload.preset_id = 1;
-    state_machine_process_command(&cmd_prog);
-    TEST_ASSERT(state_machine_get_state() == STATE_PROGRAMMING, "Entered STATE_PROGRAMMING");
-
-    /* Advance simulated time by 20,000ms */
-    state_machine_tick(PROGRAMMING_TIMEOUT_MS);
-    TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "20s inactivity watchdog returned state to STATE_IDLE_RUN");
-    TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "LED returned to LED_STATE_IDLE after timeout");
+    /* Restore factory defaults and verify clean state */
+    command_t cmd_restore = {.type = CMD_RESTORE_FACTORY_PRESETS, .source = SOURCE_BLE};
+    TEST_ASSERT(state_machine_process_command(&cmd_restore) == ESP_OK, "Factory defaults restored cleanly after stress test");
+    TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "State machine in STATE_IDLE_RUN");
 }
 
 /* ========================================================================= */

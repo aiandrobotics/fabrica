@@ -49,17 +49,6 @@ static const led_pattern_def_t s_patterns[] = {
         .is_transient = false,
         .segments = { {1, 1000} } /* Solid ON continuous */
     },
-    [LED_STATE_PROGRAMMING] = {
-        .segment_count = 2,
-        .is_transient = false,
-        .segments = { {1, 1000}, {0, 1000} } /* Slow blink: 1.0s ON / 1.0s OFF */
-    },
-    [LED_STATE_STEP_LOCKED] = {
-        .segment_count = 4,
-        .is_transient = true,
-        .return_to_prior_base = true,
-        .segments = { {1, 80}, {0, 80}, {1, 80}, {0, 80} } /* 2 fast flashes */
-    },
     [LED_STATE_SAVE_SUCCESS] = {
         .segment_count = 1,
         .is_transient = true,
@@ -85,13 +74,18 @@ static const led_pattern_def_t s_patterns[] = {
             {1, 50}, {0, 50},
             {1, 50}, {0, 50}
         } /* 5 rapid flashes */
+    },
+    [LED_STATE_BLE_PAIRING] = {
+        .segment_count = 4,
+        .is_transient = false,
+        .segments = { {1, 100}, {0, 100}, {1, 100}, {0, 500} } /* Fast double-blink */
     }
 };
 
 /**
  * @brief Get the currently active LED visual pattern.
  *
- * If a temporary animation is playing (such as error flashes or step lock confirmation),
+ * If a temporary animation is playing (such as error flashes or save confirmation),
  * this returns that transient state.
  *
  * @return Current active led_state_t pattern.
@@ -105,7 +99,7 @@ led_state_t led_get_state(void)
  * @brief Get the underlying persistent/background LED state.
  *
  * When a transient pattern (e.g. 3 error flashes) finishes, the LED automatically
- * reverts back to this base state (e.g. IDLE or PROGRAMMING).
+ * reverts back to this base state (e.g. IDLE or RUNNING).
  *
  * @return Base led_state_t operating mode.
  */
@@ -117,7 +111,7 @@ led_state_t led_get_base_state(void)
 /**
  * @brief Set the LED pattern state and reset pattern sequencer timers.
  *
- * If the requested state is persistent (e.g. IDLE, RUNNING, PROGRAMMING),
+ * If the requested state is persistent (e.g. IDLE or RUNNING),
  * it also updates the base state. If running on ESP-IDF hardware, this sends a direct
  * FreeRTOS task notification to wake up app_led_task immediately with zero latency.
  *
@@ -125,7 +119,7 @@ led_state_t led_get_base_state(void)
  */
 void led_set_state(led_state_t state)
 {
-    if (state > LED_STATE_ESTOP) {
+    if (state > LED_STATE_BLE_PAIRING) {
         state = LED_STATE_IDLE;
     }
 

@@ -23,11 +23,10 @@ extern "C" {
 typedef enum {
     LED_STATE_IDLE = 0,     /**< Soft heartbeat (100ms ON / 1900ms OFF) */
     LED_STATE_RUNNING,      /**< Solid ON throughout routine motion */
-    LED_STATE_PROGRAMMING,  /**< Slow blink (1000ms ON / 1000ms OFF / 0.5 Hz) */
-    LED_STATE_STEP_LOCKED,  /**< 2 fast flashes (80ms ON / 80ms OFF) -> return to base */
     LED_STATE_SAVE_SUCCESS, /**< Solid ON for 2000ms -> return to IDLE */
     LED_STATE_INPUT_ERROR,  /**< 3 fast flashes (60ms ON / 60ms OFF) -> return to base */
-    LED_STATE_ESTOP         /**< 5 rapid flashes (50ms ON / 50ms OFF) -> return to IDLE */
+    LED_STATE_ESTOP,        /**< 5 rapid flashes (50ms ON / 50ms OFF) -> return to IDLE */
+    LED_STATE_BLE_PAIRING   /**< Fast double-blink (100ms ON/100ms OFF/100ms ON/500ms OFF) */
 } led_state_t;
 
 /**

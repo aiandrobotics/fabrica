@@ -29,10 +29,10 @@ extern "C" {
  * @brief Zero-indexed button identifiers.
  */
 typedef enum {
-    BTN_ID_1 = 0, /* Button 1: Preset 1 / Cycle & Nudge */
-    BTN_ID_2 = 1, /* Button 2: Preset 2 / Stage & Toggle */
-    BTN_ID_3 = 2, /* Button 3: Preset 3 / Lock Step */
-    BTN_ID_4 = 3, /* Button 4: Preset 4 / Save & Exit */
+    BTN_ID_1 = 0, /* Button 1: Preset 1 (Adult T-Shirt) */
+    BTN_ID_2 = 1, /* Button 2: Preset 2 (Long-Sleeve Shirt) */
+    BTN_ID_3 = 2, /* Button 3: Preset 3 (Trousers / Jeans) */
+    BTN_ID_4 = 3, /* Button 4: Preset 4 (Towel / Linen) */
     BTN_ID_COUNT = 4
 } button_id_t;
 
@@ -83,7 +83,7 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
  *        based on current system operating state.
  * @param btn_idx Button index (0 to 3).
  * @param gesture Detected gesture (GESTURE_SHORT_TAP or GESTURE_LONG_PRESS).
- * @param current_state Current operating state (STATE_IDLE_RUN, STATE_RUNNING_MOTION, STATE_PROGRAMMING).
+ * @param current_state Current operating state (STATE_IDLE_RUN, STATE_RUNNING_MOTION).
  * @return Standardized command_t structure.
  */
 command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, system_state_t current_state);

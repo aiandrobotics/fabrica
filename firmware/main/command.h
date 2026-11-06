@@ -18,8 +18,7 @@ extern "C" {
 typedef enum {
     SOURCE_PHYSICAL_BUTTON = 0, /* On-board physical 4-button pad */
     SOURCE_BLE             = 1, /* Bluetooth LE GATT connection (Mobile App) */
-    SOURCE_WIFI            = 2, /* Wi-Fi / Local WebSocket JSON RPC */
-    SOURCE_INTERNAL_TIMER  = 3  /* Internal RTOS timer / safety watchdog */
+    SOURCE_INTERNAL_TIMER  = 2  /* Internal RTOS timer / safety watchdog */
 } cmd_source_t;
 
 /* ========================================================================= */
@@ -30,11 +29,9 @@ typedef enum {
     CMD_RUN_PRESET = 0,         /* Execute saved preset routine (1 to 4) */
     CMD_RUN_RAW_SEQUENCE,       /* Execute unsaved sequence payload directly */
     CMD_EMERGENCY_STOP,         /* Immediate E-Stop halt & home all servos */
-    CMD_ENTER_PROGRAM_MODE,     /* Enter visual staging mode for target preset */
-    CMD_CYCLE_NUDGE_MOTOR,      /* Cycle motor index and pulse 15° nudge */
-    CMD_STAGE_TOGGLE_MOTOR,     /* Toggle target motor staged (30°) / rest (0°) */
-    CMD_LOCK_STEP,              /* Commit staged motor(s) to step buffer */
-    CMD_SAVE_EXIT_PROGRAM,      /* Commit buffer to NVS flash and exit */
+    CMD_ENTER_BLE_PAIRING,      /* Open 120-second BLE discovery/pairing window (3s hold) */
+    CMD_SET_BUTTON_SEQUENCE,    /* Save custom sequence to button slot (1 to 4) from phone */
+    CMD_RESTORE_FACTORY_PRESETS,/* Restore Buttons 1-4 to factory default routines */
     CMD_JOG_MOTOR_ANGLE,        /* Live position jog (0° to 180°) for calibration */
     CMD_GET_TELEMETRY,          /* Request real-time status telemetry */
     CMD_SYNC_PRESETS            /* Synchronize presets over wireless transport */
@@ -70,12 +67,21 @@ typedef struct {
 } jog_param_t;
 
 /**
+ * @brief Parameter payload for assigning a custom sequence to a physical button slot.
+ */
+typedef struct {
+    uint8_t preset_id;          /**< Target button slot (1 to 4) */
+    fold_routine_t routine;     /**< Sequence payload to persist in NVS */
+} button_sync_param_t;
+
+/**
  * @brief Polymorphic command payload union.
  */
 typedef union {
-    uint8_t preset_id;          /**< Preset ID (1 to 4) */
-    fold_routine_t raw_routine; /**< Direct routine sequence payload */
-    jog_param_t jog_param;      /**< Single motor jog parameter */
+    uint8_t preset_id;              /**< Preset ID (1 to 4) */
+    fold_routine_t raw_routine;     /**< Direct routine sequence payload */
+    button_sync_param_t button_sync;/**< Button preset update payload */
+    jog_param_t jog_param;          /**< Single motor jog parameter */
 } cmd_payload_t;
 
 /**

@@ -20,9 +20,9 @@
 
 static const char *TAG = "FABRICA_MAIN";
 
-/* Global Inter-Task Communication Handles */
-QueueHandle_t xCommandQueue = NULL;
-EventGroupHandle_t xSystemEventGroup = NULL;
+/* Application-Scoped Inter-Task Communication Handles */
+static QueueHandle_t s_command_queue = NULL;
+static EventGroupHandle_t s_system_event_group = NULL;
 
 /**
  * @brief Print comprehensive chip diagnostics and system telemetry to UART console.
@@ -43,7 +43,7 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
-    ESP_LOGI(TAG, " Phase 6: Visual Staging Programming Mode & State Machine Ready");
+    ESP_LOGI(TAG, " System State Machine & Preset Engine Ready");
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
@@ -75,18 +75,18 @@ static esp_err_t init_ipc_primitives(void)
     ESP_LOGI(TAG, "Initializing FreeRTOS IPC primitives...");
 
     /* Allocate unified command queue */
-    xCommandQueue = xQueueCreate(COMMAND_QUEUE_LENGTH, sizeof(command_t));
-    if (xCommandQueue == NULL) {
-        ESP_LOGE(TAG, "Failed to create xCommandQueue! Insufficient heap memory.");
+    s_command_queue = xQueueCreate(COMMAND_QUEUE_LENGTH, sizeof(command_t));
+    if (s_command_queue == NULL) {
+        ESP_LOGE(TAG, "Failed to create s_command_queue! Insufficient heap memory.");
         return ESP_ERR_NO_MEM;
     }
     ESP_LOGI(TAG, "Command Queue created (Depth: %d, Item Size: %zu bytes)",
              COMMAND_QUEUE_LENGTH, sizeof(command_t));
 
     /* Allocate system event group for state synchronization and E-Stop */
-    xSystemEventGroup = xEventGroupCreate();
-    if (xSystemEventGroup == NULL) {
-        ESP_LOGE(TAG, "Failed to create xSystemEventGroup! Insufficient heap memory.");
+    s_system_event_group = xEventGroupCreate();
+    if (s_system_event_group == NULL) {
+        ESP_LOGE(TAG, "Failed to create s_system_event_group! Insufficient heap memory.");
         return ESP_ERR_NO_MEM;
     }
     ESP_LOGI(TAG, "System Event Group created successfully.");
@@ -125,7 +125,7 @@ void app_main(void)
     }
 
     /* 4. Initialize 4-Button Subsystem (Core 1) */
-    buttons_set_command_queue(xCommandQueue);
+    buttons_set_command_queue(s_command_queue);
     err = buttons_init();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize 4-Button subsystem: %s", esp_err_to_name(err));
@@ -156,7 +156,7 @@ void app_main(void)
     }
 
     /* 7. Initialize Core 0 Real-Time Motion Engine */
-    err = motion_init(xCommandQueue, xSystemEventGroup);
+    err = motion_init(s_system_event_group);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize Motion Engine: %s", esp_err_to_name(err));
     } else {
@@ -164,7 +164,7 @@ void app_main(void)
     }
 
     /* 8. Initialize System State Machine Coordinator */
-    err = state_machine_init(xCommandQueue, xSystemEventGroup);
+    err = state_machine_init();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize State Machine: %s", esp_err_to_name(err));
     } else {
@@ -176,7 +176,7 @@ void app_main(void)
     /* 9. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
-        if (xQueueReceive(xCommandQueue, &cmd, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(s_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
             ESP_LOGI(TAG, "[CMD RECEIVED] Type: %d, Source: %d, Preset/Payload: %d",
                      cmd.type, cmd.source, cmd.payload.preset_id);
 

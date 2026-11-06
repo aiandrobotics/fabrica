@@ -55,8 +55,6 @@ extern "C" {
 /* Motion Engine Constants & Event Bits                                      */
 /* ========================================================================= */
 
-#define MOTION_TASK_STACK_SIZE          4096
-#define MOTION_TASK_PRIORITY            10
 #define MOTION_ABORT_CHECK_MS           10
 
 #define MOTION_EVENT_START_BIT          (1U << 0)
@@ -79,12 +77,11 @@ typedef enum {
 /* ========================================================================= */
 
 /**
- * @brief Initialize Motion Engine, bind IPC primitives, and spawn app_motion_task on Core 0.
- * @param cmd_queue FreeRTOS command queue handle.
+ * @brief Initialize Motion Engine and bind system event group for E-Stop monitoring.
  * @param evt_group FreeRTOS system event group handle.
  * @return ESP_OK on success, or ESP error code.
  */
-esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group);
+esp_err_t motion_init(EventGroupHandle_t evt_group);
 
 /**
  * @brief Query current motion engine status.

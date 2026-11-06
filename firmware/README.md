@@ -11,10 +11,10 @@ The Fabrica firmware coordinates the physical user interface, non-volatile seque
 * **Target Microcontroller**: ESP32 Dev Board v1 (Xtensa dual-core LX6 @ 240 MHz, 520 KB SRAM, 4 MB SPI Flash)
 * **Actuation Driver**: PCA9685 16-Channel 12-Bit PWM Driver over I2C (`GPIO 21 SDA`, `GPIO 22 SCL`)
 * **User Interface**: 4 Push Buttons (`B1–B4`) + 1 Multi-Pattern Status LED (`GPIO 2`)
-* **Operating Architecture**: Dual-Core FreeRTOS (Core 0: Motion & I2C Bus / Core 1: UI, Buttons & NVS Storage)
+* **Operating Architecture**: Dual-Core FreeRTOS (Core 0: Motion & I2C Bus / Core 1: UI, Buttons, BLE Wireless & NVS Storage)
 * **Operating Modes**:
-  1. **Daily Run Mode**: Instant 1-touch execution of Presets 1–4, synchronized parallel dual-servo sweeps, 300ms fold dwell, 200ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption.
-  2. **Visual Staging Programming Mode**: Computer-free on-device sequence teaching (3s hold entry, B1 cycle/nudge $15^\circ$, B2 stage/toggle $30^\circ$, B3 lock step, B4 save to NVS flash, 20s inactivity watchdog).
+  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized parallel dual-servo sweeps, 300ms fold dwell, 200ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
+  2. **Wireless Mobile Programming & Control (BLE)**: Custom sequence creation, live servo jogging, stateless sequence previewing, and assigning custom sequences to Buttons 1–4 are handled visually from the mobile application over Bluetooth Low Energy.
 
 ---
 
@@ -25,10 +25,10 @@ The Fabrica firmware coordinates the physical user interface, non-volatile seque
 | Signal Name | ESP32 GPIO | Direction | Pin Configuration | Active Level | Connected Peripheral |
 |---|---|---|---|---|---|
 | `STATUS_LED_GPIO` | `GPIO 2` | Output | Push-Pull / No Pull | High (1) | Status LED (Built-in on DevKit) |
-| `BTN1_GPIO` | `GPIO 4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 1 (B1): Preset 1 / Cycle & Nudge |
-| `BTN2_GPIO` | `GPIO 16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 2 (B2): Preset 2 / Stage & Toggle |
-| `BTN3_GPIO` | `GPIO 17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 3 (B3): Preset 3 / Lock Step |
-| `BTN4_GPIO` | `GPIO 5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 4 (B4): Preset 4 / Save & Exit |
+| `BTN1_GPIO` | `GPIO 4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 1 (B1): Preset 1 (Default: Adult T-Shirt) / E-Stop |
+| `BTN2_GPIO` | `GPIO 16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 2 (B2): Preset 2 (Default: Long-Sleeve Shirt) / E-Stop |
+| `BTN3_GPIO` | `GPIO 17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 3 (B3): Preset 3 (Default: Trousers / Jeans) / E-Stop |
+| `BTN4_GPIO` | `GPIO 5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 4 (B4): Preset 4 (Default: Towel / Linen) / E-Stop |
 | `I2C_SDA_GPIO` | `GPIO 21` | In/Out | Open-Drain + Pull-Up | — | PCA9685 SDA (I2C Data) |
 | `I2C_SCL_GPIO` | `GPIO 22` | Output | Open-Drain + Pull-Up | — | PCA9685 SCL (I2C Clock) |
 
@@ -76,14 +76,15 @@ The firmware uses FreeRTOS symmetric multiprocessing to cleanly separate real-ti
                   |               ESP32 DUAL CORE                |
                   +----------------------------------------------+
                                 |                              |
-           CORE 0 (Motion Engine)           CORE 1 (System & UI Management)
-           ----------------------           --------------------------------
-           * app_motion_task (Priority 10)  * app_ui_task (Priority 5)
-           * Real-time 50Hz PWM Trajectory  * 50ms Button Low-Pass Debounce
-           * 300ms Fold Dwell Timing        * Short Tap vs 3s Long-Press
-           * 200ms Inter-Step Delays        * Visual Staging State Machine
-           * PCA9685 I2C Bus Management     * app_led_task (Priority 3)
-           * <50ms E-Stop Preemption Abort  * NVS Flash Storage Manager
+           CORE 0 (Motion Engine)           CORE 1 (UI, BLE Wireless & System Coordination)
+           ----------------------           ------------------------------------------------
+           * app_main (Command & Motion)    * app_ble_task (Priority 4, NimBLE GATT Server)
+           * Real-time 50Hz PWM Trajectory  * app_telem_task (Priority 3, Telemetry Engine)
+           * 300ms Fold Dwell Timing        * app_ui_task (Priority 5, 50ms Debounce)
+           * 200ms Inter-Step Delays        * Short Tap vs 3s Hold (BLE Pairing)
+           * PCA9685 I2C Bus Management     * System State Machine Coordinator
+           * <50ms E-Stop Preemption Abort  * app_led_task (Priority 2, Status LED Engine)
+                                            * NVS Flash Storage Manager
                                 \              /
                                  \            /
                               [ FreeRTOS IPC ]
@@ -130,13 +131,12 @@ The firmware is pre-seeded on initial boot with 4 factory folding routines verif
 ### 2. Emergency Stop (E-Stop)
 * Tapping **any button** while folding motion is active immediately halts PWM pulses, commands all 16 servos flat to $0^\circ$ in $<50\text{ms}$, and triggers **5 rapid flashes** on the Status LED.
 
-### 3. Visual Staging Programming Mode (On-Device Teaching)
-1. **Enter Mode**: Press and hold any preset button (**B1–B4**) for **3 seconds**. The Status LED transitions to a **Slow Blink (0.5 Hz)** and all flaps flatten.
-2. **Cycle & Identify (B1)**: Tap B1 to cycle through servo channels 0–15. The target panel performs a brief $15^\circ$ mechanical twitch for visual identification.
-3. **Stage Flap (B2)**: Tap B2 to lift the identified panel to $30^\circ$ and hold. Tap B2 again to unstage and return flat ($0^\circ$). Up to 2 flaps can be staged simultaneously for parallel folding.
-4. **Lock Step (B3)**: Tap B3 to lock staged flap(s) into the step buffer. Staged flaps drop flat to $0^\circ$, the Status LED delivers **2 fast flashes**, and the step index advances.
-5. **Save & Exit (B4)**: Tap B4 to commit the sequence to NVS flash storage with CRC32 integrity checksums. The Status LED illuminates **Solid ON for 2.0 seconds** before returning to Daily Run Mode.
-6. **Safety Watchdog**: If 20 seconds elapse without any button interaction, all flaps drop flat to $0^\circ$, the buffer is discarded, and the unit safely exits to Run Mode.
+### 3. BLE Pairing & Custom Programming via Mobile App
+To pair a new phone (including on first boot), **hold any button (B1–B4) for 3 seconds**:
+1. The Status LED enters a **fast double-blink** (`LED_STATE_BLE_PAIRING`) for **120 seconds (2 minutes)**, allowing your phone to connect and bond in the mobile app. Once paired, your phone reconnects automatically in the background on future uses.
+2. Build or select a garment profile in the mobile app and tap **Preview** (`CMD_RUN_RAW_SEQUENCE`) to test it on the robot.
+3. Assign any custom routine directly to **Buttons 1–4** (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`). The Status LED illuminates **Solid ON for 2.0 seconds** when saved to NVS flash.
+4. Restore the 4 built-in factory presets anytime from the mobile app (`CMD_RESTORE_FACTORY_PRESETS`).
 
 ### 4. Status LED Visual Feedback Patterns
 
@@ -144,10 +144,9 @@ The firmware is pre-seeded on initial boot with 4 factory folding routines verif
 |---|---|---|
 | **Soft Heartbeat** | 10% duty cycle / 0.5 Hz | Idle / Ready for garment |
 | **Solid ON** | Continuous ON | Routine in motion |
-| **Slow Blink** | 1.0s ON / 1.0s OFF (0.5 Hz) | Visual Staging Programming Mode |
-| **Double Flash** | 2 fast pulses (80ms ON / 80ms OFF) | Step locked into sequence buffer |
-| **Save Success** | Solid ON for 2.0 seconds | Sequence committed to NVS flash |
-| **Input Error** | 3 fast flashes (60ms ON / 60ms OFF) | 3rd motor attempt / empty preset |
+| **Fast Double-Blink** | 100ms ON / 100ms OFF / 100ms ON / 500ms OFF | BLE Pairing Mode (120s window after 3s hold) |
+| **Save Success** | Solid ON for 2.0 seconds | Preset saved or restored in NVS flash |
+| **Input Error** | 3 fast flashes (60ms ON / 60ms OFF) | Invalid routine / empty preset |
 | **Emergency Stop** | 5 rapid flashes (50ms ON / 50ms OFF) | E-Stop triggered mid-motion |
 
 ---

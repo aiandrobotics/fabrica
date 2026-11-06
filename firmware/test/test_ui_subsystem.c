@@ -60,29 +60,7 @@ void test_led_patterns(void)
     led_step_ms(5000);
     TEST_ASSERT(led_get_current_level() == 1, "RUNNING remains HIGH after 5 seconds");
 
-    /* 3. Test LED_STATE_PROGRAMMING (Slow blink: 1000ms ON / 1000ms OFF) */
-    led_set_state(LED_STATE_PROGRAMMING);
-    TEST_ASSERT(led_get_state() == LED_STATE_PROGRAMMING, "LED state is LED_STATE_PROGRAMMING");
-    TEST_ASSERT(led_get_current_level() == 1, "PROGRAMMING starts HIGH");
-    led_step_ms(1000);
-    TEST_ASSERT(led_get_current_level() == 0, "PROGRAMMING at 1000ms transitions to LOW");
-    led_step_ms(1000);
-    TEST_ASSERT(led_get_current_level() == 1, "PROGRAMMING at 2000ms wraps to HIGH");
-
-    /* 4. Test LED_STATE_STEP_LOCKED (2 fast flashes 80ms ON/OFF -> returns to base PROGRAMMING) */
-    led_set_state(LED_STATE_STEP_LOCKED);
-    TEST_ASSERT(led_get_state() == LED_STATE_STEP_LOCKED, "LED state set to transient STEP_LOCKED");
-    TEST_ASSERT(led_get_current_level() == 1, "Flash 1 ON");
-    led_step_ms(80);
-    TEST_ASSERT(led_get_current_level() == 0, "Flash 1 OFF");
-    led_step_ms(80);
-    TEST_ASSERT(led_get_current_level() == 1, "Flash 2 ON");
-    led_step_ms(80);
-    TEST_ASSERT(led_get_current_level() == 0, "Flash 2 OFF");
-    led_step_ms(80);
-    TEST_ASSERT(led_get_state() == LED_STATE_PROGRAMMING, "STEP_LOCKED reverted to base PROGRAMMING state");
-
-    /* 5. Test LED_STATE_INPUT_ERROR (3 fast flashes 60ms ON/OFF -> returns to base PROGRAMMING) */
+    /* 3. Test LED_STATE_INPUT_ERROR (3 fast flashes 60ms ON/OFF -> returns to base RUNNING) */
     led_set_state(LED_STATE_INPUT_ERROR);
     TEST_ASSERT(led_get_state() == LED_STATE_INPUT_ERROR, "LED state set to transient INPUT_ERROR");
     for (int i = 0; i < 3; i++) {
@@ -91,9 +69,9 @@ void test_led_patterns(void)
         TEST_ASSERT(led_get_current_level() == 0, "Error pulse OFF");
         led_step_ms(60);
     }
-    TEST_ASSERT(led_get_state() == LED_STATE_PROGRAMMING, "INPUT_ERROR reverted to base PROGRAMMING state");
+    TEST_ASSERT(led_get_state() == LED_STATE_RUNNING, "INPUT_ERROR reverted to base RUNNING state");
 
-    /* 6. Test LED_STATE_SAVE_SUCCESS (Solid ON for 2000ms -> returns to IDLE) */
+    /* 4. Test LED_STATE_SAVE_SUCCESS (Solid ON for 2000ms -> returns to IDLE) */
     led_set_state(LED_STATE_SAVE_SUCCESS);
     TEST_ASSERT(led_get_state() == LED_STATE_SAVE_SUCCESS, "LED state is SAVE_SUCCESS");
     TEST_ASSERT(led_get_current_level() == 1, "SAVE_SUCCESS is HIGH");
@@ -102,7 +80,7 @@ void test_led_patterns(void)
     led_step_ms(20);
     TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "SAVE_SUCCESS completed and reverted to IDLE");
 
-    /* 7. Test LED_STATE_ESTOP (5 rapid flashes 50ms ON/OFF -> returns to IDLE) */
+    /* 5. Test LED_STATE_ESTOP (5 rapid flashes 50ms ON/OFF -> returns to IDLE) */
     led_set_state(LED_STATE_RUNNING); /* Base = RUNNING */
     led_set_state(LED_STATE_ESTOP);
     TEST_ASSERT(led_get_state() == LED_STATE_ESTOP, "LED state is ESTOP");
@@ -113,6 +91,19 @@ void test_led_patterns(void)
         led_step_ms(50);
     }
     TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "ESTOP completed and safely reverted to IDLE");
+
+    /* 6. Test LED_STATE_BLE_PAIRING (Fast double-blink: 100ms ON/100ms OFF/100ms ON/500ms OFF) */
+    led_set_state(LED_STATE_BLE_PAIRING);
+    TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "LED state is LED_STATE_BLE_PAIRING");
+    TEST_ASSERT(led_get_current_level() == 1, "BLE_PAIRING pulse 1 ON");
+    led_step_ms(100);
+    TEST_ASSERT(led_get_current_level() == 0, "BLE_PAIRING gap 1 OFF");
+    led_step_ms(100);
+    TEST_ASSERT(led_get_current_level() == 1, "BLE_PAIRING pulse 2 ON");
+    led_step_ms(100);
+    TEST_ASSERT(led_get_current_level() == 0, "BLE_PAIRING gap 2 (500ms) OFF");
+    led_step_ms(500);
+    TEST_ASSERT(led_get_current_level() == 1, "BLE_PAIRING wraps back to pulse 1 ON");
 }
 
 /* ========================================================================= */

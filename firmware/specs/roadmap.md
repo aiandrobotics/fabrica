@@ -27,14 +27,12 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ## Phase 2 — UI Subsystem: 4-Button Debouncer & Non-Blocking LED Pattern Engine (`buttons.c`, `led.c`) ✅
 - **Status LED Pattern Engine** (`main/led.h`, `main/led.c`):
-  - Implement non-blocking FreeRTOS software timer / task driving 7 visual state feedback patterns:
+  - Implement non-blocking FreeRTOS software timer / task driving core visual state feedback patterns:
     1. `LED_STATE_IDLE`: Soft heartbeat (10% duty cycle / 0.5 Hz) or OFF awaiting input.
     2. `LED_STATE_RUNNING`: Solid ON continuous throughout routine execution.
-    3. `LED_STATE_PROGRAMMING`: Slow blink (1.0s ON / 1.0s OFF / 0.5 Hz).
-    4. `LED_STATE_STEP_LOCKED`: 2 fast flashes (80ms ON / 80ms OFF).
-    5. `LED_STATE_SAVE_SUCCESS`: Solid ON for 2.0 seconds then OFF.
-    6. `LED_STATE_INPUT_ERROR`: 3 fast flashes (60ms ON / 60ms OFF).
-    7. `LED_STATE_ESTOP`: 5 rapid flashes (50ms ON / 50ms OFF).
+    3. `LED_STATE_SAVE_SUCCESS`: Solid ON for 2.0 seconds then OFF.
+    4. `LED_STATE_INPUT_ERROR`: 3 fast flashes (60ms ON / 60ms OFF).
+    5. `LED_STATE_ESTOP`: 5 rapid flashes (50ms ON / 50ms OFF).
 - **4-Button Debouncing & Gesture Recognition** (`main/buttons.h`, `main/buttons.c`):
   - Configure `GPIO 4`, `GPIO 16`, `GPIO 17`, and `GPIO 5` as inputs with internal pull-ups (`GPIO_PULLUP_ONLY`).
   - Implement 50ms low-pass debounce sampling.
@@ -88,20 +86,18 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 6 — Visual Staging Programming Mode & State Machine Integration (`state_machine.c`) ✅
-- **Mode Transition & Staging Coordinator** (`main/state_machine.h`, `main/state_machine.c`):
-  - Hold B1–B4 for 3 seconds $\rightarrow$ Enter Programming Mode for that preset; set LED to Slow Blink (0.5 Hz).
-- **Physical Staging Workflow**:
-  - **B1 (CYCLE / NUDGE)**: Increment target servo index (0–15) and trigger $15^\circ$ physical nudge for quick identification.
-  - **B2 (STAGE / TOGGLE)**: Lift identified flap to $30^\circ$ and hold in position. Tapping B2 on an already-staged flap drops it to $0^\circ$. Support up to 2 simultaneously staged flaps.
-  - **B3 (NEXT STEP)**: Lock staged flap(s) into step buffer, flash LED 2 times rapidly, drop flaps flat to $0^\circ$, increment step buffer index.
-  - **B4 (SAVE & EXIT)**: Commit sequence buffer to NVS flash, turn LED Solid ON for 2.0 seconds, and return to Daily Run Mode.
-- **Programming Safeguards & Failsafes**:
-  - **2-Motor Limit**: Staging a 3rd motor in 1 step is rejected with 3 fast flashes.
-  - **Empty Step Skip**: Pressing B3 with no staged flaps is ignored.
-  - **Inactivity Timeout**: 20 seconds with no button presses drops all flaps to $0^\circ$, discards buffer, and safely exits to Run Mode.
-  - **16-Step Cap**: Reaching 16 steps automatically saves sequence to NVS and exits.
-- **Validation**: Verified with host unit test suite (`make test`, 161/161 checks pass, 503/503 total across all test suites) covering state machine lifecycle, button gesture translation matrix across all states, channel cycling/nudge, staging toggles, 2-motor limit enforcement, step locking, empty step rejection, NVS save/playback, 16-step auto-commit, 20s inactivity watchdog timeout, and Emergency Stop in all states.
+## Phase 6 — State Machine Coordinator & Minimal Physical Button Interface (`state_machine.c`) ✅
+- **Minimal Physical UI & State Machine Coordinator** (`main/state_machine.h`, `main/state_machine.c`):
+  - Keep physical buttons strictly focused on daily execution and safety:
+    - **Short Tap (Idle)**: Triggers Preset 1–4 (`CMD_RUN_PRESET`), pre-seeded with 4 factory defaults out of the box.
+    - **Any Tap (Running)**: Triggers immediate `<50ms` Emergency Stop (`CMD_EMERGENCY_STOP`).
+    - **Single-Button Long Press**: Ignored on physical pad to prevent accidental mode traps; custom sequence programming is offloaded to the mobile application over BLE.
+  - **Wireless Sequence & Calibration Dispatch**:
+    - `CMD_SET_BUTTON_SEQUENCE`: Saves a custom routine from the mobile app to Button 1–4 in NVS flash and confirms with `LED_STATE_SAVE_SUCCESS` (2.0s solid ON).
+    - `CMD_RESTORE_FACTORY_PRESETS`: Restores Buttons 1–4 to built-in factory default routines in NVS.
+    - `CMD_RUN_RAW_SEQUENCE`: Previews an unsaved custom sequence directly from the mobile app.
+    - `CMD_JOG_MOTOR_ANGLE`: Live servo angle control for mobile panel identification and calibration.
+- **Validation**: Verified with host unit test suite (`make test`) covering state machine lifecycle, minimal button gesture translation, preset dispatch, wireless button sequence save/playback, factory preset restoration, servo jog, and Emergency Stop preemption.
 
 ---
 
@@ -142,19 +138,18 @@ Build, validate, and verify each milestone before moving to the next phase.
     - Accommodates Android default 23-byte MTU by supporting explicit `gatt.requestMtu(512)` initiated by Android clients prior to service discovery.
   - Implement single active central connection policy (`max_connections = 1`; stops advertising while connected).
   - Implement automatic advertising restart on mobile app disconnect and connection watchdog.
-- **Proof-of-Presence BLE Security, Bonding & RPA Privacy**:
-  - When an unbonded mobile central connects, trigger a 30-second Physical Authorization Window.
-  - Command status LED to `LED_STATE_BLE_PAIRING` (fast double-blink).
-  - Require physical button press on robot (B1–B4) to authorize pairing and store bonding keys in NVS (`"ble_bonds"`, up to 4 trusted devices).
+- **Hold-to-Pair BLE Security, Bonding & RPA Privacy**:
+  - Consistent pairing entry (including on first boot): Holding **any physical button (B1–B4) for 3 seconds** while in Idle dispatches `CMD_ENTER_BLE_PAIRING`, opening a **120-second (2-minute) BLE Pairing / Discovery Window** (`BLE_PAIRING_TIMEOUT_MS = 120000`).
+  - Command status LED to `LED_STATE_BLE_PAIRING` (fast double-blink) while the 120s pairing window is active.
+  - When a new mobile central connects during the active 120-second pairing window, authorize pairing immediately and store bonding keys in NVS (`"ble_bonds"`, up to 4 trusted devices).
+  - **Unbonded Rejection Outside Pairing Window**: When `state_machine_is_ble_pairing() == false`, reject any connection attempt from an unbonded device (`ble_gap_terminate`) while allowing already-bonded devices to auto-reconnect seamlessly.
   - **Resolvable Private Address (RPA) & Privacy Handling**:
     - Both iOS and Android 10+ rotate Bluetooth MAC addresses via Resolvable Private Addresses (RPAs) every 15 minutes.
     - Pairing utilizes NimBLE SMP Identity Resolving Key (IRK) resolution (or persistent application-level UUID auth tokens stored in NVS and iOS Keychain / Android Keystore) so rotating RPAs are recognized seamlessly across reconnections without breaking bonds.
-  - **Motion Suppression during Pairing**: While the 30-second authorization window is active, the first physical button press strictly authorizes the BLE bond and suppresses triggering routine execution.
   - **Bond Lifecycle & Eviction**: Support up to 4 bonded devices; if a 5th mobile device pairs, the oldest bond is evicted automatically (FIFO/LRU).
   - **Hardware Bond Reset**: Holding physical buttons B1 + B4 simultaneously for 5 seconds at power-on or in idle clears all stored bonds in `"ble_bonds"` and confirms with 3 fast LED flashes.
-  - Command status LED to `LED_STATE_BLE_CONNECTED` (solid 1.0s confirmation pulse) upon successful authorization or auto-reconnect.
-  - If no physical button is pressed within 30 seconds, automatically terminate the connection (`ble_gap_terminate`).
-  - Seamless auto-reconnect for previously bonded mobile devices without requiring a physical button press.
+  - Command status LED to `LED_STATE_BLE_CONNECTED` (solid 1.0s confirmation pulse) upon successful pairing or auto-reconnect.
+  - If no new device connects within 120 seconds, the pairing window closes automatically and the LED returns to `LED_STATE_IDLE`.
 - **Standard Device Information Service (DIS `0x180A`)**:
   - Expose Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer (`0x2A29`: `"Fabrica Robotics"`) for mobile app version handshakes.
 - **Fabrica Primary GATT Service Architecture**:
@@ -212,30 +207,16 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Direct 4-button sequence overwrite/sync (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`) over BLE with strict $1 \le \text{button\_id} \le 4$ range enforcement.
   - **Write Interlock during Motion**: Reject button sequence writes with `ERR_BUSY` if motion is currently running.
   - Factory Default Reset: `CMD_RESTORE_FACTORY_PRESETS` command restores Buttons 1–4 to hardcoded default folding routines in NVS.
-- **Wireless Button Sequence Recording & Editing**:
-  - Remotely record, edit, and organize folding sequences per button (Buttons 1–4) over BLE:
-    - Remote entry into programming mode for target button (`CMD_ENTER_PROGRAM_MODE`).
-    - Remote flap identification: Cycle motor index and trigger $15^\circ$ nudge (`CMD_CYCLE_NUDGE_MOTOR`).
-    - Remote flap staging: Toggle flap staged ($30^\circ$) or resting ($0^\circ$) (`CMD_STAGE_TOGGLE_MOTOR`).
-    - Remote step locking: Commit staged flaps into routine step buffer (`CMD_LOCK_STEP`).
-    - Remote save & exit: Commit accumulated sequence to target button slot in NVS (`CMD_SAVE_EXIT_PROGRAM`).
-  - Remote Staging Feedback: Expose 16-bit staged motor bitmask and active cursor channel so the mobile UI mirrors staged flaps in real time.
-- **Remote Sequence Editor Backend**:
-  - Direct step manipulation API (`CMD_REMOTE_EDIT_STEP`):
-    - Insert new step at index $k$.
-    - Delete step at index $k$.
-    - Update active motor IDs and dwell parameters for step $k$.
-    - Reorder step sequence.
   - Routine payload validation: Enforce maximum 16 steps, maximum 2 motors per step, valid channel bounds (0–15), and CRC32 integrity.
   - **Immediate Command Feedback**: Command execution or validation failures (e.g. `ERR_BUSY`, `ERR_INVALID_STEP`, `ERR_MOTOR_BOUNDS`, `ERR_ROUTINE_FULL`, `ERR_CRC_MISMATCH`, `ERR_INVALID_ARG`) update `last_cmd_status` in the telemetry packet for instant mobile UI toast feedback.
 - **Live Servo Jog, Calibration Mode & Thermal Protection**:
-  - Integer position jog (`CMD_JOG_MOTOR_ANGLE`: `[channel (0-15)][angle_deg (0-180)]`) using Write Without Response for interactive, low-latency visual calibration from mobile app sliders.
+  - Integer position jog (`CMD_JOG_MOTOR_ANGLE`: `[channel (0-15)][angle_deg (0-180)]`) using Write Without Response for interactive, low-latency visual calibration and flap identification from mobile app sliders.
   - **State Transition**: Sending jog command from Idle transitions machine to `STATE_CALIBRATING`.
   - **Motion Safety Interlock**: Strictly reject `CMD_JOG_MOTOR_ANGLE` if `system_state == RUNNING_MOTION` or `ESTOP` to prevent mechanical binding and gear stripping.
   - **Auto-Home & Inactivity Exit**: 15-second inactivity watchdog or `CMD_STOP_SEQUENCE` automatically homes all jogged channels back to $0^\circ$ and returns to `STATE_IDLE_RUN`.
   - **Thermal Safety Cutoff**: Stationary servos in calibration mode automatically de-energize after 10 seconds to prevent servo motor coil burnout.
 - **Validation**:
-  - Host unit tests covering remote start/stop execution triggers, busy re-entrancy rejection, raw sequence validation and preview execution, wireless E-Stop preemption and BLE reset recovery, factory preset restoration, remote staging sequence recording, step insertion/deletion/reordering, error status code reporting, and servo jog safety interlocks.
+  - Host unit tests covering remote start/stop execution triggers, busy re-entrancy rejection, raw sequence validation and preview execution, wireless E-Stop preemption and BLE reset recovery, factory preset restoration, button sequence sync, error status code reporting, and servo jog safety interlocks.
 
 ---
 
@@ -277,7 +258,7 @@ Build, validate, and verify each milestone before moving to the next phase.
     2. ATT MTU negotiation: verify iOS auto-negotiation and Android explicit `requestMtu(512)` preceding service discovery.
     3. CCCD subscription sequencing: verify sequential asynchronous subscription to `FAB2` and `FAB3` descriptors (`0x2902`) without drops.
     4. Connection parameter negotiation: verify compliance with Apple Accessory Guidelines (15.0ms–30.0ms interval, 4000ms supervision timeout).
-    5. Proof-of-Presence pairing authorization: verify 30s window timeout disconnects unbonded devices; verify physical button press authorizes and bonds while suppressing motion execution; verify subsequent auto-reconnect with Resolvable Private Address (RPA) resolution.
+    5. Proof-of-Presence pairing authorization: verify 120s window timeout disconnects unbonded devices; verify physical button press authorizes and bonds while suppressing motion execution; verify subsequent auto-reconnect with Resolvable Private Address (RPA) resolution.
     6. Verify bond capacity limits (5th device FIFO eviction) and manual B1+B4 5-second bond clear reset.
     7. Send `CMD_IDENTIFY_ROBOT` and verify 3.0s LED pulse confirmation.
     8. Test `CMD_SET_LED_MODE`: verify Mode 2 (Stealth/Night) disables idle heartbeat; verify Mode 0 restores normal operation.

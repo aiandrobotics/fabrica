@@ -18,7 +18,6 @@
 
 static const char *TAG = "FABRICA_BUTTONS";
 static QueueHandle_t s_cmd_queue = NULL;
-extern QueueHandle_t xCommandQueue;
 #endif
 
 /* GPIO mapping corresponding to Button 1..4 */
@@ -131,12 +130,7 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
  * Routing Rules:
  *   - Any short tap during STATE_RUNNING_MOTION -> CMD_EMERGENCY_STOP.
  *   - Short tap in STATE_IDLE_RUN -> CMD_RUN_PRESET (Preset 1..4).
- *   - Long press (>=3s) in STATE_IDLE_RUN -> CMD_ENTER_PROGRAM_MODE (Preset 1..4).
- *   - Short tap in STATE_PROGRAMMING:
- *       B1: CMD_CYCLE_NUDGE_MOTOR (nudge 15 deg / advance channel)
- *       B2: CMD_STAGE_TOGGLE_MOTOR (lift 30 deg / drop 0 deg)
- *       B3: CMD_LOCK_STEP (commit step to buffer)
- *       B4: CMD_SAVE_EXIT_PROGRAM (write to NVS and exit)
+ *   - Long press (>=3s) in STATE_IDLE_RUN -> CMD_ENTER_BLE_PAIRING (120s BLE discovery window).
  *
  * @param btn_idx Button index (0 to 3).
  * @param gesture Detected gesture (GESTURE_SHORT_TAP or GESTURE_LONG_PRESS).
@@ -159,28 +153,10 @@ command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, s
         } else if (current_state == STATE_IDLE_RUN) {
             cmd.type = CMD_RUN_PRESET;
             cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
-        } else if (current_state == STATE_PROGRAMMING) {
-            switch (btn_idx) {
-                case BTN_ID_1:
-                    cmd.type = CMD_CYCLE_NUDGE_MOTOR;
-                    break;
-                case BTN_ID_2:
-                    cmd.type = CMD_STAGE_TOGGLE_MOTOR;
-                    break;
-                case BTN_ID_3:
-                    cmd.type = CMD_LOCK_STEP;
-                    break;
-                case BTN_ID_4:
-                    cmd.type = CMD_SAVE_EXIT_PROGRAM;
-                    break;
-                default:
-                    break;
-            }
         }
     } else if (gesture == GESTURE_LONG_PRESS) {
         if (current_state == STATE_IDLE_RUN) {
-            cmd.type = CMD_ENTER_PROGRAM_MODE;
-            cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
+            cmd.type = CMD_ENTER_BLE_PAIRING;
         }
     }
 
@@ -209,8 +185,7 @@ void buttons_set_command_queue(QueueHandle_t queue)
  */
 static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
 {
-    QueueHandle_t target_q = (s_cmd_queue != NULL) ? s_cmd_queue : xCommandQueue;
-    if (target_q == NULL) {
+    if (s_cmd_queue == NULL) {
         ESP_LOGW(TAG, "Command queue not initialized, discarding button event.");
         return;
     }
@@ -225,23 +200,21 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
         } else if (cur_state == STATE_IDLE_RUN) {
             ESP_LOGI(TAG, "[BUTTON B%d] Short Tap detected -> Dispatched CMD_RUN_PRESET (Preset %d)",
                      btn_idx + 1, cmd.payload.preset_id);
-        } else if (cur_state == STATE_PROGRAMMING) {
-            ESP_LOGI(TAG, "[BUTTON B%d] Short Tap in Program Mode -> Dispatched Command Type %d",
-                     btn_idx + 1, cmd.type);
+        } else {
+            return;
         }
     } else if (gesture == GESTURE_LONG_PRESS) {
         if (cur_state == STATE_IDLE_RUN) {
-            ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_PROGRAM_MODE (Preset %d)",
-                     btn_idx + 1, cmd.payload.preset_id);
+            ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_BLE_PAIRING (120s window)",
+                     btn_idx + 1);
         } else {
-            /* Ignore long press while already in programming mode or running motion */
             return;
         }
     } else {
         return;
     }
 
-    if (xQueueSend(target_q, &cmd, 0) != pdTRUE) {
+    if (xQueueSend(s_cmd_queue, &cmd, 0) != pdTRUE) {
         ESP_LOGE(TAG, "Command queue full! Dropped command type %d from Button B%d", cmd.type, btn_idx + 1);
     }
 }
@@ -266,7 +239,7 @@ void buttons_process_tick(uint32_t elapsed_ms)
  * @brief Dedicated FreeRTOS task running on Core 1 for button scanning and state timer.
  *
  * Executes periodically on a 10ms tick, sampling GPIOs with 50ms low-pass debounce,
- * and stepping the programming mode inactivity watchdog.
+ * and stepping the BLE pairing window timeout.
  *
  * @param pvParameters Unused task parameters pointer.
  */

@@ -7,10 +7,10 @@ Develop, implement, and validate robust, modular, production-grade embedded firm
 The `firmware` sub-system provides the real-time embedded software executing natively on the **ESP32 Dev Board v1**. It controls the physical 4-button and status LED interface, manages non-volatile sequence storage, coordinates multi-state system workflows, and commands the **PCA9685 16-channel 12-bit PWM driver** over I2C to actuate up to 16 high-torque servo motors (e.g., MG996R) driving the modular folding grid panels.
 
 The firmware is designed to be:
-- **Autonomous & Standalone**: Complete computer-free operation for daily laundry folding (Presets 1–4) and visual sequence programming directly on the physical unit.
-- **First-Class Mobile Connected**: Native Bluetooth Low Energy (BLE) integration, enabling users to program button sequences, start/stop execution, and stream live motor positions from the mobile app.
+- **Autonomous & Standalone**: Complete computer-free operation for daily laundry folding out of the box via 4 physical preset buttons (Presets 1–4 pre-seeded with factory defaults).
+- **First-Class Mobile Connected**: Native Bluetooth Low Energy (BLE) integration, enabling users to visually program and assign custom button sequences from their phone, start/stop execution, and stream live motor positions.
 - **Deterministic & Real-Time**: Dual-core FreeRTOS architecture ensuring rock-solid motion timing, smooth multi-servo articulation, and zero UI lag.
-- **Fail-Safe & Resilient**: Instant Emergency Stop (E-Stop) on any button press or BLE stop command during motion, empty preset protection, programming inactivity timeouts, and non-volatile flash memory persistence.
+- **Fail-Safe & Resilient**: Instant Emergency Stop (E-Stop) on any button press or BLE stop command during motion, empty preset protection, and non-volatile flash memory persistence.
 - **Modular & Scalable**: Seamlessly supports 1 to 16 servo channels across customizable grid layouts (standard 4×3 grid, expandable to custom configurations).
 
 ---
@@ -71,41 +71,38 @@ graph TD
   - **Client-Side Garment Profiles (Stateless Robot Execution)**: Custom garment profiles (e.g. T-Shirts, Hoodies, Jeans, Towels, Kids Wear), categorization, and profile sharing are managed client-side in the mobile app. The ESP32 acts as a high-performance execution engine: users can preview any profile directly on the robot (`CMD_RUN_RAW_SEQUENCE`, reporting `active_button_id == 0`) or bind a profile to physical Buttons 1–4 (`CMD_SET_BUTTON_SEQUENCE` or `FAB3` write).
   - **Adaptive Real-Time Status, LED Mirroring & Motor Telemetry**: Stream sequence execution progress (active step, total steps, progress %), visual LED state mirroring (for 1:1 mobile app UI sync), and live motor positions ($0^\circ-180^\circ$ for channels 0–15) adaptively over BLE: 10 Hz during active motion/calibration, and throttled to 1 Hz (or on-change) during idle/programming to conserve mobile device battery and prevent iOS background app suspension.
   - **Unit Identification & Calibration**: Wirelessly trigger visual unit identification (`CMD_IDENTIFY_ROBOT`, 3.0s LED pulse train), configure LED mode (`CMD_SET_LED_MODE`: Auto, Manual Override, Stealth/Night Mode), and perform live integer servo angle jogging (`CMD_JOG_MOTOR_ANGLE`) with motion safety interlocks, 10s thermal de-energize cutoffs, and 15s auto-home exit.
-  - **Proof-of-Presence BLE Security & RPA Privacy**: First-time connection from an unbonded mobile device requires a physical button press on the robot during a 30-second authorization window (which suppresses routine execution). Supports up to 4 bonded devices in NVS (`"ble_bonds"`, with automatic FIFO eviction on a 5th device and manual B1+B4 5-second factory reset) with Resolvable Private Address (RPA) privacy resolution (IRK / persistent UUID token) ensuring seamless auto-reconnection even as iOS/Android MAC addresses rotate every 15 minutes.
+  - **Hold-to-Pair BLE Security & RPA Privacy**: Pairing a new mobile device (including on first boot) requires holding any physical button (B1–B4) for **3 seconds** to open a **120-second (2-minute) BLE Pairing Window** (`LED_STATE_BLE_PAIRING` fast double-blink). Outside this window, unbonded connection attempts are rejected, while up to 4 already-bonded devices in NVS (`"ble_bonds"`, with automatic FIFO eviction on a 5th device and manual B1+B4 5-second reset) auto-reconnect seamlessly using Resolvable Private Address (RPA) privacy resolution (IRK / persistent UUID token).
   - **Lightweight On-Device Storage**: NVS stores only the 4 user-programmed button sequences, bonded BLE identity keys, and factory defaults, eliminating firmware reflashes when new garment types are created.
 
 ### 2. Dual-Core FreeRTOS Partitioning
 * **Core 0 (Motion Engine & Hardware Bus)**: Dedicated to deterministic servo motion execution, I2C bus communication with the PCA9685 driver, inter-step dwell timings, and immediate E-Stop abort processing.
-* **Core 1 (UI & System Management)**: Dedicated to physical button scanning, debouncing, 3-second long-press detection, the non-blocking LED visual feedback generator, mode state management, and Non-Volatile Storage (NVS) read/write operations.
+* **Core 1 (UI, BLE Wireless & System Coordination)**: Dedicated to the Apache NimBLE BLE stack (`app_ble_task`), real-time telemetry streaming (`app_telem_task`), physical button scanning and debouncing (`app_ui_task`), 3-second hold gesture detection for BLE pairing, the non-blocking LED visual feedback generator (`app_led_task`), system state machine coordination, and Non-Volatile Storage (NVS) read/write operations. Isolating wireless communications to Core 1 guarantees zero timing jitter on Core 0 real-time motion and PWM actuation.
 
-### 2. Daily Run Mode Engine
+### 3. Daily Run Mode Engine
 * **Instant Recall**: A single short tap (<500ms) on **B1–B4** loads and executes the corresponding saved folding routine from Flash.
 * **Synchronized Motion Execution**: Supports single-motor sweeps and parallel dual-motor sweeps ($0^\circ \rightarrow 180^\circ \rightarrow 0^\circ$ with 300ms fold dwell and 200ms inter-step delay).
 * **Safe Completion**: All 16 channels verify flat home position ($0^\circ$) at cycle end, and the system safely idles.
 * **Emergency Stop (E-Stop)**: Tapping any button during an active folding cycle immediately halts PWM output, resets all 16 servos to $0^\circ$, delivers a 5-flash rapid alert, and aborts the routine.
 
-### 3. Visual Staging Programming Engine
-* **Direct Teaching**: Long-pressing any preset button for 3 seconds enters Visual Staging Mode without requiring a computer or smartphone.
-* **Mechanical Identification (CYCLE - B1)**: Tapping B1 steps through servo channels 1–16, delivering a physical $15^\circ$ nudge on the target panel for instant visual and tactile identification.
-* **Physical Staging (STAGE - B2)**: Tapping B2 lifts the identified flap to $30^\circ$ and holds it in place. Supports staging up to 2 flaps simultaneously for parallel folding. Tapping B2 again toggles an already-staged flap back to $0^\circ$.
-* **Step Commitment (NEXT STEP - B3)**: Tapping B3 records the staged motor configuration into the temporary buffer, flashes the LED twice, drops the flaps flat ($0^\circ$), and advances the step index (up to 16 steps maximum).
-* **Flash Persistence (SAVE & EXIT - B4)**: Tapping B4 writes the complete sequence to ESP32 NVS Flash memory, illuminates the LED solid for 2.0 seconds, and returns to Daily Run Mode.
-* **Safety Failsafes**: Automatic 20-second inactivity timeout, empty step rejection, and 2-motor-per-step enforcement.
+### 4. Wireless Mobile Sequence Configuration & Calibration
+* **Minimal Physical Pad, Rich Phone Programming**: To keep the physical control pad effortless and free of hidden modes, custom sequence programming is handled entirely on the mobile application over BLE rather than by multi-button combinations on the unit.
+* **Direct Button Assignment (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`)**: Users visually build folding sequences on their phone (up to 16 steps, up to 2 simultaneous motors per step) and assign them directly to physical Buttons 1–4 stored in ESP32 NVS Flash.
+* **Stateless Sequence Preview (`CMD_RUN_RAW_SEQUENCE`)**: Test and preview custom garment routines directly from the phone before committing them to a physical button slot.
+* **Factory Preset Restoration (`CMD_RESTORE_FACTORY_PRESETS`)**: Instant 1-tap restoration of the 4 built-in factory garment presets (Adult T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
+* **Live Servo Jog (`CMD_JOG_MOTOR_ANGLE`)**: Interactive servo angle control from the mobile app for panel identification and mechanical calibration.
 
-### 4. Visual Feedback Engine (LED Controller)
-* Non-blocking software timer / task driving 10 distinct status patterns with strict preemption restoration:
+### 5. Visual Feedback Engine (LED Controller)
+* Non-blocking software timer / task driving distinct status patterns with strict preemption restoration:
   1. **Idle / Ready**: Soft heartbeat (10% duty cycle / 0.5 Hz) or OFF awaiting input.
   2. **Running Sequence**: Solid ON throughout the entire motion cycle.
-  3. **Programming Mode**: Slow blink (1.0s ON / 1.0s OFF / 0.5 Hz).
-  4. **Step Locked**: 2 fast flashes (80ms ON / 80ms OFF).
-  5. **Save & Exit Success**: Solid ON for 2.0 seconds.
-  6. **Input Error / Limit Reached**: 3 fast flashes (60ms ON / 60ms OFF).
-  7. **Emergency Stop (E-Stop)**: 5 rapid flashes (50ms ON / 50ms OFF).
-  8. **BLE Pairing Window**: Fast double-blink (100ms ON / 100ms OFF / 100ms ON / 500ms OFF) awaiting physical button press to authorize a new mobile device.
-  9. **BLE Connected**: Solid ON for 1.0 second confirming connection, restoring prior base state.
-  10. **Identify Robot**: 3 fast double-blinks (100ms ON / 100ms OFF / 100ms ON / 500ms OFF) for 3.0 seconds, restoring prior base state.
+  3. **Save & Sync Success**: Solid ON for 2.0 seconds when a preset is saved or restored.
+  4. **Input Error / Invalid Routine**: 3 fast flashes (60ms ON / 60ms OFF).
+  5. **Emergency Stop (E-Stop)**: 5 rapid flashes (50ms ON / 50ms OFF).
+  6. **BLE Pairing Window**: Fast double-blink (100ms ON / 100ms OFF / 100ms ON / 500ms OFF) awaiting physical button press to authorize a new mobile device.
+  7. **BLE Connected**: Solid ON for 1.0 second confirming connection, restoring prior base state.
+  8. **Identify Robot**: 3 fast double-blinks (100ms ON / 100ms OFF / 100ms ON / 500ms OFF) for 3.0 seconds, restoring prior base state.
 * **Visual Mode Control (`CMD_SET_LED_MODE`)**: Supports runtime selection between Auto (State-driven), Manual Pattern Override (`led_state_t`), and Stealth/Night Mode (suppresses idle heartbeat while preserving motion/error alerts).
-* **Strict Preemption Hierarchy**: Transient patterns (4, 5, 6, 9, 10) automatically preserve and restore the underlying base state (`return_to_prior_base = true`) to prevent display glitches across state transitions.
+* **Strict Preemption Hierarchy**: Transient patterns automatically preserve and restore the underlying base state (`return_to_prior_base = true`) to prevent display glitches across state transitions.
 
 ---
 
@@ -116,20 +113,19 @@ graph TD
 | **MCU** | ESP32 Dev Board v1 (ESP-WROOM-32) | — | 240 MHz dual-core, 520KB SRAM, 4MB Flash |
 | **PWM Driver** | PCA9685 16-Channel 12-Bit Driver | I2C (SDA: `GPIO 21`, SCL: `GPIO 22`) | 50 Hz PWM frequency, I2C address `0x40` |
 | **Status LED** | 5mm Diffused Red/Blue LED | `GPIO 2` | Active-high visual status indicator |
-| **Button 1 (B1)** | Tactile Push Button | `GPIO 4` (Pull-up) | Button 1 Routine / Cycle & Nudge Flap |
-| **Button 2 (B2)** | Tactile Push Button | `GPIO 16` (Pull-up) | Button 2 Routine / Stage & Hold Flap ($30^\circ$) |
-| **Button 3 (B3)** | Tactile Push Button | `GPIO 17` (Pull-up) | Button 3 Routine / Lock Step & Drop Flaps |
-| **Button 4 (B4)** | Tactile Push Button | `GPIO 5` (Pull-up) | Button 4 Routine / Save to NVS & Exit |
+| **Button 1 (B1)** | Tactile Push Button | `GPIO 4` (Pull-up) | Preset 1 Routine (Default: Adult T-Shirt) / E-Stop |
+| **Button 2 (B2)** | Tactile Push Button | `GPIO 16` (Pull-up) | Preset 2 Routine (Default: Long-Sleeve Shirt) / E-Stop |
+| **Button 3 (B3)** | Tactile Push Button | `GPIO 17` (Pull-up) | Preset 3 Routine (Default: Trousers / Jeans) / E-Stop |
+| **Button 4 (B4)** | Tactile Push Button | `GPIO 5` (Pull-up) | Preset 4 Routine (Default: Towel / Linen) / E-Stop |
 | **Servos** | MG996R High-Torque Servos (up to 16) | PCA9685 Channels 0–15 | $0^\circ$ to $180^\circ$ panel actuation |
 
 ---
 
 ## Target Audience & Use Cases
 
-* **Daily Laundry Automation**: Consumers and makers using 1-touch preset buttons to quickly fold t-shirts, polo shirts, trousers, and towels.
+* **Daily Laundry Automation**: Consumers and makers using 1-touch preset buttons to quickly fold t-shirts, polo shirts, trousers, and towels out of the box.
 * **Classroom & STEM Robotics**: Students and educators learning embedded systems, I2C communication, FreeRTOS multi-threading, state machines, and real-time motor control.
-* **On-Device Visual Staging**: Users visually staging custom folding patterns directly on the machine using physical buttons.
-* **Mobile App Control**: Users connecting over Bluetooth Low Energy (BLE) to configure button sequences, start/stop routines, and monitor live motor positions and sequence progress.
+* **Mobile App Control & Custom Programming**: Users connecting over Bluetooth Low Energy (BLE) to visually create custom folding sequences, assign them to Buttons 1–4, start/stop routines, and monitor live motor positions.
 * **AI Vision Integration (Future)**: Camera-based fabric vision models running on mobile or cloud to suggest folding parameters.
 
 ---
@@ -142,7 +138,7 @@ graph TD
 - **Fail-Safe Mobile Control**: Re-entrancy guards rejecting concurrent execution requests (`CMD_STATUS_ERR_BUSY`), empty sequence validation (`CMD_STATUS_ERR_INVALID_STEP`), motion safety interlocks prohibiting servo jogging during running cycles or E-Stop, 15-second calibration auto-home, and `<50ms` E-Stop preemption with BLE clear recovery.
 - **Reliable Button Sequence Persistence**: 100% NVS data persistence for the 4 user-programmed button sequences and factory defaults across reboots and power cuts with CRC32 integrity checks, active motion sequence write locks (`ERR_BUSY`), and auto-CRC calculation on zero-checksum writes.
 - **Stateless Mobile Profile Execution**: Zero-friction client-side garment profile management, supporting direct preview execution of custom routines (`CMD_RUN_RAW_SEQUENCE`, reporting `active_button_id == 0`) and 1-touch binding to physical buttons (`CMD_SET_BUTTON_SEQUENCE` or `FAB3`).
-- **Proof-of-Presence BLE Security & RPA Privacy**: 100% rejection of unauthorized BLE centrals unless authorized via physical button press within a 30-second pairing window; seamless auto-reconnect for up to 4 bonded devices in NVS with Resolvable Private Address (RPA) privacy resolution across 15-minute rotation intervals.
+- **Proof-of-Presence BLE Security & RPA Privacy**: 100% rejection of unauthorized BLE centrals unless authorized via physical button press within a 120-second pairing window; seamless auto-reconnect for up to 4 bonded devices in NVS with Resolvable Private Address (RPA) privacy resolution across 15-minute rotation intervals.
 - **Robust Error Handling**: Graceful rejection of invalid inputs (3rd motor stage attempts, empty step locks, out-of-bounds channels) with clear visual and wireless BLE feedback.
 - **Unified Transport Ingress**: Decoupled command pipeline supporting physical buttons and NimBLE GATT feeding a single thread-safe FreeRTOS queue.
 - **Clean ESP-IDF Build**: Clean compilation under ESP-IDF CMake / Ninja build system with zero compiler warnings.

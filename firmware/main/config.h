@@ -16,10 +16,10 @@ extern "C" {
 
 #define STATUS_LED_GPIO              2   /* Built-in Status LED (Active High) */
 
-#define BTN1_GPIO                    4   /* Button 1: Preset 1 / Cycle Flap */
-#define BTN2_GPIO                    16  /* Button 2: Preset 2 / Stage Flap */
-#define BTN3_GPIO                    17  /* Button 3: Preset 3 / Lock Step */
-#define BTN4_GPIO                    5   /* Button 4: Preset 4 / Save & Exit */
+#define BTN1_GPIO                    4   /* Button 1: Preset 1 (Adult T-Shirt) */
+#define BTN2_GPIO                    16  /* Button 2: Preset 2 (Long-Sleeve Shirt) */
+#define BTN3_GPIO                    17  /* Button 3: Preset 3 (Trousers / Jeans) */
+#define BTN4_GPIO                    5   /* Button 4: Preset 4 (Towel / Linen) */
 
 #define I2C_SDA_GPIO                 21  /* PCA9685 I2C Data line (SDA) */
 #define I2C_SCL_GPIO                 22  /* PCA9685 I2C Clock line (SCL) */
@@ -49,8 +49,8 @@ extern "C" {
 
 #define BUTTON_DEBOUNCE_MS           50    /* Low-pass debounce filter */
 #define BUTTON_SHORT_PRESS_MAX_MS    500   /* Maximum tap gesture duration */
-#define BUTTON_LONG_PRESS_MS         3000  /* Hold time to enter program mode */
-#define PROGRAMMING_TIMEOUT_MS       20000 /* Inactivity timeout in program mode */
+#define BUTTON_LONG_PRESS_MS         3000  /* Hold time (3s) to enter BLE pairing mode */
+#define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
 #define FOLD_DWELL_TIME_MS           300   /* Flap hold time at fold angle */
 #define INTER_STEP_DELAY_MS          200   /* Delay between routine steps */
 

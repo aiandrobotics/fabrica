@@ -18,7 +18,6 @@
 #include "esp_log.h"
 
 static const char *TAG = "FABRICA_MOTION";
-static TaskHandle_t s_motion_task_handle = NULL;
 #endif
 
 /* ========================================================================= */
@@ -28,7 +27,6 @@ static TaskHandle_t s_motion_task_handle = NULL;
 static volatile motion_status_t s_motion_status = MOTION_STATUS_IDLE;
 static volatile bool s_abort_requested = false;
 
-static QueueHandle_t s_cmd_queue_handle = NULL;
 static EventGroupHandle_t s_evt_group_handle = NULL;
 
 /* Host testing simulated time tracking */
@@ -388,73 +386,26 @@ esp_err_t motion_emergency_stop(void)
 }
 
 /* ========================================================================= */
-/* Core 0 FreeRTOS Task Bootstrap (ESP32 Platform)                           */
+/* ========================================================================= */
+/* Motion Engine Initialization                                              */
 /* ========================================================================= */
 
-#ifdef ESP_PLATFORM
 /**
- * @brief Core 0 FreeRTOS task supervising motion engine execution and safety.
+ * @brief Initialize the Real-Time Motion Engine and bind system event group.
  *
- * @param pvParameters Unused task parameters pointer.
- */
-static void app_motion_task(void *pvParameters)
-{
-    (void)pvParameters;
-    ESP_LOGI(TAG, "Motion Engine task started on Core %d (Priority %d)",
-             xPortGetCoreID(), uxTaskPriorityGet(NULL));
-
-    while (1) {
-        /* Monitor E-Stop or wait for task notifications */
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-}
-
-/**
- * @brief Initialize the Real-Time Motion Engine and spawn app_motion_task on Core 0.
- *
- * @param cmd_queue Handle to the system command queue.
- * @param evt_group Handle to the system event group.
- * @return ESP_OK on success, or ESP_ERR_NO_MEM on failure.
- */
-esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
-{
-    ESP_LOGI(TAG, "Initializing Real-Time Motion Engine on Core 0...");
-
-    s_cmd_queue_handle = cmd_queue;
-    s_evt_group_handle = evt_group;
-    motion_reset_state();
-
-    BaseType_t ret = xTaskCreatePinnedToCore(
-        app_motion_task,
-        "app_motion_task",
-        MOTION_TASK_STACK_SIZE,
-        NULL,
-        MOTION_TASK_PRIORITY,
-        &s_motion_task_handle,
-        0   /* Pinned to Core 0 */
-    );
-
-    if (ret != pdPASS) {
-        ESP_LOGE(TAG, "Failed to create app_motion_task on Core 0!");
-        return ESP_ERR_NO_MEM;
-    }
-
-    ESP_LOGI(TAG, "Motion Engine initialized successfully on Core 0.");
-    return ESP_OK;
-}
-#else
-/**
- * @brief Initialize motion engine for off-target simulation/unit testing.
- *
- * @param cmd_queue Mock command queue handle.
- * @param evt_group Mock event group handle.
+ * @param evt_group Handle to the system event group for E-Stop monitoring.
  * @return ESP_OK on success.
  */
-esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
+esp_err_t motion_init(EventGroupHandle_t evt_group)
 {
-    s_cmd_queue_handle = cmd_queue;
+#ifdef ESP_PLATFORM
+    ESP_LOGI(TAG, "Initializing Real-Time Motion Engine on Core 0...");
+#endif
     s_evt_group_handle = evt_group;
     motion_reset_state();
+
+#ifdef ESP_PLATFORM
+    ESP_LOGI(TAG, "Real-Time Motion Engine initialized successfully on Core 0.");
+#endif
     return ESP_OK;
 }
-#endif

@@ -26,48 +26,27 @@ static const char *TAG = "FABRICA_SM";
 /* ========================================================================= */
 
 static volatile system_state_t s_system_state = STATE_IDLE_RUN;
-static staging_context_t s_context;
-
-static QueueHandle_t s_cmd_queue_handle = NULL;
-static EventGroupHandle_t s_evt_group_handle = NULL;
-
-/* ========================================================================= */
-/* Helper Functions                                                          */
-/* ========================================================================= */
-
-/**
- * @brief Check whether a specific servo channel is currently staged in the active step.
- *
- * @param channel Servo channel index (0 to 15).
- * @return true if staged (lifted to 30°), false if unstaged.
- */
-static bool is_channel_staged(uint8_t channel)
-{
-    for (uint8_t i = 0; i < s_context.staged_motor_count; i++) {
-        if (s_context.staged_motor_ids[i] == channel) {
-            return true;
-        }
-    }
-    return false;
-}
+static bool s_ble_pairing_active = false;
+static uint32_t s_ble_pairing_timer_ms = 0;
 
 /* ========================================================================= */
 /* Public API Implementation                                                 */
 /* ========================================================================= */
 
 /**
- * @brief Reset the state machine to STATE_IDLE_RUN and zero the staging context.
+ * @brief Reset the state machine to STATE_IDLE_RUN and close BLE pairing window.
  */
 void state_machine_reset(void)
 {
     s_system_state = STATE_IDLE_RUN;
-    memset(&s_context, 0, sizeof(s_context));
+    s_ble_pairing_active = false;
+    s_ble_pairing_timer_ms = 0;
 }
 
 /**
  * @brief Get the current system operating state.
  *
- * @return Active system_state_t (STATE_IDLE_RUN, STATE_RUNNING_MOTION, or STATE_PROGRAMMING).
+ * @return Active system_state_t (STATE_IDLE_RUN or STATE_RUNNING_MOTION).
  */
 system_state_t state_machine_get_state(void)
 {
@@ -75,29 +54,25 @@ system_state_t state_machine_get_state(void)
 }
 
 /**
- * @brief Get a read-only pointer to the visual staging programming context.
+ * @brief Query whether the 120-second BLE pairing/discovery window is active.
  *
- * @return Pointer to internal staging_context_t structure.
+ * @return true if pairing window is open for new mobile devices, false otherwise.
  */
-const staging_context_t *state_machine_get_context(void)
+bool state_machine_is_ble_pairing(void)
 {
-    return &s_context;
+    return s_ble_pairing_active;
 }
 
 /**
- * @brief Initialize the System State Machine and bind IPC queue/event primitives.
+ * @brief Initialize the System State Machine.
  *
- * @param cmd_queue Handle to the system command queue.
- * @param evt_group Handle to the system event group.
  * @return ESP_OK on success.
  */
-esp_err_t state_machine_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)
+esp_err_t state_machine_init(void)
 {
 #ifdef ESP_PLATFORM
     ESP_LOGI(TAG, "Initializing System State Machine...");
 #endif
-    s_cmd_queue_handle = cmd_queue;
-    s_evt_group_handle = evt_group;
     state_machine_reset();
 
 #ifdef ESP_PLATFORM
@@ -107,27 +82,22 @@ esp_err_t state_machine_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_gro
 }
 
 /**
- * @brief Periodic timer tick to manage the 20-second programming inactivity watchdog.
- *
- * If no user interaction occurs within PROGRAMMING_TIMEOUT_MS (20s) while in
- * STATE_PROGRAMMING, discards staged buffers, homes all servos, and reverts to STATE_IDLE_RUN.
+ * @brief Periodic timer tick to manage the 120-second BLE pairing window timeout.
  *
  * @param elapsed_ms Milliseconds elapsed since last tick (typically 10ms).
  */
 void state_machine_tick(uint32_t elapsed_ms)
 {
-    if (s_system_state == STATE_PROGRAMMING) {
-        s_context.inactivity_timer_ms += elapsed_ms;
-
-        if (s_context.inactivity_timer_ms >= PROGRAMMING_TIMEOUT_MS) {
+    if (s_ble_pairing_active) {
+        s_ble_pairing_timer_ms += elapsed_ms;
+        if (s_ble_pairing_timer_ms >= BLE_PAIRING_TIMEOUT_MS) {
 #ifdef ESP_PLATFORM
-            ESP_LOGW(TAG, "Inactivity timeout (%d ms) in Programming Mode! Discarding buffer & returning to Run Mode.",
-                     PROGRAMMING_TIMEOUT_MS);
+            ESP_LOGI(TAG, "BLE pairing window (%d ms) expired. Returning to IDLE.",
+                     BLE_PAIRING_TIMEOUT_MS);
 #endif
-            pca9685_home_all();
-            memset(&s_context, 0, sizeof(s_context));
+            s_ble_pairing_active = false;
+            s_ble_pairing_timer_ms = 0;
             led_set_state(LED_STATE_IDLE);
-            s_system_state = STATE_IDLE_RUN;
         }
     }
 }
@@ -137,9 +107,10 @@ void state_machine_tick(uint32_t elapsed_ms)
  *
  * Evaluates state transitions and handles actions:
  *   - CMD_EMERGENCY_STOP: Global preemption, aborts motion, homes servos, reverts to IDLE.
- *   - STATE_IDLE_RUN: Triggers presets or transitions into STATE_PROGRAMMING.
+ *   - STATE_IDLE_RUN: Triggers presets, opens 120s BLE pairing window (on 3s button hold),
+ *     executes raw sequences, updates button presets from mobile app, restores factory presets,
+ *     or jogs servos for calibration.
  *   - STATE_RUNNING_MOTION: Blocks non-emergency commands.
- *   - STATE_PROGRAMMING: Handles B1 nudge cycle, B2 staging toggle, B3 step lock, and B4 save & exit.
  *
  * @param cmd Pointer to incoming command_t.
  * @return ESP_OK on success, or an ESP-IDF error code on rejection.
@@ -155,18 +126,12 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #ifdef ESP_PLATFORM
         ESP_LOGW(TAG, "Handling CMD_EMERGENCY_STOP in state %d", s_system_state);
 #endif
+        s_ble_pairing_active = false;
+        s_ble_pairing_timer_ms = 0;
         motion_emergency_stop();
-        if (s_system_state == STATE_PROGRAMMING) {
-            pca9685_home_all();
-            memset(&s_context, 0, sizeof(s_context));
-        }
+        pca9685_home_all();
         s_system_state = STATE_IDLE_RUN;
         return ESP_OK;
-    }
-
-    /* Reset inactivity timer on any command received in Programming Mode */
-    if (s_system_state == STATE_PROGRAMMING) {
-        s_context.inactivity_timer_ms = 0;
     }
 
     /* 2. State-dependent command dispatch */
@@ -184,6 +149,8 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #ifdef ESP_PLATFORM
                     ESP_LOGI(TAG, "Starting Preset %d execution in Daily Run Mode", preset_id);
 #endif
+                    s_ble_pairing_active = false;
+                    s_ble_pairing_timer_ms = 0;
                     s_system_state = STATE_RUNNING_MOTION;
                     esp_err_t err = motion_trigger_preset(preset_id);
                     s_system_state = STATE_IDLE_RUN;
@@ -194,34 +161,60 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #ifdef ESP_PLATFORM
                     ESP_LOGI(TAG, "Executing raw sequence (%d steps)", cmd->payload.raw_routine.step_count);
 #endif
+                    s_ble_pairing_active = false;
+                    s_ble_pairing_timer_ms = 0;
                     s_system_state = STATE_RUNNING_MOTION;
                     esp_err_t err = motion_execute_routine(&cmd->payload.raw_routine);
                     s_system_state = STATE_IDLE_RUN;
                     return err;
                 }
 
-                case CMD_ENTER_PROGRAM_MODE: {
-                    uint8_t preset_id = cmd->payload.preset_id;
-                    if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
+                case CMD_ENTER_BLE_PAIRING: {
 #ifdef ESP_PLATFORM
-                        ESP_LOGE(TAG, "Invalid preset ID for programming: %d", preset_id);
+                    ESP_LOGI(TAG, "Entering 120-second BLE Pairing Mode (LED fast double-blink)...");
 #endif
+                    s_ble_pairing_active = true;
+                    s_ble_pairing_timer_ms = 0;
+                    led_set_state(LED_STATE_BLE_PAIRING);
+                    return ESP_OK;
+                }
+
+                case CMD_SET_BUTTON_SEQUENCE: {
+                    uint8_t preset_id = cmd->payload.button_sync.preset_id;
+                    const fold_routine_t *routine = &cmd->payload.button_sync.routine;
+                    if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT ||
+                        routine->step_count == 0 || routine->step_count > MAX_STEPS_PER_ROUTINE) {
+#ifdef ESP_PLATFORM
+                        ESP_LOGE(TAG, "Invalid button sequence parameters (Preset %d, Steps %d)",
+                                 preset_id, routine->step_count);
+#endif
+                        led_set_state(LED_STATE_INPUT_ERROR);
                         return ESP_ERR_INVALID_ARG;
                     }
-#ifdef ESP_PLATFORM
-                    ESP_LOGI(TAG, "Entering Visual Staging Programming Mode for Preset %d", preset_id);
-#endif
-                    memset(&s_context, 0, sizeof(s_context));
-                    s_context.target_preset_id = preset_id;
-                    s_context.current_channel_idx = 0;
-                    s_context.cursor_active = false;
-                    s_context.staged_motor_count = 0;
-                    s_context.inactivity_timer_ms = 0;
+                    esp_err_t err = storage_save_routine(preset_id, routine);
+                    if (err == ESP_OK) {
+                        led_set_state(LED_STATE_SAVE_SUCCESS);
+                    } else {
+                        led_set_state(LED_STATE_INPUT_ERROR);
+                    }
+                    return err;
+                }
 
-                    s_system_state = STATE_PROGRAMMING;
+                case CMD_RESTORE_FACTORY_PRESETS: {
+#ifdef ESP_PLATFORM
+                    ESP_LOGI(TAG, "Restoring all button presets to factory defaults...");
+#endif
+                    esp_err_t err = storage_init_factory_defaults();
                     pca9685_home_all();
-                    led_set_state(LED_STATE_PROGRAMMING);
-                    return ESP_OK;
+                    if (err == ESP_OK) {
+                        led_set_state(LED_STATE_SAVE_SUCCESS);
+                    }
+                    return err;
+                }
+
+                case CMD_JOG_MOTOR_ANGLE: {
+                    return pca9685_set_servo_angle(cmd->payload.jog_param.channel,
+                                                   cmd->payload.jog_param.angle_deg);
                 }
 
                 default:
@@ -238,148 +231,6 @@ esp_err_t state_machine_process_command(const command_t *cmd)
             ESP_LOGW(TAG, "Command %d rejected while motion is running", cmd->type);
 #endif
             return ESP_ERR_INVALID_STATE;
-        }
-
-        case STATE_PROGRAMMING: {
-            switch (cmd->type) {
-                case CMD_CYCLE_NUDGE_MOTOR: {
-                    if (!s_context.cursor_active) {
-                        /* First B1 press selects Motor 1 (Channel 0) */
-                        s_context.current_channel_idx = 0;
-                        s_context.cursor_active = true;
-                    } else {
-                        /* Subsequent B1 presses advance to next channel (wrap 0-15) */
-                        s_context.current_channel_idx = (s_context.current_channel_idx + 1) % TOTAL_SERVO_CHANNELS;
-                    }
-#ifdef ESP_PLATFORM
-                    ESP_LOGI(TAG, "[B1 CYCLE] Target Motor %d (Channel %d)",
-                             s_context.current_channel_idx + 1, s_context.current_channel_idx);
-#endif
-                    if (!is_channel_staged(s_context.current_channel_idx)) {
-                        pca9685_nudge_channel(s_context.current_channel_idx);
-                    }
-                    return ESP_OK;
-                }
-
-                case CMD_STAGE_TOGGLE_MOTOR: {
-                    s_context.cursor_active = true;
-                    uint8_t ch = s_context.current_channel_idx;
-                    int staged_idx = -1;
-
-                    for (uint8_t i = 0; i < s_context.staged_motor_count; i++) {
-                        if (s_context.staged_motor_ids[i] == ch) {
-                            staged_idx = (int)i;
-                            break;
-                        }
-                    }
-
-                    if (staged_idx >= 0) {
-                        /* Unstage motor: return to 0 deg */
-#ifdef ESP_PLATFORM
-                        ESP_LOGI(TAG, "[B2 UNSTAGE] Motor %d (Channel %d) dropped to 0 deg", ch + 1, ch);
-#endif
-                        pca9685_set_servo_angle(ch, HOME_ANGLE_DEG);
-                        for (uint8_t i = (uint8_t)staged_idx; i < s_context.staged_motor_count - 1; i++) {
-                            s_context.staged_motor_ids[i] = s_context.staged_motor_ids[i + 1];
-                        }
-                        s_context.staged_motor_count--;
-                        return ESP_OK;
-                    } else {
-                        /* Stage motor: lift to 30 deg */
-                        if (s_context.staged_motor_count < MAX_MOTORS_PER_STEP) {
-                            s_context.staged_motor_ids[s_context.staged_motor_count] = ch;
-                            s_context.staged_motor_count++;
-#ifdef ESP_PLATFORM
-                            ESP_LOGI(TAG, "[B2 STAGE] Motor %d (Channel %d) lifted to 30 deg (Staged Count: %d)",
-                                     ch + 1, ch, s_context.staged_motor_count);
-#endif
-                            pca9685_stage_channel(ch);
-                            return ESP_OK;
-                        } else {
-                            /* 3rd motor attempt rejected */
-#ifdef ESP_PLATFORM
-                            ESP_LOGW(TAG, "[B2 STAGE REJECTED] Exceeded MAX_MOTORS_PER_STEP (%d)",
-                                     MAX_MOTORS_PER_STEP);
-#endif
-                            led_set_state(LED_STATE_INPUT_ERROR);
-                            return ESP_ERR_INVALID_STATE;
-                        }
-                    }
-                }
-
-                case CMD_LOCK_STEP: {
-                    if (s_context.staged_motor_count == 0) {
-#ifdef ESP_PLATFORM
-                        ESP_LOGW(TAG, "[B3 LOCK REJECTED] No motors currently staged!");
-#endif
-                        return ESP_ERR_INVALID_STATE;
-                    }
-
-                    uint8_t step_idx = s_context.buffer_routine.step_count;
-                    s_context.buffer_routine.steps[step_idx].motor_count = s_context.staged_motor_count;
-                    for (uint8_t i = 0; i < s_context.staged_motor_count; i++) {
-                        s_context.buffer_routine.steps[step_idx].motor_ids[i] = s_context.staged_motor_ids[i];
-                    }
-                    s_context.buffer_routine.step_count++;
-                    s_context.staged_motor_count = 0;
-                    s_context.cursor_active = false;
-                    s_context.current_channel_idx = 0;
-
-#ifdef ESP_PLATFORM
-                    ESP_LOGI(TAG, "[B3 LOCK STEP] Locked Step %d (%d motors). All flaps dropped flat to 0 deg.",
-                             s_context.buffer_routine.step_count,
-                             s_context.buffer_routine.steps[step_idx].motor_count);
-#endif
-                    pca9685_home_all();
-                    led_set_state(LED_STATE_STEP_LOCKED);
-
-                    /* 16-Step Maximum Cap: Auto-commit to NVS */
-                    if (s_context.buffer_routine.step_count >= MAX_STEPS_PER_ROUTINE) {
-#ifdef ESP_PLATFORM
-                        ESP_LOGI(TAG, "Reached MAX_STEPS_PER_ROUTINE (%d). Auto-committing to Preset %d NVS...",
-                                 MAX_STEPS_PER_ROUTINE, s_context.target_preset_id);
-#endif
-                        storage_save_routine(s_context.target_preset_id, &s_context.buffer_routine);
-                        pca9685_home_all();
-                        led_set_state(LED_STATE_SAVE_SUCCESS);
-                        s_system_state = STATE_IDLE_RUN;
-                    }
-
-                    return ESP_OK;
-                }
-
-                case CMD_SAVE_EXIT_PROGRAM: {
-                    if (s_context.buffer_routine.step_count > 0) {
-#ifdef ESP_PLATFORM
-                        ESP_LOGI(TAG, "[B4 SAVE & EXIT] Committing %d steps to Preset %d NVS...",
-                                 s_context.buffer_routine.step_count, s_context.target_preset_id);
-#endif
-                        storage_save_routine(s_context.target_preset_id, &s_context.buffer_routine);
-                        pca9685_home_all();
-                        led_set_state(LED_STATE_SAVE_SUCCESS);
-                    } else {
-#ifdef ESP_PLATFORM
-                        ESP_LOGI(TAG, "[B4 EXIT] Empty buffer, returning to Run Mode without writing NVS.");
-#endif
-                        pca9685_home_all();
-                        led_set_state(LED_STATE_IDLE);
-                    }
-                    s_system_state = STATE_IDLE_RUN;
-                    return ESP_OK;
-                }
-
-                case CMD_ENTER_PROGRAM_MODE: {
-                    /* Redundant long press in programming mode; refresh timer */
-                    s_context.inactivity_timer_ms = 0;
-                    return ESP_OK;
-                }
-
-                default:
-#ifdef ESP_PLATFORM
-                    ESP_LOGW(TAG, "Command %d unhandled in STATE_PROGRAMMING", cmd->type);
-#endif
-                    return ESP_ERR_INVALID_STATE;
-            }
         }
 
         default:

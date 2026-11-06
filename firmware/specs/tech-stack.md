@@ -22,7 +22,7 @@
 graph LR
     subgraph Core 0 [Core 0: Motion & Hardware Bus Engine]
         direction TB
-        M_TASK["app_motion_task (Priority 10)"]
+        M_TASK["app_main (Core 0)<br/>Command Consumer & Motion Engine"]
         I2C_MGR["PCA9685 PWM Driver (I2C NUM 0)"]
         ESTOP_ISR["E-Stop Abort Engine (<50ms)"]
         M_TASK --> I2C_MGR
@@ -59,10 +59,10 @@ graph LR
 ```
 
 ### Core 0 — Real-Time Motion & Actuation Engine
-- **`app_motion_task` (Priority: 10, Core ID: 0)**:
+- **`app_main` Command Consumer & Motion Engine (Core ID: 0)**:
   - Consumes motion execution commands from the inter-core queue.
   - Implements smooth single-servo and synchronized parallel dual-servo sweep trajectories ($0^\circ \rightarrow 180^\circ \rightarrow 0^\circ$).
-  - Controls deterministic dwell delays (300ms fold dwell, 200ms inter-step delay) using `vTaskDelay()`.
+  - Controls deterministic dwell delays (300ms fold dwell, 200ms inter-step delay) using low-latency sliced delays.
   - Continuously samples the E-Stop / Stop abort event flag before and during step transitions ($<50\text{ms}$ preemption latency).
 - **PCA9685 I2C Driver**: Direct register reads/writes over ESP32 hardware I2C peripheral (`I2C_NUM_0`).
 
@@ -94,10 +94,10 @@ graph LR
 | Signal Name | ESP32 GPIO | Direction | Configuration | Active State | Description |
 |---|---|---|---|---|---|
 | `PIN_STATUS_LED` | `GPIO_NUM_2` | Output | Push-Pull / No Pull | High (1) | Visual status indicator LED (Built-in on DevKit) |
-| `PIN_BTN_1` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B1: Button 1 Routine / Cycle & Nudge Flap ($15^\circ$) |
-| `PIN_BTN_2` | `GPIO_NUM_16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B2: Button 2 Routine / Stage & Toggle Flap ($30^\circ$) |
-| `PIN_BTN_3` | `GPIO_NUM_17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B3: Button 3 Routine / Lock Step & Drop Flaps |
-| `PIN_BTN_4` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B4: Button 4 Routine / Save to NVS & Exit |
+| `PIN_BTN_1` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B1: Preset 1 Routine (Default: Adult T-Shirt) / E-Stop |
+| `PIN_BTN_2` | `GPIO_NUM_16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B2: Preset 2 Routine (Default: Long-Sleeve Shirt) / E-Stop |
+| `PIN_BTN_3` | `GPIO_NUM_17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B3: Preset 3 Routine (Default: Trousers / Jeans) / E-Stop |
+| `PIN_BTN_4` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B4: Preset 4 Routine (Default: Towel / Linen) / E-Stop |
 | `PIN_I2C_SDA` | `GPIO_NUM_21` | I/O | Open-Drain + External 4.7k Pull-Up | — | PCA9685 I2C Data line (SDA) |
 | `PIN_I2C_SCL` | `GPIO_NUM_22` | Output | Open-Drain + External 4.7k Pull-Up | — | PCA9685 I2C Clock line (SCL) |
 
@@ -147,9 +147,8 @@ graph LR
 | `TOTAL_PRESET_COUNT` | `4` | Physical preset buttons on device (B1 to B4) |
 | `COMMAND_QUEUE_LENGTH` | `16` | Unified command queue depth |
 | `BUTTON_DEBOUNCE_MS` | `50` ms | Low-pass debounce sampling window |
-| `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration required to enter Programming Mode |
+| `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration threshold |
 | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Upper bound for tap gesture detection in Daily Run Mode |
-| `PROGRAMMING_TIMEOUT_MS` | `20000` ms | Inactivity timeout auto-exiting Programming Mode |
 | `FOLD_DWELL_TIME_MS` | `300` ms | Dwell time holding flap at $180^\circ$ before returning |
 | `INTER_STEP_DELAY_MS` | `200` ms | Settling delay between consecutive folding steps |
 | `TELEMETRY_STREAM_ACTIVE_HZ` | `10` Hz | Active sequence execution & calibration streaming rate |
@@ -213,7 +212,6 @@ typedef struct __attribute__((packed)) {
 typedef enum {
     STATE_IDLE_RUN = 0,     /* Ready for daily execution */
     STATE_RUNNING_MOTION,   /* Actively executing fold sequence */
-    STATE_PROGRAMMING,      /* Visual staging / remote sequence editing */
     STATE_ESTOP,            /* E-stop triggered, servos homed */
     STATE_ERROR,            /* Hardware fault or I2C bus error */
     STATE_CALIBRATING       /* Servo jog / calibration mode */
@@ -222,12 +220,10 @@ typedef enum {
 typedef enum {
     LED_STATE_IDLE = 0,         /* Soft heartbeat pulse (0.5 Hz / 10% duty) */
     LED_STATE_RUNNING,          /* Solid ON during sequence execution */
-    LED_STATE_PROGRAMMING,      /* Slow blink (1.0s ON / 1.0s OFF / 0.5 Hz) */
-    LED_STATE_STEP_LOCKED,      /* 2 fast flashes (80ms ON / 80ms OFF) */
     LED_STATE_SAVE_SUCCESS,     /* Solid ON for 2.0s */
     LED_STATE_INPUT_ERROR,      /* 3 fast flashes (60ms ON / 60ms OFF) */
     LED_STATE_ESTOP,            /* 5 rapid flashes (50ms ON / 50ms OFF) */
-    LED_STATE_BLE_PAIRING,      /* Fast double-blink during 30s authorization window */
+    LED_STATE_BLE_PAIRING,      /* Fast double-blink during 120s authorization window */
     LED_STATE_BLE_CONNECTED,    /* Solid ON for 1.0s, restores prior base state */
     LED_STATE_IDENTIFY          /* 3 fast double-blinks for 3.0s, restores prior base state */
 } led_state_t;
@@ -292,15 +288,7 @@ typedef enum {
     CMD_STOP_SEQUENCE,          /* Cleanly stop active folding sequence and home */
     CMD_EMERGENCY_STOP,         /* Immediate <50ms E-Stop abort & home all servos */
 
-    /* Programming & Staging Commands */
-    CMD_ENTER_PROGRAM_MODE,     /* Enter visual staging mode for target button (1 to 4) */
-    CMD_CYCLE_NUDGE_MOTOR,      /* Cycle motor index and pulse 15° identification nudge */
-    CMD_STAGE_TOGGLE_MOTOR,     /* Toggle target motor staged (30°) / rest (0°) */
-    CMD_LOCK_STEP,              /* Commit staged motor(s) to step buffer */
-    CMD_SAVE_EXIT_PROGRAM,      /* Commit buffer to NVS flash and exit */
-
-    /* Remote Sequence Editor & Configuration Commands */
-    CMD_REMOTE_EDIT_STEP,       /* Insert, delete, update, or reorder steps in routine buffer */
+    /* Wireless Sequence & Preset Management Commands */
     CMD_SET_BUTTON_SEQUENCE,    /* Directly overwrite Button 1-4 routine in NVS */
     CMD_GET_BUTTON_CONFIG,      /* Request current 4-button sequence configuration */
     CMD_RESTORE_FACTORY_PRESETS,/* Restore Buttons 1-4 to factory default routines in NVS */
@@ -444,7 +432,7 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
 | `4` | `LED_STATE_SAVE_SUCCESS`| Solid ON for 2.0s | Solid green success card + "Preset Saved to NVS". |
 | `5` | `LED_STATE_INPUT_ERROR` | 3 fast flashes (60ms ON / 60ms OFF)| Red warning shake animation + error description toast. |
 | `6` | `LED_STATE_ESTOP` | 5 rapid flashes (50ms ON / 50ms OFF)| Flashing high-contrast red banner + "Emergency Stop Engaged". |
-| `7` | `LED_STATE_BLE_PAIRING` | Fast double-blink | Animated pairing modal with 30s countdown: "Press any physical button on robot". |
+| `7` | `LED_STATE_BLE_PAIRING` | Fast double-blink | Animated pairing modal with 120s countdown: "Press any physical button on robot". |
 | `8` | `LED_STATE_BLE_CONNECTED`| Solid ON for 1.0s | Solid blue connected icon with subtle celebration haptic. |
 | `9` | `LED_STATE_IDENTIFY` | 3 fast double-blinks for 3.0s | Yellow ping/radar wave animation around robot card. |
 
@@ -456,24 +444,23 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
 * **Firmware Revision String (`0x2A26`)**: `"v1.13.0"` (used for mobile app protocol compatibility handshake)
 * **Manufacturer Name String (`0x2A29`)**: `"Fabrica Robotics"`
 
-### 3. Proof-of-Presence BLE Security, Bonding & RPA Privacy Architecture
+### 3. Hold-to-Pair BLE Security, Bonding & RPA Privacy Architecture
 
 * **Single Active Central Policy**: `max_connections = 1`. The robot stops advertising while connected to a mobile app to prevent connection hijacking.
-* **First-Time Pairing Authorization**:
-  - When an unbonded mobile phone initiates a connection, the ESP32 enters a **30-second Physical Authorization Window**.
+* **Hold-to-Pair Entry (Consistent Across First Boot & Everyday Use)**:
+  - Holding **any physical button (B1–B4) for 3 seconds** in `STATE_IDLE_RUN` dispatches `CMD_ENTER_BLE_PAIRING`, opening a **120-second (2-minute) BLE Pairing / Discovery Window** (`BLE_PAIRING_TIMEOUT_MS = 120000`).
   - The Status LED flashes `LED_STATE_BLE_PAIRING` (fast double-blink).
-  - The user must physically press **any button (B1–B4)** on the robot to authorize pairing.
-  - **Motion Suppression during Pairing**: While the 30-second authorization window is active, the first physical button press strictly authorizes the BLE bond and suppresses triggering routine execution.
+  - Any new mobile phone connecting during this 120-second window is immediately authorized and bonded into NVS (`"ble_bonds"` namespace, up to 4 trusted devices).
+  - **Unbonded Rejection Outside Pairing Window**: Outside the 120-second window (including on initial boot), unbonded connection attempts are rejected (`ble_gap_terminate`), preventing neighbors or passersby from hijacking the connection slot.
   - **Resolvable Private Address (RPA) & Privacy Resolution**:
     - Both iOS and Android 10+ rotate Bluetooth MAC addresses every 15 minutes using RPAs.
     - Storing bonded devices in NVS (`"ble_bonds"`, up to 4 trusted devices) leverages NimBLE SMP Identity Resolving Key (IRK) exchange (or persistent application-level UUID auth tokens stored in NVS and mobile secure storage: iOS Keychain / Android Keystore) so that rotating RPAs are recognized seamlessly across reconnections without breaking bonds.
   - **Bond Lifecycle & Eviction**: Supports up to 4 bonded devices in NVS (`"ble_bonds"`). When a 5th phone pairs, the oldest bond is evicted automatically (FIFO/LRU).
   - **Hardware Bond Factory Reset**: Holding physical buttons B1 + B4 simultaneously for 5 seconds at power-on or in idle clears all stored bonds in `"ble_bonds"` and confirms with 3 fast LED flashes.
-  - Upon button press, the phone's identity key is securely bonded and stored into NVS (`"ble_bonds"` namespace).
-  - The LED transitions to `LED_STATE_BLE_CONNECTED` (solid 1.0s pulse, returning to prior base state).
-  - **Unauthorized Timeout**: If no button is pressed within 30 seconds, the ESP32 terminates the connection (`ble_gap_terminate`) and returns to advertising.
+  - Upon successful pairing or auto-reconnect, the LED transitions to `LED_STATE_BLE_CONNECTED` (solid 1.0s pulse, returning to prior base state).
+  - **120-Second Pairing Timeout**: If no phone connects within 120 seconds, `state_machine_tick()` closes the pairing window and restores `LED_STATE_IDLE`.
 * **Frictionless Subsequent Auto-Reconnect**:
-  - Any previously bonded mobile device is recognized automatically upon connection without requiring another physical button press.
+  - Any previously bonded mobile device is recognized and connected automatically in the background without holding a button.
 * **Strict LED Preemption & Priority Hierarchy**:
   - Transient visual states (`LED_STATE_BLE_CONNECTED`, `LED_STATE_STEP_LOCKED`, `LED_STATE_SAVE_SUCCESS`, `LED_STATE_IDENTIFY`, `LED_STATE_INPUT_ERROR`) automatically preserve and restore the underlying base state (`return_to_prior_base = true`) upon pattern completion to eliminate visual glitches across BLE connection and execution transitions.
 
@@ -502,7 +489,7 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
 
 | Task Name | Core | Priority | Stack Size | Description |
 |---|---|---|---|---|
-| `app_motion_task` | Core 0 | 10 | 4096 Bytes | Real-time motion trajectories, I2C commands, $<50\text{ms}$ E-Stop |
+| `app_main` | Core 0 | 1 | System Default | Command queue consumer, motion trajectories, I2C commands, $<50\text{ms}$ E-Stop |
 | `app_ui_task` | Core 1 | 5 | 4096 Bytes | 4-button scanning, debouncing, gesture recognition, state machine |
 | `app_ble_task` | Core 1 | 4 | 4096 Bytes | Apache NimBLE host stack, GATT server, MTU negotiation |
 | `app_telem_task` | Core 1 | 3 | 2048 Bytes | Progress tracking, live motor position packing, and 10 Hz notify |

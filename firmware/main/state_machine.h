@@ -54,36 +54,19 @@ extern "C" {
 /* ========================================================================= */
 
 typedef enum {
-    STATE_IDLE_RUN = 0,         /**< Daily Run Mode (Awaiting preset trigger) */
-    STATE_RUNNING_MOTION = 1,   /**< Motion execution active (Core 0 busy) */
-    STATE_PROGRAMMING = 2       /**< Visual Staging Programming Mode */
+    STATE_IDLE_RUN = 0,         /**< Daily Run Mode (Awaiting preset trigger or mobile command) */
+    STATE_RUNNING_MOTION = 1    /**< Motion execution active (Core 0 busy) */
 } system_state_t;
-
-/* ========================================================================= */
-/* Staging Context Structure                                                 */
-/* ========================================================================= */
-
-typedef struct {
-    uint8_t target_preset_id;                       /**< Preset slot (1 to 4) */
-    uint8_t current_channel_idx;                    /**< Current servo cursor (0 to 15) */
-    bool cursor_active;                             /**< True if channel cursor is active */
-    uint8_t staged_motor_count;                     /**< Number of staged motors (0 to 2) */
-    uint8_t staged_motor_ids[MAX_MOTORS_PER_STEP];  /**< Staged servo channels */
-    fold_routine_t buffer_routine;                  /**< Temporary sequence buffer */
-    uint32_t inactivity_timer_ms;                   /**< Elapsed time without input */
-} staging_context_t;
 
 /* ========================================================================= */
 /* State Machine Public API                                                  */
 /* ========================================================================= */
 
 /**
- * @brief Initialize State Machine engine and bind IPC handles.
- * @param cmd_queue FreeRTOS command queue handle.
- * @param evt_group FreeRTOS system event group handle.
- * @return ESP_OK on success, or ESP error code.
+ * @brief Initialize State Machine engine.
+ * @return ESP_OK on success.
  */
-esp_err_t state_machine_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group);
+esp_err_t state_machine_init(void);
 
 /**
  * @brief Query current operating state.
@@ -92,10 +75,10 @@ esp_err_t state_machine_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_gro
 system_state_t state_machine_get_state(void);
 
 /**
- * @brief Query current visual staging context.
- * @return Pointer to read-only staging_context_t.
+ * @brief Query whether the 120-second BLE pairing/discovery window is active.
+ * @return true if pairing window is open for new mobile devices, false otherwise.
  */
-const staging_context_t *state_machine_get_context(void);
+bool state_machine_is_ble_pairing(void);
 
 /**
  * @brief Process incoming command through the state machine.
@@ -105,7 +88,7 @@ const staging_context_t *state_machine_get_context(void);
 esp_err_t state_machine_process_command(const command_t *cmd);
 
 /**
- * @brief Periodic timer tick to advance timers (e.g. 20s inactivity watchdog).
+ * @brief Periodic timer tick hook.
  * @param elapsed_ms Elapsed milliseconds since previous tick.
  */
 void state_machine_tick(uint32_t elapsed_ms);
