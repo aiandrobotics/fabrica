@@ -29,7 +29,8 @@ ENV/
 *.mpy
 
 # CAD Designs & FreeCAD Exports
-cad-designs/exports/
+# Full assembly STL meshes exceed GitHub's 100MB limit (assembly STEP files are used instead)
+cad-designs/exports/*assembly.stl
 *.FCBak
 
 # Documentation & Web App Build Artifacts
