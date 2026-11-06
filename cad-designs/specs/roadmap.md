@@ -38,7 +38,7 @@ Build, validate, and commit before moving to the next phase.
 ---
 
 ## Phase 4 — Active Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`, `motorized_assembly.py`) ✅
-- **Specs**: [plan.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/plan.md) | [requirements.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/requirements.md) | [validation.md](file:///Users/intelligentmachine/Documents/workspace/fabrica/cad-designs/specs/2026-08-15-phase-4-motorized-module/validation.md)
+- **Specs**: [plan.md](./2026-08-15-phase-4-motorized-module/plan.md) | [requirements.md](./2026-08-15-phase-4-motorized-module/requirements.md) | [validation.md](./2026-08-15-phase-4-motorized-module/validation.md)
 - **Motorized Outer Frame** (`motorized_frame.py`): Model rigid 4-sided motorized module chassis (yellow) with horizontal inline MG996R servo mounting bay:
   - $240 \times 240 \times 15\text{ mm}$ outer envelope with $15.0\text{ mm}$ perimeter rails, open-bottom interior saving ~120g PLA, and 100% planar flat base at $Z = 0.0\text{ mm}$.
   - Continuous inner enclosure wall ($X \in [38.0, 48.0\text{ mm}], Y \in [185.0, 240.0\text{ mm}]$) sealing the motor chamber from the central cavity.

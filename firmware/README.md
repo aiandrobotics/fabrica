@@ -96,24 +96,29 @@ The firmware uses FreeRTOS symmetric multiprocessing to cleanly separate real-ti
 
 ## Factory Preset Library
 
-The firmware is pre-seeded on initial boot with 4 factory folding routines verified against standard garment geometries:
+The firmware is pre-seeded on initial boot with 4 factory folding routines verified against standard garment geometries, exercising all 4 servo flap motors:
 
-* **Preset 1 (Adult T-Shirt, 3 Steps)**:
-  - Step 1: Left Flap fold ($0^\circ \to 180^\circ \to 0^\circ$)
-  - Step 2: Right Flap fold ($0^\circ \to 180^\circ \to 0^\circ$)
-  - Step 3: Bottom Flap fold ($0^\circ \to 180^\circ \to 0^\circ$)
-* **Preset 2 (Long-Sleeve Shirt, 4 Steps)**:
-  - Step 1: Synchronized parallel dual-sleeve fold (Left & Right Flaps together)
-  - Step 2: Left Body Flap fold
-  - Step 3: Right Body Flap fold
-  - Step 4: Bottom Flap fold
-* **Preset 3 (Trousers / Jeans, 2 Steps)**:
-  - Step 1: Vertical half fold (Left Flap)
-  - Step 2: Bottom fold (Bottom Flap)
-* **Preset 4 (Towel / Linen, 3 Steps)**:
-  - Step 1: Left half fold (Left Flap)
-  - Step 2: Right quarter fold (Right Flap)
-  - Step 3: Bottom final press fold (Bottom Flap)
+* **Preset 1 (Adult T-Shirt, 4 Steps)**:
+  - Step 1: Left Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 0)
+  - Step 2: Right Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 1)
+  - Step 3: Bottom Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 2)
+  - Step 4: Top / Collar Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 3)
+  > *Tapping Button 1 immediately tests all 4 flap motors in sequence!*
+* **Preset 2 (Long-Sleeve Shirt, 5 Steps)**:
+  - Step 1: Synchronized parallel dual-sleeve fold (Left & Right Flaps together, Ch 0 + 1)
+  - Step 2: Top / Collar Flap fold (Ch 3)
+  - Step 3: Left Body Flap fold (Ch 0)
+  - Step 4: Right Body Flap fold (Ch 1)
+  - Step 5: Bottom Flap fold (Ch 2)
+* **Preset 3 (Trousers / Jeans, 3 Steps)**:
+  - Step 1: Vertical half fold (Left Flap, Ch 0)
+  - Step 2: Bottom fold (Bottom Flap, Ch 2)
+  - Step 3: Top waistband fold (Top Flap, Ch 3)
+* **Preset 4 (Towel / Linen, 4 Steps)**:
+  - Step 1: Left half fold (Left Flap, Ch 0)
+  - Step 2: Right quarter fold (Right Flap, Ch 1)
+  - Step 3: Bottom fold (Bottom Flap, Ch 2)
+  - Step 4: Top final fold (Top Flap, Ch 3)
 
 ---
 
@@ -153,9 +158,9 @@ To pair a new phone (including on first boot), **hold any button (B1–B4) for 3
 
 ## Specifications & Documentation
 
-* **[Mission Specification](file:///Users/intelligentmachine/Documents/workspace/fabrica/firmware/specs/mission.md)**: High-level firmware mission, operating modes, subsystem architecture, and success criteria.
-* **[Tech Stack Specification](file:///Users/intelligentmachine/Documents/workspace/fabrica/firmware/specs/tech-stack.md)**: Embedded toolchain, ESP-IDF drivers, dual-core task distribution, pinouts, timing constants, PCA9685 configuration, and unified command protocol.
-* **[Roadmap Specification](file:///Users/intelligentmachine/Documents/workspace/fabrica/firmware/specs/roadmap.md)**: Phased implementation roadmap and testable milestones from Phase 0 to Phase 8.
+* **[Mission Specification](./specs/mission.md)**: High-level firmware mission, operating modes, subsystem architecture, and success criteria.
+* **[Tech Stack Specification](./specs/tech-stack.md)**: Embedded toolchain, ESP-IDF drivers, dual-core task distribution, pinouts, timing constants, PCA9685 configuration, and unified command protocol.
+* **[Roadmap Specification](./specs/roadmap.md)**: Phased implementation roadmap and testable milestones from Phase 0 to Phase 8.
 
 ---
 
@@ -166,15 +171,15 @@ Run the complete host test harness validating all subsystems (Headers, UI, PCA96
 ```bash
 make test
 ```
-All 7 test suites execute in $<1\text{s}$ with 553 automated checks passing:
+All 7 test suites execute in $<1\text{s}$ with 566 automated checks passing:
 ```
-- test/test_headers.c        (43 checks)
-- test/test_ui_subsystem.c   (61 checks)
+- test/test_headers.c        (62 checks)
+- test/test_ui_subsystem.c   (52 checks)
 - test/test_pca9685.c        (82 checks)
 - test/test_storage.c        (66 checks)
 - test/test_motion.c         (74 checks)
 - test/test_state_machine.c  (167 checks)
-- test/test_e2e_stress.c     (60 checks)
+- test/test_e2e_stress.c     (63 checks)
 ```
 
 ### 2. ESP-IDF Target Compilation

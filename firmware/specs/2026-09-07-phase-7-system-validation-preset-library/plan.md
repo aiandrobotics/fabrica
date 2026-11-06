@@ -18,23 +18,27 @@ Key goals include:
      - Channel 1: Right Side Flap (`SERVO_FLAP_RIGHT`)
      - Channel 2: Bottom Flap (`SERVO_FLAP_BOTTOM`)
      - Channel 3: Top / Collar Flap (`SERVO_FLAP_TOP`)
-2. Audit and update `storage_get_default_routine()` in `firmware/main/storage.c`:
-   - **Preset 1 (Adult T-Shirt, 3 Steps)**:
+2. Audit and update `storage_get_default_routine()` in `firmware/main/storage.c` to exercise all 4 flap motors:
+   - **Preset 1 (Adult T-Shirt, 4 Steps)**:
      - Step 1: Left fold (Channel 0)
      - Step 2: Right fold (Channel 1)
      - Step 3: Bottom fold (Channel 2)
-   - **Preset 2 (Long-Sleeve Shirt, 4 Steps)**:
+     - Step 4: Top / collar fold (Channel 3)
+   - **Preset 2 (Long-Sleeve Shirt, 5 Steps)**:
      - Step 1: Parallel sleeve folds (Channel 0 & Channel 1 synchronously)
-     - Step 2: Left body fold (Channel 0)
-     - Step 3: Right body fold (Channel 1)
-     - Step 4: Bottom fold (Channel 2)
-   - **Preset 3 (Trousers / Jeans, 2 Steps)**:
+     - Step 2: Top collar fold (Channel 3)
+     - Step 3: Left body fold (Channel 0)
+     - Step 4: Right body fold (Channel 1)
+     - Step 5: Bottom fold (Channel 2)
+   - **Preset 3 (Trousers / Jeans, 3 Steps)**:
      - Step 1: Vertical half fold (Channel 0)
      - Step 2: Bottom fold (Channel 2)
-   - **Preset 4 (Towel / Linen, 3 Steps)**:
+     - Step 3: Top waistband fold (Channel 3)
+   - **Preset 4 (Towel / Linen, 4 Steps)**:
      - Step 1: Left half fold (Channel 0)
      - Step 2: Right quarter fold (Channel 1)
-     - Step 3: Bottom final fold (Channel 2)
+     - Step 3: Bottom fold (Channel 2)
+     - Step 4: Top final fold (Channel 3)
 3. Ensure CRC32 checksum generation and validation deterministically matches factory data across all 4 presets.
 4. Verify first-boot factory seeding (`"preset_init"` key) correctly seeds the updated sequences into NVS flash.
 

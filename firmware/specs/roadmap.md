@@ -102,11 +102,11 @@ Build, validate, and verify each milestone before moving to the next phase.
 ---
 
 ## Phase 7 — End-to-End System Validation, Stress Testing & Preset Library ✅
-- **Factory Preset Library**:
-  - Preset 1: Standard Adult T-Shirt (Left fold $\to$ Right fold $\to$ Bottom fold: Ch 0 $\to$ Ch 1 $\to$ Ch 2).
-  - Preset 2: Long-Sleeve Shirt (Parallel dual-sleeve fold $\to$ Left body $\to$ Right body $\to$ Bottom fold).
-  - Preset 3: Trousers / Jeans (Vertical half fold $\to$ Bottom fold: Ch 0 $\to$ Ch 2).
-  - Preset 4: Towel / Linen (Left half fold $\to$ Right quarter fold $\to$ Bottom fold: Ch 0 $\to$ Ch 1 $\to$ Ch 2).
+- **Factory Preset Library (Exercising All 4 Motors)**:
+  - Preset 1: Standard Adult T-Shirt (4 steps: Left Ch 0 $\to$ Right Ch 1 $\to$ Bottom Ch 2 $\to$ Top Collar Ch 3) — tests all 4 motors on Button 1.
+  - Preset 2: Long-Sleeve Shirt (5 steps: Parallel dual-sleeve Ch 0+1 $\to$ Top Collar Ch 3 $\to$ Left body Ch 0 $\to$ Right body Ch 1 $\to$ Bottom Ch 2).
+  - Preset 3: Trousers / Jeans (3 steps: Vertical fold Ch 0 $\to$ Bottom fold Ch 2 $\to$ Top waistband Ch 3).
+  - Preset 4: Towel / Linen (4 steps: Left half fold Ch 0 $\to$ Right quarter fold Ch 1 $\to$ Bottom fold Ch 2 $\to$ Top final fold Ch 3).
   - Standardized named channel aliases (`SERVO_FLAP_LEFT`, `SERVO_FLAP_RIGHT`, `SERVO_FLAP_BOTTOM`, `SERVO_FLAP_TOP`) in `main/config.h`.
 - **Stress & Endurance Testing**:
   - 100-cycle continuous run test verifying zero heap memory leaks and long-term state stability.
@@ -114,7 +114,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Automated verification of power loss and bit-rot resilience during NVS write operations (`ESP_ERR_INVALID_CRC` fallback).
   - 50-cycle rapid mode-switching stress test verifying state machine invariant stability.
 - **System Documentation**: Comprehensive `firmware/README.md` with electrical wiring diagrams, PCA9685 power isolation, dual-core FreeRTOS architecture, full operator manual, and test instructions.
-- **Validation**: Verified with host unit test suite (`make test`, 60/60 checks pass in `test_e2e_stress.c`, 553/553 total checks pass across all 7 test suites).
+- **Validation**: Verified with host unit test suite (`make test`, 63/63 checks pass in `test_e2e_stress.c`, 566/566 total checks pass across all 7 test suites).
 
 ---
 

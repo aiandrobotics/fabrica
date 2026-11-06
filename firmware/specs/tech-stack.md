@@ -282,25 +282,15 @@ typedef enum {
 } cmd_source_t;
 
 typedef enum {
-    /* Execution & Control Commands */
-    CMD_RUN_PRESET = 0,         /* Start saved Button 1-4 sequence */
-    CMD_RUN_RAW_SEQUENCE,       /* Start unsaved raw routine preview directly */
-    CMD_STOP_SEQUENCE,          /* Cleanly stop active folding sequence and home */
-    CMD_EMERGENCY_STOP,         /* Immediate <50ms E-Stop abort & home all servos */
-
-    /* Wireless Sequence & Preset Management Commands */
-    CMD_SET_BUTTON_SEQUENCE,    /* Directly overwrite Button 1-4 routine in NVS */
-    CMD_GET_BUTTON_CONFIG,      /* Request current 4-button sequence configuration */
-    CMD_RESTORE_FACTORY_PRESETS,/* Restore Buttons 1-4 to factory default routines in NVS */
-
-    /* Live Calibration, Jog, Identification & Visual Feedback */
+    CMD_RUN_PRESET = 0,         /* Execute saved preset routine (1 to 4) */
+    CMD_RUN_RAW_SEQUENCE,       /* Execute unsaved sequence payload directly */
+    CMD_EMERGENCY_STOP,         /* Immediate E-Stop halt & home all servos */
+    CMD_ENTER_BLE_PAIRING,      /* Open 120-second BLE discovery/pairing window (3s hold) */
+    CMD_SET_BUTTON_SEQUENCE,    /* Save custom sequence to button slot (1 to 4) from phone */
+    CMD_RESTORE_FACTORY_PRESETS,/* Restore Buttons 1-4 to factory default routines */
     CMD_JOG_MOTOR_ANGLE,        /* Live position jog (0° to 180°) for calibration */
-    CMD_IDENTIFY_ROBOT,         /* Pulse status LED (3s) for visual unit identification */
-    CMD_SET_LED_MODE,           /* Configure LED mode (Auto, Manual Pattern Override, Stealth/Night) */
-
-    /* Telemetry Control */
-    CMD_GET_TELEMETRY,          /* Request single-shot telemetry snapshot */
-    CMD_SET_TELEMETRY_STREAM    /* Enable or disable 10 Hz automatic streaming */
+    CMD_GET_TELEMETRY,          /* Request real-time status telemetry */
+    CMD_SYNC_PRESETS            /* Synchronize presets over wireless transport */
 } cmd_type_t;
 
 typedef struct {
@@ -425,16 +415,12 @@ The 1-byte `led_state` broadcast in `telemetry_packet_t` corresponds directly to
 
 | Value | Enumeration | Physical Pattern | Recommended Mobile UI Representation |
 |---|---|---|---|
-| `0` | `LED_STATE_IDLE` | Soft heartbeat (0.5 Hz / 10% duty) | Subtle pulsing green/cyan status dot; "Ready" label. |
+| `0` | `LED_STATE_IDLE` | Soft heartbeat (100ms ON / 1900ms OFF) | Subtle pulsing green/cyan status dot; "Ready" label. |
 | `1` | `LED_STATE_RUNNING` | Solid ON | Glowing solid blue indicator with active rotating circular progress spinner. |
-| `2` | `LED_STATE_PROGRAMMING`| Slow blink (1.0s ON / 1.0s OFF) | Amber staging badge with "Programming Mode Active" banner. |
-| `3` | `LED_STATE_STEP_LOCKED` | 2 fast flashes (80ms ON / 80ms OFF)| Haptic tick on phone + green checkmark toast: "Step Locked". |
-| `4` | `LED_STATE_SAVE_SUCCESS`| Solid ON for 2.0s | Solid green success card + "Preset Saved to NVS". |
-| `5` | `LED_STATE_INPUT_ERROR` | 3 fast flashes (60ms ON / 60ms OFF)| Red warning shake animation + error description toast. |
-| `6` | `LED_STATE_ESTOP` | 5 rapid flashes (50ms ON / 50ms OFF)| Flashing high-contrast red banner + "Emergency Stop Engaged". |
-| `7` | `LED_STATE_BLE_PAIRING` | Fast double-blink | Animated pairing modal with 120s countdown: "Press any physical button on robot". |
-| `8` | `LED_STATE_BLE_CONNECTED`| Solid ON for 1.0s | Solid blue connected icon with subtle celebration haptic. |
-| `9` | `LED_STATE_IDENTIFY` | 3 fast double-blinks for 3.0s | Yellow ping/radar wave animation around robot card. |
+| `2` | `LED_STATE_SAVE_SUCCESS`| Solid ON for 2.0s | Solid green success card + "Preset Saved to NVS". |
+| `3` | `LED_STATE_INPUT_ERROR` | 3 fast flashes (60ms ON / 60ms OFF)| Red warning shake animation + error description toast. |
+| `4` | `LED_STATE_ESTOP` | 5 rapid flashes (50ms ON / 50ms OFF)| Flashing high-contrast red banner + "Emergency Stop Engaged". |
+| `5` | `LED_STATE_BLE_PAIRING` | Fast double-blink (100ms ON/100ms OFF/100ms ON/500ms OFF) | Animated pairing modal with 120s countdown: "Press any physical button on robot". |
 
 ---
 

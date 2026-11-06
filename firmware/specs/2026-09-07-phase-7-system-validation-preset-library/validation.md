@@ -8,7 +8,7 @@ The implementation of Phase 7 must be validated through automated host stress te
 
 | Test Suite / Case | Description | Pass Criteria |
 |---|---|---|
-| **Factory Preset Verification** | Load and inspect all 4 factory presets from `storage.c`. | Presets 1–4 match exact garment sequences (T-Shirt, Long-Sleeve Shirt, Trousers, Towel), step counts (3, 4, 2, 3), and CRC32 validity. |
+| **Factory Preset Verification** | Load and inspect all 4 factory presets from `storage.c`. | Presets 1–4 match exact garment sequences (T-Shirt, Long-Sleeve Shirt, Trousers, Towel), step counts (4, 5, 3, 4), and CRC32 validity. |
 | **100-Cycle Endurance Test** | Execute 100 consecutive fold sequences cycling through Presets 1–4. | All 100 routines execute to completion without state machine desync, timeout faults, or memory leaks (heap delta = 0 bytes). |
 | **Mid-Sweep E-Stop (Outward Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is sweeping $0^\circ \to 180^\circ$. | Motion halts immediately, all 16 channels drop to $0^\circ$, `LED_STATE_ESTOP` triggered, abort latency $<50\text{ms}$. |
 | **Mid-Sweep E-Stop (Fold Dwell)** | Inject `CMD_EMERGENCY_STOP` while servo is dwelling at $180^\circ$ (300ms hold). | Motion halts immediately, flap returns to $0^\circ$, routine aborted. |
@@ -37,7 +37,7 @@ idf.py build
 When flashing firmware to live hardware (`/dev/cu.usbserial-0001`):
 
 1. **Factory Preset Execution Verification**:
-   - Tap **B1** $\rightarrow$ Robot executes Preset 1 (Adult T-Shirt): Left Flap (Ch 0) $180^\circ$ fold, Right Flap (Ch 1) $180^\circ$ fold, Bottom Flap (Ch 2) $180^\circ$ fold.
+   - Tap **B1** $\rightarrow$ Robot executes Preset 1 (Adult T-Shirt): Left Flap (Ch 0) $180^\circ$ fold, Right Flap (Ch 1) $180^\circ$ fold, Bottom Flap (Ch 2) $180^\circ$ fold, Top / Collar Flap (Ch 3) $180^\circ$ fold (testing all 4 motors).
    - Tap **B2** $\rightarrow$ Robot executes Preset 2 (Long-Sleeve Shirt): Parallel sleeve fold (Ch 0 & Ch 1 simultaneously), then body folds.
    - Tap **B3** $\rightarrow$ Robot executes Preset 3 (Trousers / Jeans): Vertical fold (Ch 0) then bottom fold (Ch 2).
    - Tap **B4** $\rightarrow$ Robot executes Preset 4 (Towel / Linen): Quarter fold sequence.

@@ -17,8 +17,8 @@ The Fabrica mission encompasses four primary, interconnected project deliverable
    - Engineered hinge linkages, drive shafts, servo couplers, and controller housing enclosures optimized for FDM 3D printing (PLA/PETG).
 
 2. **Embedded Firmware (`firmware/`)**:
-   - Production-grade MicroPython / C++ firmware executing autonomously on the **ESP32**.
-   - Driver integration for PCA9685 16-channel PWM servo driver over I2C, 4-button polling interface with debouncing, LED status feedback, parallel motor step execution, and non-volatile Flash memory storage.
+   - Production-grade C / FreeRTOS (ESP-IDF) firmware executing natively on the **ESP32**.
+   - Driver integration for PCA9685 16-channel PWM servo driver over I2C, 4-button debounced interface, multi-pattern non-blocking status LED feedback, parallel and single motor step execution, non-volatile NVS flash sequence storage with IEEE 802.3 CRC32 protection, and factory default presets exercising all 4 folding flaps (Left, Right, Bottom, Top).
 
 3. **Documentation Website (`docs/`)**:
    - A modern, interactive web-based documentation portal providing step-by-step 3D assembly guides, electrical wiring schematics, an interactive Bill of Materials (BOM), operation manuals, and troubleshooting flows.
@@ -65,7 +65,8 @@ graph TD
 ## Product Roadmap
 
 - [x] **Deliverable 1: CAD Designs**: Modular 3D printed panel models, drive shafts, hinge links, controller housing, and full 4×3 grid assembly models.
-- [ ] **Deliverable 2: ESP32 Firmware**: Embedded C firmware, PCA9685 I2C driver, 4-button debounced interface, status LED driver, parallel sequence executor, Flash sequence storage, and native NimBLE GATT mobile integration.
+- [x] **Deliverable 2: ESP32 Firmware (Core Engine & Presets)**: Embedded C/FreeRTOS firmware, PCA9685 I2C driver, 4-button debounced interface, status LED driver, parallel sequence executor, CRC32 NVS sequence manager, and 4 factory presets exercising all 4 flap motors (566/566 tests passing).
+- [ ] **Deliverable 2b: Wireless BLE Mobile Integration**: Native NimBLE GATT services (`FAB1`, `FAB2`, `FAB3`), 120-second hold-to-pair discovery window, and live telemetry.
 - [ ] **Deliverable 3: Documentation Website**: Step-by-step mechanical assembly guides, wiring schematics, interactive BOM table, and user manuals.
 - [ ] **Deliverable 4: Mobile Application**: Bluetooth Low Energy (BLE) wireless control, sequence configuration per button, start/stop execution, real-time motor progress streaming, and client-side garment profiles.
 - [ ] **Future Expansion: AI Vision Recognition**: On-device or cloud-based AI garment classification from smartphone camera snapshot.

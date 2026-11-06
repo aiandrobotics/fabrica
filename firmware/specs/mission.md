@@ -7,7 +7,7 @@ Develop, implement, and validate robust, modular, production-grade embedded firm
 The `firmware` sub-system provides the real-time embedded software executing natively on the **ESP32 Dev Board v1**. It controls the physical 4-button and status LED interface, manages non-volatile sequence storage, coordinates multi-state system workflows, and commands the **PCA9685 16-channel 12-bit PWM driver** over I2C to actuate up to 16 high-torque servo motors (e.g., MG996R) driving the modular folding grid panels.
 
 The firmware is designed to be:
-- **Autonomous & Standalone**: Complete computer-free operation for daily laundry folding out of the box via 4 physical preset buttons (Presets 1–4 pre-seeded with factory defaults).
+- **Autonomous & Standalone**: Complete computer-free operation for daily laundry folding out of the box via 4 physical preset buttons (Presets 1–4 pre-seeded with factory defaults exercising all 4 folding flaps, including the top collar flap).
 - **First-Class Mobile Connected**: Native Bluetooth Low Energy (BLE) integration, enabling users to visually program and assign custom button sequences from their phone, start/stop execution, and stream live motor positions.
 - **Deterministic & Real-Time**: Dual-core FreeRTOS architecture ensuring rock-solid motion timing, smooth multi-servo articulation, and zero UI lag.
 - **Fail-Safe & Resilient**: Instant Emergency Stop (E-Stop) on any button press or BLE stop command during motion, empty preset protection, and non-volatile flash memory persistence.
@@ -88,7 +88,7 @@ graph TD
 * **Minimal Physical Pad, Rich Phone Programming**: To keep the physical control pad effortless and free of hidden modes, custom sequence programming is handled entirely on the mobile application over BLE rather than by multi-button combinations on the unit.
 * **Direct Button Assignment (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`)**: Users visually build folding sequences on their phone (up to 16 steps, up to 2 simultaneous motors per step) and assign them directly to physical Buttons 1–4 stored in ESP32 NVS Flash.
 * **Stateless Sequence Preview (`CMD_RUN_RAW_SEQUENCE`)**: Test and preview custom garment routines directly from the phone before committing them to a physical button slot.
-* **Factory Preset Restoration (`CMD_RESTORE_FACTORY_PRESETS`)**: Instant 1-tap restoration of the 4 built-in factory garment presets (Adult T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
+* **Factory Preset Restoration (`CMD_RESTORE_FACTORY_PRESETS`)**: Instant 1-tap restoration of the 4 built-in factory garment presets exercising all 4 motors (Preset 1: Adult T-Shirt [4 steps: Ch 0 $\to$ 1 $\to$ 2 $\to$ 3], Preset 2: Long-Sleeve Shirt [5 steps], Preset 3: Trousers/Jeans [3 steps], Preset 4: Towel/Linen [4 steps]).
 * **Live Servo Jog (`CMD_JOG_MOTOR_ANGLE`)**: Interactive servo angle control from the mobile app for panel identification and mechanical calibration.
 
 ### 5. Visual Feedback Engine (LED Controller)

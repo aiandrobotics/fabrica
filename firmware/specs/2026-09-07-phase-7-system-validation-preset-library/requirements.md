@@ -7,11 +7,11 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 ### In-Scope Deliverables
 
 1. **Standardized Factory Preset Library (`storage.c`)**:
-   - Establish production folding choreography for 4 standard garment types:
-     - **Preset 1 (Adult T-Shirt)**: 3-step sequence (Left flap $\to$ Right flap $\to$ Bottom flap).
-     - **Preset 2 (Long-Sleeve Shirt)**: 4-step sequence (Parallel dual-sleeve fold $\to$ Left body fold $\to$ Right body fold $\to$ Bottom fold).
-     - **Preset 3 (Trousers / Jeans)**: 2-step sequence (Vertical half fold $\to$ Bottom fold).
-     - **Preset 4 (Towel / Linen)**: 3-step sequence (Left half fold $\to$ Right quarter fold $\to$ Bottom final fold).
+   - Establish production folding choreography for 4 standard garment types exercising all 4 motors:
+     - **Preset 1 (Adult T-Shirt)**: 4-step sequence (Left flap Ch 0 $\to$ Right flap Ch 1 $\to$ Bottom flap Ch 2 $\to$ Top / collar flap Ch 3).
+     - **Preset 2 (Long-Sleeve Shirt)**: 5-step sequence (Parallel dual-sleeve fold Ch 0+1 $\to$ Top collar fold Ch 3 $\to$ Left body fold Ch 0 $\to$ Right body fold Ch 1 $\to$ Bottom fold Ch 2).
+     - **Preset 3 (Trousers / Jeans)**: 3-step sequence (Vertical half fold Ch 0 $\to$ Bottom fold Ch 2 $\to$ Top waistband fold Ch 3).
+     - **Preset 4 (Towel / Linen)**: 4-step sequence (Left half fold Ch 0 $\to$ Right quarter fold Ch 1 $\to$ Bottom fold Ch 2 $\to$ Top final fold Ch 3).
    - Standardize physical servo flap mappings:
      - Channel 0: Left Side Flap (`SERVO_FLAP_LEFT`)
      - Channel 1: Right Side Flap (`SERVO_FLAP_RIGHT`)
@@ -105,6 +105,7 @@ sequenceDiagram
     Core0->>PCA: Step 1: Left Flap (Ch 0) 0° -> 180° -> 0°
     Core0->>PCA: Step 2: Right Flap (Ch 1) 0° -> 180° -> 0°
     Core0->>PCA: Step 3: Bottom Flap (Ch 2) 0° -> 180° -> 0°
+    Core0->>PCA: Step 4: Top Flap (Ch 3) 0° -> 180° -> 0°
     Core0->>PCA: pca9685_home_all()
 
     Note over User,NVS: 3. Mid-Sweep Emergency Stop Preemption
