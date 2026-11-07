@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-11-07
+- Implemented Phase 8 Apache NimBLE GATT Server on Core 1 (`firmware/main/ble_transport.h`, `firmware/main/ble_transport.c`) with native iOS (`CoreBluetooth`) and Android (`BluetoothGatt`) interoperability for off-the-shelf BLE scanner apps.
+- Added split 31-byte-compliant GAP advertising (`0000FAB0-...` 128-bit UUID in primary advertisement and dynamic `Fabrica-XXXX` MAC-derived name in scan response), peripheral-initiated 512-byte ATT MTU negotiation, and 15ms–30ms connection parameter requests.
+- Implemented 3-second physical button hold-to-pair security (`CMD_ENTER_BLE_PAIRING`, 120s window) with priority active-central preemption, native SMP "Just Works" LE Secure Connections bonding with IRK/RPA resolution, 4-bond NVS FIFO eviction, and `B1 + B4` 5-second chord bond factory reset (`CMD_CLEAR_BLE_BONDS`).
+- Registered Device Information Service (`0x180A`) and custom Fabrica service (`FAB0`) exposing `FAB1` Control Point, `FAB2` 31-byte packed telemetry, and `FAB3` 212-byte packed 4-button sequence table with `0x2901` User Description labels, compact/full sequence writes, and automatic IEEE 802.3 CRC32 calculation.
+- Simplified status LED state machine to automatic state-driven patterns (`LED_STATE_BLE_CONNECTED`, `LED_STATE_IDENTIFY`) and decoupled `CMD_STOP_SEQUENCE` from closing active BLE pairing windows.
+- Added Phase 8 feature specifications and host unit test suite (`firmware/test/test_ble_transport.c`) achieving 681/681 checks passing across all 8 suites, verified on physical ESP32 hardware over BLE.
+
+## 2026-11-06
+- Aligned firmware state machine and 4-button UI subsystem with BLE-centric architecture (`firmware/main/state_machine.c`, `firmware/main/buttons.c`).
+- Updated factory default presets 1–4 in `firmware/main/storage.c` to exercise all 4 flap motors including the top collar channel.
+- Tracked and exported CAD STEP models, printable STL files, and updated Bambu Studio 3MF project files.
+- Refined BLE firmware roadmap and specifications for zero-custom-app iOS and Android scanner interoperability.
+
 ## 2026-09-14
 - Updated BLE firmware specifications with cross-platform iOS and Android mobile app requirements (`mission.md`, `tech-stack.md`, `roadmap.md`).
 - Split BLE advertising payload to fit 31-byte legacy limit with 128-bit Service UUID in primary advertisement for iOS background scanning and device name in scan response.
