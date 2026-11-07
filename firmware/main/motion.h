@@ -134,6 +134,14 @@ esp_err_t motion_emergency_stop(void);
  */
 void motion_reset_state(void);
 
+#ifndef ESP_PLATFORM
+/**
+ * @brief Set simulated motion status directly for off-target concurrency/busy-lock unit tests.
+ * @param status Desired motion_status_t.
+ */
+void motion_mock_set_status(motion_status_t status);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

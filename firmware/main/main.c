@@ -17,6 +17,7 @@
 #include "storage.h"
 #include "motion.h"
 #include "state_machine.h"
+#include "ble_transport.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -171,9 +172,20 @@ void app_main(void)
         ESP_LOGI(TAG, "System State Machine initialized.");
     }
 
-    ESP_LOGI(TAG, "System initialization complete. Awaiting button & motion commands...");
+    /* 9. Initialize Apache NimBLE GATT Server on Core 1 */
+    err = ble_transport_start(s_command_queue);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize BLE Transport on Core 1: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "BLE GATT Server ready (%s). Free Heap: %u bytes (%u KB)",
+                 ble_transport_get_device_name(),
+                 (unsigned int)esp_get_free_heap_size(),
+                 (unsigned int)(esp_get_free_heap_size() / 1024U));
+    }
 
-    /* 9. Command Queue Consumer Loop */
+    ESP_LOGI(TAG, "System initialization complete. Awaiting button, BLE & motion commands...");
+
+    /* 10. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
         if (xQueueReceive(s_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {

@@ -196,6 +196,14 @@ esp_err_t pca9685_sleep(bool enable);
  */
 uint16_t pca9685_angle_to_counts(float angle_deg);
 
+/**
+ * @brief Query the last commanded angle (0 to 180 degrees) for a given channel.
+ *
+ * @param channel Channel index (0 to 15).
+ * @return Commanded integer angle in degrees (0 to 180), or 0 if out of bounds.
+ */
+uint8_t pca9685_get_channel_angle(uint8_t channel);
+
 /* ========================================================================= */
 /* Test Harness Mock Helper Functions (Host-Only)                            */
 /* ========================================================================= */

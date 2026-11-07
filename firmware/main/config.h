@@ -47,12 +47,31 @@ extern "C" {
 /* System Timing Parameters (Milliseconds)                                   */
 /* ========================================================================= */
 
-#define BUTTON_DEBOUNCE_MS           50    /* Low-pass debounce filter */
-#define BUTTON_SHORT_PRESS_MAX_MS    500   /* Maximum tap gesture duration */
-#define BUTTON_LONG_PRESS_MS         3000  /* Hold time (3s) to enter BLE pairing mode */
+#define BUTTON_DEBOUNCE_MS           50     /* Low-pass debounce filter */
+#define BUTTON_SHORT_PRESS_MAX_MS    500    /* Maximum tap gesture duration */
+#define BUTTON_LONG_PRESS_MS         3000   /* Hold time (3s) to enter BLE pairing mode */
+#define BUTTON_BOND_RESET_MS         5000   /* Simultaneous B1+B4 hold time (5s) to clear BLE bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
-#define FOLD_DWELL_TIME_MS           300   /* Flap hold time at fold angle */
-#define INTER_STEP_DELAY_MS          200   /* Delay between routine steps */
+#define FOLD_DWELL_TIME_MS           300    /* Flap hold time at fold angle */
+#define INTER_STEP_DELAY_MS          200    /* Delay between routine steps */
+
+/* ========================================================================= */
+/* Bluetooth Low Energy (NimBLE) Transport Parameters                        */
+/* ========================================================================= */
+
+#define BLE_DEVICE_NAME_PREFIX           "Fabrica" /* Prefix for "Fabrica-XXXX" local name */
+#define BLE_ADV_INTERVAL_MS              100    /* Fast advertising interval (100ms) */
+#define BLE_ADV_INTERVAL_UNITS           160    /* 160 * 0.625ms = 100ms (0x00A0) */
+#define BLE_CONN_INTERVAL_MIN_MS         15.0f  /* Apple Accessory compliant min interval (12 units) */
+#define BLE_CONN_INTERVAL_MAX_MS         30.0f  /* Apple Accessory compliant max interval (24 units) */
+#define BLE_CONN_INTERVAL_MIN_UNITS      12     /* 12 * 1.25ms = 15.0ms */
+#define BLE_CONN_INTERVAL_MAX_UNITS      24     /* 24 * 1.25ms = 30.0ms */
+#define BLE_CONN_SLAVE_LATENCY           0      /* Zero skipped connection events */
+#define BLE_SUPERVISION_TIMEOUT_MS       4000   /* Supervision timeout (4000ms <= 6000ms Apple max) */
+#define BLE_SUPERVISION_TIMEOUT_UNITS    400    /* 400 * 10ms = 4000ms */
+#define BLE_CONN_PARAM_UPDATE_DELAY_MS   1500   /* Delay before peripheral requests conn param update */
+#define BLE_PREFERRED_MTU                512    /* Target ATT MTU (>= 247B for 212B table transfer) */
+#define BLE_MAX_BONDS                    4      /* Max trusted peer identities persisted in NVS */
 
 /* ========================================================================= */
 /* Servo Articulation Angles (Degrees)                                       */

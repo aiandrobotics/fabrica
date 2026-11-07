@@ -118,7 +118,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 8 — Wireless Transport: NimBLE GATT Server & iOS/Android Interop (`ble_transport.c`, `sdkconfig.defaults`)
+## Phase 8 — Wireless Transport: NimBLE GATT Server & iOS/Android Interop (`ble_transport.c`, `sdkconfig.defaults`) ✅
 - **ESP-IDF Build & NimBLE Stack Configuration (`sdkconfig.defaults`, `main/CMakeLists.txt`)**:
   - Enable Bluetooth and Apache NimBLE host-only stack in `sdkconfig.defaults` (`CONFIG_BT_ENABLED=y`, `CONFIG_BT_NIMBLE_ENABLED=y`, `CONFIG_BT_NIMBLE_PINNED_TO_CORE_1=y`, `CONFIG_BT_NIMBLE_HOST_TASK_STACK_SIZE=4096`, `CONFIG_BT_NIMBLE_ATT_PREFERRED_MTU=512`, `CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1`, `CONFIG_BT_NIMBLE_MAX_BONDS=4`, `CONFIG_BT_NIMBLE_NVS_PERSIST=y`, `CONFIG_BT_NIMBLE_SM_LEGACY=y`, `CONFIG_BT_NIMBLE_SM_SC=y`, `CONFIG_BT_NIMBLE_RPA_TIMEOUT=900`).
   - Register `bt` component in `main/CMakeLists.txt` and initialize NimBLE host stack on Core 1 (`app_ble_task`, Priority 4, 4KB stack) to maintain zero timing jitter on Core 0 real-time servo motion.
@@ -143,7 +143,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - **Generic Attribute Service (`0x1801`) & Service Changed Indication (`0x2A05`)**:
     - Enable NimBLE standard GATT service (`ble_svc_gatt_init()`) with `0x2A05` Service Changed characteristic so iOS and Android OS BLE stacks automatically invalidate cached GATT attribute tables across firmware updates.
 - **Hold-to-Pair BLE Security, Native SMP Bonding & RPA Privacy (iOS & Android Native)**:
-  - **3-Second Hold-to-Pair Entry**: Holding **any physical button (B1–B4) for 3 seconds** while in `STATE_IDLE_RUN` dispatches `CMD_ENTER_BLE_PAIRING`, opening a **120-second (2-minute) BLE Pairing Window** (`BLE_PAIRING_TIMEOUT_MS = 120000`) and setting the status LED to `LED_STATE_BLE_PAIRING` (fast double-blink).
+  - **3-Second Hold-to-Pair Entry (Priority Preemption)**: Holding **any physical button (B1–B4) for 3 seconds** while in `STATE_IDLE_RUN` dispatches `CMD_ENTER_BLE_PAIRING`, opening a **120-second (2-minute) BLE Pairing Window** (`BLE_PAIRING_TIMEOUT_MS = 120000`), setting the status LED to `LED_STATE_BLE_PAIRING` (fast double-blink), and disconnecting any currently connected central (`ble_transport_enter_pairing_mode()`) so GAP advertising immediately resumes for the new phone.
   - **Native BLE SMP "Just Works" LE Secure Connections & Peripheral Security Request**:
     - Configure NimBLE Security Manager (`ble_hs_cfg`): `sm_sc = 1` (LE Secure Connections), `sm_bonding = 1`, `sm_mitm = 0`, `sm_io_cap = BLE_HS_IO_NO_INPUT_OUTPUT`, and key distribution `BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID` for both central and peripheral (`ble_store_config_init()` persisting bonds in NVS).
     - Upon `BLE_GAP_EVENT_CONNECT`, the firmware proactively initiates link security (`ble_gap_security_initiate(conn_handle)`). This is essential for iOS `CoreBluetooth` (which never initiates pairing unless requested by the peripheral) and Android when testing with off-the-shelf apps like LightBlue or nRF Connect.
@@ -166,7 +166,7 @@ Build, validate, and verify each milestone before moving to the next phase.
     2. **Sequence Progress & Motor Telemetry Characteristic (`FAB2` / `0000FAB2-0000-1000-8000-00805F9B34FB`)**:
        - Properties: `Read` | `Notify` (`BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY`).
        - Descriptors: Standard CCCD (`0x2902`) + User Description (`0x2901`: `"Fabrica Status & Telemetry (FAB2)"`).
-       - Broadcasts and returns packed 30-byte binary telemetry frames (`telemetry_packet_t`, Little-Endian) with adaptive streaming (10 Hz in motion/calibration, 1 Hz when idle).
+       - Broadcasts and returns packed 31-byte binary telemetry frames (`telemetry_packet_t`, Little-Endian) with adaptive streaming (10 Hz in motion/calibration, 1 Hz when idle).
     3. **Button Sequence Configuration Characteristic (`FAB3` / `0000FAB3-0000-1000-8000-00805F9B34FB`)**:
        - Properties: `Read` | `Write` | `Notify` (`BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_NOTIFY`).
        - Descriptors: Standard CCCD (`0x2902`) + User Description (`0x2901`: `"Fabrica Button Sequences 1-4 (FAB3)"`).
@@ -178,11 +178,10 @@ Build, validate, and verify each milestone before moving to the next phase.
        - **GATT Notify**: Pushes the updated 212-byte table to subscribed centrals whenever any button sequence changes in NVS.
 - **Visual Feedback & Device Identification Engine (`led.h`, `led.c`)**:
   - Add `LED_STATE_BLE_CONNECTED` (1.0s solid ON confirmation pulse) and `LED_STATE_IDENTIFY` (3 fast double-blinks over 3.0s for `CMD_IDENTIFY_ROBOT`).
-  - Expose `CMD_SET_LED_MODE` (`led_set_mode()`): `0 = Auto` (state-driven), `1 = Manual Pattern Override` (`led_state_t`), `2 = Stealth/Night Mode` (suppresses `LED_STATE_IDLE` heartbeat GPIO output while preserving active motion, pairing, save, and error alerts).
   - **Strict LED Preemption Hierarchy**: Transient states (`LED_STATE_BLE_CONNECTED`, `LED_STATE_SAVE_SUCCESS`, `LED_STATE_IDENTIFY`, `LED_STATE_INPUT_ERROR`) preserve and restore the underlying persistent base state (`return_to_prior_base = true`).
 - **Validation**:
-  - Host unit test suite (`test/test_ble_transport.c`) verifying GATT service/characteristic/descriptor (`0x2901`, `0x2902`) registration, DIS attributes, primary vs scan-response packet byte budgets ($\le 31\text{B}$), peripheral-initiated MTU and connection parameter negotiation, 120s Hold-to-Pair authorization window, unbonded termination, 4-bond FIFO eviction, `B1+B4` 5s hardware bond reset, packed struct sizes (`3B` / `53B` / `212B`), compact payload expansion, and LED identify/stealth modes.
-  - Live hardware verification on ESP32 using **nRF Connect** and **LightBlue** on iOS and Android.
+  - Verified with host unit test suite (`make test`, 115/115 checks pass in `test_ble_transport.c`, 681/681 total checks pass across all 8 test suites) and clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` 493 KB with 52% app partition free).
+  - Ready for live hardware verification on ESP32 using **nRF Connect** and **LightBlue** on iOS and Android.
 
 ---
 
@@ -221,8 +220,8 @@ Build, validate, and verify each milestone before moving to the next phase.
   - **Adaptive Streaming Rate**:
     - **High-Rate (10 Hz / 100ms)**: Automatically streamed to subscribed `FAB2` centrals when active motion is running (`STATE_RUNNING_MOTION`) or live servo jogging is active (`STATE_CALIBRATING`).
     - **Low-Rate (1 Hz / 1000ms)**: Automatically throttled during `STATE_IDLE_RUN`, `STATE_ESTOP`, or `STATE_ERROR` to conserve central battery and prevent iOS `CoreBluetooth` background notification throttling.
-    - **Stream Control (`CMD_SET_TELEMETRY_STREAM`, Opcode `0x11` & `CMD_GET_TELEMETRY`, Opcode `0x10`)**: Allow BLE centrals to pause/resume periodic streaming (`0x11 00` / `0x11 01`) or request an on-demand single-shot 30-byte telemetry frame (`0x10`).
-  - **Packed 30-Byte Binary Telemetry Frame (`telemetry_packet_t`, `__attribute__((packed))`)**:
+    - **Stream Control (`CMD_SET_TELEMETRY_STREAM`, Opcode `0x11` & `CMD_GET_TELEMETRY`, Opcode `0x10`)**: Allow BLE centrals to pause/resume periodic streaming (`0x11 00` / `0x11 01`) or request an on-demand single-shot 31-byte telemetry frame (`0x10`).
+  - **Packed 31-Byte Binary Telemetry Frame (`telemetry_packet_t`, `__attribute__((packed))`)**:
     - `system_state` (`uint8_t`): `0 = STATE_IDLE_RUN`, `1 = STATE_RUNNING_MOTION`, `2 = STATE_ESTOP`, `3 = STATE_ERROR`, `4 = STATE_CALIBRATING`.
     - `led_state` (`uint8_t`): Active `led_state_t` (`0 = IDLE`, `1 = RUNNING`, `2 = SAVE_SUCCESS`, `3 = INPUT_ERROR`, `4 = ESTOP`, `5 = BLE_PAIRING`, `6 = BLE_CONNECTED`, `7 = IDENTIFY`).
     - `active_button_id` (`uint8_t`): Currently executing preset slot (`1–4`), or `0` during raw sequence preview / idle.
@@ -237,14 +236,14 @@ Build, validate, and verify each milestone before moving to the next phase.
     - `error_code` (`uint8_t`): Hardware/system fault bitmask (`BIT0 = I2C_FAULT`, `BIT1 = NVS_FAULT`, `BIT2 = ESTOP_ACTIVE`).
     - `sequence_counter` (`uint16_t`, Little-Endian): Monotonically increasing packet counter for drop detection.
   - **Strict Little-Endian Wire Serialization**:
-    - All multi-byte fields (`elapsed_step_time_ms`, `free_heap_kb`, `sequence_counter`, and `fold_routine_t.checksum`) are serialized in Little-Endian byte order (`sizeof(telemetry_packet_t) == 30`).
+    - All multi-byte fields (`elapsed_step_time_ms`, `free_heap_kb`, `sequence_counter`, and `fold_routine_t.checksum`) are serialized in Little-Endian byte order (`sizeof(telemetry_packet_t) == 31`).
   - **Event-Driven Immediate Push Notifications**:
     - Immediately push a `FAB2` notification upon any state transition, command rejection/completion, step boundary, 100% routine finish, or E-Stop trigger without waiting for the next periodic timer tick.
 - **Button Configuration Synchronization (`FAB3`, `0000FAB3-...`)**:
   - Automatically push a `FAB3` GATT notification containing the 212-byte 4-button table whenever any preset sequence is modified in NVS (`CMD_SET_BUTTON_SEQUENCE`, `FAB3` write, or `CMD_RESTORE_FACTORY_PRESETS`).
   - Support on-demand `FAB3` notification trigger via `CMD_GET_BUTTON_CONFIG` (Opcode `0x0B`) in addition to direct GATT Read on `FAB3`.
 - **Validation**:
-  - Host unit test suite (`test/test_telemetry.c`) verifying exact 30-byte struct packing and field offsets, Little-Endian multi-byte encoding, live servo angle tracking across all 16 channels, step progress percentage calculation, adaptive 10 Hz vs 1 Hz rate switching, event-driven push triggers, and `FAB3` 212-byte synchronization notifications.
+  - Host unit test suite (`test/test_telemetry.c`) verifying exact 31-byte struct packing and field offsets, Little-Endian multi-byte encoding, live servo angle tracking across all 16 channels, step progress percentage calculation, adaptive 10 Hz vs 1 Hz rate switching, event-driven push triggers, and `FAB3` 212-byte synchronization notifications.
 
 ---
 
@@ -257,13 +256,13 @@ Build, validate, and verify each milestone before moving to the next phase.
     4. Verify peripheral-initiated connection parameter update compliance with Apple Accessory Guidelines (`15.0ms–30.0ms` interval, `0` latency, `4000ms` supervision timeout).
     5. Verify Hold-to-Pair security: confirm unbonded connection attempts outside the pairing window are terminated; confirm 3s physical button hold (`CMD_ENTER_BLE_PAIRING`) opens the 120s window (`LED_STATE_BLE_PAIRING`), initiates SMP security (`ble_gap_security_initiate`), bonds peer LTK/IRK in NVS, and reconnects seamlessly across simulated 15-minute RPA MAC rotations.
     6. Verify 4-bond NVS capacity limit (5th device FIFO eviction) and `B1 + B4` 5-second simultaneous hold hardware bond reset (`CMD_CLEAR_BLE_BONDS`) with single-button 3s hold suppression.
-    7. Verify `CMD_IDENTIFY_ROBOT` (`0x0E`) 3.0s LED pulse confirmation and `CMD_SET_LED_MODE` (`0x0F`) Stealth/Night Mode (`mode = 2`) vs Auto Mode (`mode = 0`).
+    7. Verify `CMD_IDENTIFY_ROBOT` (`0x0E`) 3.0s LED pulse confirmation restoring prior persistent base state.
     8. Read the 212-byte 4-button configuration table from `FAB3` and verify factory default routines and CRC32 checksums.
     9. Write custom sequences to Button 1 using both the full 54-byte/55-byte struct and the compact variable-length payload on `FAB3` and `FAB1` (`0x0A`), verifying auto-zero-padding, auto-CRC32 computation, NVS persistence, and `FAB3` notify push.
     10. Execute stateless raw sequence preview (`CMD_RUN_RAW_SEQUENCE`, `0x01`) using both full and compact payloads without modifying NVS, verifying `active_button_id == 0` in `FAB2` telemetry.
     11. Verify empty preset guard (`step_count == 0` rejected with `CMD_STATUS_ERR_INVALID_STEP`) and out-of-bounds motor/step rejection (`CMD_STATUS_ERR_MOTOR_BOUNDS`).
     12. Start Preset 1 over BLE (`0x00 01`); inject concurrent `CMD_RUN_PRESET`, `CMD_RUN_RAW_SEQUENCE`, and `FAB3` writes mid-motion and verify immediate ingress rejection with `CMD_STATUS_ERR_BUSY`.
-    13. Verify real-time `FAB2` 30-byte telemetry streaming during motion (10 Hz rate, live `channel_angles[16]`, step progress $0\% \to 100\%$, final completion packet with `last_cmd_status = CMD_STATUS_OK`, and return to 1 Hz idle rate).
+    13. Verify real-time `FAB2` 31-byte telemetry streaming during motion (10 Hz rate, live `channel_angles[16]`, step progress $0\% \to 100\%$, final completion packet with `last_cmd_status = CMD_STATUS_OK`, and return to 1 Hz idle rate).
     14. Test `CMD_JOG_MOTOR_ANGLE` (`0x0D`) via `Write Without Response`: verify `STATE_CALIBRATING` transition, live angle updates, rejection during active motion/E-Stop (`CMD_STATUS_ERR_BUSY`), 10s stationary thermal de-energize cutoff, and 15s inactivity auto-home back to `STATE_IDLE_RUN`.
     15. Trigger wireless `CMD_EMERGENCY_STOP` (`0x03`) and `CMD_STOP_SEQUENCE` (`0x02`) mid-sweep and verify `<50ms` Core 1 fast-path preemption, immediate 16-channel homing to $0^\circ$, `STATE_ESTOP` latching, and BLE recovery via `0x02`.
     16. Trigger execution via physical button tap (`B1–B4`) and verify connected BLE central receives live 10 Hz `FAB2` telemetry notifications.
@@ -273,7 +272,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Verify abrupt BLE disconnect safety: disconnecting during active folding motion allows the current routine to finish safely and return to `STATE_IDLE_RUN`; disconnecting during `STATE_CALIBRATING` safely homes all jogged servos via the inactivity watchdog.
   - 200-cycle continuous endurance run with active BLE telemetry streaming and periodic `FAB3` sequence updates verifying zero FreeRTOS heap leaks, zero stack overflows, and minimum free internal SRAM $>190\text{ KB}$.
 - **Off-the-Shelf App Store BLE Test App Verification Guide (`firmware/README.md`)**:
-  - Document step-by-step hardware verification procedures and ready-to-paste hex payloads for testing all firmware features on **iOS** and **Android** using **nRF Connect for Mobile** and **LightBlue** (covering pairing/bonding, `FAB1` command opcodes `0x00–0x11`, compact custom sequence programming, `FAB2` 30-byte telemetry decoding, and `FAB3` read/write/notify).
+  - Document step-by-step hardware verification procedures and ready-to-paste hex payloads for testing all firmware features on **iOS** and **Android** using **nRF Connect for Mobile** and **LightBlue** (covering pairing/bonding, `FAB1` command opcodes `0x00–0x11`, compact custom sequence programming, `FAB2` 31-byte telemetry decoding, and `FAB3` read/write/notify).
 - **Validation**:
   - Host unit test suite (`make test`) passing 100% of checks across all test suites, clean ESP-IDF target build (`idf.py build`), and end-to-end verification with nRF Connect / LightBlue on iOS and Android.
 
