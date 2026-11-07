@@ -113,6 +113,13 @@ void motion_reset_state(void)
 #endif
 }
 
+#ifndef ESP_PLATFORM
+void motion_mock_set_status(motion_status_t status)
+{
+    s_motion_status = status;
+}
+#endif
+
 /**
  * @brief Query current motion engine execution status.
  *

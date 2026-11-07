@@ -9,6 +9,7 @@
 #include "pca9685.h"
 #include "storage.h"
 #include "motion.h"
+#include "ble_transport.h"
 #include "state_machine.h"
 
 #ifdef ESP_PLATFORM
@@ -26,6 +27,7 @@ static const char *TAG = "FABRICA_SM";
 /* ========================================================================= */
 
 static volatile system_state_t s_system_state = STATE_IDLE_RUN;
+static volatile uint8_t s_active_preset_id = 0;
 static bool s_ble_pairing_active = false;
 static uint32_t s_ble_pairing_timer_ms = 0;
 
@@ -39,6 +41,7 @@ static uint32_t s_ble_pairing_timer_ms = 0;
 void state_machine_reset(void)
 {
     s_system_state = STATE_IDLE_RUN;
+    s_active_preset_id = 0;
     s_ble_pairing_active = false;
     s_ble_pairing_timer_ms = 0;
 }
@@ -54,6 +57,16 @@ system_state_t state_machine_get_state(void)
 }
 
 /**
+ * @brief Query the currently executing button preset ID (1 to 4), or 0 when idle / running raw sequence.
+ *
+ * @return Active preset ID (1..4) or 0.
+ */
+uint8_t state_machine_get_active_preset(void)
+{
+    return s_active_preset_id;
+}
+
+/**
  * @brief Query whether the 120-second BLE pairing/discovery window is active.
  *
  * @return true if pairing window is open for new mobile devices, false otherwise.
@@ -61,6 +74,20 @@ system_state_t state_machine_get_state(void)
 bool state_machine_is_ble_pairing(void)
 {
     return s_ble_pairing_active;
+}
+
+/**
+ * @brief Close the active 120-second BLE pairing window and restore base IDLE LED state.
+ */
+void state_machine_close_ble_pairing(void)
+{
+    if (s_ble_pairing_active) {
+        s_ble_pairing_active = false;
+        s_ble_pairing_timer_ms = 0;
+        if (led_get_base_state() == LED_STATE_BLE_PAIRING) {
+            led_set_state(LED_STATE_IDLE);
+        }
+    }
 }
 
 /**
@@ -121,16 +148,49 @@ esp_err_t state_machine_process_command(const command_t *cmd)
         return ESP_ERR_INVALID_ARG;
     }
 
-    /* 1. Global Emergency Stop override */
+    /* 1. Global Emergency Stop & Stop Sequence overrides */
     if (cmd->type == CMD_EMERGENCY_STOP) {
 #ifdef ESP_PLATFORM
         ESP_LOGW(TAG, "Handling CMD_EMERGENCY_STOP in state %d", s_system_state);
 #endif
+        s_active_preset_id = 0;
         s_ble_pairing_active = false;
         s_ble_pairing_timer_ms = 0;
         motion_emergency_stop();
         pca9685_home_all();
         s_system_state = STATE_IDLE_RUN;
+        return ESP_OK;
+    }
+
+    if (cmd->type == CMD_STOP_SEQUENCE) {
+#ifdef ESP_PLATFORM
+        ESP_LOGI(TAG, "Handling CMD_STOP_SEQUENCE in state %d", s_system_state);
+#endif
+        s_active_preset_id = 0;
+        if (s_system_state == STATE_RUNNING_MOTION || motion_is_busy()) {
+            motion_emergency_stop();
+        } else {
+            led_set_state(s_ble_pairing_active ? LED_STATE_BLE_PAIRING : LED_STATE_IDLE);
+        }
+        pca9685_home_all();
+        s_system_state = STATE_IDLE_RUN;
+        return ESP_OK;
+    }
+
+    if (cmd->type == CMD_IDENTIFY_ROBOT) {
+#ifdef ESP_PLATFORM
+        ESP_LOGI(TAG, "Triggering 3.0s robot visual locator pulse (LED_STATE_IDENTIFY)...");
+#endif
+        led_set_state(LED_STATE_IDENTIFY);
+        return ESP_OK;
+    }
+
+    if (cmd->type == CMD_GET_TELEMETRY) {
+        return ble_transport_notify_telemetry();
+    }
+
+    if (cmd->type == CMD_SET_TELEMETRY_STREAM) {
+        ble_transport_set_telemetry_stream(cmd->payload.stream_enable);
         return ESP_OK;
     }
 
@@ -151,8 +211,10 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #endif
                     s_ble_pairing_active = false;
                     s_ble_pairing_timer_ms = 0;
+                    s_active_preset_id = preset_id;
                     s_system_state = STATE_RUNNING_MOTION;
                     esp_err_t err = motion_trigger_preset(preset_id);
+                    s_active_preset_id = 0;
                     s_system_state = STATE_IDLE_RUN;
                     return err;
                 }
@@ -163,6 +225,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #endif
                     s_ble_pairing_active = false;
                     s_ble_pairing_timer_ms = 0;
+                    s_active_preset_id = 0;
                     s_system_state = STATE_RUNNING_MOTION;
                     esp_err_t err = motion_execute_routine(&cmd->payload.raw_routine);
                     s_system_state = STATE_IDLE_RUN;
@@ -171,11 +234,12 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 
                 case CMD_ENTER_BLE_PAIRING: {
 #ifdef ESP_PLATFORM
-                    ESP_LOGI(TAG, "Entering 120-second BLE Pairing Mode (LED fast double-blink)...");
+                    ESP_LOGI(TAG, "Entering 120-second BLE Pairing Mode (preempting active BLE link & advertising)...");
 #endif
                     s_ble_pairing_active = true;
                     s_ble_pairing_timer_ms = 0;
                     led_set_state(LED_STATE_BLE_PAIRING);
+                    (void)ble_transport_enter_pairing_mode();
                     return ESP_OK;
                 }
 
@@ -194,6 +258,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                     esp_err_t err = storage_save_routine(preset_id, routine);
                     if (err == ESP_OK) {
                         led_set_state(LED_STATE_SAVE_SUCCESS);
+                        (void)ble_transport_notify_button_config();
                     } else {
                         led_set_state(LED_STATE_INPUT_ERROR);
                     }
@@ -208,7 +273,22 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                     pca9685_home_all();
                     if (err == ESP_OK) {
                         led_set_state(LED_STATE_SAVE_SUCCESS);
+                        (void)ble_transport_notify_button_config();
                     }
+                    return err;
+                }
+
+                case CMD_SYNC_PRESETS: {
+                    return ble_transport_notify_button_config();
+                }
+
+                case CMD_CLEAR_BLE_BONDS: {
+#ifdef ESP_PLATFORM
+                    ESP_LOGW(TAG, "Hardware bond reset triggered (B1+B4 5s hold). Clearing all BLE bonds...");
+#endif
+                    state_machine_close_ble_pairing();
+                    esp_err_t err = ble_transport_clear_bonds();
+                    led_set_state(LED_STATE_INPUT_ERROR);
                     return err;
                 }
 

@@ -79,6 +79,22 @@ static const led_pattern_def_t s_patterns[] = {
         .segment_count = 4,
         .is_transient = false,
         .segments = { {1, 100}, {0, 100}, {1, 100}, {0, 500} } /* Fast double-blink */
+    },
+    [LED_STATE_BLE_CONNECTED] = {
+        .segment_count = 1,
+        .is_transient = true,
+        .return_to_prior_base = true,
+        .segments = { {1, 1000} } /* Solid ON for 1.0 second, restores prior base */
+    },
+    [LED_STATE_IDENTIFY] = {
+        .segment_count = 12,
+        .is_transient = true,
+        .return_to_prior_base = true,
+        .segments = {
+            {1, 100}, {0, 100}, {1, 100}, {0, 700},
+            {1, 100}, {0, 100}, {1, 100}, {0, 700},
+            {1, 100}, {0, 100}, {1, 100}, {0, 700}
+        } /* 3 fast double-blinks over 3.0 seconds, restores prior base */
     }
 };
 
@@ -119,7 +135,7 @@ led_state_t led_get_base_state(void)
  */
 void led_set_state(led_state_t state)
 {
-    if (state > LED_STATE_BLE_PAIRING) {
+    if (state > LED_STATE_IDENTIFY) {
         state = LED_STATE_IDLE;
     }
 

@@ -30,12 +30,16 @@ static const uint8_t s_btn_gpios[BTN_ID_COUNT] = {
 
 /* Button debouncing and hold state array */
 static button_state_t s_buttons[BTN_ID_COUNT];
+static bool s_bond_reset_chord_active = false;
+static bool s_bond_reset_triggered = false;
 
 /**
  * @brief Reset internal debounce filter timers and gesture state for all buttons.
  */
 void buttons_reset_all(void)
 {
+    s_bond_reset_chord_active = false;
+    s_bond_reset_triggered = false;
     for (int i = 0; i < BTN_ID_COUNT; i++) {
         s_buttons[i].gpio_num = s_btn_gpios[i];
         s_buttons[i].current_stable_state = 1; /* Default released (Active Low) */
@@ -110,15 +114,37 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
         btn->debounce_timer_ms = 0;
     }
 
-    /* 2. Continuous hold duration tracking */
+    /* 2. Continuous hold duration tracking & B1+B4 5s bond-reset chord detection */
     if (btn->current_stable_state == 0) {
         btn->press_duration_ms += elapsed_ms;
 
-        /* Long press trigger condition: >= 3000ms */
-        if (!btn->long_press_triggered && (btn->press_duration_ms >= BUTTON_LONG_PRESS_MS)) {
+        bool b1_b4_held = (s_buttons[BTN_ID_1].current_stable_state == 0) &&
+                          (s_buttons[BTN_ID_4].current_stable_state == 0);
+
+        if (b1_b4_held && (btn_idx == BTN_ID_1 || btn_idx == BTN_ID_4)) {
+            /* Suppress single-button 3s pairing gesture and trailing tap on both B1 and B4 */
+            s_bond_reset_chord_active = true;
+            s_buttons[BTN_ID_1].long_press_triggered = true;
+            s_buttons[BTN_ID_4].long_press_triggered = true;
+
+            if (!s_bond_reset_triggered &&
+                s_buttons[BTN_ID_1].press_duration_ms >= BUTTON_BOND_RESET_MS &&
+                s_buttons[BTN_ID_4].press_duration_ms >= BUTTON_BOND_RESET_MS) {
+                s_bond_reset_triggered = true;
+                detected_gesture = GESTURE_BOND_RESET;
+            }
+        } else if (!btn->long_press_triggered && (btn->press_duration_ms >= BUTTON_LONG_PRESS_MS)) {
+            /* Single-button Long press trigger condition: >= 3000ms */
             btn->long_press_triggered = true;
             detected_gesture = GESTURE_LONG_PRESS;
         }
+    }
+
+    if (s_bond_reset_chord_active &&
+        s_buttons[BTN_ID_1].current_stable_state == 1 &&
+        s_buttons[BTN_ID_4].current_stable_state == 1) {
+        s_bond_reset_chord_active = false;
+        s_bond_reset_triggered = false;
     }
 
     return detected_gesture;
@@ -131,9 +157,10 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
  *   - Any short tap during STATE_RUNNING_MOTION -> CMD_EMERGENCY_STOP.
  *   - Short tap in STATE_IDLE_RUN -> CMD_RUN_PRESET (Preset 1..4).
  *   - Long press (>=3s) in STATE_IDLE_RUN -> CMD_ENTER_BLE_PAIRING (120s BLE discovery window).
+ *   - B1+B4 chord hold (>=5s) in STATE_IDLE_RUN -> CMD_CLEAR_BLE_BONDS.
  *
  * @param btn_idx Button index (0 to 3).
- * @param gesture Detected gesture (GESTURE_SHORT_TAP or GESTURE_LONG_PRESS).
+ * @param gesture Detected gesture (GESTURE_SHORT_TAP, GESTURE_LONG_PRESS, or GESTURE_BOND_RESET).
  * @param current_state Current system_state_t.
  * @return Constructed command_t structure ready for queue dispatch.
  */
@@ -157,6 +184,10 @@ command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, s
     } else if (gesture == GESTURE_LONG_PRESS) {
         if (current_state == STATE_IDLE_RUN) {
             cmd.type = CMD_ENTER_BLE_PAIRING;
+        }
+    } else if (gesture == GESTURE_BOND_RESET) {
+        if (current_state == STATE_IDLE_RUN) {
+            cmd.type = CMD_CLEAR_BLE_BONDS;
         }
     }
 
@@ -207,6 +238,12 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
         if (cur_state == STATE_IDLE_RUN) {
             ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_BLE_PAIRING (120s window)",
                      btn_idx + 1);
+        } else {
+            return;
+        }
+    } else if (gesture == GESTURE_BOND_RESET) {
+        if (cur_state == STATE_IDLE_RUN) {
+            ESP_LOGW(TAG, "[BUTTON B1+B4] Simultaneous 5s Hold detected -> Dispatched CMD_CLEAR_BLE_BONDS");
         } else {
             return;
         }

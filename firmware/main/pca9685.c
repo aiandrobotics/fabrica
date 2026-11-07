@@ -25,6 +25,27 @@ static uint8_t s_mock_regs[256];
 static bool s_mock_probe_success = true;
 #endif
 
+static volatile uint8_t s_channel_angles[TOTAL_SERVO_CHANNELS];
+
+static uint8_t clamp_angle_u8(float angle_deg)
+{
+    if (angle_deg < HOME_ANGLE_DEG) {
+        return 0;
+    }
+    if (angle_deg > FOLD_ANGLE_DEG) {
+        return 180;
+    }
+    return (uint8_t)(roundf(angle_deg));
+}
+
+uint8_t pca9685_get_channel_angle(uint8_t channel)
+{
+    if (channel >= TOTAL_SERVO_CHANNELS) {
+        return 0;
+    }
+    return s_channel_angles[channel];
+}
+
 /* ========================================================================= */
 /* Angle to PWM Conversion Math                                              */
 /* ========================================================================= */
@@ -329,7 +350,11 @@ esp_err_t pca9685_set_servo_angle(uint8_t channel, float angle_deg)
     }
 
     uint16_t off_count = pca9685_angle_to_counts(angle_deg);
-    return pca9685_set_pwm(channel, 0, off_count);
+    esp_err_t err = pca9685_set_pwm(channel, 0, off_count);
+    if (err == ESP_OK) {
+        s_channel_angles[channel] = clamp_angle_u8(angle_deg);
+    }
+    return err;
 }
 
 /**
@@ -344,10 +369,15 @@ esp_err_t pca9685_set_servo_angle(uint8_t channel, float angle_deg)
 esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)
 {
     uint16_t off_count = pca9685_angle_to_counts(angle_deg);
+    uint8_t clamped_u8 = clamp_angle_u8(angle_deg);
 
     /* If all 16 channels are targeted, use fast ALL_LED broadcast */
     if (channel_mask == 0xFFFF) {
-        return pca9685_set_all_pwm(0, off_count);
+        esp_err_t err = pca9685_set_all_pwm(0, off_count);
+        if (err == ESP_OK) {
+            memset((void *)s_channel_angles, clamped_u8, sizeof(s_channel_angles));
+        }
+        return err;
     }
 
     /* Otherwise, update each specified channel in bitmask */
@@ -357,6 +387,7 @@ esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)
             if (err != ESP_OK) {
                 return err;
             }
+            s_channel_angles[ch] = clamped_u8;
         }
     }
 
@@ -371,7 +402,11 @@ esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)
 esp_err_t pca9685_home_all(void)
 {
     uint16_t home_counts = pca9685_angle_to_counts(HOME_ANGLE_DEG);
-    return pca9685_set_all_pwm(0, home_counts);
+    esp_err_t err = pca9685_set_all_pwm(0, home_counts);
+    if (err == ESP_OK) {
+        memset((void *)s_channel_angles, 0, sizeof(s_channel_angles));
+    }
+    return err;
 }
 
 /**
@@ -433,6 +468,7 @@ esp_err_t pca9685_sleep(bool enable)
 void pca9685_mock_reset(void)
 {
     memset(s_mock_regs, 0, sizeof(s_mock_regs));
+    memset((void *)s_channel_angles, 0, sizeof(s_channel_angles));
     s_mock_probe_success = true;
 }
 

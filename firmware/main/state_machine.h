@@ -75,10 +75,21 @@ esp_err_t state_machine_init(void);
 system_state_t state_machine_get_state(void);
 
 /**
+ * @brief Query the currently executing button preset ID (1 to 4), or 0 when idle / running raw sequence.
+ * @return Active preset ID (1..4) or 0.
+ */
+uint8_t state_machine_get_active_preset(void);
+
+/**
  * @brief Query whether the 120-second BLE pairing/discovery window is active.
  * @return true if pairing window is open for new mobile devices, false otherwise.
  */
 bool state_machine_is_ble_pairing(void);
+
+/**
+ * @brief Close the active 120-second BLE pairing window upon successful SMP bonding or bond reset.
+ */
+void state_machine_close_ble_pairing(void);
 
 /**
  * @brief Process incoming command through the state machine.

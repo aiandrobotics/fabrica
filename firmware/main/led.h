@@ -8,9 +8,18 @@
 #include "esp_err.h"
 #else
 typedef int esp_err_t;
-#define ESP_OK          0
-#define ESP_FAIL        -1
-#define ESP_ERR_NO_MEM  0x101
+#ifndef ESP_OK
+#define ESP_OK                  0
+#endif
+#ifndef ESP_FAIL
+#define ESP_FAIL                -1
+#endif
+#ifndef ESP_ERR_NO_MEM
+#define ESP_ERR_NO_MEM          0x101
+#endif
+#ifndef ESP_ERR_INVALID_ARG
+#define ESP_ERR_INVALID_ARG     0x102
+#endif
 #endif
 
 #ifdef __cplusplus
@@ -21,12 +30,14 @@ extern "C" {
  * @brief Visual status LED pattern states.
  */
 typedef enum {
-    LED_STATE_IDLE = 0,     /**< Soft heartbeat (100ms ON / 1900ms OFF) */
-    LED_STATE_RUNNING,      /**< Solid ON throughout routine motion */
-    LED_STATE_SAVE_SUCCESS, /**< Solid ON for 2000ms -> return to IDLE */
-    LED_STATE_INPUT_ERROR,  /**< 3 fast flashes (60ms ON / 60ms OFF) -> return to base */
-    LED_STATE_ESTOP,        /**< 5 rapid flashes (50ms ON / 50ms OFF) -> return to IDLE */
-    LED_STATE_BLE_PAIRING   /**< Fast double-blink (100ms ON/100ms OFF/100ms ON/500ms OFF) */
+    LED_STATE_IDLE = 0,         /**< Soft heartbeat (100ms ON / 1900ms OFF) */
+    LED_STATE_RUNNING,          /**< Solid ON throughout routine motion */
+    LED_STATE_SAVE_SUCCESS,     /**< Solid ON for 2000ms -> return to IDLE */
+    LED_STATE_INPUT_ERROR,      /**< 3 fast flashes (60ms ON / 60ms OFF) -> return to base */
+    LED_STATE_ESTOP,            /**< 5 rapid flashes (50ms ON / 50ms OFF) -> return to IDLE */
+    LED_STATE_BLE_PAIRING,      /**< Fast double-blink (100ms ON/100ms OFF/100ms ON/500ms OFF) */
+    LED_STATE_BLE_CONNECTED,    /**< Solid ON for 1000ms -> return to prior base */
+    LED_STATE_IDENTIFY          /**< 3 fast double-blinks (3000ms total) -> return to prior base */
 } led_state_t;
 
 /**

@@ -8,9 +8,15 @@
 #include "esp_err.h"
 #else
 typedef int esp_err_t;
+#ifndef ESP_OK
 #define ESP_OK          0
+#endif
+#ifndef ESP_FAIL
 #define ESP_FAIL        -1
+#endif
+#ifndef ESP_ERR_NO_MEM
 #define ESP_ERR_NO_MEM  0x101
+#endif
 #endif
 #include "config.h"
 #include "command.h"
@@ -42,7 +48,8 @@ typedef enum {
 typedef enum {
     GESTURE_NONE = 0,
     GESTURE_SHORT_TAP = 1,   /**< Pressed and released in < 500ms */
-    GESTURE_LONG_PRESS = 2   /**< Held continuously for >= 3000ms */
+    GESTURE_LONG_PRESS = 2,  /**< Single button held continuously for >= 3000ms */
+    GESTURE_BOND_RESET = 3   /**< B1 + B4 held simultaneously for >= 5000ms */
 } button_gesture_t;
 
 /**
