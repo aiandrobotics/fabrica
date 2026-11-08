@@ -54,6 +54,8 @@ extern "C" {
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
 #define FOLD_DWELL_TIME_MS           300    /* Flap hold time at fold angle */
 #define INTER_STEP_DELAY_MS          200    /* Delay between routine steps */
+#define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
+#define CALIBRATION_INACTIVITY_TIMEOUT_MS 15000 /* Calibration auto-home & exit timeout (15s) */
 
 /* ========================================================================= */
 /* Bluetooth Low Energy (NimBLE) Transport Parameters                        */

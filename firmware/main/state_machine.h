@@ -55,12 +55,21 @@ extern "C" {
 
 typedef enum {
     STATE_IDLE_RUN = 0,         /**< Daily Run Mode (Awaiting preset trigger or mobile command) */
-    STATE_RUNNING_MOTION = 1    /**< Motion execution active (Core 0 busy) */
+    STATE_RUNNING_MOTION = 1,   /**< Motion execution active (Core 0 busy) */
+    STATE_ESTOP = 2,            /**< Latched Emergency Stop (Servos homed, requires 0x02 or button tap) */
+    STATE_ERROR = 3,            /**< Hardware / I2C / storage fault state */
+    STATE_CALIBRATING = 4       /**< Live servo jog / calibration mode (10s thermal / 15s auto-home) */
 } system_state_t;
 
 /* ========================================================================= */
 /* State Machine Public API                                                  */
 /* ========================================================================= */
+
+/**
+ * @brief Bind the FreeRTOS command queue handle for thread-safe Core 1 timer/disconnect dispatch.
+ * @param queue Handle to the system command queue (optional in host unit tests).
+ */
+void state_machine_set_command_queue(QueueHandle_t queue);
 
 /**
  * @brief Initialize State Machine engine.
@@ -90,6 +99,20 @@ bool state_machine_is_ble_pairing(void);
  * @brief Close the active 120-second BLE pairing window upon successful SMP bonding or bond reset.
  */
 void state_machine_close_ble_pairing(void);
+
+/**
+ * @brief Query whether stationary servos are currently de-energized by the 10s thermal cutoff
+ *        while in STATE_CALIBRATING.
+ * @return true if PCA9685 oscillator thermal sleep is active, false otherwise.
+ */
+bool state_machine_is_calibrating_thermal_sleep(void);
+
+/**
+ * @brief Notify the state machine that the active BLE central has disconnected.
+ *        If currently in STATE_CALIBRATING, immediately wakes/homes all 16 servos to 0°
+ *        and returns to STATE_IDLE_RUN.
+ */
+void state_machine_on_ble_disconnect(void);
 
 /**
  * @brief Process incoming command through the state machine.

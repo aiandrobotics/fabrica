@@ -207,7 +207,13 @@ void test_mid_sweep_emergency_stop_preemption(void)
     translated_cmd = buttons_translate_gesture(BTN_ID_4, GESTURE_SHORT_TAP, STATE_RUNNING_MOTION);
     TEST_ASSERT(translated_cmd.type == CMD_EMERGENCY_STOP, "Button 4 tap during motion maps to CMD_EMERGENCY_STOP");
 
-    /* 4. Verify clean recovery: Next routine execution clears E-Stop abort flag */
+    /* 4. Verify latched STATE_ESTOP clear via physical button tap, then routine execution */
+    TEST_ASSERT(state_machine_get_state() == STATE_ESTOP, "State is latched in STATE_ESTOP after E-Stop");
+    command_t clear_cmd = buttons_translate_gesture(BTN_ID_1, GESTURE_SHORT_TAP, STATE_ESTOP);
+    TEST_ASSERT(clear_cmd.type == CMD_STOP_SEQUENCE, "Button tap in STATE_ESTOP maps to CMD_STOP_SEQUENCE");
+    TEST_ASSERT(state_machine_process_command(&clear_cmd) == ESP_OK, "Physical button tap clears STATE_ESTOP");
+    TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "State cleared back to STATE_IDLE_RUN");
+
     command_t cmd_run;
     memset(&cmd_run, 0, sizeof(cmd_run));
     cmd_run.type = CMD_RUN_PRESET;
@@ -323,13 +329,16 @@ void test_rapid_mode_invariants_and_watchdog(void)
         cmd_jog.payload.jog_param.angle_deg = 45.0f;
         state_machine_process_command(&cmd_jog);
 
-        /* 3. Interrupt with Emergency Stop */
+        /* 3. Interrupt with Emergency Stop and clear back to STATE_IDLE_RUN */
         command_t cmd_estop;
         memset(&cmd_estop, 0, sizeof(cmd_estop));
         cmd_estop.type = CMD_EMERGENCY_STOP;
         cmd_estop.source = SOURCE_PHYSICAL_BUTTON;
         state_machine_process_command(&cmd_estop);
+        assert(state_machine_get_state() == STATE_ESTOP);
 
+        command_t cmd_clear = {.type = CMD_STOP_SEQUENCE, .source = SOURCE_PHYSICAL_BUTTON};
+        state_machine_process_command(&cmd_clear);
         assert(state_machine_get_state() == STATE_IDLE_RUN);
     }
     TEST_ASSERT(true, "50 rapid wireless sync, jog, and E-Stop cycles executed without deadlock");

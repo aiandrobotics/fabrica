@@ -245,15 +245,23 @@ esp_err_t ble_transport_notify_button_config(void);
 /**
  * @brief Process a GATT Write / Write-Without-Response to FAB1 Control Point.
  *
- * Validates wire opcodes (0x00-0x03, 0x0A-0x11), invokes Core 1 fast-path
- * E-Stop for 0x02/0x03, enforces busy guards while motion is running, and
- * enqueues command_t (SOURCE_BLE) to xCommandQueue.
+ * Delegates to remote_cmd_handle_fab1_write() to validate wire opcodes (0x00-0x03,
+ * 0x0A-0x11), invoke Core 1 fast-path E-Stop for 0x02/0x03, enforce busy and E-Stop
+ * guards, and enqueue command_t (SOURCE_BLE) to xCommandQueue.
  *
  * @param data Raw GATT write payload bytes.
  * @param len Payload length in bytes.
  * @return CMD_STATUS_OK on acceptance, or specific cmd_status_t error reason.
  */
 cmd_status_t ble_transport_write_fab1(const uint8_t *data, size_t len);
+
+/**
+ * @brief Enqueue a validated SOURCE_BLE command into xCommandQueue (or host test FIFO).
+ *
+ * @param cmd Pointer to populated command_t structure.
+ * @return ESP_OK on success, or ESP_ERR_NO_MEM / ESP_ERR_INVALID_STATE.
+ */
+esp_err_t ble_transport_enqueue_command(const command_t *cmd);
 
 /* ========================================================================= */
 /* Host Simulation & Unit Test Inspection Hooks (Non-ESP_PLATFORM Only)      */

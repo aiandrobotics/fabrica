@@ -11,6 +11,7 @@
 #include "motion.h"
 #include "state_machine.h"
 #include "ble_transport.h"
+#include "remote_cmd.h"
 
 #ifdef ESP_PLATFORM
 #include "freertos/FreeRTOS.h"
@@ -61,7 +62,6 @@ static const uint8_t s_fab0_uuid128_le[16] = {
 static char s_device_name[16] = "Fabrica-0000";
 static bool s_is_connected = false;
 static uint16_t s_negotiated_mtu = 23;
-static cmd_status_t s_last_cmd_status = CMD_STATUS_OK;
 static bool s_telemetry_stream_enabled = false;
 static uint16_t s_telemetry_seq_counter = 0;
 
@@ -152,7 +152,7 @@ uint16_t ble_transport_get_mtu(void)
 
 cmd_status_t ble_transport_get_last_cmd_status(void)
 {
-    return s_last_cmd_status;
+    return remote_cmd_get_last_status();
 }
 
 void ble_transport_set_telemetry_stream(bool enable)
@@ -163,87 +163,6 @@ void ble_transport_set_telemetry_stream(bool enable)
 bool ble_transport_is_telemetry_stream_enabled(void)
 {
     return s_telemetry_stream_enabled;
-}
-
-/**
- * @brief Validate, zero-pad, and compute/verify IEEE 802.3 CRC32 for an incoming routine payload.
- *
- * Supports both full 53-byte fold_routine_t wire buffers and compact [1B step_count][3B * step_count]
- * payloads. When checksum == 0 or is_compact == true, unused step slots are zero-padded and CRC32
- * is computed automatically. When checksum != 0 in full mode, CRC32 is verified strictly.
- */
-static cmd_status_t validate_and_normalize_routine(const uint8_t *buf,
-                                                   size_t buf_len,
-                                                   bool is_compact,
-                                                   fold_routine_t *out_routine)
-{
-    if (buf == NULL || out_routine == NULL || buf_len < 1) {
-        return CMD_STATUS_ERR_INVALID_ARG;
-    }
-
-    uint8_t step_count = buf[0];
-    if (step_count == 0) {
-        return CMD_STATUS_ERR_INVALID_STEP;
-    }
-    if (step_count > MAX_STEPS_PER_ROUTINE) {
-        return CMD_STATUS_ERR_ROUTINE_FULL;
-    }
-
-    fold_routine_t candidate;
-    memset(&candidate, 0, sizeof(candidate));
-
-    if (is_compact) {
-        size_t expected_len = 1U + ((size_t)step_count * sizeof(fold_step_t));
-        if (buf_len != expected_len) {
-            return CMD_STATUS_ERR_INVALID_ARG;
-        }
-        candidate.step_count = step_count;
-        memcpy(candidate.steps, &buf[1], (size_t)step_count * sizeof(fold_step_t));
-        candidate.checksum = 0;
-    } else {
-        if (buf_len != sizeof(fold_routine_t)) {
-            return CMD_STATUS_ERR_INVALID_ARG;
-        }
-        memcpy(&candidate, buf, sizeof(fold_routine_t));
-
-        /* If caller provided a non-zero CRC32, verify integrity before normalizing */
-        if (candidate.checksum != 0) {
-            uint32_t expected_crc = storage_compute_crc32(&candidate);
-            if (expected_crc != candidate.checksum) {
-                return CMD_STATUS_ERR_CRC_MISMATCH;
-            }
-        }
-    }
-
-    /* Validate motor counts and servo channel bounds for every active step */
-    for (uint8_t s = 0; s < step_count; s++) {
-        uint8_t m_cnt = candidate.steps[s].motor_count;
-        if (m_cnt == 0 || m_cnt > MAX_MOTORS_PER_STEP) {
-            return CMD_STATUS_ERR_MOTOR_BOUNDS;
-        }
-        for (uint8_t m = 0; m < m_cnt; m++) {
-            if (candidate.steps[s].motor_ids[m] >= TOTAL_SERVO_CHANNELS) {
-                return CMD_STATUS_ERR_MOTOR_BOUNDS;
-            }
-        }
-        if (is_compact || candidate.checksum == 0) {
-            for (uint8_t m = m_cnt; m < MAX_MOTORS_PER_STEP; m++) {
-                candidate.steps[s].motor_ids[m] = 0;
-            }
-        }
-    }
-
-    /* Zero-pad unused trailing steps and auto-compute CRC32 when checksum == 0 or compact */
-    if (is_compact || candidate.checksum == 0) {
-        if (step_count < MAX_STEPS_PER_ROUTINE) {
-            memset(&candidate.steps[step_count], 0,
-                   (size_t)(MAX_STEPS_PER_ROUTINE - step_count) * sizeof(fold_step_t));
-        }
-        candidate.checksum = storage_compute_crc32(&candidate);
-    }
-
-    *out_routine = candidate;
-    return CMD_STATUS_OK;
 }
 
 static esp_err_t build_fab3_table_bytes(uint8_t out_table[BLE_FAB3_TABLE_SIZE])
@@ -279,16 +198,21 @@ void ble_transport_build_telemetry(telemetry_packet_t *out_pkt)
     out_pkt->active_button_id = (out_pkt->system_state == STATE_RUNNING_MOTION)
                                 ? state_machine_get_active_preset()
                                 : 0;
-    out_pkt->current_step_idx = 0;
-    out_pkt->total_steps = 0;
-    out_pkt->step_progress_pct = 0;
+
+    uint8_t step_idx = 0;
+    uint8_t total_steps = 0;
+    uint8_t progress_pct = 0;
+    remote_cmd_get_progress_snapshot(&step_idx, &total_steps, &progress_pct);
+    out_pkt->current_step_idx = step_idx;
+    out_pkt->total_steps = total_steps;
+    out_pkt->step_progress_pct = progress_pct;
     out_pkt->elapsed_step_time_ms = 0;
 
     for (uint8_t ch = 0; ch < TOTAL_SERVO_CHANNELS; ch++) {
         out_pkt->channel_angles[ch] = pca9685_get_channel_angle(ch);
     }
 
-    out_pkt->last_cmd_status = (uint8_t)s_last_cmd_status;
+    out_pkt->last_cmd_status = (uint8_t)remote_cmd_get_last_status();
 
 #ifdef ESP_PLATFORM
     out_pkt->free_heap_kb = (uint16_t)(esp_get_free_heap_size() / 1024U);
@@ -308,7 +232,7 @@ void ble_transport_build_telemetry(telemetry_packet_t *out_pkt)
 #endif
 
     uint8_t err_mask = 0;
-    if (motion_get_status() == MOTION_STATUS_ABORTED) {
+    if (out_pkt->system_state == STATE_ESTOP || motion_get_status() == MOTION_STATUS_ABORTED) {
         err_mask |= (1U << 2);
     }
     out_pkt->error_code = err_mask;
@@ -317,284 +241,12 @@ void ble_transport_build_telemetry(telemetry_packet_t *out_pkt)
 
 cmd_status_t ble_transport_write_fab3(const uint8_t *data, size_t len)
 {
-    if (data == NULL || len == 0) {
-        s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-        led_set_state(LED_STATE_INPUT_ERROR);
-        return s_last_cmd_status;
-    }
-
-    /* Enforce active-motion write lock */
-    if (motion_is_busy() || state_machine_get_state() == STATE_RUNNING_MOTION) {
-        s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-        return s_last_cmd_status;
-    }
-
-    if (len == BLE_FAB3_TABLE_SIZE) {
-        /* Full 212-byte 4-button table write: validate all 4 slots atomically before saving */
-        fold_routine_t validated[TOTAL_PRESET_COUNT];
-        for (uint8_t i = 0; i < TOTAL_PRESET_COUNT; i++) {
-            cmd_status_t st = validate_and_normalize_routine(
-                &data[(size_t)i * sizeof(fold_routine_t)],
-                sizeof(fold_routine_t),
-                false,
-                &validated[i]);
-            if (st != CMD_STATUS_OK) {
-                s_last_cmd_status = st;
-                led_set_state(LED_STATE_INPUT_ERROR);
-                return st;
-            }
-        }
-        for (uint8_t i = 0; i < TOTAL_PRESET_COUNT; i++) {
-            if (storage_save_routine(i + 1, &validated[i]) != ESP_OK) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                led_set_state(LED_STATE_INPUT_ERROR);
-                return s_last_cmd_status;
-            }
-        }
-    } else if (len == sizeof(button_sync_param_t)) {
-        /* Single-button 54-byte write: [1B preset_id][53B fold_routine_t] */
-        uint8_t preset_id = data[0];
-        if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
-            s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-            led_set_state(LED_STATE_INPUT_ERROR);
-            return s_last_cmd_status;
-        }
-        fold_routine_t validated;
-        cmd_status_t st = validate_and_normalize_routine(&data[1], sizeof(fold_routine_t), false, &validated);
-        if (st != CMD_STATUS_OK) {
-            s_last_cmd_status = st;
-            led_set_state(LED_STATE_INPUT_ERROR);
-            return st;
-        }
-        if (storage_save_routine(preset_id, &validated) != ESP_OK) {
-            s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-            led_set_state(LED_STATE_INPUT_ERROR);
-            return s_last_cmd_status;
-        }
-    } else if (len >= 2) {
-        /* Compact variable-length single-button write: [1B preset_id][1B step_count][3B * step_count] */
-        uint8_t preset_id = data[0];
-        if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
-            s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-            led_set_state(LED_STATE_INPUT_ERROR);
-            return s_last_cmd_status;
-        }
-        fold_routine_t validated;
-        cmd_status_t st = validate_and_normalize_routine(&data[1], len - 1U, true, &validated);
-        if (st != CMD_STATUS_OK) {
-            s_last_cmd_status = st;
-            led_set_state(LED_STATE_INPUT_ERROR);
-            return st;
-        }
-        if (storage_save_routine(preset_id, &validated) != ESP_OK) {
-            s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-            led_set_state(LED_STATE_INPUT_ERROR);
-            return s_last_cmd_status;
-        }
-    } else {
-        s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-        led_set_state(LED_STATE_INPUT_ERROR);
-        return s_last_cmd_status;
-    }
-
-    s_last_cmd_status = CMD_STATUS_OK;
-    led_set_state(LED_STATE_SAVE_SUCCESS);
-    (void)ble_transport_notify_button_config();
-    return CMD_STATUS_OK;
+    return remote_cmd_handle_fab3_write(data, len);
 }
-
-static esp_err_t enqueue_ble_command(const command_t *cmd);
 
 cmd_status_t ble_transport_write_fab1(const uint8_t *data, size_t len)
 {
-    if (data == NULL || len == 0) {
-        s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-        return s_last_cmd_status;
-    }
-
-    uint8_t opcode = data[0];
-    command_t cmd;
-    memset(&cmd, 0, sizeof(cmd));
-    cmd.source = SOURCE_BLE;
-
-    bool busy = motion_is_busy() || (state_machine_get_state() == STATE_RUNNING_MOTION);
-
-    switch (opcode) {
-        case BLE_OP_RUN_PRESET: {
-            if (len != 2) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            uint8_t preset_id = data[1];
-            if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            if (busy) {
-                s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_RUN_PRESET;
-            cmd.payload.preset_id = preset_id;
-            break;
-        }
-
-        case BLE_OP_RUN_RAW_SEQUENCE: {
-            if (len < 2) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            if (busy) {
-                s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-                return s_last_cmd_status;
-            }
-            bool is_compact = (len != (1U + sizeof(fold_routine_t)));
-            cmd_status_t st = validate_and_normalize_routine(&data[1], len - 1U, is_compact,
-                                                             &cmd.payload.raw_routine);
-            if (st != CMD_STATUS_OK) {
-                s_last_cmd_status = st;
-                return st;
-            }
-            cmd.type = CMD_RUN_RAW_SEQUENCE;
-            break;
-        }
-
-        case BLE_OP_STOP_SEQUENCE: {
-            if (len != 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            if (motion_is_busy()) {
-                motion_emergency_stop();
-            }
-            cmd.type = CMD_STOP_SEQUENCE;
-            break;
-        }
-
-        case BLE_OP_EMERGENCY_STOP: {
-            if (len != 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            /* Core 1 fast-path E-Stop preemption (<10ms latency) */
-            motion_emergency_stop();
-            cmd.type = CMD_EMERGENCY_STOP;
-            break;
-        }
-
-        case BLE_OP_SET_BUTTON_SEQUENCE: {
-            if (len < 3) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            if (busy) {
-                s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-                return s_last_cmd_status;
-            }
-            uint8_t preset_id = data[1];
-            if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            bool is_compact = (len != (1U + sizeof(button_sync_param_t)));
-            cmd_status_t st = validate_and_normalize_routine(&data[2], len - 2U, is_compact,
-                                                             &cmd.payload.button_sync.routine);
-            if (st != CMD_STATUS_OK) {
-                s_last_cmd_status = st;
-                return st;
-            }
-            cmd.type = CMD_SET_BUTTON_SEQUENCE;
-            cmd.payload.button_sync.preset_id = preset_id;
-            break;
-        }
-
-        case BLE_OP_GET_BUTTON_CONFIG: {
-            if (len != 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_SYNC_PRESETS;
-            break;
-        }
-
-        case BLE_OP_RESTORE_FACTORY_PRESETS: {
-            if (len != 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            if (busy) {
-                s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_RESTORE_FACTORY_PRESETS;
-            break;
-        }
-
-        case BLE_OP_JOG_MOTOR_ANGLE: {
-            if (len != 3) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            if (busy) {
-                s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-                return s_last_cmd_status;
-            }
-            uint8_t channel = data[1];
-            uint8_t angle_deg = data[2];
-            if (channel >= TOTAL_SERVO_CHANNELS) {
-                s_last_cmd_status = CMD_STATUS_ERR_MOTOR_BOUNDS;
-                return s_last_cmd_status;
-            }
-            if ((float)angle_deg > FOLD_ANGLE_DEG) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_JOG_MOTOR_ANGLE;
-            cmd.payload.jog_param.channel = channel;
-            cmd.payload.jog_param.angle_deg = (float)angle_deg;
-            break;
-        }
-
-        case BLE_OP_IDENTIFY_ROBOT: {
-            if (len != 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_IDENTIFY_ROBOT;
-            break;
-        }
-
-        case BLE_OP_GET_TELEMETRY: {
-            if (len != 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_GET_TELEMETRY;
-            break;
-        }
-
-        case BLE_OP_SET_TELEMETRY_STREAM: {
-            if (len != 2 || data[1] > 1) {
-                s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-                return s_last_cmd_status;
-            }
-            cmd.type = CMD_SET_TELEMETRY_STREAM;
-            cmd.payload.stream_enable = (data[1] != 0);
-            break;
-        }
-
-        default:
-            s_last_cmd_status = CMD_STATUS_ERR_INVALID_ARG;
-            return s_last_cmd_status;
-    }
-
-    if (enqueue_ble_command(&cmd) != ESP_OK) {
-        s_last_cmd_status = CMD_STATUS_ERR_BUSY;
-        return s_last_cmd_status;
-    }
-
-    s_last_cmd_status = CMD_STATUS_OK;
-    return CMD_STATUS_OK;
+    return remote_cmd_handle_fab1_write(data, len);
 }
 
 /* ========================================================================= */
@@ -652,7 +304,7 @@ static int8_t ble_platform_query_rssi(void)
     return rssi;
 }
 
-static esp_err_t enqueue_ble_command(const command_t *cmd)
+esp_err_t ble_transport_enqueue_command(const command_t *cmd)
 {
     if (s_cmd_queue == NULL || cmd == NULL) {
         return ESP_ERR_INVALID_STATE;
@@ -1021,6 +673,7 @@ static int ble_gap_event_handler(struct ble_gap_event *event, void *arg)
             s_negotiated_mtu = 23;
             s_fab2_subscribed = false;
             s_fab3_subscribed = false;
+            state_machine_on_ble_disconnect();
             ble_start_advertising();
             return 0;
         }
@@ -1130,6 +783,7 @@ esp_err_t ble_transport_enter_pairing_mode(void)
         if (ble_gap_terminate(s_conn_handle, BLE_ERR_REM_USER_CONN_TERM) != 0) {
             s_is_connected = false;
             s_conn_handle = BLE_HS_CONN_HANDLE_NONE;
+            state_machine_on_ble_disconnect();
             ble_start_advertising();
         }
     } else {
@@ -1196,6 +850,7 @@ esp_err_t ble_transport_notify_button_config(void)
 esp_err_t ble_transport_start(QueueHandle_t cmd_queue)
 {
     s_cmd_queue = cmd_queue;
+    remote_cmd_reset();
 
     uint8_t bt_mac[6] = {0};
     if (esp_read_mac(bt_mac, ESP_MAC_BT) == ESP_OK) {
@@ -1283,7 +938,7 @@ static command_t s_mock_cmd_fifo[COMMAND_QUEUE_LENGTH];
 static size_t s_mock_cmd_head = 0;
 static size_t s_mock_cmd_count = 0;
 
-static esp_err_t enqueue_ble_command(const command_t *cmd)
+esp_err_t ble_transport_enqueue_command(const command_t *cmd)
 {
     if (cmd == NULL) {
         return ESP_ERR_INVALID_ARG;
@@ -1304,7 +959,7 @@ void ble_transport_mock_reset(void)
 
     s_is_connected = false;
     s_negotiated_mtu = 23;
-    s_last_cmd_status = CMD_STATUS_OK;
+    remote_cmd_reset();
     s_telemetry_stream_enabled = false;
     s_telemetry_seq_counter = 0;
 
@@ -1445,11 +1100,15 @@ esp_err_t ble_transport_enter_pairing_mode(void)
 
 void ble_transport_mock_disconnect(void)
 {
+    bool was_connected = s_is_connected;
     s_is_connected = false;
     s_negotiated_mtu = 23;
     s_mock_fab2_cccd = 0;
     s_mock_fab3_cccd = 0;
     s_mock_conn_info.advertising_active = true;
+    if (was_connected) {
+        state_machine_on_ble_disconnect();
+    }
 }
 
 uint16_t ble_transport_mock_exchange_mtu(uint16_t central_mtu)
