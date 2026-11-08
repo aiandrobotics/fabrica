@@ -202,11 +202,12 @@ void ble_transport_build_telemetry(telemetry_packet_t *out_pkt)
     uint8_t step_idx = 0;
     uint8_t total_steps = 0;
     uint8_t progress_pct = 0;
-    remote_cmd_get_progress_snapshot(&step_idx, &total_steps, &progress_pct);
+    uint16_t elapsed_ms = 0;
+    remote_cmd_get_progress_snapshot(&step_idx, &total_steps, &progress_pct, &elapsed_ms);
     out_pkt->current_step_idx = step_idx;
     out_pkt->total_steps = total_steps;
     out_pkt->step_progress_pct = progress_pct;
-    out_pkt->elapsed_step_time_ms = 0;
+    out_pkt->elapsed_step_time_ms = elapsed_ms;
 
     for (uint8_t ch = 0; ch < TOTAL_SERVO_CHANNELS; ch++) {
         out_pkt->channel_angles[ch] = pca9685_get_channel_angle(ch);
@@ -811,6 +812,11 @@ esp_err_t ble_transport_clear_bonds(void)
     return ESP_OK;
 }
 
+bool ble_transport_is_telemetry_subscribed(void)
+{
+    return s_is_connected && s_fab2_subscribed && (s_conn_handle != BLE_HS_CONN_HANDLE_NONE);
+}
+
 esp_err_t ble_transport_notify_telemetry(void)
 {
     if (!s_is_connected || !s_fab2_subscribed || s_conn_handle == BLE_HS_CONN_HANDLE_NONE) {
@@ -1195,6 +1201,11 @@ uint16_t ble_transport_mock_get_cccd(uint16_t fab_char_short_id)
         return s_mock_fab3_cccd;
     }
     return 0;
+}
+
+bool ble_transport_is_telemetry_subscribed(void)
+{
+    return s_is_connected && ((s_mock_fab2_cccd & 0x0001U) != 0);
 }
 
 esp_err_t ble_transport_notify_telemetry(void)

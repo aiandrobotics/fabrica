@@ -215,7 +215,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 10 — Real-Time Telemetry & Button Configuration Sync (`telemetry.c`)
+## Phase 10 — Real-Time Telemetry & Button Configuration Sync (`telemetry.c`) ✅
 - **Adaptive Telemetry Streaming Engine (`app_telem_task`, Core 1, Priority 3)**:
   - **Adaptive Streaming Rate**:
     - **High-Rate (10 Hz / 100ms)**: Automatically streamed to subscribed `FAB2` centrals when active motion is running (`STATE_RUNNING_MOTION`) or live servo jogging is active (`STATE_CALIBRATING`).
@@ -243,7 +243,8 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Automatically push a `FAB3` GATT notification containing the 212-byte 4-button table whenever any preset sequence is modified in NVS (`CMD_SET_BUTTON_SEQUENCE`, `FAB3` write, or `CMD_RESTORE_FACTORY_PRESETS`).
   - Support on-demand `FAB3` notification trigger via `CMD_GET_BUTTON_CONFIG` (Opcode `0x0B`) in addition to direct GATT Read on `FAB3`.
 - **Validation**:
-  - Host unit test suite (`test/test_telemetry.c`) verifying exact 31-byte struct packing and field offsets, Little-Endian multi-byte encoding, live servo angle tracking across all 16 channels, step progress percentage calculation, adaptive 10 Hz vs 1 Hz rate switching, event-driven push triggers, and `FAB3` 212-byte synchronization notifications.
+  - Host unit test suite (`test/test_telemetry.c`, 70/70 checks pass, 833/833 total checks pass across all 10 test suites with `-Wall -Wextra -Werror`) verifying exact 31-byte struct packing and field offsets, Little-Endian multi-byte encoding, live servo angle tracking across all 16 channels, mid-sweep progress percentage and elapsed time calculation, adaptive 10 Hz vs 1 Hz rate switching, stream pause/resume via Opcode `0x11`, disconnect safety mute, and `FAB3` 212-byte synchronization notifications.
+  - Clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` `0x7c690` bytes / 498 KB with 51% app partition free).
 
 ---
 

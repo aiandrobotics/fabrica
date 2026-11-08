@@ -204,6 +204,13 @@ void ble_transport_set_telemetry_stream(bool enable);
 bool ble_transport_is_telemetry_stream_enabled(void);
 
 /**
+ * @brief Query whether a connected central has subscribed to FAB2 telemetry CCCD.
+ *
+ * @return true if CCCD notifications are enabled, false otherwise.
+ */
+bool ble_transport_is_telemetry_subscribed(void);
+
+/**
  * @brief Build a 31-byte packed telemetry_packet_t snapshot of current robot
  * state.
  *

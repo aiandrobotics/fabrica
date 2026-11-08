@@ -130,6 +130,18 @@ esp_err_t motion_trigger_preset(uint8_t preset_id);
 esp_err_t motion_emergency_stop(void);
 
 /**
+ * @brief Query real-time motion execution progress and elapsed step time.
+ * @param out_step_idx Pointer to store active 0-based step index (or 0 if idle).
+ * @param out_total_steps Pointer to store total steps in active routine (or 0 if idle).
+ * @param out_progress_pct Pointer to store active step progress percentage (0-100%).
+ * @param out_elapsed_ms Pointer to store active step elapsed time in milliseconds.
+ */
+void motion_get_progress(uint8_t *out_step_idx,
+                         uint8_t *out_total_steps,
+                         uint8_t *out_progress_pct,
+                         uint16_t *out_elapsed_ms);
+
+/**
  * @brief Reset internal motion engine state (useful for host testing and reset sequences).
  */
 void motion_reset_state(void);
@@ -140,6 +152,18 @@ void motion_reset_state(void);
  * @param status Desired motion_status_t.
  */
 void motion_mock_set_status(motion_status_t status);
+
+/**
+ * @brief Inject simulated motion progress snapshot directly for off-target host tests.
+ * @param step_idx Active step index (0-based).
+ * @param total_steps Total steps in routine.
+ * @param progress_pct Progress percentage (0-100%).
+ * @param elapsed_ms Elapsed step time in milliseconds.
+ */
+void motion_mock_set_progress(uint8_t step_idx,
+                              uint8_t total_steps,
+                              uint8_t progress_pct,
+                              uint16_t elapsed_ms);
 #endif
 
 #ifdef __cplusplus

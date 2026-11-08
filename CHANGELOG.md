@@ -1,6 +1,14 @@
 # Changelog
 
 ## 2026-11-08
+- Implemented Phase 10 Real-Time Telemetry & Button Configuration Sync (`firmware/main/telemetry.h`, `firmware/main/telemetry.c`, `firmware/main/motion.h`, `firmware/main/motion.c`, `firmware/main/main.c`, `firmware/main/config.h`).
+- Added adaptive FreeRTOS background streaming task (`app_telem_task`, Core 1, Priority 3) running high-rate 10 Hz (100ms) telemetry streaming during motion (`STATE_RUNNING_MOTION`) and calibration (`STATE_CALIBRATING`), adaptively throttling to low-rate 1 Hz (1000ms) when idle, E-stopped, or in error.
+- Implemented live mid-sweep elapsed time (`elapsed_step_time_ms`) and progress percentage (`step_progress_pct`, 0–100%) tracking across folding sweeps and dwells in `motion.c`, exposed via `motion_get_progress()`.
+- Implemented stream pause/resume via Opcode `0x11` (`CMD_SET_TELEMETRY_STREAM`), CCCD subscription gating on `FAB2`, and immediate fail-safe stream muting upon central disconnection.
+- Integrated `FAB3` 212-byte button configuration synchronization notifications on sequence modification and on-demand query (`CMD_SYNC_PRESETS`, `0x0B`).
+- Added Phase 10 feature specification directory (`firmware/specs/2026-11-08-phase-10-real-time-telemetry-sync/`) with `plan.md`, `requirements.md`, and `validation.md`.
+- Added Phase 10 host unit test suite (`firmware/test/test_telemetry.c`), passing 70/70 checks (833/833 checks passing across all 10 test suites with `-Wall -Wextra -Werror`) and clean ESP-IDF v6.0.2 target builds (`idf.py build`, 51% flash free).
+- Updated `firmware/specs/roadmap.md` marking Phase 10 complete.
 - Implemented Phase 9 BLE Command Dispatch, Remote Execution & Servo Calibration (`firmware/main/remote_cmd.h`, `firmware/main/remote_cmd.c`, `firmware/main/state_machine.h`, `firmware/main/state_machine.c`).
 - Extracted `FAB1` / `FAB3` wire command validation, compact routine unpacking, Core 1 fast-path preemption, and command status code reflection into a dedicated `remote_cmd.c` module.
 - Added stateless raw routine execution (`CMD_RUN_RAW_SEQUENCE`, `0x01`) supporting full 54-byte and compact variable-length payloads with zero-padding and IEEE 802.3 CRC32 calculation, leaving NVS presets untouched.

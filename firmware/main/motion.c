@@ -27,6 +27,12 @@ static const char *TAG = "FABRICA_MOTION";
 static volatile motion_status_t s_motion_status = MOTION_STATUS_IDLE;
 static volatile bool s_abort_requested = false;
 
+static volatile uint8_t s_active_step_idx = 0;
+static volatile uint8_t s_active_total_steps = 0;
+static volatile uint16_t s_active_elapsed_ms = 0;
+static volatile uint8_t s_active_progress_pct = 0;
+static volatile uint32_t s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+
 static EventGroupHandle_t s_evt_group_handle = NULL;
 
 /* Host testing simulated time tracking */
@@ -82,6 +88,11 @@ static bool motion_delay_ms(uint32_t duration_ms, bool poll_abort)
         s_simulated_elapsed_ms += slice_ms;
 #endif
         remaining_ms -= slice_ms;
+        s_active_elapsed_ms += (uint16_t)slice_ms;
+        if (s_step_target_duration_ms > 0) {
+            uint32_t pct = ((uint32_t)s_active_elapsed_ms * 100U) / s_step_target_duration_ms;
+            s_active_progress_pct = (uint8_t)(pct > 100U ? 100U : pct);
+        }
     }
 
     if (poll_abort && is_abort_signaled()) {
@@ -102,6 +113,11 @@ void motion_reset_state(void)
 {
     s_motion_status = MOTION_STATUS_IDLE;
     s_abort_requested = false;
+    s_active_step_idx = 0;
+    s_active_total_steps = 0;
+    s_active_elapsed_ms = 0;
+    s_active_progress_pct = 0;
+    s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
 #ifndef ESP_PLATFORM
     s_simulated_elapsed_ms = 0;
 #endif
@@ -118,7 +134,37 @@ void motion_mock_set_status(motion_status_t status)
 {
     s_motion_status = status;
 }
+
+void motion_mock_set_progress(uint8_t step_idx,
+                              uint8_t total_steps,
+                              uint8_t progress_pct,
+                              uint16_t elapsed_ms)
+{
+    s_active_step_idx = step_idx;
+    s_active_total_steps = total_steps;
+    s_active_progress_pct = progress_pct;
+    s_active_elapsed_ms = elapsed_ms;
+}
 #endif
+
+void motion_get_progress(uint8_t *out_step_idx,
+                         uint8_t *out_total_steps,
+                         uint8_t *out_progress_pct,
+                         uint16_t *out_elapsed_ms)
+{
+    if (out_step_idx != NULL) {
+        *out_step_idx = s_active_step_idx;
+    }
+    if (out_total_steps != NULL) {
+        *out_total_steps = s_active_total_steps;
+    }
+    if (out_progress_pct != NULL) {
+        *out_progress_pct = s_active_progress_pct;
+    }
+    if (out_elapsed_ms != NULL) {
+        *out_elapsed_ms = s_active_elapsed_ms;
+    }
+}
 
 /**
  * @brief Query current motion engine execution status.
@@ -268,17 +314,32 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
     s_motion_status = MOTION_STATUS_RUNNING;
     led_set_state(LED_STATE_RUNNING);
 
+    s_active_total_steps = routine->step_count;
+    s_active_step_idx = 0;
+    s_active_elapsed_ms = 0;
+    s_active_progress_pct = 0;
+    s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+
 #ifdef ESP_PLATFORM
     ESP_LOGI(TAG, "Starting routine execution (%d steps total)...", routine->step_count);
 #endif
 
     for (uint8_t i = 0; i < routine->step_count; i++) {
+        s_active_step_idx = i;
+        s_active_elapsed_ms = 0;
+        s_active_progress_pct = 0;
+        s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+
         if (is_abort_signaled()) {
 #ifdef ESP_PLATFORM
             ESP_LOGW(TAG, "E-Stop detected before step %d! Halting routine.", i + 1);
 #endif
             pca9685_home_all();
             s_motion_status = MOTION_STATUS_ABORTED;
+            s_active_step_idx = 0;
+            s_active_total_steps = 0;
+            s_active_elapsed_ms = 0;
+            s_active_progress_pct = 0;
             led_set_state(LED_STATE_ESTOP);
             return ESP_ERR_TIMEOUT;
         }
@@ -290,6 +351,10 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
         if (step_err != ESP_OK) {
             pca9685_home_all();
             s_motion_status = MOTION_STATUS_ABORTED;
+            s_active_step_idx = 0;
+            s_active_total_steps = 0;
+            s_active_elapsed_ms = 0;
+            s_active_progress_pct = 0;
             if (step_err == ESP_ERR_TIMEOUT) {
                 led_set_state(LED_STATE_ESTOP);
             } else {
@@ -300,12 +365,18 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
 
         /* Inter-step settling delay (200ms) between consecutive steps */
         if (i < (routine->step_count - 1)) {
+            s_step_target_duration_ms = 0;
+            s_active_progress_pct = 100U;
             if (motion_delay_ms(INTER_STEP_DELAY_MS, true)) {
 #ifdef ESP_PLATFORM
                 ESP_LOGW(TAG, "E-Stop triggered during inter-step settling! Aborting routine.");
 #endif
                 pca9685_home_all();
                 s_motion_status = MOTION_STATUS_ABORTED;
+                s_active_step_idx = 0;
+                s_active_total_steps = 0;
+                s_active_elapsed_ms = 0;
+                s_active_progress_pct = 0;
                 led_set_state(LED_STATE_ESTOP);
                 return ESP_ERR_TIMEOUT;
             }
@@ -315,6 +386,11 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
     /* Clean completion */
     pca9685_home_all();
     s_motion_status = MOTION_STATUS_IDLE;
+    s_active_step_idx = 0;
+    s_active_total_steps = 0;
+    s_active_elapsed_ms = 0;
+    s_active_progress_pct = 0;
+    s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
     led_set_state(LED_STATE_IDLE);
 
 #ifdef ESP_PLATFORM

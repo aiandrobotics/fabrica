@@ -66,17 +66,26 @@ void remote_cmd_notify_completion(uint8_t total_steps)
 
 void remote_cmd_get_progress_snapshot(uint8_t *out_step_idx,
                                       uint8_t *out_total_steps,
-                                      uint8_t *out_progress_pct)
+                                      uint8_t *out_progress_pct,
+                                      uint16_t *out_elapsed_ms)
 {
-    if (out_step_idx != NULL) {
-        *out_step_idx = s_completion_snapshot_active ? s_completion_step_idx : 0;
+    if (s_completion_snapshot_active) {
+        if (out_step_idx != NULL) {
+            *out_step_idx = s_completion_step_idx;
+        }
+        if (out_total_steps != NULL) {
+            *out_total_steps = s_completion_total_steps;
+        }
+        if (out_progress_pct != NULL) {
+            *out_progress_pct = s_completion_progress_pct;
+        }
+        if (out_elapsed_ms != NULL) {
+            *out_elapsed_ms = 0;
+        }
+        return;
     }
-    if (out_total_steps != NULL) {
-        *out_total_steps = s_completion_snapshot_active ? s_completion_total_steps : 0;
-    }
-    if (out_progress_pct != NULL) {
-        *out_progress_pct = s_completion_snapshot_active ? s_completion_progress_pct : 0;
-    }
+
+    motion_get_progress(out_step_idx, out_total_steps, out_progress_pct, out_elapsed_ms);
 }
 
 /* ========================================================================= */

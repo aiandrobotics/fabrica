@@ -47,10 +47,12 @@ void remote_cmd_notify_completion(uint8_t total_steps);
  * @param out_step_idx Output current step index (0 to 15).
  * @param out_total_steps Output total steps (0 to 16).
  * @param out_progress_pct Output step progress percentage (0 to 100).
+ * @param out_elapsed_ms Output elapsed step time in milliseconds.
  */
 void remote_cmd_get_progress_snapshot(uint8_t *out_step_idx,
                                       uint8_t *out_total_steps,
-                                      uint8_t *out_progress_pct);
+                                      uint8_t *out_progress_pct,
+                                      uint16_t *out_elapsed_ms);
 
 /**
  * @brief Validate, zero-pad, and compute/verify IEEE 802.3 CRC32 for a full (53B)

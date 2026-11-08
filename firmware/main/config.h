@@ -56,6 +56,10 @@ extern "C" {
 #define INTER_STEP_DELAY_MS          200    /* Delay between routine steps */
 #define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
 #define CALIBRATION_INACTIVITY_TIMEOUT_MS 15000 /* Calibration auto-home & exit timeout (15s) */
+#define TELEMETRY_STREAM_ACTIVE_HZ   10     /* 10 Hz streaming rate during motion and calibration */
+#define TELEMETRY_STREAM_IDLE_HZ     1      /* 1 Hz streaming rate when idle, estop, or error */
+#define TELEMETRY_INTERVAL_ACTIVE_MS (1000 / TELEMETRY_STREAM_ACTIVE_HZ) /* 100 ms */
+#define TELEMETRY_INTERVAL_IDLE_MS   (1000 / TELEMETRY_STREAM_IDLE_HZ)   /* 1000 ms */
 
 /* ========================================================================= */
 /* Bluetooth Low Energy (NimBLE) Transport Parameters                        */

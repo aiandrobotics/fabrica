@@ -11,6 +11,7 @@
 #include "motion.h"
 #include "ble_transport.h"
 #include "remote_cmd.h"
+#include "telemetry.h"
 #include "state_machine.h"
 
 #ifdef ESP_PLATFORM
@@ -325,7 +326,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
     }
 
     if (cmd->type == CMD_SET_TELEMETRY_STREAM) {
-        ble_transport_set_telemetry_stream(cmd->payload.stream_enable);
+        telemetry_set_stream_enabled(cmd->payload.stream_enable);
         remote_cmd_set_last_status(CMD_STATUS_OK, true);
         return ESP_OK;
     }

@@ -18,6 +18,7 @@
 #include "motion.h"
 #include "state_machine.h"
 #include "ble_transport.h"
+#include "telemetry.h"
 
 static const char *TAG = "FABRICA_MAIN";
 
@@ -184,9 +185,17 @@ void app_main(void)
                  (unsigned int)(esp_get_free_heap_size() / 1024U));
     }
 
+    /* 10. Initialize Adaptive Telemetry Subsystem on Core 1 */
+    err = telemetry_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize Telemetry subsystem: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "Adaptive Telemetry Subsystem ready on Core 1 (10 Hz in motion, 1 Hz idle).");
+    }
+
     ESP_LOGI(TAG, "System initialization complete. Awaiting button, BLE & motion commands...");
 
-    /* 10. Command Queue Consumer Loop */
+    /* 11. Command Queue Consumer Loop */
     command_t cmd;
     while (1) {
         if (xQueueReceive(s_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
