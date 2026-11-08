@@ -1,6 +1,14 @@
 # Changelog
 
 ## 2026-11-08
+- Implemented Phase 11 End-to-End Firmware BLE Validation & App Store Test App Playbook (`firmware/test/test_ble_integration.c`, `firmware/README.md`, `firmware/Makefile`).
+- Created automated dual-OS mock BLE central simulation test harness (`test_ble_integration.c`) modeling iOS `CoreBluetooth` (185B MTU, peripheral security request, RPA resolution) and Android `BluetoothGatt` (legacy 23B MTU, Long Read `ATT_READ_BLOB_REQ` fallback).
+- Implemented 17 end-to-end integration protocol verification vectors covering advertising split, DIS, Apple connection parameter compliance, Hold-to-Pair security, locator pulse train, preset table read/write/notify, compact sequence recipes, raw sequence preview, busy locks, 10 Hz/1 Hz telemetry, live servo jog calibration, fast-path E-Stop, and factory restore.
+- Verified multi-source concurrency arbitration, abrupt BLE disconnect safety, and 200-cycle continuous automated fold endurance stress test with zero memory leaks and invariant stability.
+- Documented exhaustive App Store BLE test app playbook in `firmware/README.md` with complete characteristic UUID tables, step-by-step pairing walkthroughs, ready-to-paste hexadecimal command cheat sheets (`0x00–0x11`), and 31-byte telemetry decoding guide for **nRF Connect for Mobile** and **LightBlue** on iOS and Android.
+- Added Phase 11 feature specification directory (`firmware/specs/2026-11-08-phase-11-e2e-ble-validation-playbook/`) with `plan.md`, `requirements.md`, and `validation.md`.
+- Achieved 78/78 passing checks in `test_ble_integration.c` (**911/911 checks passing across all 11 test suites** with `-Wall -Wextra -Werror`) and clean ESP-IDF v6.0.2 target builds (`idf.py build`, 51% flash free).
+- Updated `firmware/specs/roadmap.md` marking Phase 11 complete (`✅`).
 - Implemented Phase 10 Real-Time Telemetry & Button Configuration Sync (`firmware/main/telemetry.h`, `firmware/main/telemetry.c`, `firmware/main/motion.h`, `firmware/main/motion.c`, `firmware/main/main.c`, `firmware/main/config.h`).
 - Added adaptive FreeRTOS background streaming task (`app_telem_task`, Core 1, Priority 3) running high-rate 10 Hz (100ms) telemetry streaming during motion (`STATE_RUNNING_MOTION`) and calibration (`STATE_CALIBRATING`), adaptively throttling to low-rate 1 Hz (1000ms) when idle, E-stopped, or in error.
 - Implemented live mid-sweep elapsed time (`elapsed_step_time_ms`) and progress percentage (`step_progress_pct`, 0–100%) tracking across folding sweeps and dwells in `motion.c`, exposed via `motion_get_progress()`.

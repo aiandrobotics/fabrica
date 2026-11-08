@@ -32,7 +32,11 @@ uint32_t telemetry_get_interval_ms(system_state_t state)
 
 uint32_t telemetry_get_current_interval_ms(void)
 {
-    return telemetry_get_interval_ms(state_machine_get_state());
+    system_state_t state = state_machine_get_state();
+    if (state == STATE_RUNNING_MOTION || state == STATE_CALIBRATING || motion_is_busy()) {
+        return TELEMETRY_INTERVAL_ACTIVE_MS;
+    }
+    return telemetry_get_interval_ms(state);
 }
 
 void telemetry_set_stream_enabled(bool enabled)

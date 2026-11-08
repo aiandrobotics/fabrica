@@ -248,7 +248,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 11 — End-to-End Firmware BLE Validation & App Store Test App Playbook (`test_ble_integration.c`, `README.md`)
+## Phase 11 — End-to-End Firmware BLE Validation & App Store Test App Playbook (`test_ble_integration.c`, `README.md`) ✅
 - **Automated Host C End-to-End BLE Central Simulation Suite (`test/test_ble_integration.c`)**:
   - C mock BLE central harness simulating iOS `CoreBluetooth` and Android `BluetoothGatt` stack interactions against the full firmware pipeline (NimBLE GATT Server $\to$ Remote Command Ingress $\to$ State Machine $\to$ Motion Engine $\to$ PCA9685 & NVS $\to$ Telemetry Streamer):
     1. Verify GAP primary advertisement ($\le 31\text{B}$ with `0000FAB0-...` UUID) and scan response (`Fabrica-XXXX` name) payloads, plus DIS (`0x180A`) and GATT Service Changed (`0x1801` / `0x2A05`) registration.
@@ -275,7 +275,9 @@ Build, validate, and verify each milestone before moving to the next phase.
 - **Off-the-Shelf App Store BLE Test App Verification Guide (`firmware/README.md`)**:
   - Document step-by-step hardware verification procedures and ready-to-paste hex payloads for testing all firmware features on **iOS** and **Android** using **nRF Connect for Mobile** and **LightBlue** (covering pairing/bonding, `FAB1` command opcodes `0x00–0x11`, compact custom sequence programming, `FAB2` 31-byte telemetry decoding, and `FAB3` read/write/notify).
 - **Validation**:
-  - Host unit test suite (`make test`) passing 100% of checks across all test suites, clean ESP-IDF target build (`idf.py build`), and end-to-end verification with nRF Connect / LightBlue on iOS and Android.
+  - Host integration test suite (`test/test_ble_integration.c`, 78/78 checks pass, 911/911 total checks pass across all 11 test suites with `-Wall -Wextra -Werror`).
+  - Clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` `0x7c6c0` bytes / 498 KB with 51% app partition free).
+  - Comprehensive App Store BLE test app playbook documented in `firmware/README.md`.
 
 
 
