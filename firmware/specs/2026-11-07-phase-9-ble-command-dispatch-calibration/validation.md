@@ -29,7 +29,7 @@ make test
 ### 2. ESP-IDF Target Compilation Check
 
 ```bash
-source /Users/intelligentmachine/.espressif/v6.0.2/esp-idf/export.sh
+# Ensure ESP-IDF environment is activated (e.g., . $IDF_PATH/export.sh)
 cd firmware
 idf.py build
 ```
@@ -42,7 +42,7 @@ idf.py build
 
 ## Manual Review & Optional Live Hardware Verification (ESP32 + nRF Connect)
 
-After flashing the ESP32 (`idf.py -p /dev/cu.usbserial-* flash monitor`) and connecting with **nRF Connect** (subscribed to `FAB2` and `FAB3` notifications):
+After flashing the ESP32 (`idf.py -p <PORT> flash monitor`) and connecting with **nRF Connect** (subscribed to `FAB2` and `FAB3` notifications):
 
 1. **Stateless Raw Sequence (`0x01`) & 100% Completion Push**:
    - Write compact hex `01 02 01 00 00 01 01 00` to `FAB1` (`0000FAB1-...` value row, not `0x2901`).

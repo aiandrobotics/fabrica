@@ -21,7 +21,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Print ESP32 chip details (model, silicon revision, CPU cores, WiFi/BT features).
   - Print SPI flash size and monitor heap memory via `esp_get_minimum_free_heap_size()`.
   - Initialize FreeRTOS inter-task communication primitives (queues and event groups).
-- **Validation**: Verified with host unit tests (`make test`, 50/50 pass), ESP-IDF build compilation, and live hardware flash/monitor on ESP32 (`/dev/cu.usbserial-0001`).
+- **Validation**: Verified with host unit tests (`make test`, 50/50 pass), ESP-IDF build compilation, and live hardware flash/monitor on ESP32 over serial.
 
 ---
 

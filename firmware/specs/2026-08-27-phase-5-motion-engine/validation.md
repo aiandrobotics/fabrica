@@ -29,7 +29,7 @@ idf.py build
 
 ## Manual Review & Live Hardware Verification
 
-When flashing firmware to live hardware (`/dev/cu.usbserial-0001`):
+When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
 
 1. **Preset Execution Visual Verification**:
    - Tap **B1**: Status LED turns solid ON, Servo 0 sweeps $0^\circ \to 180^\circ \to 0^\circ$, Servo 1 sweeps $0^\circ \to 180^\circ \to 0^\circ$, Servo 2 sweeps $0^\circ \to 180^\circ \to 0^\circ$, then LED returns to soft heartbeat (IDLE).

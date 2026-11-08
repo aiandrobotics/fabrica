@@ -34,7 +34,7 @@ idf.py build
 
 ## Manual Review & Live Hardware Verification
 
-When flashing firmware to live hardware (`/dev/cu.usbserial-0001`):
+When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
 
 1. **Factory Preset Execution Verification**:
    - Tap **B1** $\rightarrow$ Robot executes Preset 1 (Adult T-Shirt): Left Flap (Ch 0) $180^\circ$ fold, Right Flap (Ch 1) $180^\circ$ fold, Bottom Flap (Ch 2) $180^\circ$ fold, Top / Collar Flap (Ch 3) $180^\circ$ fold (testing all 4 motors).

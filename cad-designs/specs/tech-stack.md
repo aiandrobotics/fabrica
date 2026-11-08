@@ -6,8 +6,8 @@
 |---|---|
 | Parametric Modelling | FreeCAD 1.1.0+ (Python scripting API) |
 | Geometry Kernel | OpenCASCADE (OCC) via `Part` workbench |
-| Headless Execution | `freecadcmd` (`/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd` or `freecadcmd` on PATH) |
-| GUI Inspection | FreeCAD GUI (`/Applications/FreeCAD.app/Contents/MacOS/FreeCAD`) |
+| Headless Execution | `freecadcmd` (`freecadcmd` / `FreeCADCmd` on PATH or platform installation path) |
+| GUI Inspection | FreeCAD GUI (`freecad` / `FreeCAD` on PATH or desktop application) |
 | Export Format — CAD | STEP (AP214) via `shape.exportStep()` |
 | Export Format — Print | STL (binary) / 3MF via `shape.exportStl()` |
 | Parameters | `params.py` — single source of truth; all dimensions driven by parameters & `SCALE` |

@@ -36,7 +36,7 @@ idf.py build
 
 ## Manual Review & Live Hardware Verification
 
-When flashing firmware to live hardware (`/dev/cu.usbserial-0001`):
+When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
 
 1. **Visual Staging Flow Verification**:
    - Hold **B1** for 3 seconds $\rightarrow$ Status LED starts slow blinking (0.5 Hz).

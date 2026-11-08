@@ -37,7 +37,7 @@ idf.py build
 
 ## Manual Review & Live Hardware Verification (nRF Connect / LightBlue on iOS & Android)
 
-After flashing the ESP32 Dev Board (`idf.py -p /dev/cu.usbserial-* flash monitor`):
+After flashing the ESP32 Dev Board (`idf.py -p <PORT> flash monitor`):
 
 1. **Discovery & Unbonded Protection Check**:
    - Open **nRF Connect** or **LightBlue** on iOS and Android.

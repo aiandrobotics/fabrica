@@ -4,9 +4,19 @@ import glob
 import shutil
 import subprocess
 
-FREECAD_CMD = "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd"
-if not os.path.exists(FREECAD_CMD):
-    FREECAD_CMD = "freecadcmd"
+def find_freecad_cmd():
+    # 1. Respect explicit environment variable override
+    env_cmd = os.environ.get("FREECAD_CMD")
+    if env_cmd and (shutil.which(env_cmd) or os.path.exists(env_cmd)):
+        return env_cmd
+    # 2. Check system PATH
+    for candidate in ["freecadcmd", "FreeCADCmd", "freecad"]:
+        found = shutil.which(candidate)
+        if found:
+            return found
+    return "freecadcmd"
+
+FREECAD_CMD = find_freecad_cmd()
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 EXPORT_DIR = os.path.join(CURRENT_DIR, "exports")

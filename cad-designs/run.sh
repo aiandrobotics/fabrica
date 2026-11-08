@@ -1,11 +1,28 @@
-#!/bin/zsh
-FREECAD_CMD="/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd"
-FREECAD_GUI="/Applications/FreeCAD.app/Contents/MacOS/FreeCAD"
+#!/usr/bin/env bash
+set -e
 
-if not which "$FREECAD_CMD" >/dev/null 2>&1; then
-    if which freecadcmd >/dev/null 2>&1; then
-        FREECAD_CMD="freecadcmd"
-    fi
+# Discover FreeCAD CLI binary
+if [ -n "$FREECAD_CMD" ] && command -v "$FREECAD_CMD" >/dev/null 2>&1; then
+    : # Use environment variable
+elif command -v freecadcmd >/dev/null 2>&1; then
+    FREECAD_CMD="freecadcmd"
+elif command -v FreeCADCmd >/dev/null 2>&1; then
+    FREECAD_CMD="FreeCADCmd"
+elif command -v freecad >/dev/null 2>&1; then
+    FREECAD_CMD="freecad"
+else
+    FREECAD_CMD="freecadcmd"
+fi
+
+# Discover FreeCAD GUI binary
+if [ -n "$FREECAD_GUI" ] && command -v "$FREECAD_GUI" >/dev/null 2>&1; then
+    : # Use environment variable
+elif command -v freecad >/dev/null 2>&1; then
+    FREECAD_GUI="freecad"
+elif command -v FreeCAD >/dev/null 2>&1; then
+    FREECAD_GUI="FreeCAD"
+else
+    FREECAD_GUI="freecad"
 fi
 
 if [[ $# -eq 0 ]]; then

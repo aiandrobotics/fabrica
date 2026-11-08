@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-11-08
+- Replaced system-specific paths, macOS application bundle locations, and absolute user URIs with generic, cross-platform paths and relative links across CAD scripts, tooling, and firmware specifications.
 - Implemented Phase 11 End-to-End Firmware BLE Validation & App Store Test App Playbook (`firmware/test/test_ble_integration.c`, `firmware/README.md`, `firmware/Makefile`).
 - Created automated dual-OS mock BLE central simulation test harness (`test_ble_integration.c`) modeling iOS `CoreBluetooth` (185B MTU, peripheral security request, RPA resolution) and Android `BluetoothGatt` (legacy 23B MTU, Long Read `ATT_READ_BLOB_REQ` fallback).
 - Implemented 17 end-to-end integration protocol verification vectors covering advertising split, DIS, Apple connection parameter compliance, Hold-to-Pair security, locator pulse train, preset table read/write/notify, compact sequence recipes, raw sequence preview, busy locks, 10 Hz/1 Hz telemetry, live servo jog calibration, fast-path E-Stop, and factory restore.
@@ -109,14 +110,14 @@
 - Added API functions for single-channel positioning, synchronized 16-bit multi-channel mask updates, homing all 16 servos to $0^\circ$, physical $15^\circ$ identification nudges, and $30^\circ$ visual staging holds.
 - Integrated PCA9685 driver initialization and servo actuation commands into `firmware/main/main.c`.
 - Created host unit test suite `firmware/test/test_pca9685.c` with 82/82 checks passing (193/193 total project checks passing across all test suites).
-- Verified live firmware on ESP32 Dev Board (`/dev/cu.usbserial-0001`) with physical button actuation and live servo articulation.
+- Verified live firmware on ESP32 Dev Board over serial with physical button actuation and live servo articulation.
 - Updated firmware roadmap marking Phase 3 as complete.
 - Implemented Phase 2 UI Subsystem with 4-button debouncer and non-blocking status LED pattern engine (`firmware/main/buttons.c`, `firmware/main/led.c`).
 - Configured 4-button input scanning on GPIO 4, 16, 17, and 5 with 50ms low-pass debounce filter, short tap (<500ms), and long press (>=3000ms) gesture recognition.
 - Implemented non-blocking status LED state machine on GPIO 2 driving 7 visual pulse patterns (idle heartbeat, solid running, programming blink, step lock flash, save success, input error, and rapid E-stop).
 - Pinned dedicated FreeRTOS tasks to Core 1 (`app_ui_task` at Priority 5, `app_led_task` at Priority 3) dispatching standardized commands to `xCommandQueue`.
 - Added host unit test suite (`firmware/test/test_ui_subsystem.c`) with 61 checks passing (111/111 total project checks passing).
-- Verified live firmware on ESP32 Dev Board (`/dev/cu.usbserial-0001`) with physical button actuation and LED feedback.
+- Verified live firmware on ESP32 Dev Board over serial with physical button actuation and LED feedback.
 - Updated firmware roadmap marking Phase 2 as complete.
 
 ## 2026-08-26
