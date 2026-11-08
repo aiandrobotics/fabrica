@@ -177,16 +177,22 @@ command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, s
     if (gesture == GESTURE_SHORT_TAP) {
         if (current_state == STATE_RUNNING_MOTION || motion_is_busy()) {
             cmd.type = CMD_EMERGENCY_STOP;
+        } else if (current_state == STATE_ESTOP || current_state == STATE_CALIBRATING) {
+            cmd.type = CMD_STOP_SEQUENCE;
         } else if (current_state == STATE_IDLE_RUN) {
             cmd.type = CMD_RUN_PRESET;
             cmd.payload.preset_id = btn_idx + 1; /* Preset 1..4 */
         }
     } else if (gesture == GESTURE_LONG_PRESS) {
-        if (current_state == STATE_IDLE_RUN) {
+        if (current_state == STATE_IDLE_RUN ||
+            current_state == STATE_ESTOP ||
+            current_state == STATE_CALIBRATING) {
             cmd.type = CMD_ENTER_BLE_PAIRING;
         }
     } else if (gesture == GESTURE_BOND_RESET) {
-        if (current_state == STATE_IDLE_RUN) {
+        if (current_state == STATE_IDLE_RUN ||
+            current_state == STATE_ESTOP ||
+            current_state == STATE_CALIBRATING) {
             cmd.type = CMD_CLEAR_BLE_BONDS;
         }
     }
@@ -228,6 +234,9 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
         if (cur_state == STATE_RUNNING_MOTION || motion_is_busy()) {
             ESP_LOGW(TAG, "[BUTTON B%d] Pressed while motion is active -> Triggered EMERGENCY STOP!", btn_idx + 1);
             motion_emergency_stop();
+        } else if (cur_state == STATE_ESTOP || cur_state == STATE_CALIBRATING) {
+            ESP_LOGI(TAG, "[BUTTON B%d] Short Tap in state %d -> Dispatched CMD_STOP_SEQUENCE (Clear/Home)",
+                     btn_idx + 1, cur_state);
         } else if (cur_state == STATE_IDLE_RUN) {
             ESP_LOGI(TAG, "[BUTTON B%d] Short Tap detected -> Dispatched CMD_RUN_PRESET (Preset %d)",
                      btn_idx + 1, cmd.payload.preset_id);
@@ -235,14 +244,14 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
             return;
         }
     } else if (gesture == GESTURE_LONG_PRESS) {
-        if (cur_state == STATE_IDLE_RUN) {
+        if (cur_state == STATE_IDLE_RUN || cur_state == STATE_ESTOP || cur_state == STATE_CALIBRATING) {
             ESP_LOGI(TAG, "[BUTTON B%d] Long Press (>=3s) detected -> Dispatched CMD_ENTER_BLE_PAIRING (120s window)",
                      btn_idx + 1);
         } else {
             return;
         }
     } else if (gesture == GESTURE_BOND_RESET) {
-        if (cur_state == STATE_IDLE_RUN) {
+        if (cur_state == STATE_IDLE_RUN || cur_state == STATE_ESTOP || cur_state == STATE_CALIBRATING) {
             ESP_LOGW(TAG, "[BUTTON B1+B4] Simultaneous 5s Hold detected -> Dispatched CMD_CLEAR_BLE_BONDS");
         } else {
             return;

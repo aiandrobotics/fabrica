@@ -185,7 +185,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ---
 
-## Phase 9 — BLE Command Dispatch, Remote Execution & Servo Calibration (`remote_cmd.c`, `command.h`, `state_machine.c`)
+## Phase 9 — BLE Command Dispatch, Remote Execution & Servo Calibration (`remote_cmd.c`, `command.h`, `state_machine.c`) ✅
 - **Remote Sequence Execution & Preemption Engine**:
   - **Start Preset Routine (`CMD_RUN_PRESET`, Opcode `0x00`)**: Wirelessly trigger saved Button 1–4 routines (`[0x00][preset_id (1-4)]`).
   - **Ingress Re-Entrancy & Busy Guard**: If `CMD_RUN_PRESET` or `CMD_RUN_RAW_SEQUENCE` arrives over BLE while motion is active (`motion_is_busy()` / `STATE_RUNNING_MOTION`), reject immediately at ingress on Core 1 and report `CMD_STATUS_ERR_BUSY` in telemetry without queueing behind or interrupting the active fold cycle.
@@ -211,7 +211,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - **Thermal Safety Cutoff (10s)**: Stationary servos in `STATE_CALIBRATING` automatically de-energize (`pca9685_sleep()` or PWM off) after 10 seconds of jog inactivity (`CALIBRATION_THERMAL_TIMEOUT_MS = 10000`) to prevent servo coil overheating.
   - **Auto-Home & Inactivity Exit (15s)**: A 15-second inactivity watchdog (`CALIBRATION_INACTIVITY_TIMEOUT_MS = 15000`) or sending `CMD_STOP_SEQUENCE` (`0x02`) automatically wakes/homes all 16 channels back to $0^\circ$ and returns the state machine to `STATE_IDLE_RUN`.
 - **Validation**:
-  - Host unit test suite (`test/test_remote_cmd.c`) covering `FAB1` wire opcode parsing, compact and full sequence unpacking, remote start/stop/E-Stop fast-path preemption, busy re-entrancy rejection during active motion, empty preset rejection, E-Stop lock and recovery, factory preset restoration, command status code reflection, and calibration 10s thermal cutoff / 15s auto-home timers.
+  - Verified with host unit test suite (`make test`, 82/82 checks pass in `test_remote_cmd.c`, 763/763 total checks pass across all 9 test suites with `-Wall -Wextra -Werror`) and clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` `0x7c130` bytes / 496 KB with 52% app partition free).
 
 ---
 

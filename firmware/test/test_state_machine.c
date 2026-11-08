@@ -204,9 +204,14 @@ void test_emergency_stop_in_all_states(void)
     command_t cmd_estop = {.type = CMD_EMERGENCY_STOP};
     esp_err_t err = state_machine_process_command(&cmd_estop);
     TEST_ASSERT(err == ESP_OK, "CMD_EMERGENCY_STOP returns ESP_OK");
-    TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "State is STATE_IDLE_RUN after E-Stop");
+    TEST_ASSERT(state_machine_get_state() == STATE_ESTOP, "State latches in STATE_ESTOP after E-Stop");
     TEST_ASSERT(led_get_state() == LED_STATE_ESTOP, "LED state set to LED_STATE_ESTOP");
     TEST_ASSERT(pca9685_mock_get_channel_off_count(0) == 102, "Channel 0 homed to 0 deg on E-Stop");
+
+    /* Clear latched STATE_ESTOP via CMD_STOP_SEQUENCE */
+    command_t cmd_clear = {.type = CMD_STOP_SEQUENCE};
+    TEST_ASSERT(state_machine_process_command(&cmd_clear) == ESP_OK, "CMD_STOP_SEQUENCE clears STATE_ESTOP");
+    TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "State returns to STATE_IDLE_RUN after clear");
 }
 
 /* ========================================================================= */

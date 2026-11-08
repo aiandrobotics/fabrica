@@ -165,6 +165,7 @@ void app_main(void)
     }
 
     /* 8. Initialize System State Machine Coordinator */
+    state_machine_set_command_queue(s_command_queue);
     err = state_machine_init();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize State Machine: %s", esp_err_to_name(err));

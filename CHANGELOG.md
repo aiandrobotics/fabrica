@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-08
+- Implemented Phase 9 BLE Command Dispatch, Remote Execution & Servo Calibration (`firmware/main/remote_cmd.h`, `firmware/main/remote_cmd.c`, `firmware/main/state_machine.h`, `firmware/main/state_machine.c`).
+- Extracted `FAB1` / `FAB3` wire command validation, compact routine unpacking, Core 1 fast-path preemption, and command status code reflection into a dedicated `remote_cmd.c` module.
+- Added stateless raw routine execution (`CMD_RUN_RAW_SEQUENCE`, `0x01`) supporting full 54-byte and compact variable-length payloads with zero-padding and IEEE 802.3 CRC32 calculation, leaving NVS presets untouched.
+- Implemented ingress busy re-entrancy protection, empty preset validation (`CMD_STATUS_ERR_INVALID_STEP`), and dedicated 100% routine completion notifications on `FAB2` (`step_progress_pct = 100`, `CMD_STATUS_OK`).
+- Implemented latched Emergency Stop (`STATE_ESTOP`, `system_state = 2`, `error_code` `BIT2` active) with `<50ms` Core 1 preemption, requiring `CMD_STOP_SEQUENCE` (`0x02`) over BLE or a physical button tap to clear back to `STATE_IDLE_RUN`.
+- Added interactive servo jog calibration (`STATE_CALIBRATING`, `0x0D`), motor/angle bounds validation (`CMD_STATUS_ERR_MOTOR_BOUNDS`), 10-second PCA9685 oscillator sleep thermal cutoff (`CALIBRATION_THERMAL_TIMEOUT_MS`), automatic wake-on-jog, and 15-second inactivity auto-home watchdog (`CALIBRATION_INACTIVITY_TIMEOUT_MS`) with immediate fail-safe exits on BLE disconnect or button tap.
+- Added Phase 9 feature specs (`firmware/specs/2026-11-07-phase-9-ble-command-dispatch-calibration/`) and dedicated host unit test suite (`firmware/test/test_remote_cmd.c`), achieving 763/763 passing checks across all 9 test suites and clean ESP-IDF v6.0.2 target builds.
+- Updated `specs/roadmap.md` marking Phase 9 complete.
+
 ## 2026-11-07
 - Implemented Phase 8 Apache NimBLE GATT Server on Core 1 (`firmware/main/ble_transport.h`, `firmware/main/ble_transport.c`) with native iOS (`CoreBluetooth`) and Android (`BluetoothGatt`) interoperability for off-the-shelf BLE scanner apps.
 - Added split 31-byte-compliant GAP advertising (`0000FAB0-...` 128-bit UUID in primary advertisement and dynamic `Fabrica-XXXX` MAC-derived name in scan response), peripheral-initiated 512-byte ATT MTU negotiation, and 15ms–30ms connection parameter requests.
