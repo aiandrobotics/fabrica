@@ -24,8 +24,10 @@ The Fabrica mission encompasses four primary, interconnected project deliverable
    - A modern, interactive web-based documentation portal providing step-by-step 3D assembly guides, electrical wiring schematics, an interactive Bill of Materials (BOM), operation manuals, and troubleshooting flows.
 
 4. **Mobile Application (`mobile-app/`)**:
-   - A cross-platform mobile application providing wireless Bluetooth Low Energy (BLE) connectivity to the ESP32.
+   - The companion cross-platform mobile application is maintained in a dedicated external repository at **[https://github.com/aiandrobotics/air-robotics-app](https://github.com/aiandrobotics/air-robotics-app)**.
+   - Provides wireless Bluetooth Low Energy (BLE) connectivity to the ESP32 firmware (`FAB0`–`FAB3` GATT services).
    - Enables visual sequence creation, button sequence configuration (Buttons 1–4), start/stop execution, real-time sequence progress and motor position monitoring, and client-side garment profile management.
+   - The local `mobile-app/` directory serves as integration specifications, wire opcode documentation, and BLE protocol definitions.
 
 ---
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-10
+- Added comprehensive root `README.md` covering system architecture, CAD designs, embedded firmware, mobile application integration, electrical schematics, Bill of Materials, and quick start guide.
+- Updated `mobile-app/README.md`, `docs/README.md`, and `specs/mission.md` to reference the dedicated companion mobile application repository (`https://github.com/aiandrobotics/air-robotics-app`).
+
 ## 2026-11-08
 - Replaced system-specific paths, macOS application bundle locations, and absolute user URIs with generic, cross-platform paths and relative links across CAD scripts, tooling, and firmware specifications.
 - Implemented Phase 11 End-to-End Firmware BLE Validation & App Store Test App Playbook (`firmware/test/test_ble_integration.c`, `firmware/README.md`, `firmware/Makefile`).
