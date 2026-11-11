@@ -30,6 +30,7 @@
 #include "host/ble_store.h"
 #include "host/ble_uuid.h"
 #include "host/util/util.h"
+#include "host/ble_esp_gap.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 
@@ -509,6 +510,18 @@ static bool is_peer_bonded_in_store(const ble_addr_t *peer_id_addr)
         return false;
     }
 
+    /*
+     * If the peer address is a Resolvable Private Address (RPA, common on iOS & modern Android),
+     * cryptographically resolve it against stored peer Identity Resolving Keys (IRKs) in NVS.
+     */
+    if (BLE_ADDR_IS_RPA(peer_id_addr) || ((peer_id_addr->val[5] & 0xC0) == 0x40)) {
+        uint8_t ida[6];
+        uint8_t ida_type = 0;
+        if (ble_gap_rpa_resolve((uint8_t *)peer_id_addr->val, ida, &ida_type)) {
+            return true;
+        }
+    }
+
     ble_addr_t peers[BLE_MAX_BONDS];
     int num_peers = 0;
     if (ble_store_util_bonded_peers(peers, &num_peers, BLE_MAX_BONDS) != 0) {
@@ -616,7 +629,9 @@ static int ble_gap_event_handler(struct ble_gap_event *event, void *arg)
                 return 0;
             }
 
-            bool is_bonded = desc.sec_state.bonded || is_peer_bonded_in_store(&desc.peer_id_addr);
+            bool is_bonded = desc.sec_state.bonded ||
+                             is_peer_bonded_in_store(&desc.peer_id_addr) ||
+                             is_peer_bonded_in_store(&desc.peer_ota_addr);
             bool pairing_open = state_machine_is_ble_pairing();
 
             if (!is_bonded && !pairing_open) {

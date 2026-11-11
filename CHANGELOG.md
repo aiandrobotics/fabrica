@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-11
+- Fixed BLE auto-reconnection for bonded iOS and Android centrals using Resolvable Private Addresses (RPAs) in `firmware/main/ble_transport.c`.
+- Integrated `ble_gap_rpa_resolve()` from `<host/ble_esp_gap.h>` to cryptographically resolve rotating RPAs against stored Identity Resolving Keys (IRKs) in NVS.
+- Checked both `peer_id_addr` and `peer_ota_addr` in `ble_gap_event_handler()` to eliminate premature link rejection outside the Hold-to-Pair window.
+
 ## 2026-11-10
 - Added comprehensive root `README.md` covering system architecture, CAD designs, embedded firmware, mobile application integration, electrical schematics, Bill of Materials, and quick start guide.
 - Updated `mobile-app/README.md`, `docs/README.md`, and `specs/mission.md` to reference the dedicated companion mobile application repository (`https://github.com/aiandrobotics/air-robotics-app`).
