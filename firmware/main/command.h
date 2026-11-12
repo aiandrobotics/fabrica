@@ -39,7 +39,8 @@ typedef enum {
     CMD_IDENTIFY_ROBOT,         /* Trigger 3.0s visual locator LED pulse train */
     CMD_SET_TELEMETRY_STREAM,   /* Enable or disable periodic BLE telemetry streaming */
     CMD_CLEAR_BLE_BONDS,        /* Erase all stored BLE bonds in NVS (B1+B4 5s hold) */
-    CMD_CALIBRATION_THERMAL_SLEEP /* Internal 10s thermal sleep cutoff in STATE_CALIBRATING */
+    CMD_CALIBRATION_THERMAL_SLEEP, /* Internal 10s thermal sleep cutoff in STATE_CALIBRATING */
+    CMD_FACTORY_RESET_ALL       /* Full factory wipe: restore presets, clear bonds, home servos, enter indefinite pairing (B1+B3+B4 10s hold or BLE 0x1F) */
 } cmd_type_t;
 
 /* ========================================================================= */

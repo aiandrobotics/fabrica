@@ -416,6 +416,45 @@ esp_err_t state_machine_process_command(const command_t *cmd)
             led_set_state(LED_STATE_INPUT_ERROR);
             return err;
         }
+
+        if (cmd->type == CMD_FACTORY_RESET_ALL) {
+#ifdef ESP_PLATFORM
+            ESP_LOGW(TAG, "Full Factory Reset triggered (B1+B3+B4 10s hold or BLE 0x1F). Wiping presets & BLE bonds...");
+#endif
+            if (s_system_state == STATE_CALIBRATING) {
+                exit_calibration_and_home();
+            } else if (s_system_state == STATE_ESTOP) {
+                motion_reset_state();
+            }
+            state_machine_close_ble_pairing();
+
+            /* 1. Restore NVS preset sequences to hardcoded factory defaults */
+            esp_err_t err_presets = storage_init_factory_defaults();
+
+            /* 2. Safely home all 16 servos to 0 degrees */
+            pca9685_home_all();
+
+            /* 3. Clear all stored BLE bonds in NVS and disconnect active central */
+            esp_err_t err_bonds = ble_transport_clear_bonds();
+
+            /* 4. Reset state machine tracking and enter indefinite BLE pairing mode */
+            s_system_state = STATE_IDLE_RUN;
+            s_active_preset_id = 0;
+            s_ble_pairing_active = true;
+            s_ble_pairing_timer_ms = 0;
+            (void)ble_transport_enter_pairing_mode();
+
+            /* 5. Set persistent base LED state to pairing mode */
+            led_set_state(LED_STATE_BLE_PAIRING);
+            if (err_presets == ESP_OK && err_bonds == ESP_OK) {
+                remote_cmd_set_last_status(CMD_STATUS_OK, false);
+                return ESP_OK;
+            } else {
+                led_set_state(LED_STATE_INPUT_ERROR);
+                remote_cmd_set_last_status(CMD_STATUS_ERR_INVALID_ARG, false);
+                return ESP_FAIL;
+            }
+        }
     }
 
     /* 3. State-dependent command dispatch */

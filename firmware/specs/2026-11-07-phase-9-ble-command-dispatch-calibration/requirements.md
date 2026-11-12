@@ -33,6 +33,7 @@ All wireless control and calibration features remain strictly firmware-native an
 4. **Wireless Preset Slot Management, Factory Reset & Immediate Status Push**:
    - **Direct Button Save (`CMD_SET_BUTTON_SEQUENCE`, Opcode `0x0A` & `FAB3` Write)**: Persist validated routines to Preset `1–4` in NVS, flash `LED_STATE_SAVE_SUCCESS` (2.0s solid ON), and emit a 212-byte `FAB3` GATT notification.
    - **Factory Default Reset (`CMD_RESTORE_FACTORY_PRESETS`, Opcode `0x0C`)**: Restore Presets `1–4` to hardcoded factory folding defaults in NVS, home all 16 servos to $0^\circ$, flash `LED_STATE_SAVE_SUCCESS`, and emit a 212-byte `FAB3` GATT notification.
+   - **Full Factory Reset (`CMD_FACTORY_RESET_ALL`, Opcode `0x1F`)**: Wipes both NVS presets back to factory defaults and all stored BLE bonds, homes all 16 servos to $0^\circ$, disconnects active central, and restarts indefinite BLE pairing mode.
    - **Immediate Command Status Reporting (`FAB2`)**: Every BLE command acceptance, ingress rejection, or execution completion updates `last_cmd_status` (`0..6`) and immediately pushes an event-driven 31-byte `FAB2` telemetry notification to subscribed centrals.
 
 5. **Live Servo Jog, Calibration Mode (`STATE_CALIBRATING`) & Thermal Protection (`0x0D`)**:

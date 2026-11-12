@@ -314,6 +314,35 @@ void test_ble_pairing_mode_and_timeout(void)
     /* Indefinite timeout check after wipe */
     state_machine_tick(300000);
     TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing mode remains open indefinitely after wipe");
+
+    /* 7. Full factory reset (CMD_FACTORY_RESET_ALL) wipes presets, clears bonds, homes servos */
+    fold_routine_t custom_routine;
+    memset(&custom_routine, 0, sizeof(custom_routine));
+    custom_routine.step_count = 1;
+    custom_routine.steps[0].motor_count = 1;
+    custom_routine.steps[0].motor_ids[0] = SERVO_FLAP_LEFT;
+    storage_save_routine(1, &custom_routine);
+
+    const uint8_t mock_peer[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
+    const uint8_t mock_irk[16] = {0};
+    ble_transport_mock_connect(mock_peer, true, mock_peer, mock_irk);
+    TEST_ASSERT(ble_transport_get_bond_count() == 1, "1 bond before factory reset");
+
+    command_t cmd_factory_reset = {.type = CMD_FACTORY_RESET_ALL, .source = SOURCE_PHYSICAL_BUTTON};
+    err = state_machine_process_command(&cmd_factory_reset);
+    TEST_ASSERT(err == ESP_OK, "CMD_FACTORY_RESET_ALL returns ESP_OK");
+    TEST_ASSERT(ble_transport_get_bond_count() == 0, "Bonds wiped to 0 by CMD_FACTORY_RESET_ALL");
+    TEST_ASSERT(ble_transport_is_connected() == false, "Central disconnected by CMD_FACTORY_RESET_ALL");
+
+    fold_routine_t restored_p1;
+    storage_load_routine(1, &restored_p1);
+    TEST_ASSERT(restored_p1.step_count == 4, "Preset 1 restored to 4-step factory default");
+
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Factory reset auto-starts pairing mode");
+    TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "LED immediately set to LED_STATE_BLE_PAIRING");
+
+    state_machine_tick(300000);
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing mode remains open indefinitely after factory reset");
 }
 
 /* ========================================================================= */
@@ -340,6 +369,13 @@ void test_button_gesture_translation_matrix(void)
         command_t c = buttons_translate_gesture(i, GESTURE_SHORT_TAP, STATE_RUNNING_MOTION);
         TEST_ASSERT(c.type == CMD_EMERGENCY_STOP, "Short tap in RUNNING produces CMD_EMERGENCY_STOP");
     }
+
+    /* 3. Chord gestures: B1+B4 -> CMD_CLEAR_BLE_BONDS, B1+B3+B4 -> CMD_FACTORY_RESET_ALL */
+    command_t c_bond = buttons_translate_gesture(BTN_ID_1, GESTURE_BOND_RESET, STATE_IDLE_RUN);
+    TEST_ASSERT(c_bond.type == CMD_CLEAR_BLE_BONDS, "GESTURE_BOND_RESET produces CMD_CLEAR_BLE_BONDS");
+
+    command_t c_fact = buttons_translate_gesture(BTN_ID_1, GESTURE_FACTORY_RESET, STATE_IDLE_RUN);
+    TEST_ASSERT(c_fact.type == CMD_FACTORY_RESET_ALL, "GESTURE_FACTORY_RESET produces CMD_FACTORY_RESET_ALL");
 }
 
 /* ========================================================================= */

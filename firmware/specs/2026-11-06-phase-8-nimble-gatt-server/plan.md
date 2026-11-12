@@ -24,6 +24,7 @@ Key goals include:
    - Add `bt` and `nvs_flash` to component requirements (`PRIV_REQUIRES` / `REQUIRES`).
 3. Update `firmware/main/config.h` with BLE transport, connection parameter, and bond-reset constants:
    - `BUTTON_BOND_RESET_MS` (`5000` ms for simultaneous `B1 + B4` hold).
+   - `BUTTON_FACTORY_RESET_MS` (`10000` ms for simultaneous `B1 + B3 + B4` hold).
    - `BLE_ADV_INTERVAL_MS` (`100` ms fast advertising).
    - `BLE_CONN_INTERVAL_MIN_MS` (`15.0f` ms / `12` units), `BLE_CONN_INTERVAL_MAX_MS` (`30.0f` ms / `24` units), `BLE_CONN_SLAVE_LATENCY` (`0`), `BLE_SUPERVISION_TIMEOUT_MS` (`4000` ms / `400` units).
    - `BLE_PREFERRED_MTU` (`512` bytes) and `BLE_MAX_BONDS` (`4` devices).

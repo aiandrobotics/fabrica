@@ -178,8 +178,11 @@ The robot can be fully monitored, calibrated, and controlled using off-the-shelf
 ### 2. Step-by-Step Pairing Walkthrough (nRF Connect / LightBlue)
 
 1. **Pairing Window (Out-of-the-Box Auto-Start or 3-Second Hold)**:
-   - **New / Wiped Unit (0 Bonds)**: Fabrica automatically enters **indefinite BLE pairing mode** upon boot or after a hardware bond reset (`B1 + B4` 5s hold) without requiring any button press. It remains open until the first phone pairs. The Status LED immediately begins a **fast double-blink** (`LED_STATE_BLE_PAIRING`).
+   - **New / Wiped Unit (0 Bonds)**: Fabrica automatically enters **indefinite BLE pairing mode** upon boot, after a bond reset (`B1 + B4` 5s hold), or after a full factory reset (`B1 + B3 + B4` 10s hold / `0x1F`) without requiring any button press. It remains open until the first phone pairs. The Status LED immediately begins a **fast double-blink** (`LED_STATE_BLE_PAIRING`).
    - **Adding a Second Device (Multi-Device Pairing)**: Hold **Button 1 (or any button B1–B4) for 3 seconds**. This opens a **120-second (2-minute) pairing window** for the new device.
+   - **Hardware Wipe Shortcuts**:
+     - `B1 + B4` (5s chord hold): Clears BLE bonds from NVS.
+     - `B1 + B3 + B4` (10s chord hold): Full Factory Reset (wipes both NVS presets and BLE bonds, homes all 16 servos, and restarts indefinite pairing mode).
    - The device advertises as `Fabrica-XXXX` (where `XXXX` is derived from the ESP32 BT MAC address).
 2. **Scan and Connect**:
    - In **nRF Connect** or **LightBlue**, scan for `Fabrica-XXXX` and tap **Connect**.
@@ -231,6 +234,7 @@ Tap `FAB1` (`0000FAB1-...`), select **Write**, choose format **Byte Array** (or 
 | **Request Telemetry** | `[0x10]` | `10` | Requests immediate single-shot 31-byte notification on `FAB2` |
 | **Pause Telemetry Stream** | `[0x11][0x00]` | `1100` | Pauses periodic background streaming loop |
 | **Resume Telemetry Stream**| `[0x11][0x01]` | `1101` | Resumes periodic background streaming loop |
+| **Full Factory Reset** | `[0x1F]` | `1F` | Wipes presets and BLE bonds, homes all 16 servos, disconnects central, and restarts indefinite pairing mode |
 
 ---
 

@@ -49,7 +49,8 @@ typedef enum {
     GESTURE_NONE = 0,
     GESTURE_SHORT_TAP = 1,   /**< Pressed and released in < 500ms */
     GESTURE_LONG_PRESS = 2,  /**< Single button held continuously for >= 3000ms */
-    GESTURE_BOND_RESET = 3   /**< B1 + B4 held simultaneously for >= 5000ms */
+    GESTURE_BOND_RESET = 3,  /**< B1 + B4 held simultaneously for >= 5000ms */
+    GESTURE_FACTORY_RESET = 4 /**< B1 + B3 + B4 held simultaneously for >= 10000ms */
 } button_gesture_t;
 
 /**

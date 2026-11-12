@@ -92,6 +92,9 @@ Build, validate, and verify each milestone before moving to the next phase.
     - **Short Tap (Idle)**: Triggers Preset 1–4 (`CMD_RUN_PRESET`), pre-seeded with 4 factory defaults out of the box.
     - **Any Tap (Running)**: Triggers immediate `<50ms` Emergency Stop (`CMD_EMERGENCY_STOP`).
     - **Single-Button Long Press (3s Hold in Idle)**: Dispatches `CMD_ENTER_BLE_PAIRING` to open the BLE pairing/discovery window (120s timed window when bonded peers exist, or indefinite when 0 bonds are stored; `LED_STATE_BLE_PAIRING`); custom sequence programming is offloaded to BLE GATT rather than multi-button programming modes on the physical pad.
+    - **Physical Chord Holds**:
+      - `B1 + B4` (5s): Dispatches `CMD_CLEAR_BLE_BONDS` to wipe all BLE bonds in NVS.
+      - `B1 + B3 + B4` (10s): Dispatches `CMD_FACTORY_RESET_ALL` to wipe both NVS folding sequences and all BLE bonds, home all 16 servos, and restart into indefinite pairing mode.
   - **Wireless Sequence & Calibration Dispatch**:
     - `CMD_SET_BUTTON_SEQUENCE`: Saves a custom routine received over BLE to Button 1–4 in NVS flash and confirms with `LED_STATE_SAVE_SUCCESS` (2.0s solid ON).
     - `CMD_RESTORE_FACTORY_PRESETS`: Restores Buttons 1–4 to built-in factory default routines in NVS.
@@ -154,6 +157,7 @@ Build, validate, and verify each milestone before moving to the next phase.
     - **Outside Pairing Window (`state_machine_is_ble_pairing() == false`)**: Already-bonded iOS/Android centrals resolve via IRK/LTK and auto-reconnect seamlessly (`LED_STATE_BLE_CONNECTED`), while unbonded connection or pairing attempts are rejected and terminated (`ble_gap_terminate(conn_handle, BLE_ERR_REM_USER_CONN_TERM)`).
   - **Bond Lifecycle & FIFO Eviction**: Support up to 4 bonded peer identities in NVS; if a 5th device pairs during an active pairing window, evict the oldest bond automatically (`ble_store_util_delete_oldest_peer()`).
   - **Hardware Bond Factory Reset (`B1 + B4` 5-Second Chord Hold)**: Holding physical buttons **B1 + B4** simultaneously for 5 seconds (`BUTTON_BOND_RESET_MS = 5000`) at power-on or in `STATE_IDLE_RUN` suppresses the 3s single-button pairing trigger, dispatches `CMD_CLEAR_BLE_BONDS`, clears all stored bonds in NVS (`ble_store_clear()`), terminates any active BLE connection, confirms with 3 fast LED flashes (`LED_STATE_INPUT_ERROR`), and automatically re-opens indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`).
+  - **Full Factory Reset (`B1 + B3 + B4` 10-Second Chord Hold & BLE Opcode `0x1F`)**: Holding physical buttons **B1 + B3 + B4** simultaneously for 10 seconds (`BUTTON_FACTORY_RESET_MS = 10000`) or writing Opcode `0x1F` (`BLE_OP_FACTORY_RESET_ALL`) on `FAB1` dispatches `CMD_FACTORY_RESET_ALL`, wipes all custom button sequences in NVS back to factory defaults, homes all 16 servos to $0^\circ$, clears all BLE bonds from NVS, terminates any active central connection, and restarts into indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`).
   - **120-Second Pairing Timeout (Multi-Device)**: When $\ge 1$ devices are bonded, if no new device pairs within 120 seconds after a 3s hold, `state_machine_tick()` closes the pairing window and restores `LED_STATE_IDLE`.
 - **Standard Device Information Service (DIS `0x180A`)**:
   - Expose read-only Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"Fabrica Robotics"`) characteristics visible natively in nRF Connect and LightBlue.

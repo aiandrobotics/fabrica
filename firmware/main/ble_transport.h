@@ -80,7 +80,8 @@ typedef enum {
   BLE_OP_JOG_MOTOR_ANGLE = 0x0D,     /**< [0x0D][channel 0..15][angle 0..180] */
   BLE_OP_IDENTIFY_ROBOT = 0x0E,      /**< [0x0E] */
   BLE_OP_GET_TELEMETRY = 0x10,       /**< [0x10] */
-  BLE_OP_SET_TELEMETRY_STREAM = 0x11 /**< [0x11][enable 0|1] */
+  BLE_OP_SET_TELEMETRY_STREAM = 0x11, /**< [0x11][enable 0|1] */
+  BLE_OP_FACTORY_RESET_ALL = 0x1F    /**< [0x1F] Full factory wipe: presets + bonds + home servos + pairing */
 } ble_opcode_t;
 
 /* ========================================================================= */

@@ -330,6 +330,9 @@ static void test_vectors_7_to_11_sequences_guards_and_busy_locks(void)
     const uint8_t factory_reset_cmd[] = { 0x0C };
     TEST_ASSERT(ble_transport_write_fab1(factory_reset_cmd, sizeof(factory_reset_cmd)) == CMD_STATUS_ERR_BUSY,
                 "0x0C (CMD_RESTORE_FACTORY_PRESETS) rejected with CMD_STATUS_ERR_BUSY during motion");
+    const uint8_t full_factory_reset_cmd[] = { 0x1F };
+    TEST_ASSERT(ble_transport_write_fab1(full_factory_reset_cmd, sizeof(full_factory_reset_cmd)) == CMD_STATUS_ERR_BUSY,
+                "0x1F (CMD_FACTORY_RESET_ALL) rejected with CMD_STATUS_ERR_BUSY during motion");
     const uint8_t jog_cmd[] = { 0x0D, 0x00, 0x5A };
     TEST_ASSERT(ble_transport_write_fab1(jog_cmd, sizeof(jog_cmd)) == CMD_STATUS_ERR_BUSY,
                 "0x0D (CMD_JOG_MOTOR_ANGLE) rejected with CMD_STATUS_ERR_BUSY during motion");
@@ -439,6 +442,26 @@ static void test_vectors_12_to_17_telemetry_calibration_estop_and_concurrency(vo
     ble_transport_mock_disconnect();
     TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "Abrupt disconnect immediately safely homed servos and returned to IDLE");
     TEST_ASSERT(pca9685_get_channel_angle(2) == 0, "Channel 2 homed on disconnect");
+
+    /* Vector 18: Full Factory Reset Remote Command (0x1F) */
+    /* Reconnect central and modify Preset 1 */
+    sim_ios_central_connect(dev_addr, dev_irk, true);
+    const uint8_t custom_p1[] = { 0x0A, 0x01, 0x01, 0x01, 0x00, 0x00 };
+    send_ble_command(custom_p1, sizeof(custom_p1));
+    fold_routine_t custom_check;
+    storage_load_routine(1, &custom_check);
+    TEST_ASSERT(custom_check.step_count == 1, "Preset 1 modified prior to 0x1F wipe");
+    TEST_ASSERT(ble_transport_get_bond_count() > 0, "Bond exists prior to 0x1F wipe");
+
+    /* Send 0x1F (CMD_FACTORY_RESET_ALL) */
+    const uint8_t wipe_all_cmd[] = { 0x1F };
+    send_ble_command(wipe_all_cmd, sizeof(wipe_all_cmd));
+    TEST_ASSERT(ble_transport_is_connected() == false, "0x1F immediately disconnected central");
+    TEST_ASSERT(ble_transport_get_bond_count() == 0, "0x1F purged all bonds to 0");
+    fold_routine_t post_wipe_p1;
+    storage_load_routine(1, &post_wipe_p1);
+    TEST_ASSERT(post_wipe_p1.step_count == 4, "0x1F restored Preset 1 to 4-step factory default");
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "0x1F restarted indefinite pairing mode");
 }
 
 /* ========================================================================= */

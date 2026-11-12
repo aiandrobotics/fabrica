@@ -33,6 +33,7 @@ Phase 11 delivers the complete system-level integration test suite (`test/test_b
 15. Factory reset (`0x0C`) resetting all 4 slots with `FAB3` notification.
 16. Multi-source concurrency arbitration (simultaneous button presses and BLE writes).
 17. Abrupt disconnect safety (finishes motion safely, homes jogged servos immediately).
+18. Full factory reset (`0x1F` / B1+B3+B4 10s chord hold) wiping both presets and BLE bonds, disconnecting central, and restarting indefinite pairing mode.
 
 ### 3. Endurance & Stability Stress Criteria
 - 200 consecutive automated fold cycles with active 10 Hz telemetry streaming and periodic `FAB3` sequence updates.

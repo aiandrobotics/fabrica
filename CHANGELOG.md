@@ -1,6 +1,11 @@
 # Changelog
 
 ## 2026-11-12
+- Implemented Full Factory Reset (`CMD_FACTORY_RESET_ALL`):
+  - Physical gesture: Holding B1 + B3 + B4 simultaneously for 10 seconds (`BUTTON_FACTORY_RESET_MS = 10000`) wipes both custom folding routines in NVS back to factory defaults and all stored BLE bonds, homes all 16 servos to 0°, terminates active central connections, and restarts into indefinite pairing mode (`LED_STATE_BLE_PAIRING`).
+  - Wireless command: Added BLE Opcode `0x1F` (`BLE_OP_FACTORY_RESET_ALL`) on `FAB1` Control Point to trigger a full wipe remotely.
+  - Added test coverage in `test_headers.c`, `test_ui_subsystem.c`, `test_state_machine.c`, and `test_ble_integration.c` (98/98 checks passing).
+  - Updated all technical specs, architecture docs, and README cheat sheets.
 - Updated zero-bond BLE pairing behavior: pairing mode now remains open indefinitely on initial boot and post-wipe when 0 devices are bonded in NVS until the first central pairs.
 - Preserved the 120-second timed pairing window for multi-device pairing (2nd through 4th central) entered via 3-second physical button hold (`CMD_ENTER_BLE_PAIRING`).
 - Updated specifications, test suites (`test_state_machine.c`, `test_ble_integration.c`), and README pairing walkthrough.

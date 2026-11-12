@@ -149,6 +149,7 @@ graph LR
 | `BUTTON_DEBOUNCE_MS` | `50` ms | Low-pass debounce sampling window |
 | `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration threshold to enter BLE pairing window |
 | `BUTTON_BOND_RESET_MS` | `5000` ms | Simultaneous B1+B4 hold threshold to clear all BLE bonds in NVS |
+| `BUTTON_FACTORY_RESET_MS` | `10000` ms | Simultaneous B1+B3+B4 hold threshold for Full Factory Reset (wiping presets & bonds) |
 | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Upper bound for tap gesture detection in Daily Run Mode |
 | `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second (2-minute) timeout for multi-device pairing (indefinite on 0 bonds) |
 | `FOLD_DWELL_TIME_MS` | `300` ms | Dwell time holding flap at $180^\circ$ before returning |
@@ -298,7 +299,8 @@ typedef enum {
     CMD_STOP_SEQUENCE,          /* Cleanly stop active motion / exit calibration / clear E-Stop */
     CMD_IDENTIFY_ROBOT,         /* Trigger 3.0s visual locator LED pulse train */
     CMD_SET_TELEMETRY_STREAM,   /* Enable or disable periodic BLE telemetry streaming */
-    CMD_CLEAR_BLE_BONDS         /* Erase all stored BLE bonds in NVS (B1+B4 5s hold) */
+    CMD_CLEAR_BLE_BONDS,        /* Erase all stored BLE bonds in NVS (B1+B4 5s hold) */
+    CMD_FACTORY_RESET_ALL       /* Full factory wipe: restore presets, clear bonds, home servos, enter indefinite pairing (B1+B3+B4 10s hold or BLE 0x1F) */
 } cmd_type_t;
 
 typedef struct {
@@ -357,6 +359,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 | `0x0E` | `CMD_IDENTIFY_ROBOT` | Write Without Response / Write | *(None)* | 1 Byte | Triggers 3.0s visual locator pulse train (`LED_STATE_IDENTIFY`) on status LED. |
 | `0x10` | `CMD_GET_TELEMETRY` | Write / Write No Rsp | *(None)* | 1 Byte | Requests single-shot 31-byte telemetry frame push over `FAB2`. |
 | `0x11` | `CMD_SET_TELEMETRY_STREAM`| Write / Write No Rsp | `[uint8_t enable (0 or 1)]` | 2 Bytes | Enables (`1`) or disables (`0`) periodic automatic telemetry streaming on `FAB2`. |
+| `0x1F` | `CMD_FACTORY_RESET_ALL`| Write / Write No Rsp | *(None)* | 1 Byte | Full factory wipe: restores presets 1–4 to defaults, homes all 16 servos, purges all BLE bonds, disconnects central, and enters indefinite pairing mode. |
 
 #### 3. Subsystem Protocol Rules & Safety Semantics:
 
@@ -435,6 +438,9 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
   - **Resolvable Private Address (RPA) Resolution**: Both iOS and Android 10+ rotate BLE MAC addresses every ~15 minutes using RPAs. Storing peer IRKs in NVS via NimBLE's bond store (`ble_store_config_init()`, up to 4 devices) resolves rotating RPAs natively at the BLE link layer without requiring custom mobile app tokens.
   - **Bond Lifecycle & Eviction**: Supports up to 4 bonded devices in NVS. When a 5th device pairs during an active pairing window, the oldest bond is evicted automatically (FIFO/LRU).
   - **Hardware Bond Factory Reset (`B1 + B4` 5-Second Hold)**: Holding physical buttons B1 + B4 simultaneously for 5 seconds (`BUTTON_BOND_RESET_MS = 5000`) at power-on or in `STATE_IDLE_RUN` suppresses the 3s single-button pairing gesture, dispatches `CMD_CLEAR_BLE_BONDS`, clears all stored bonds in NVS, disconnects any active central, confirms with 3 fast LED flashes (`LED_STATE_INPUT_ERROR`), and immediately auto-starts indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`) now that zero bonds remain.
+  - **Full Factory Reset (`B1 + B3 + B4` 10-Second Hold & BLE Opcode `0x1F`)**:
+    - **Physical Gesture**: Holding physical buttons B1 + B3 + B4 simultaneously for 10 seconds (`BUTTON_FACTORY_RESET_MS = 10000`) at power-on, in `STATE_IDLE_RUN`, `STATE_ESTOP`, or `STATE_CALIBRATING` suppresses 3s long press and 5s bond reset chords, dispatches `CMD_FACTORY_RESET_ALL`, wipes all custom sequences in NVS back to factory defaults, homes all 16 servos to $0^\circ$, purges all BLE bonds from NVS, terminates any active central connection, and restarts into indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`).
+    - **Wireless Command**: Sending Opcode `0x1F` (`BLE_OP_FACTORY_RESET_ALL`) on `FAB1` performs the identical full wipe remotely, confirming with an immediate ATT write response prior to link termination and returning to indefinite pairing mode.
   - Upon successful pairing or bonded reconnect, the LED pulses `LED_STATE_BLE_CONNECTED` (1.0s solid ON, restoring prior base state).
   - **120-Second Pairing Timeout (Multi-Device Only)**: When $\ge 1$ devices are already bonded, if no new central bonds within 120 seconds after a 3s hold, `state_machine_tick()` closes the pairing window and restores `LED_STATE_IDLE`.
 

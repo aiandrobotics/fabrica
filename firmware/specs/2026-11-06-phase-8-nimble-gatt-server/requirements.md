@@ -70,6 +70,7 @@ All BLE functionality is implemented strictly in firmware to support both **iOS 
 | **Packed Struct Sizes** | `fold_step_t = 3B`, `fold_routine_t = 53B`, `telemetry_packet_t = 31B` | Zero compiler padding across architectures |
 | **Pairing Window & Bond Cap** | Indefinite on 0 bonds, 120000ms on 3s hold; max `4` bonds (FIFO eviction) | Proof-of-physical-presence security |
 | **Hardware Bond Reset** | `B1 + B4` simultaneous hold for `5000ms` | Recovery without reflashing firmware |
+| **Full Factory Reset** | `B1 + B3 + B4` hold for `10000ms` or BLE Opcode `0x1F` | Complete NVS wipe of presets and bonds |
 | **Internal SRAM Headroom** | Net free heap $\ge 190\text{ KB}$ after NimBLE initialization | Long-term RTOS stability |
 
 ---

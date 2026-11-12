@@ -51,6 +51,7 @@ extern "C" {
 #define BUTTON_SHORT_PRESS_MAX_MS    500    /* Maximum tap gesture duration */
 #define BUTTON_LONG_PRESS_MS         3000   /* Hold time (3s) to enter BLE pairing mode */
 #define BUTTON_BOND_RESET_MS         5000   /* Simultaneous B1+B4 hold time (5s) to clear BLE bonds */
+#define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
 #define FOLD_DWELL_TIME_MS           300    /* Flap hold time at fold angle */
 #define INTER_STEP_DELAY_MS          200    /* Delay between routine steps */

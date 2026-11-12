@@ -193,6 +193,52 @@ void test_button_gestures(void)
     buttons_update_channel(BTN_ID_4, 1, 50);
     g = buttons_update_channel(BTN_ID_4, 1, 0);
     TEST_ASSERT(g == GESTURE_NONE, "B4 release produces no tap");
+
+    /* Test 5: Simultaneous B1 + B4 5-second chord hold (GESTURE_BOND_RESET) */
+    buttons_reset_all();
+    buttons_update_channel(BTN_ID_1, 0, 50);
+    buttons_update_channel(BTN_ID_4, 0, 50);
+    /* Advance 3000ms: verify 3s long press is suppressed on both B1 and B4 */
+    buttons_update_channel(BTN_ID_1, 0, 3000);
+    g = buttons_update_channel(BTN_ID_4, 0, 3000);
+    TEST_ASSERT(g == GESTURE_NONE, "B1+B4 chord suppresses 3s long press");
+    /* Advance to 5000ms */
+    buttons_update_channel(BTN_ID_1, 0, 1950);
+    g = buttons_update_channel(BTN_ID_4, 0, 1950);
+    TEST_ASSERT(g == GESTURE_BOND_RESET, "B1+B4 at 5000ms triggers GESTURE_BOND_RESET");
+    command_t cmd_bond = buttons_translate_gesture(BTN_ID_1, g, STATE_IDLE_RUN);
+    TEST_ASSERT(cmd_bond.type == CMD_CLEAR_BLE_BONDS, "GESTURE_BOND_RESET translates to CMD_CLEAR_BLE_BONDS");
+    /* Release B1 and B4 */
+    buttons_update_channel(BTN_ID_1, 1, 50);
+    buttons_update_channel(BTN_ID_4, 1, 50);
+
+    /* Test 6: Simultaneous B1 + B3 + B4 10-second chord hold (GESTURE_FACTORY_RESET) */
+    buttons_reset_all();
+    buttons_update_channel(BTN_ID_1, 0, 50);
+    buttons_update_channel(BTN_ID_3, 0, 50);
+    buttons_update_channel(BTN_ID_4, 0, 50);
+    /* Advance to 3000ms: verify 3s long press suppressed */
+    buttons_update_channel(BTN_ID_1, 0, 3000);
+    buttons_update_channel(BTN_ID_3, 0, 3000);
+    g = buttons_update_channel(BTN_ID_4, 0, 3000);
+    TEST_ASSERT(g == GESTURE_NONE, "B1+B3+B4 chord suppresses 3s long press");
+    /* Advance to 5000ms: verify 5s B1+B4 bond reset is suppressed because B3 is held */
+    buttons_update_channel(BTN_ID_1, 0, 2000);
+    buttons_update_channel(BTN_ID_3, 0, 2000);
+    g = buttons_update_channel(BTN_ID_4, 0, 2000);
+    TEST_ASSERT(g == GESTURE_NONE, "B1+B3+B4 chord suppresses 5s GESTURE_BOND_RESET");
+    /* Advance to 10000ms: triggers GESTURE_FACTORY_RESET */
+    buttons_update_channel(BTN_ID_1, 0, 4950);
+    buttons_update_channel(BTN_ID_3, 0, 4950);
+    g = buttons_update_channel(BTN_ID_4, 0, 4950);
+    TEST_ASSERT(g == GESTURE_FACTORY_RESET, "B1+B3+B4 at 10000ms triggers GESTURE_FACTORY_RESET");
+    command_t cmd_fact = buttons_translate_gesture(BTN_ID_1, g, STATE_IDLE_RUN);
+    TEST_ASSERT(cmd_fact.type == CMD_FACTORY_RESET_ALL, "GESTURE_FACTORY_RESET translates to CMD_FACTORY_RESET_ALL");
+    /* Release all three */
+    buttons_update_channel(BTN_ID_1, 1, 50);
+    buttons_update_channel(BTN_ID_3, 1, 50);
+    g = buttons_update_channel(BTN_ID_4, 1, 50);
+    TEST_ASSERT(g == GESTURE_NONE, "B1+B3+B4 release produces zero trailing tap gestures");
 }
 
 int main(void)

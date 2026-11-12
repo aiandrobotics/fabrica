@@ -124,7 +124,7 @@ The mobile companion app is maintained in its own dedicated repository. The loca
   - **1-Touch Button Assignment (`0x0A`)**: Burn custom routines into robot physical Buttons 1–4 with automatic CRC32 calculation.
   - **Live 10 Hz Telemetry & Mirroring (`FAB2`)**: Live motor position tracking ($0^\circ \text{ to } 180^\circ$ across all channels) and 1:1 status LED mirroring.
   - **Live Servo Jog Calibration (`0x0D`)**: Interactively calibrate servo horn alignment with automated 10-second thermal cutoffs.
-  - **1-Tap Factory Reset (`0x0C`)**: Instantly restore the four factory default presets.
+  - **1-Tap Factory Reset (`0x0C` / `0x1F`)**: Restore presets to factory defaults (`0x0C`), or perform a Full Factory Reset (`0x1F`) wiping both sequences and BLE bonds back to indefinite pairing mode.
 - **Generic BLE Scanner Interoperability**: Compatible out of the box with standard tools like **nRF Connect for Mobile** and **LightBlue** (detailed in the [Firmware BLE Playbook](firmware/README.md#app-store-ble-test-app-playbook)).
 
 ### 4. Project Documentation (`docs/`)

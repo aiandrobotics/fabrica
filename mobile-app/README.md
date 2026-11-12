@@ -25,7 +25,7 @@ While the Fabrica robot is fully functional out of the box using its physical 4-
 - **Real-Time Telemetry & LED Mirroring (`FAB2`)**: Live 10 Hz motor position tracking ($0^\circ \text{ to } 180^\circ$ across all channels) and 1:1 visual LED status mirroring with battery-saving 1 Hz idle throttling.
 - **Execution & Safety Control (`FAB1`)**: Wirelessly trigger presets, preview raw sequences, jog motors for calibration, and trigger $<50\text{ms}$ Emergency Stop aborts with automatic panel homing.
 - **Interactive Servo Jog Calibration (`CMD_JOG_SERVO` / `0x0D`)**: Fine-tune resting, staged, and fold angles with 10-second thermal cutoffs and 15-second inactivity auto-homing.
-- **1-Tap Factory Reset (`CMD_RESTORE_FACTORY_PRESETS` / `0x0C`)**: Instantly restore the 4 built-in factory default routines exercising all 4 motors.
+- **1-Tap Factory Reset (`0x0C` / `0x1F`)**: Restore presets to built-in factory defaults (`0x0C`), or execute Full Factory Reset (`0x1F`) wiping both sequences and BLE bonds back to indefinite pairing mode.
 
 ---
 

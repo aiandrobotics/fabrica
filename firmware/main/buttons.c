@@ -32,6 +32,8 @@ static const uint8_t s_btn_gpios[BTN_ID_COUNT] = {
 static button_state_t s_buttons[BTN_ID_COUNT];
 static bool s_bond_reset_chord_active = false;
 static bool s_bond_reset_triggered = false;
+static bool s_factory_reset_chord_active = false;
+static bool s_factory_reset_triggered = false;
 
 /**
  * @brief Reset internal debounce filter timers and gesture state for all buttons.
@@ -40,6 +42,8 @@ void buttons_reset_all(void)
 {
     s_bond_reset_chord_active = false;
     s_bond_reset_triggered = false;
+    s_factory_reset_chord_active = false;
+    s_factory_reset_triggered = false;
     for (int i = 0; i < BTN_ID_COUNT; i++) {
         s_buttons[i].gpio_num = s_btn_gpios[i];
         s_buttons[i].current_stable_state = 1; /* Default released (Active Low) */
@@ -114,15 +118,33 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
         btn->debounce_timer_ms = 0;
     }
 
-    /* 2. Continuous hold duration tracking & B1+B4 5s bond-reset chord detection */
+    /* 2. Continuous hold duration tracking & B1+B4 5s bond-reset / B1+B3+B4 10s factory-reset chord detection */
     if (btn->current_stable_state == 0) {
         btn->press_duration_ms += elapsed_ms;
+
+        bool b1_b3_b4_held = (s_buttons[BTN_ID_1].current_stable_state == 0) &&
+                             (s_buttons[BTN_ID_3].current_stable_state == 0) &&
+                             (s_buttons[BTN_ID_4].current_stable_state == 0);
 
         bool b1_b4_held = (s_buttons[BTN_ID_1].current_stable_state == 0) &&
                           (s_buttons[BTN_ID_4].current_stable_state == 0);
 
-        if (b1_b4_held && (btn_idx == BTN_ID_1 || btn_idx == BTN_ID_4)) {
-            /* Suppress single-button 3s pairing gesture and trailing tap on both B1 and B4 */
+        if (b1_b3_b4_held && (btn_idx == BTN_ID_1 || btn_idx == BTN_ID_3 || btn_idx == BTN_ID_4)) {
+            /* 3-button Factory Reset chord (B1+B3+B4 10s): suppress 3s pairing gesture and 5s bond reset */
+            s_factory_reset_chord_active = true;
+            s_buttons[BTN_ID_1].long_press_triggered = true;
+            s_buttons[BTN_ID_3].long_press_triggered = true;
+            s_buttons[BTN_ID_4].long_press_triggered = true;
+
+            if (!s_factory_reset_triggered &&
+                s_buttons[BTN_ID_1].press_duration_ms >= BUTTON_FACTORY_RESET_MS &&
+                s_buttons[BTN_ID_3].press_duration_ms >= BUTTON_FACTORY_RESET_MS &&
+                s_buttons[BTN_ID_4].press_duration_ms >= BUTTON_FACTORY_RESET_MS) {
+                s_factory_reset_triggered = true;
+                detected_gesture = GESTURE_FACTORY_RESET;
+            }
+        } else if (b1_b4_held && !s_factory_reset_chord_active && (s_buttons[BTN_ID_3].current_stable_state == 1) && (btn_idx == BTN_ID_1 || btn_idx == BTN_ID_4)) {
+            /* 2-button Bond Reset chord (B1+B4 5s): suppress single-button 3s pairing gesture */
             s_bond_reset_chord_active = true;
             s_buttons[BTN_ID_1].long_press_triggered = true;
             s_buttons[BTN_ID_4].long_press_triggered = true;
@@ -138,6 +160,14 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
             btn->long_press_triggered = true;
             detected_gesture = GESTURE_LONG_PRESS;
         }
+    }
+
+    if (s_factory_reset_chord_active &&
+        s_buttons[BTN_ID_1].current_stable_state == 1 &&
+        s_buttons[BTN_ID_3].current_stable_state == 1 &&
+        s_buttons[BTN_ID_4].current_stable_state == 1) {
+        s_factory_reset_chord_active = false;
+        s_factory_reset_triggered = false;
     }
 
     if (s_bond_reset_chord_active &&
@@ -158,9 +188,10 @@ button_gesture_t buttons_update_channel(uint8_t btn_idx, int raw_level, uint32_t
  *   - Short tap in STATE_IDLE_RUN -> CMD_RUN_PRESET (Preset 1..4).
  *   - Long press (>=3s) in STATE_IDLE_RUN -> CMD_ENTER_BLE_PAIRING (120s BLE discovery window).
  *   - B1+B4 chord hold (>=5s) in STATE_IDLE_RUN -> CMD_CLEAR_BLE_BONDS.
+ *   - B1+B3+B4 chord hold (>=10s) in STATE_IDLE_RUN -> CMD_FACTORY_RESET_ALL.
  *
  * @param btn_idx Button index (0 to 3).
- * @param gesture Detected gesture (GESTURE_SHORT_TAP, GESTURE_LONG_PRESS, or GESTURE_BOND_RESET).
+ * @param gesture Detected gesture (GESTURE_SHORT_TAP, GESTURE_LONG_PRESS, GESTURE_BOND_RESET, GESTURE_FACTORY_RESET).
  * @param current_state Current system_state_t.
  * @return Constructed command_t structure ready for queue dispatch.
  */
@@ -194,6 +225,12 @@ command_t buttons_translate_gesture(uint8_t btn_idx, button_gesture_t gesture, s
             current_state == STATE_ESTOP ||
             current_state == STATE_CALIBRATING) {
             cmd.type = CMD_CLEAR_BLE_BONDS;
+        }
+    } else if (gesture == GESTURE_FACTORY_RESET) {
+        if (current_state == STATE_IDLE_RUN ||
+            current_state == STATE_ESTOP ||
+            current_state == STATE_CALIBRATING) {
+            cmd.type = CMD_FACTORY_RESET_ALL;
         }
     }
 

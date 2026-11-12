@@ -21,6 +21,7 @@
    - Verify wireless `CMD_EMERGENCY_STOP` (`0x03`) and `CMD_STOP_SEQUENCE` (`0x02`) mid-sweep: `<50ms` Core 1 fast-path preemption, immediate 16-channel homing to $0^\circ$, `STATE_ESTOP` latching, and recovery via `0x02`.
    - Verify physical button tap (`B1–B4`) triggers execution and connected central receives live 10 Hz `FAB2` telemetry notifications.
    - Verify `CMD_RESTORE_FACTORY_PRESETS` (`0x0C`) resets all 4 slots in NVS with `FAB3` notification.
+   - Verify `CMD_FACTORY_RESET_ALL` (`0x1F`) wipes presets and bonds, homes all servos, disconnects central, and restarts indefinite pairing mode.
 
 ## Task Group 2: Concurrency, Disconnect Safety & 200-Cycle Endurance Stress Test
 1. **Multi-Source Concurrency Arbitration**:

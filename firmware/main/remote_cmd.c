@@ -460,6 +460,19 @@ cmd_status_t remote_cmd_handle_fab1_write(const uint8_t *data, size_t len)
             break;
         }
 
+        case BLE_OP_FACTORY_RESET_ALL: {
+            if (len != 1U) {
+                remote_cmd_set_last_status(CMD_STATUS_ERR_INVALID_ARG, true);
+                return CMD_STATUS_ERR_INVALID_ARG;
+            }
+            if (busy_or_estop) {
+                remote_cmd_set_last_status(CMD_STATUS_ERR_BUSY, true);
+                return CMD_STATUS_ERR_BUSY;
+            }
+            cmd.type = CMD_FACTORY_RESET_ALL;
+            break;
+        }
+
         default:
             remote_cmd_set_last_status(CMD_STATUS_ERR_INVALID_ARG, true);
             return CMD_STATUS_ERR_INVALID_ARG;

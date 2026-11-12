@@ -62,6 +62,8 @@ static void test_packed_wire_struct_sizes(void)
     TEST_ASSERT(CMD_IDENTIFY_ROBOT == 10, "CMD_IDENTIFY_ROBOT == 10");
     TEST_ASSERT(CMD_SET_TELEMETRY_STREAM == 11, "CMD_SET_TELEMETRY_STREAM == 11");
     TEST_ASSERT(CMD_CLEAR_BLE_BONDS == 12, "CMD_CLEAR_BLE_BONDS == 12");
+    TEST_ASSERT(CMD_FACTORY_RESET_ALL == 14, "CMD_FACTORY_RESET_ALL == 14");
+    TEST_ASSERT(BLE_OP_FACTORY_RESET_ALL == 0x1F, "BLE_OP_FACTORY_RESET_ALL == 0x1F");
 }
 
 /* ========================================================================= */
