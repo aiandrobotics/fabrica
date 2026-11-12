@@ -43,9 +43,9 @@ Key goals include:
    - While both `B1` and `B4` are held together, suppress the 3-second single-button `GESTURE_LONG_PRESS` (`CMD_ENTER_BLE_PAIRING`) on both channels.
    - When `B1 + B4` continuous hold reaches `BUTTON_BOND_RESET_MS` (`5000ms`), trigger `GESTURE_BOND_RESET` once per hold and dispatch `CMD_CLEAR_BLE_BONDS` to `xCommandQueue`.
 3. Update `main/state_machine.c` to handle Phase 8 commands:
-   - Zero-bond boot auto-start: Provide `state_machine_check_initial_pairing()` called from `main.c` after `ble_transport_start()`; if zero bonds are in NVS, automatically open the 120-second BLE pairing window (`LED_STATE_BLE_PAIRING`).
-   - `CMD_ENTER_BLE_PAIRING`: Open or refresh the 120-second pairing window, set `LED_STATE_BLE_PAIRING`, and invoke `ble_transport_enter_pairing_mode()` so a 3s physical button hold always takes priority (unconditionally functional on new/0-bond devices as well, disconnecting any active central and immediately restarting GAP advertising).
-   - `CMD_CLEAR_BLE_BONDS`: Invoke `ble_transport_clear_bonds()`, confirm with `LED_STATE_INPUT_ERROR` (3 fast flashes), and automatically open the 120-second BLE pairing window (`LED_STATE_BLE_PAIRING`) now that zero bonds remain.
+   - Zero-bond boot auto-start: Provide `state_machine_check_initial_pairing()` called from `main.c` after `ble_transport_start()`; if zero bonds are in NVS, automatically open indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`) until the first device pairs.
+   - `CMD_ENTER_BLE_PAIRING`: Open the 120-second pairing window when bonds exist (or keep pairing active on 0 bonds), set `LED_STATE_BLE_PAIRING`, and invoke `ble_transport_enter_pairing_mode()` so a 3s physical button hold always takes priority (unconditionally functional on new/0-bond devices as well, disconnecting any active central and immediately restarting GAP advertising).
+   - `CMD_CLEAR_BLE_BONDS`: Invoke `ble_transport_clear_bonds()`, confirm with `LED_STATE_INPUT_ERROR` (3 fast flashes), and automatically open indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`) now that zero bonds remain.
    - `CMD_IDENTIFY_ROBOT`: Trigger `led_set_state(LED_STATE_IDENTIFY)` (accepted in both `STATE_IDLE_RUN` and `STATE_RUNNING_MOTION` since `LED_STATE_IDENTIFY` restores prior base state).
 
 ---

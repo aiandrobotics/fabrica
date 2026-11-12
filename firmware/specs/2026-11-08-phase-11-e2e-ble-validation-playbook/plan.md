@@ -9,7 +9,7 @@
    - Verify GAP primary advertisement payload ($\le 31\text{B}$ legacy limit with 128-bit `0000FAB0-...` Service UUID) and scan response (`Fabrica-XXXX` name).
    - Verify Device Information Service (`0x180A`) and Generic Attribute Service Changed (`0x1801` / `0x2A05`) discovery.
    - Verify peripheral-initiated connection parameter update compliance (`15ms–30ms` interval, `0` latency, `4000ms` supervision).
-   - Verify Hold-to-Pair security: zero-bond boot auto-pairing, unbonded rejection outside window, 3s button hold (`CMD_ENTER_BLE_PAIRING`) opening/refreshing 120s window (on new and bonded units), SMP bonding, RPA resolution across simulated 15-minute rotations, 4-device FIFO eviction, and `B1 + B4` 5s bond factory reset (`CMD_CLEAR_BLE_BONDS`) with automatic pairing window re-opening.
+   - Verify Hold-to-Pair security: zero-bond boot indefinite auto-pairing, unbonded rejection outside window, 3s button hold (`CMD_ENTER_BLE_PAIRING`) opening 120s timed window for multi-device pairing, SMP bonding, RPA resolution across simulated 15-minute rotations, 4-device FIFO eviction, and `B1 + B4` 5s bond factory reset (`CMD_CLEAR_BLE_BONDS`) with automatic indefinite pairing re-opening.
    - Verify `CMD_IDENTIFY_ROBOT` (`0x0E`) 3.0s LED pulse train restoring base state.
    - Verify reading the 212-byte 4-button configuration table from `FAB3` and validating factory defaults and CRC32 checksums.
    - Verify writing custom sequences to Button 1 using full 54B/55B and compact variable-length payloads on `FAB3` and `FAB1` (`0x0A`), verifying auto-zero-padding, CRC32 computation, NVS persistence, and `FAB3` notify push.

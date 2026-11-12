@@ -19,7 +19,7 @@ Phase 11 delivers the complete system-level integration test suite (`test/test_b
 1. Split GAP advertisement compliance ($\le 31\text{B}$ primary with `0000FAB0-...` Service UUID + `Fabrica-XXXX` scan response).
 2. DIS (`0x180A`) and Service Changed (`0x1801` / `0x2A05`) attribute presence.
 3. Apple-compliant peripheral connection parameter negotiation (15ms–30ms interval, 0 latency, 4000ms supervision timeout).
-4. Hold-to-Pair security: zero-bond boot auto-pairing, unbonded rejection outside 120s window, 3s button hold entry/refresh (on new and bonded units), SMP bonding, RPA resolution across 15-minute rotation, 4-device FIFO eviction, and 5s `B1 + B4` chord hold bond reset with automatic pairing window re-opening.
+4. Hold-to-Pair security: zero-bond boot indefinite auto-pairing, unbonded rejection outside pairing window, 3s button hold entry (120s timed window for multi-device pairing), SMP bonding, RPA resolution across 15-minute rotation, 4-device FIFO eviction, and 5s `B1 + B4` chord hold bond reset with automatic indefinite pairing re-opening.
 5. Visual robot locator (`CMD_IDENTIFY_ROBOT`, `0x0E`) 3.0s LED pulse train.
 6. Reading the 212-byte 4-button configuration table from `FAB3` (verifying factory defaults & CRC32).
 7. Custom sequence programming on `FAB3` and `FAB1` (`0x0A`) in full and compact formats with auto-zero-padding, CRC32 recalculation, and `FAB3` notification.

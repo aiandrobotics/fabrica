@@ -184,10 +184,11 @@ esp_err_t state_machine_init(void)
 }
 
 /**
- * @brief Check stored BLE bond count and automatically start the 120-second BLE pairing window
+ * @brief Check stored BLE bond count and automatically start indefinite BLE pairing mode
  *        if zero devices are currently paired (out-of-the-box fresh boot or post-wipe).
+ *        Pairing remains open indefinitely until the first central successfully pairs and bonds.
  *        If one or more devices are bonded, remains in STATE_IDLE_RUN awaiting auto-connection
- *        or an explicit 3-second button hold to pair additional devices.
+ *        or an explicit 3-second button hold (which enforces a 120-second pairing window).
  */
 void state_machine_check_initial_pairing(void)
 {
@@ -197,7 +198,7 @@ void state_machine_check_initial_pairing(void)
 
     if (ble_transport_get_bond_count() == 0) {
 #ifdef ESP_PLATFORM
-        ESP_LOGI(TAG, "Zero bonded devices in NVS (new/wiped device). Auto-starting 120s BLE pairing window.");
+        ESP_LOGI(TAG, "Zero bonded devices in NVS (new/wiped device). Auto-starting indefinite BLE pairing mode.");
 #endif
         s_ble_pairing_active = true;
         s_ble_pairing_timer_ms = 0;
@@ -212,22 +213,33 @@ void state_machine_check_initial_pairing(void)
 }
 
 /**
- * @brief Periodic timer tick managing the 120s BLE pairing window and 10s/15s calibration watchdogs.
+ * @brief Periodic timer tick managing the BLE pairing window and 10s/15s calibration watchdogs.
+ *        When zero devices are bonded (brand new or post-wipe), pairing remains open indefinitely
+ *        until the first device pairs. When one or more devices are bonded, pairing entered via
+ *        a 3-second button hold enforces the standard 120-second timeout.
  *
  * @param elapsed_ms Milliseconds elapsed since last tick (typically 10ms).
  */
 void state_machine_tick(uint32_t elapsed_ms)
 {
     if (s_ble_pairing_active) {
-        s_ble_pairing_timer_ms += elapsed_ms;
-        if (s_ble_pairing_timer_ms >= BLE_PAIRING_TIMEOUT_MS) {
+        /*
+         * When zero devices are bonded in NVS (brand new unit or post-factory wipe),
+         * pairing mode remains open indefinitely until the first central successfully pairs.
+         * For subsequent devices (bond_count > 0) entered via 3s button hold,
+         * enforce the standard 120-second timeout.
+         */
+        if (ble_transport_get_bond_count() > 0) {
+            s_ble_pairing_timer_ms += elapsed_ms;
+            if (s_ble_pairing_timer_ms >= BLE_PAIRING_TIMEOUT_MS) {
 #ifdef ESP_PLATFORM
-            ESP_LOGI(TAG, "BLE pairing window (%d ms) expired. Returning to IDLE.",
-                     BLE_PAIRING_TIMEOUT_MS);
+                ESP_LOGI(TAG, "BLE pairing window (%d ms) expired. Returning to IDLE.",
+                         BLE_PAIRING_TIMEOUT_MS);
 #endif
-            s_ble_pairing_active = false;
-            s_ble_pairing_timer_ms = 0;
-            led_set_state(LED_STATE_IDLE);
+                s_ble_pairing_active = false;
+                s_ble_pairing_timer_ms = 0;
+                led_set_state(LED_STATE_IDLE);
+            }
         }
     }
 

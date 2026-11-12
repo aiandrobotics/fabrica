@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-12
+- Updated zero-bond BLE pairing behavior: pairing mode now remains open indefinitely on initial boot and post-wipe when 0 devices are bonded in NVS until the first central pairs.
+- Preserved the 120-second timed pairing window for multi-device pairing (2nd through 4th central) entered via 3-second physical button hold (`CMD_ENTER_BLE_PAIRING`).
+- Updated specifications, test suites (`test_state_machine.c`, `test_ble_integration.c`), and README pairing walkthrough.
+
 ## 2026-11-11
 - Implemented zero-bond out-of-the-box auto-pairing in `firmware/main/state_machine.c` and `firmware/main/main.c`: when zero devices are bonded in NVS (brand new device or post-factory reset), Fabrica automatically starts the 120-second BLE pairing window on boot/reset without requiring a 3-second button hold.
 - Automatically re-opened the 120-second BLE pairing window following a hardware bond reset (`CMD_CLEAR_BLE_BONDS`, `B1+B4` 5s chord hold) while confirming with transient `LED_STATE_INPUT_ERROR` flashes.

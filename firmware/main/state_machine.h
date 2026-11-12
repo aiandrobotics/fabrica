@@ -78,10 +78,11 @@ void state_machine_set_command_queue(QueueHandle_t queue);
 esp_err_t state_machine_init(void);
 
 /**
- * @brief Check stored BLE bond count and automatically start the 120-second BLE pairing window
+ * @brief Check stored BLE bond count and automatically start indefinite BLE pairing mode
  *        if zero devices are currently paired (out-of-the-box fresh boot or post-wipe).
+ *        Pairing remains open indefinitely until the first central successfully pairs and bonds.
  *        If one or more devices are bonded, remains in STATE_IDLE_RUN awaiting auto-connection
- *        or an explicit 3-second button hold to pair additional devices.
+ *        or an explicit 3-second button hold (which enforces a 120-second pairing window).
  */
 void state_machine_check_initial_pairing(void);
 

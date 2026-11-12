@@ -204,25 +204,40 @@ static void test_vectors_1_to_6_discovery_security_and_locator(void)
     command_t reset_bonds_cmd = { .type = CMD_CLEAR_BLE_BONDS, .source = SOURCE_PHYSICAL_BUTTON };
     (void)state_machine_process_command(&reset_bonds_cmd);
     TEST_ASSERT(ble_transport_get_bond_count() == 0, "All bonds erased from NVS via CMD_CLEAR_BLE_BONDS");
-    TEST_ASSERT(state_machine_is_ble_pairing() == true, "120s pairing window automatically opened after hardware bond reset");
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing mode automatically opened indefinitely after hardware bond reset");
     TEST_ASSERT(led_get_base_state() == LED_STATE_BLE_PAIRING, "Base LED state set to LED_STATE_BLE_PAIRING after bond wipe");
     led_step_ms(400); /* Expire transient LED_STATE_INPUT_ERROR (3 fast flashes) */
     TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "Status LED reverts to LED_STATE_BLE_PAIRING");
 
-    /* 120s timeout closes the window */
+    /* Indefinite timeout check: remains open past 120s and 240s */
     state_machine_tick(120000);
-    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing window closed after 120s timeout post-wipe");
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing mode remains open past 120s post-wipe");
+    state_machine_tick(120000);
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing mode remains open past 240s post-wipe");
+
+    /* Re-pair first central (dev1) directly while pairing is open */
+    sim_ios_central_connect(dev1_addr, dev1_irk, false);
+    TEST_ASSERT(ble_transport_mock_is_peer_bonded(dev1_addr), "First central successfully paired and bonded after wipe");
+    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing window closed once first central bonded");
+    ble_transport_mock_disconnect();
+    led_step_ms(1100);
+    TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "LED returned to LED_STATE_IDLE after central disconnect");
+
+    /* Now that 1 device is bonded, unbonded central (dev5) outside pairing window is rejected */
+    TEST_ASSERT(ble_transport_mock_connect(dev5_addr, false, dev5_addr, dev5_irk) == ESP_ERR_INVALID_STATE,
+                "Unbonded central rejected outside pairing window when bonds exist");
+
+    /* 3s hold opens 120s timed pairing window for 2nd device */
+    command_t pair_hold_cmd = { .type = CMD_ENTER_BLE_PAIRING, .source = SOURCE_PHYSICAL_BUTTON };
+    TEST_ASSERT(state_machine_process_command(&pair_hold_cmd) == ESP_OK, "3s hold opens pairing window for 2nd device");
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "120s pairing window active via 3s hold");
+
+    /* 120s timeout closes the window for 2nd device */
+    state_machine_tick(120000);
+    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing window timed out after 120s for 2nd device");
     TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "LED returned to LED_STATE_IDLE after timeout");
     TEST_ASSERT(ble_transport_mock_connect(dev5_addr, false, dev5_addr, dev5_irk) == ESP_ERR_INVALID_STATE,
-                "Previously bonded central now rejected following hardware bond reset and pairing timeout");
-
-    /* 3s hold on wiped/new device re-opens pairing window */
-    command_t pair_hold_cmd = { .type = CMD_ENTER_BLE_PAIRING, .source = SOURCE_PHYSICAL_BUTTON };
-    TEST_ASSERT(state_machine_process_command(&pair_hold_cmd) == ESP_OK, "3s hold on wiped device opens pairing window");
-    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing window active via 3s hold");
-    sim_ios_central_connect(dev1_addr, dev1_irk, false);
-    TEST_ASSERT(ble_transport_mock_is_peer_bonded(dev1_addr), "Central successfully paired and bonded after 3s hold on wiped device");
-    ble_transport_mock_disconnect();
+                "Central rejected after 120s pairing window timeout");
 
     /* Vector 6: Visual Robot Locator (CMD_IDENTIFY_ROBOT, 0x0E) */
     sim_ios_central_connect(dev1_addr, dev1_irk, true);
