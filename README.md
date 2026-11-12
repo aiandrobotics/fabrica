@@ -118,7 +118,7 @@ The mobile companion app is maintained in its own dedicated repository. The loca
 
 - **Technology**: Cross-platform mobile application communicating over Bluetooth Low Energy (BLE).
 - **Key Mobile Capabilities**:
-  - **Hold-to-Pair Workflow**: Secure pairing window (120 seconds) activated by holding any physical robot button for 3 seconds.
+  - **Zero-Bond Auto-Pairing & Hold-to-Pair Workflow**: Automatically enters pairing mode out-of-the-box (and post-wipe) until the first phone pairs; subsequent devices use a secure 120-second pairing window activated by holding any physical button for 3 seconds.
   - **Visual Sequence Builder**: Create custom garment folding profiles with step-by-step motor angle sliders and timing parameters.
   - **Stateless Routine Preview (`0x01`)**: Test experimental folding profiles on the robot without overwriting saved button slots.
   - **1-Touch Button Assignment (`0x0A`)**: Burn custom routines into robot physical Buttons 1–4 with automatic CRC32 calculation.

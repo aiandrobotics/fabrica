@@ -147,7 +147,7 @@ The firmware is pre-seeded on initial boot with 4 factory folding routines verif
 | **Solid ON** | Continuous ON | `LED_STATE_RUNNING` | Folding routine actively executing |
 | **Solid ON (1.0s)** | 1.0s solid ON pulse | `LED_STATE_BLE_CONNECTED` | Phone connected & bonded |
 | **Solid ON (2.0s)** | 2.0s solid ON pulse | `LED_STATE_SAVE_SUCCESS` | Preset sequence saved in NVS |
-| **Fast Double-Blink** | 100ms ON / 100ms OFF / 100ms ON / 500ms OFF | `LED_STATE_BLE_PAIRING` | Hold-to-Pair window open (120s) |
+| **Fast Double-Blink** | 100ms ON / 100ms OFF / 100ms ON / 500ms OFF | `LED_STATE_BLE_PAIRING` | BLE Pairing Mode active (indefinite on 0 bonds, 120s for multi-device) |
 | **Fast Double-Blink (3.0s)** | 3 double-blinks over 3.0s | `LED_STATE_IDENTIFY` | Visual locator (`CMD_IDENTIFY_ROBOT`, `0x0E`) |
 | **Input Error** | 3 fast flashes (60ms ON / 60ms OFF) | `LED_STATE_INPUT_ERROR` | Empty preset or invalid argument |
 | **Emergency Stop** | 5 rapid flashes (50ms ON / 50ms OFF) | `LED_STATE_ESTOP` | Emergency stop latched |

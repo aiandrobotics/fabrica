@@ -28,7 +28,7 @@ All wireless control and calibration features remain strictly firmware-native an
 3. **Fast-Path Preemption & Latched Emergency Stop (`STATE_ESTOP`)**:
    - **Core 1 Fast-Path Signal (`<50ms` Latency)**: Receiving `0x02` (`BLE_OP_STOP_SEQUENCE`) or `0x03` (`BLE_OP_EMERGENCY_STOP`) on Core 1 immediately invokes `motion_emergency_stop()` (setting `MOTION_EVENT_ESTOP_BIT` on `xSystemEventGroup`) prior to command queue dispatch so Core 0 trajectory waits abort within `<50ms`.
    - **Latched `STATE_ESTOP` (`0x03` or Physical Button Tap During Motion)**: Aborts motion, wakes PCA9685 if asleep, homes all 16 servo channels to $0^\circ$, flashes `LED_STATE_ESTOP` (5 rapid flashes), sets `error_code` `BIT2` (`ESTOP_ACTIVE`), and latches `system_state = STATE_ESTOP` (`2`).
-   - **Explicit Clear (`0x02` or Physical Button Tap in `STATE_ESTOP`)**: Sending `CMD_STOP_SEQUENCE` (`0x02`) over BLE or tapping any physical button (`B1–B4`) while in `STATE_ESTOP` homes all 16 flaps to $0^\circ$, clears `STATE_ESTOP` back to `STATE_IDLE_RUN` (`0`), clears `error_code` `BIT2`, and restores `LED_STATE_IDLE` (without closing an active 120s BLE pairing window if open).
+   - **Explicit Clear (`0x02` or Physical Button Tap in `STATE_ESTOP`)**: Sending `CMD_STOP_SEQUENCE` (`0x02`) over BLE or tapping any physical button (`B1–B4`) while in `STATE_ESTOP` homes all 16 flaps to $0^\circ$, clears `STATE_ESTOP` back to `STATE_IDLE_RUN` (`0`), clears `error_code` `BIT2`, and restores `LED_STATE_IDLE` (without closing an active BLE pairing window if open).
 
 4. **Wireless Preset Slot Management, Factory Reset & Immediate Status Push**:
    - **Direct Button Save (`CMD_SET_BUTTON_SEQUENCE`, Opcode `0x0A` & `FAB3` Write)**: Persist validated routines to Preset `1–4` in NVS, flash `LED_STATE_SAVE_SUCCESS` (2.0s solid ON), and emit a 212-byte `FAB3` GATT notification.
@@ -54,7 +54,7 @@ All wireless control and calibration features remain strictly firmware-native an
    - In addition to the 10s PCA9685 thermal sleep cutoff and 15s inactivity auto-home timer, `STATE_CALIBRATING` immediately wakes/homes all 16 servos to $0^\circ$ and exits to `STATE_IDLE_RUN` if the BLE central disconnects, sends `0x02`, or if the operator taps any physical button on the robot.
 4. **Preserved Session Invariants**:
    - Status LED feedback uses automatic state-driven `led_state_t` patterns exclusively (zero manual LED operating modes).
-   - `CMD_STOP_SEQUENCE` (`0x02`) never closes an active 120-second BLE pairing window, while a 3-second physical button hold (`CMD_ENTER_BLE_PAIRING`) always takes priority.
+   - `CMD_STOP_SEQUENCE` (`0x02`) never closes an active BLE pairing window, while a 3-second physical button hold (`CMD_ENTER_BLE_PAIRING`) always takes priority.
    - `BLE_DIS_MANUFACTURER_NAME` remains `"AIR Robotics"`, and no automatic NVS legacy struct-size migration code is added to `storage.c`.
 
 ---

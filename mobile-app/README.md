@@ -18,7 +18,7 @@ While the Fabrica robot is fully functional out of the box using its physical 4-
 ## Core Capabilities & Architecture
 
 - **Dedicated Remote Repository**: The full mobile application codebase, UI components, state management, and build configurations are hosted at [https://github.com/aiandrobotics/air-robotics-app](https://github.com/aiandrobotics/air-robotics-app).
-- **Hold-to-Pair Security**: Connects securely during a 120-second pairing window initiated by holding any physical button on the robot for 3 seconds (`LED_STATE_BLE_PAIRING`). Supports up to 4 bonded devices in NVS with Resolvable Private Address (RPA) privacy resolution for iOS and Android.
+- **Zero-Bond Auto-Pairing & Hold-to-Pair Security**: Connects securely during pairing mode — automatically open indefinitely on initial boot or post-wipe when 0 devices are bonded, and accessible via a 120-second pairing window initiated by holding any physical button on the robot for 3 seconds (`LED_STATE_BLE_PAIRING`). Supports up to 4 bonded devices in NVS with Resolvable Private Address (RPA) privacy resolution for iOS and Android.
 - **Client-Side Garment Profiles**: Manage, build, and share custom garment folding profiles client-side in the app (e.g., T-Shirts, Long Sleeves, Jeans, Towels, Hoodies) with full multi-motor support (up to 16 channels, including Left, Right, Bottom, and Top/Collar flaps).
 - **Stateless Routine Preview (`CMD_RUN_RAW_SEQUENCE` / `0x01`)**: Test custom folding sequences directly on the robot from your phone without overwriting physical button slots.
 - **Wireless Button Assignment (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`)**: 1-touch persistence of custom profiles to physical Buttons 1–4 with automatic IEEE 802.3 CRC32 checksum generation and flash verification.
@@ -79,8 +79,10 @@ sequenceDiagram
     participant Robot as Fabrica Robot (ESP32)
     participant App as AIR Robotics App (Phone)
 
-    User->>Robot: Hold any Button (B1–B4) for 3 seconds
-    Robot->>Robot: Enters BLE Pairing Mode (120s window)
+    opt If adding subsequent device (or after wipe)
+        User->>Robot: Hold any Button (B1–B4) for 3 seconds
+    end
+    Robot->>Robot: Enters BLE Pairing Mode (indefinite on 0 bonds, 120s for multi-device)
     Robot->>Robot: LED flashes rapid pairing pattern
     Robot->>App: GAP Advertising (Fabrica-XXXX / 0000FAB0)
     User->>App: Open AIR Robotics App & Scan

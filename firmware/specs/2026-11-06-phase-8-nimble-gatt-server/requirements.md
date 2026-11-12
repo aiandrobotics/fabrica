@@ -68,7 +68,7 @@ All BLE functionality is implemented strictly in firmware to support both **iOS 
 | **Connection Parameters** | `15.0ms–30.0ms` interval, `0` latency, `4000ms` timeout | Apple Accessory Design Guidelines & Android |
 | **Preferred ATT MTU** | `512` Bytes ($\ge 247\text{B}$ for single-read `212B` `FAB3` table) | Single-packet sequence table & telemetry |
 | **Packed Struct Sizes** | `fold_step_t = 3B`, `fold_routine_t = 53B`, `telemetry_packet_t = 31B` | Zero compiler padding across architectures |
-| **Pairing Window & Bond Cap** | `120000ms` window (3s hold); max `4` bonds (FIFO eviction) | Proof-of-physical-presence security |
+| **Pairing Window & Bond Cap** | Indefinite on 0 bonds, 120000ms on 3s hold; max `4` bonds (FIFO eviction) | Proof-of-physical-presence security |
 | **Hardware Bond Reset** | `B1 + B4` simultaneous hold for `5000ms` | Recovery without reflashing firmware |
 | **Internal SRAM Headroom** | Net free heap $\ge 190\text{ KB}$ after NimBLE initialization | Long-term RTOS stability |
 
@@ -98,7 +98,7 @@ sequenceDiagram
 
     Note over Operator,LED: 1. Hold-to-Pair Authorization & Native SMP Bonding
     Operator->>SM: Hold B1 for 3.0s (CMD_ENTER_BLE_PAIRING)
-    SM->>LED: led_set_state(LED_STATE_BLE_PAIRING) (120s window open)
+    SM->>LED: led_set_state(LED_STATE_BLE_PAIRING) (pairing mode active)
     Central->>BLE: Scan & Connect (Fabrica-XXXX, UUID 0000FAB0-...)
     BLE->>Central: ble_gap_security_initiate() + ble_gattc_exchange_mtu(512)
     Central-->>BLE: SMP Just Works + LTK & IRK Exchange (BLE_GAP_EVENT_ENC_CHANGE)

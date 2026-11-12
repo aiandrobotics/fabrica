@@ -147,10 +147,10 @@ graph LR
 | `TOTAL_PRESET_COUNT` | `4` | Physical preset buttons on device (B1 to B4) |
 | `COMMAND_QUEUE_LENGTH` | `16` | Unified command queue depth |
 | `BUTTON_DEBOUNCE_MS` | `50` ms | Low-pass debounce sampling window |
-| `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration threshold to enter 120s BLE pairing window |
+| `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration threshold to enter BLE pairing window |
 | `BUTTON_BOND_RESET_MS` | `5000` ms | Simultaneous B1+B4 hold threshold to clear all BLE bonds in NVS |
 | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Upper bound for tap gesture detection in Daily Run Mode |
-| `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second (2-minute) BLE pairing/discovery window timeout |
+| `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second (2-minute) timeout for multi-device pairing (indefinite on 0 bonds) |
 | `FOLD_DWELL_TIME_MS` | `300` ms | Dwell time holding flap at $180^\circ$ before returning |
 | `INTER_STEP_DELAY_MS` | `200` ms | Settling delay between consecutive folding steps |
 | `CALIBRATION_THERMAL_TIMEOUT_MS` | `10000` ms | Stationary servo thermal de-energize cutoff in calibration mode |
@@ -227,7 +227,7 @@ typedef enum {
     LED_STATE_SAVE_SUCCESS,     /* Solid ON for 2.0s */
     LED_STATE_INPUT_ERROR,      /* 3 fast flashes (60ms ON / 60ms OFF) */
     LED_STATE_ESTOP,            /* 5 rapid flashes (50ms ON / 50ms OFF) */
-    LED_STATE_BLE_PAIRING,      /* Fast double-blink during 120s pairing window */
+    LED_STATE_BLE_PAIRING,      /* Fast double-blink during active pairing mode (indefinite on 0 bonds, 120s for multi-device) */
     LED_STATE_BLE_CONNECTED,    /* Solid ON for 1.0s, restores prior base state */
     LED_STATE_IDENTIFY          /* 3 fast double-blinks for 3.0s, restores prior base state */
 } led_state_t;
@@ -289,7 +289,7 @@ typedef enum {
     CMD_RUN_PRESET = 0,         /* Execute saved preset routine (1 to 4) */
     CMD_RUN_RAW_SEQUENCE,       /* Execute unsaved sequence payload directly */
     CMD_EMERGENCY_STOP,         /* Immediate E-Stop halt & home all servos */
-    CMD_ENTER_BLE_PAIRING,      /* Open 120-second BLE discovery/pairing window (3s hold) */
+    CMD_ENTER_BLE_PAIRING,      /* Open BLE discovery/pairing window (3s hold; 120s when bonds exist, indefinite on 0 bonds) */
     CMD_SET_BUTTON_SEQUENCE,    /* Save custom sequence to button slot (1 to 4) over BLE */
     CMD_RESTORE_FACTORY_PRESETS,/* Restore Buttons 1-4 to factory default routines */
     CMD_JOG_MOTOR_ANGLE,        /* Live position jog (0° to 180°) for calibration */
@@ -404,7 +404,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 | `2` | `LED_STATE_SAVE_SUCCESS`| Solid ON for `2000ms` | Transient $\to$ returns to `LED_STATE_IDLE` |
 | `3` | `LED_STATE_INPUT_ERROR` | 3 fast flashes (`60ms` ON / `60ms` OFF) | Transient $\to$ restores prior base state |
 | `4` | `LED_STATE_ESTOP` | 5 rapid flashes (`50ms` ON / `50ms` OFF) | Transient $\to$ returns to `LED_STATE_IDLE` |
-| `5` | `LED_STATE_BLE_PAIRING` | Fast double-blink (`100ms` ON / `100ms` OFF / `100ms` ON / `500ms` OFF) | Persistent base state during 120s pairing window |
+| `5` | `LED_STATE_BLE_PAIRING` | Fast double-blink (`100ms` ON / `100ms` OFF / `100ms` ON / `500ms` OFF) | Persistent base state during active pairing mode |
 | `6` | `LED_STATE_BLE_CONNECTED` | Solid ON for `1000ms` | Transient $\to$ restores prior base state |
 | `7` | `LED_STATE_IDENTIFY` | 3 fast double-blinks (`3000ms` total) | Transient $\to$ restores prior base state |
 

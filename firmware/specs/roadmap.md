@@ -91,7 +91,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Keep physical buttons strictly focused on daily execution and safety:
     - **Short Tap (Idle)**: Triggers Preset 1–4 (`CMD_RUN_PRESET`), pre-seeded with 4 factory defaults out of the box.
     - **Any Tap (Running)**: Triggers immediate `<50ms` Emergency Stop (`CMD_EMERGENCY_STOP`).
-    - **Single-Button Long Press (3s Hold in Idle)**: Dispatches `CMD_ENTER_BLE_PAIRING` to open a 120-second BLE pairing/discovery window (`LED_STATE_BLE_PAIRING`); custom sequence programming is offloaded to BLE GATT rather than multi-button programming modes on the physical pad.
+    - **Single-Button Long Press (3s Hold in Idle)**: Dispatches `CMD_ENTER_BLE_PAIRING` to open the BLE pairing/discovery window (120s timed window when bonded peers exist, or indefinite when 0 bonds are stored; `LED_STATE_BLE_PAIRING`); custom sequence programming is offloaded to BLE GATT rather than multi-button programming modes on the physical pad.
   - **Wireless Sequence & Calibration Dispatch**:
     - `CMD_SET_BUTTON_SEQUENCE`: Saves a custom routine received over BLE to Button 1–4 in NVS flash and confirms with `LED_STATE_SAVE_SUCCESS` (2.0s solid ON).
     - `CMD_RESTORE_FACTORY_PRESETS`: Restores Buttons 1–4 to built-in factory default routines in NVS.
