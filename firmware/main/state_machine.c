@@ -184,6 +184,34 @@ esp_err_t state_machine_init(void)
 }
 
 /**
+ * @brief Check stored BLE bond count and automatically start the 120-second BLE pairing window
+ *        if zero devices are currently paired (out-of-the-box fresh boot or post-wipe).
+ *        If one or more devices are bonded, remains in STATE_IDLE_RUN awaiting auto-connection
+ *        or an explicit 3-second button hold to pair additional devices.
+ */
+void state_machine_check_initial_pairing(void)
+{
+    if (s_system_state == STATE_RUNNING_MOTION || motion_is_busy()) {
+        return;
+    }
+
+    if (ble_transport_get_bond_count() == 0) {
+#ifdef ESP_PLATFORM
+        ESP_LOGI(TAG, "Zero bonded devices in NVS (new/wiped device). Auto-starting 120s BLE pairing window.");
+#endif
+        s_ble_pairing_active = true;
+        s_ble_pairing_timer_ms = 0;
+        led_set_state(LED_STATE_BLE_PAIRING);
+        (void)ble_transport_enter_pairing_mode();
+    } else {
+#ifdef ESP_PLATFORM
+        ESP_LOGI(TAG, "%d bonded device(s) found in NVS. Ready for auto-connection (3s hold to pair new central).",
+                 ble_transport_get_bond_count());
+#endif
+    }
+}
+
+/**
  * @brief Periodic timer tick managing the 120s BLE pairing window and 10s/15s calibration watchdogs.
  *
  * @param elapsed_ms Milliseconds elapsed since last tick (typically 10ms).
@@ -368,6 +396,11 @@ esp_err_t state_machine_process_command(const command_t *cmd)
             }
             state_machine_close_ble_pairing();
             esp_err_t err = ble_transport_clear_bonds();
+            /* Zero bonds remain: auto-start the 120s BLE pairing window immediately */
+            s_ble_pairing_active = true;
+            s_ble_pairing_timer_ms = 0;
+            (void)ble_transport_enter_pairing_mode();
+            led_set_state(LED_STATE_BLE_PAIRING);
             led_set_state(LED_STATE_INPUT_ERROR);
             return err;
         }

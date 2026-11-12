@@ -12,6 +12,7 @@
 #include "pca9685.h"
 #include "storage.h"
 #include "motion.h"
+#include "ble_transport.h"
 #include "state_machine.h"
 
 static int test_count = 0;
@@ -39,7 +40,29 @@ void test_state_machine_lifecycle_and_boot(void)
     state_machine_reset();
     TEST_ASSERT(state_machine_init() == ESP_OK, "state_machine_init() returns ESP_OK");
     TEST_ASSERT(state_machine_get_state() == STATE_IDLE_RUN, "Initial state is STATE_IDLE_RUN");
-    TEST_ASSERT(state_machine_is_ble_pairing() == false, "BLE pairing is NOT active on initial boot (requires 3s hold)");
+    TEST_ASSERT(state_machine_is_ble_pairing() == false, "BLE pairing is initially inactive before initial check");
+
+    /* Zero-bond auto-pairing check: when bond count is 0, auto-starts 120s pairing window */
+    ble_transport_mock_reset(); /* 0 bonds */
+    state_machine_check_initial_pairing();
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Zero-bond check auto-starts 120s pairing window");
+    TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "LED set to LED_STATE_BLE_PAIRING on zero bonds");
+
+    /* Bonded peer present (> 0 bonds): initial check keeps IDLE and pairing inactive */
+    state_machine_reset();
+    const uint8_t mock_addr[6] = {1, 2, 3, 4, 5, 6};
+    const uint8_t mock_irk[16] = {1};
+    command_t pair_cmd = { .type = CMD_ENTER_BLE_PAIRING, .source = SOURCE_PHYSICAL_BUTTON };
+    state_machine_process_command(&pair_cmd);
+    ble_transport_mock_connect(mock_addr, false, mock_addr, mock_irk);
+    ble_transport_mock_disconnect();
+    TEST_ASSERT(ble_transport_get_bond_count() == 1, "Mock central bonded (bond_count = 1)");
+
+    state_machine_reset();
+    led_init();
+    state_machine_check_initial_pairing();
+    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing mode NOT auto-started when bonds exist (requires 3s hold)");
+    TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "LED remains LED_STATE_IDLE when bonds exist");
 
     /* NULL command rejection */
     TEST_ASSERT(state_machine_process_command(NULL) == ESP_ERR_INVALID_ARG, "NULL command returns ESP_ERR_INVALID_ARG");
@@ -220,27 +243,45 @@ void test_emergency_stop_in_all_states(void)
 
 void test_ble_pairing_mode_and_timeout(void)
 {
-    printf("Testing BLE Pairing Mode (3s Hold Entry & 120s Timeout)...\n");
+    printf("Testing BLE Pairing Mode (Zero-Bond Auto-Start, 3s Hold & 120s Timeout)...\n");
 
     state_machine_reset();
     led_init();
-    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing mode starts inactive");
+    ble_transport_mock_reset();
+    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing mode starts inactive before check");
 
-    /* 1. Enter BLE Pairing Mode via 3s hold command */
+    /* 1. Zero bonds auto-starts 120s pairing window */
+    state_machine_check_initial_pairing();
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Zero bonds auto-starts pairing window");
+    TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "Status LED set to LED_STATE_BLE_PAIRING");
+
+    /* 2. Physical 3s hold on new device refreshes active pairing window timer */
+    state_machine_tick(60000); /* 60s elapsed */
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing window active at 60s");
     command_t cmd_pair = {.type = CMD_ENTER_BLE_PAIRING, .source = SOURCE_PHYSICAL_BUTTON};
     esp_err_t err = state_machine_process_command(&cmd_pair);
-    TEST_ASSERT(err == ESP_OK, "CMD_ENTER_BLE_PAIRING returns ESP_OK");
-    TEST_ASSERT(state_machine_is_ble_pairing() == true, "120-second BLE pairing window is now active");
-    TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "Status LED set to LED_STATE_BLE_PAIRING (fast double-blink)");
+    TEST_ASSERT(err == ESP_OK, "3s hold on new device returns ESP_OK and refreshes 120s timer");
+    state_machine_tick(60000); /* Step 60s from refresh: total 120s from start, but 60s from refresh */
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing window still active due to timer refresh");
 
-    /* 2. Step 60 seconds -> still active */
+    /* 3. Allow remaining 60s (120s since refresh) to expire */
     state_machine_tick(60000);
-    TEST_ASSERT(state_machine_is_ble_pairing() == true, "BLE pairing still active at 60s");
+    TEST_ASSERT(state_machine_is_ble_pairing() == false, "Pairing window closed after 120s from refresh");
+    TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "LED returned to LED_STATE_IDLE after timeout");
 
-    /* 3. Step another 60 seconds (total 120s) -> expires and returns to IDLE */
-    state_machine_tick(60000);
-    TEST_ASSERT(state_machine_is_ble_pairing() == false, "BLE pairing window automatically closed at 120s");
-    TEST_ASSERT(led_get_state() == LED_STATE_IDLE, "Status LED returned to LED_STATE_IDLE after 120s timeout");
+    /* 4. 3s hold after timeout re-opens the pairing window on new device */
+    err = state_machine_process_command(&cmd_pair);
+    TEST_ASSERT(err == ESP_OK, "3s hold after timeout re-opens pairing window");
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Pairing window is active again");
+
+    /* 5. Hardware bond factory reset (CMD_CLEAR_BLE_BONDS) erases bonds and auto-starts pairing window */
+    command_t cmd_wipe = {.type = CMD_CLEAR_BLE_BONDS, .source = SOURCE_PHYSICAL_BUTTON};
+    err = state_machine_process_command(&cmd_wipe);
+    TEST_ASSERT(err == ESP_OK, "CMD_CLEAR_BLE_BONDS returns ESP_OK");
+    TEST_ASSERT(state_machine_is_ble_pairing() == true, "Wipe auto-starts 120s pairing window");
+    TEST_ASSERT(led_get_base_state() == LED_STATE_BLE_PAIRING, "Base LED state set to LED_STATE_BLE_PAIRING after wipe");
+    led_step_ms(400); /* Clear transient error flashes */
+    TEST_ASSERT(led_get_state() == LED_STATE_BLE_PAIRING, "LED reverts to LED_STATE_BLE_PAIRING");
 }
 
 /* ========================================================================= */

@@ -1,6 +1,11 @@
 # Changelog
 
 ## 2026-11-11
+- Implemented zero-bond out-of-the-box auto-pairing in `firmware/main/state_machine.c` and `firmware/main/main.c`: when zero devices are bonded in NVS (brand new device or post-factory reset), Fabrica automatically starts the 120-second BLE pairing window on boot/reset without requiring a 3-second button hold.
+- Automatically re-opened the 120-second BLE pairing window following a hardware bond reset (`CMD_CLEAR_BLE_BONDS`, `B1+B4` 5s chord hold) while confirming with transient `LED_STATE_INPUT_ERROR` flashes.
+- Guaranteed the 3-second physical button hold (`CMD_ENTER_BLE_PAIRING`) remains active unconditionally on new/0-bond devices to allow refreshing the 120s pairing window timer or re-opening after timeout.
+- Updated all firmware specifications, requirements, validation docs, and README.md pairing walkthroughs.
+- Expanded host integration tests in `test/test_state_machine.c` and `test/test_ble_integration.c` verifying zero-bond auto-pairing, 3s hold timer refresh, timeout rejection, and post-wipe re-opening.
 - Fixed BLE auto-reconnection for bonded iOS and Android centrals using Resolvable Private Addresses (RPAs) in `firmware/main/ble_transport.c`.
 - Integrated `ble_gap_rpa_resolve()` from `<host/ble_esp_gap.h>` to cryptographically resolve rotating RPAs against stored Identity Resolving Keys (IRKs) in NVS.
 - Checked both `peer_id_addr` and `peer_ota_addr` in `ble_gap_event_handler()` to eliminate premature link rejection outside the Hold-to-Pair window.

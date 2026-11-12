@@ -177,10 +177,10 @@ The robot can be fully monitored, calibrated, and controlled using off-the-shelf
 
 ### 2. Step-by-Step Pairing Walkthrough (nRF Connect / LightBlue)
 
-1. **Open Pairing Window**:
-   - Hold **Button 1 (or any button B1–B4) for 3 seconds**.
-   - The Status LED begins a **fast double-blink** (`LED_STATE_BLE_PAIRING`).
-   - A 120-second (2-minute) pairing window is now open, advertising as `Fabrica-XXXX` (where `XXXX` is derived from the ESP32 BT MAC address).
+1. **Pairing Window (Out-of-the-Box Auto-Start or 3-Second Hold)**:
+   - **New / Wiped Unit (0 Bonds)**: Fabrica automatically opens the 120-second (2-minute) pairing window upon boot or after a hardware bond reset (`B1 + B4` 5s hold) without requiring any button press. The Status LED immediately begins a **fast double-blink** (`LED_STATE_BLE_PAIRING`).
+   - **Adding a Second Device (or after 120s timeout)**: Hold **Button 1 (or any button B1–B4) for 3 seconds**. This opens or refreshes the 120-second pairing window unconditionally (including on brand new or wiped devices).
+   - The device advertises as `Fabrica-XXXX` (where `XXXX` is derived from the ESP32 BT MAC address).
 2. **Scan and Connect**:
    - In **nRF Connect** or **LightBlue**, scan for `Fabrica-XXXX` and tap **Connect**.
    - The firmware proactively initiates SMP security: tap **Pair** / **Bond** on the phone prompt.
