@@ -47,11 +47,11 @@ def construct_motorized_servo_adapter():
     h = params.PANEL_HEIGHT
     pivot_z = PIVOT_Z                          # 15.0mm
     disk_r = 10.0                              # 10.0mm radius (Ø20.0mm circular flange matching round horn)
-    y_front = 159.5                            # Front face at Y = 159.5mm (1.0mm axial clearance from frame knuckle)
+    y_front = 158.3                            # Front face at Y = 158.3mm (0.8mm clearance from frame knuckle at 157.5mm)
     y_rear = 163.8                             # Rear face at Y = 163.8mm (seats flush against MG996R round horn)
-    disk_t = y_rear - y_front                  # 4.3mm thickness
+    disk_t = y_rear - y_front                  # 5.5mm thickness (accommodates longer horn screws & 3.5mm web)
     hex_size = 7.7                             # 7.7mm flat-to-flat (8.0mm hex socket clearance)
-    peg_len = 18.0                             # 18.0mm continuous hex peg length (Y=159.5 to 141.5mm)
+    peg_len = 8.8                              # 8.8mm hex peg length (Y=158.3 to 149.5mm, engaging 7.5mm into flap journal at Y=157.0mm)
 
     # 1. Main Circular Flange Disk (Y in [159.5, 163.8mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))
@@ -78,7 +78,10 @@ def construct_motorized_servo_adapter():
         sh = Part.makeCylinder(screw_r, disk_t + 2.0, App.Vector(sx, y_front - 1.0, sz), App.Vector(0, 1, 0))
         screw_holes.append(sh)
 
-    adapter = adapter.cut(Part.makeCompound(screw_holes)).removeSplitter()
+    # 4. Central Horn Boss / Screw Head Relief Pocket on Rear Face (Ø8.0mm x 2.0mm deep at Y in [161.8, 163.8mm])
+    center_relief = Part.makeCylinder(4.0, 2.5, App.Vector(0, y_rear - 2.0, pivot_z), App.Vector(0, 1, 0))
+
+    adapter = adapter.cut(Part.makeCompound(screw_holes + [center_relief])).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "motorized_servo_adapter.step")

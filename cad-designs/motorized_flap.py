@@ -147,17 +147,18 @@ def construct_motorized_flap():
 
     flap = blade.cut(Part.makeCompound([b_right, b_bot, b_kbot, b_kw_bot, b_top, b_mot_left, b_mot_bot])).removeSplitter()
 
-    # 4. Continuous Full Cylindrical Drive Axle (Ø12.8mm full cylinder providing 100% 360° hex socket enclosure)
-    axle_mid_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
+    # 4. Continuous Full Cylindrical Drive Axle (Ø12.8mm full cylinder extending into top knuckle Y=157.0mm for radial bearing support)
+    axle_top_y = h - 63.0  # 157.0mm (1.3mm axial clearance to adapter flange at Y=158.3mm)
+    axle_mid_full = Part.makeCylinder(shaft_r, axle_top_y - y_knuckle_bot, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     flap = flap.fuse(axle_mid_full).removeSplitter()
 
-    # 5. Output Female Hex Sockets (Bottom: Y=16.0mm, Top: Y=149.5mm)
+    # 5. Output Female Hex Sockets (Bottom: Y=16.0mm, Top: Y=158.0mm)
     socket_d = 10.0
     hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_knuckle_bot - 0.1)
     hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
     hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
 
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_knuckle_mot_top + 0.1)
+    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, axle_top_y + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
     hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
 

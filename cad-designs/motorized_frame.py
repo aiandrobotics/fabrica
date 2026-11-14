@@ -96,11 +96,11 @@ def construct_motorized_frame():
     knuckle_pedestal = Part.makeBox(knuckle_r * 2.0, 15.0, pivot_z)
     knuckle_pedestal.translate(App.Vector(-knuckle_r, k_top_start_y, 0.0))
 
-    # Solid Housing Perimeter at Y in [182.0, 220.0mm] (height Z=0.0 to 27.2mm, sitting flush on Z=0.0mm planar base)
+    # Solid Housing Perimeter at Y in [173.2, 220.0mm] (height Z=0.0 to 27.2mm, sitting flush on Z=0.0mm planar base)
     t_servo = 27.2
-    towers_start_y = 182.0
-    bay_start_y = 182.0
-    bay_len = h - bay_start_y # 38.0mm
+    towers_start_y = 173.2
+    bay_start_y = 173.2
+    bay_len = h - bay_start_y # 46.8mm
     housing_box = Part.makeBox(72.0, bay_len, t_servo)
     housing_box.translate(App.Vector(-24.0, bay_start_y, 0.0))
 
@@ -137,12 +137,12 @@ def construct_motorized_frame():
     except Exception:
         pass
 
-    # Front-Right Screw Access Pocket (flush with X = 48.0mm inner motor wall, spanning Y in [150.0, 182.0mm])
-    cut_screw_access_right = Part.makeBox(37.0, 32.0, 30.0)
-    cut_screw_access_right.translate(App.Vector(11.0, k_top_start_y, bottom_thick))
+    # Front-Right Screw Access Pocket (flush with X = 48.0mm inner motor wall and knuckle_r = 9.5mm, spanning Y in [150.0, 173.2mm])
+    cut_screw_access_right = Part.makeBox(48.0 - knuckle_r, towers_start_y - k_top_start_y, 30.0)
+    cut_screw_access_right.translate(App.Vector(knuckle_r, k_top_start_y, bottom_thick))
 
-    # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [150.0, 182.0mm], Z in [3.0, 30.0mm])
-    cut_screw_access_left = Part.makeBox(13.5, 32.0, 30.0)
+    # Front-Left Screw Access Pocket (X in [-24.5, -11.0mm], Y in [150.0, 173.2mm], Z in [3.0, 30.0mm])
+    cut_screw_access_left = Part.makeBox(13.5, towers_start_y - k_top_start_y, 30.0)
     cut_screw_access_left.translate(App.Vector(-24.5, k_top_start_y, bottom_thick))
 
     # 180° Flap Folding Kinematic Relief: In the active flap span Y in [15.0, 150.0mm],
@@ -157,38 +157,35 @@ def construct_motorized_frame():
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
     # Bottom inner thrust flange recess (Ø16.8mm x 1.2mm for captive pin inner thrust disk):
     bot_thrust_recess = Part.makeCylinder(8.4, 1.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
-    # Top knuckle bore spanning Y in [149.9, 159.1mm] (SOLID 360 degree closed cylinder barrel):
-    top_bore = Part.makeCylinder(bore_r, 9.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
+    # Top knuckle bore spanning Y in [149.9, 158.1mm] (SOLID 360 degree closed cylinder barrel):
+    top_bore = Part.makeCylinder(bore_r, 8.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
-    # Adapter & Horn Clearance Pocket at Y in [158.5, 182.0mm] (X in [-13.0, 13.0mm], Z in [3.0, 30.0mm])
-    adapter_pocket = Part.makeBox(26.0, 23.5, 30.0)
-    adapter_pocket.translate(App.Vector(-13.0, k_top_start_y + 8.5, bottom_thick))
-
-    # Fused continuous bore and adapter pocket cutter (eliminates co-planar boundary artifacts)
-    bore_and_pocket = top_bore.fuse(adapter_pocket).removeSplitter()
+    # Adapter & Horn Clearance Pocket at Y in [157.5, 173.2mm] (X in [-13.0, 13.0mm], Z in [3.0, 33.0mm])
+    adapter_pocket = Part.makeBox(26.0, towers_start_y - (k_top_start_y + 7.5), 30.0)
+    adapter_pocket.translate(App.Vector(-13.0, k_top_start_y + 7.5, bottom_thick))
 
     # 100% Planar bottom trim at Z=0.0mm across entire module footprint (eliminates any rocking/wobbling on tables)
     trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot_flat.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    for b in [bot_bore, bot_thrust_recess, bore_and_pocket, trim_bot_flat]:
+    for b in [bot_bore, bot_thrust_recess, top_bore, adapter_pocket, trim_bot_flat]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.5mm thick at Y = 214.5 to 220.0mm), and Solid Front Towers:
     z_motor_rest = 5.25  # EXACT bottom plane of MG996R servo motor when spline is aligned at Z = 15.00mm
     towers_t = 5.0       # 5.0mm thick mounting tower posts
 
-    # A) Body pass-through between towers at Y in [182.0, 187.0mm] (X in [-10.0, 30.5mm], Z in [5.25, 30.0mm])
-    # Leaves solid left tower post at X in [-18.0, -10.0mm] and solid right tower post at X in [30.5, 38.5mm]
-    pocket_towers_pass = Part.makeBox(40.5, towers_t, 30.0)
-    pocket_towers_pass.translate(App.Vector(-10.0, towers_start_y, z_motor_rest))
+    # A) Body pass-through between towers at Y in [173.2, 178.2mm] (X in [-10.25, 30.75mm], Z in [5.25, 30.0mm], 0.25mm FDM clearance per side)
+    # Leaves solid left tower post at X in [-18.0, -10.25mm] and solid right tower post at X in [30.75, 38.5mm]
+    pocket_towers_pass = Part.makeBox(41.0, towers_t, 30.0)
+    pocket_towers_pass.translate(App.Vector(-10.25, towers_start_y, z_motor_rest))
 
-    # B) Main Wide Drop-In Motor Bay behind towers at Y in [187.0, 214.5mm] (X in [-17.8, 38.5mm], width = 56.3mm)
-    pocket_bay_wide = Part.makeBox(56.3, bay_len - towers_t - 5.5, 30.0)
+    # B) Open-Rear Slide-In Motor Bay behind towers at Y in [178.2, 220.5mm] (X in [-17.8, 38.5mm], width = 56.3mm)
+    pocket_bay_wide = Part.makeBox(56.3, (h + 0.5) - (towers_start_y + towers_t), 30.0)
     pocket_bay_wide.translate(App.Vector(-17.8, towers_start_y + towers_t, z_motor_rest))
 
-    # Top Lid Seating Rebate (1.4mm depth at Z in [25.8, 27.5mm], X in [-20.9, 40.5mm], Y in [182.0, 214.5mm], leaving 3.10mm solid outer wall on left)
-    pocket_rebate = Part.makeBox(61.4, 32.5, 2.0)
+    # Top Lid Seating Rebate (1.4mm depth at Z in [25.8, 27.5mm], X in [-20.9, 40.5mm], Y in [173.2, 220.5mm], leaving 3.10mm solid outer wall on left)
+    pocket_rebate = Part.makeBox(61.4, (h + 0.5) - bay_start_y, 2.0)
     pocket_rebate.translate(App.Vector(-20.9, bay_start_y, 25.8))
 
     # 4x Horizontal M3 Screw Clearance Holes (Ø3.4mm) passing cleanly through the 5.0mm solid towers along Y-axis:
@@ -228,6 +225,9 @@ def construct_motorized_frame():
     catch_snap_right = chan_r.fuse(undercut_r).removeSplitter()
 
     cutters = [pocket_towers_pass, pocket_bay_wide, pocket_rebate, pocket_wire_left, catch_snap_left, catch_snap_right] + screw_holes
+    # 2x Blind Rear Cover Alignment Holes in bay floor (Ø4.5mm, Z in [1.60, 5.35mm])
+    for px in [-6.0, 26.7]:
+        cutters.append(Part.makeCylinder(2.25, 3.75, App.Vector(px, 217.4, 1.60)))
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 
@@ -285,20 +285,7 @@ def construct_motorized_frame():
     for dt in [c_front, c_right]:
         frame = frame.cut(dt).removeSplitter()
 
-    # 6. Anti-Slip Rubber Foot Sockets on Standard Frame Rails (Ø12mm x 2.0mm)
-    foot_r = 6.0
-    foot_d = 2.0
-    foot_locs = [
-        (w - (rail_w / 2.0), rail_w / 2.0),                # Bottom Right
-        (w - (rail_w / 2.0), h - (rail_w / 2.0)),          # Top Right
-        (25.0, rail_w / 2.0),                              # Bottom Left
-        (55.0, h - (rail_w / 2.0)),                        # Top Rail (clears motor housing, under main frame)
-    ]
-    for fx, fy in foot_locs:
-        fc = Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
-        frame = frame.cut(fc).removeSplitter()
-
-    # 7. Silent-Flip TPU Landing Bumper Slots (recessed into right landing rail at X = w - rail_w/2)
+    # 6. Silent-Flip TPU Landing Bumper Slots (recessed into right landing rail at X = w - rail_w/2)
     tpu_cutters = []
     tpu_w = 5.0
     tpu_l = 14.0
@@ -349,7 +336,7 @@ def construct_motorized_frame():
 
     # Re-apply bores and planar bottom trim to ensure 100% open bore channels
     frame = frame.cut(bot_bore).removeSplitter()
-    frame = frame.cut(bore_and_pocket).removeSplitter()
+    frame = frame.cut(top_bore).removeSplitter()
     frame = frame.cut(trim_bot_flat).removeSplitter()
 
     # Export STEP and STL
