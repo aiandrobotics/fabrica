@@ -214,10 +214,6 @@ def construct_motorized_frame():
     if len(w_edges) == 4:
         pocket_wire_left = pocket_wire_left.makeFillet(1.5, w_edges)
 
-    # Rear Tongue Locking Slot underneath the solid rear frame wall (5.5mm depth at X in [-20.0, 37.0mm], Y in [214.5, 220.0mm], Z in [24.0, 26.0mm])
-    slot_rear_tongue = Part.makeBox(57.0, 5.5, 2.0)
-    slot_rear_tongue.translate(App.Vector(-20.0, 214.5, 24.0))
-
     # Side Snap Barb Catch Undercuts in Frame Sidewalls (Y in [190.0, 200.0mm])
     chan_l = Part.makeBox(2.5, 10.0, 8.0)
     chan_l.translate(App.Vector(-17.4, 190.0, 18.0))
@@ -231,7 +227,7 @@ def construct_motorized_frame():
     undercut_r.translate(App.Vector(40.0, 190.0, 18.0))
     catch_snap_right = chan_r.fuse(undercut_r).removeSplitter()
 
-    cutters = [pocket_towers_pass, pocket_bay_wide, pocket_rebate, pocket_wire_left, slot_rear_tongue, catch_snap_left, catch_snap_right] + screw_holes
+    cutters = [pocket_towers_pass, pocket_bay_wide, pocket_rebate, pocket_wire_left, catch_snap_left, catch_snap_right] + screw_holes
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 

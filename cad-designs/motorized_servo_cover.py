@@ -20,10 +20,9 @@ def construct_motorized_servo_cover():
     """
     Constructs the Flush Top Snap-Lock Enclosure Lid (Part 8) for the Motorized Module.
     Features:
-      1. Main flush top plate (1.4mm thick, spanning X in [-17.5, 40.2mm], Y in [195.7, 236.8mm], Z in [19.8, 21.2mm]).
-      2. Full-width Rear Interlocking Tongue (Y in [236.8, 239.0mm], Z in [18.3, 19.8mm]) sliding into the frame back wall.
-      3. Dual Heavy-Duty Front Cantilever Snap Legs with 30° insertion ramps and 90° locking shoulders (Y=195.7mm).
-      4. Rear-left corner finger/tool pry notch for easy toolless maintenance.
+      1. Main flush top plate (1.4mm thick, sitting in frame top rebate at Z in [25.8, 27.2mm]).
+      2. Dual Heavy-Duty Side Cantilever Snap Legs with 30° insertion ramps and 90° locking shoulders.
+      3. Rear-left corner finger/tool pry notch for easy toolless maintenance.
     """
     import params
     h = params.PANEL_HEIGHT
@@ -36,19 +35,12 @@ def construct_motorized_servo_cover():
     top_plate = Part.makeBox(w_top, l_top, t_top)
     top_plate.translate(App.Vector(-20.6, 182.2, z_top_min))
 
-    # 2. Continuous Rear Interlocking Tongue (Y in [213.5, 219.5mm], Z in [24.3, 25.8mm]) sliding into the frame back wall past the servo body
-    tongue_w = 53.5 # X in [-17.0, 36.5mm] cleanly inside bay cavity and slot
-    tongue_l = 8.5
-    tongue_t = 1.5
-    tongue = Part.makeBox(tongue_w, tongue_l, tongue_t)
-    tongue.translate(App.Vector(-17.0, 211.0, z_top_min - tongue_t))
-
-    # 3. Dual Heavy-Duty Side Cantilever Snap Legs with locking anchors
+    # 2. Dual Heavy-Duty Side Cantilever Snap Legs with locking anchors (Y in [191.0, 199.0mm], centered in frame's [190.0, 200.0mm] catch channels)
     def make_side_snap_leg(is_left):
         leg_l = 8.0   # Y-length
         leg_t = 1.8   # X-thickness
         leg_h = 6.5   # Z-height
-        y_start = 189.0
+        y_start = 191.0
         
         if is_left:
             x_pos = -17.0
@@ -80,7 +72,7 @@ def construct_motorized_servo_cover():
     leg_left = make_side_snap_leg(True)
     leg_right = make_side_snap_leg(False)
 
-    lid = top_plate.fuse([tongue, leg_left, leg_right]).removeSplitter()
+    lid = top_plate.fuse([leg_left, leg_right]).removeSplitter()
 
     # 4. Finger / Tool Pry Notch at Rear-Left Corner
     notch = Part.makeCylinder(3.5, 3.0, App.Vector(-20.6, 214.2, z_top_min - 1.0))
