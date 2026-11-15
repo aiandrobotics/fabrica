@@ -64,10 +64,10 @@ def construct_follower_flap():
     y_max_blade = h - gap_axial                   # 219.5mm
     total_blade_len = y_max_blade - y_min_blade   # 219.0mm
 
-    # Modular Drop-In Spine Span: Sits between bottom pin inner disk (Y=16.0mm) and top knuckle (Y=204.0mm)
-    y_knuckle_bot = 16.0                          # 16.0mm (seats flush against bottom pin inner thrust disk)
+    # Modular Drop-In Spine Span: Sits between 3.0mm bottom pin inner disk (Y=18.0mm) and top knuckle (Y=204.0mm)
+    y_knuckle_bot = 18.0                          # 18.0mm (seats flush against bottom pin inner thrust disk)
     y_knuckle_top = h - rail_w - 1.0              # 204.0mm (1.0mm thrust clearance to top knuckle)
-    mid_len = y_knuckle_top - y_knuckle_bot       # 188.0mm
+    mid_len = y_knuckle_top - y_knuckle_bot       # 186.0mm
 
     x_min = -shaft_r                              # -6.4mm
     x_wing_start = knuckle_r + 0.5                # 9.9mm (radial clearance around 360° knuckles)

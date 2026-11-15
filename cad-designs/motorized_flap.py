@@ -62,10 +62,10 @@ def construct_motorized_flap():
     y_max_blade = h - gap_axial                   # 219.5mm
     total_blade_len = y_max_blade - y_min_blade   # 219.0mm
 
-    # Modular Drop-In Spine Span: Starts at Y=16.0mm (seats against bottom pin inner thrust disk)
-    y_knuckle_bot = 16.0                          # 16.0mm
+    # Modular Drop-In Spine Span: Starts at Y=18.0mm (seats against 3.0mm bottom pin inner thrust disk)
+    y_knuckle_bot = 18.0                          # 18.0mm
     y_knuckle_mot_top = h - 77.0 - gap_axial     # 142.5mm
-    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 126.5mm
+    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 124.5mm
 
     x_min = -shaft_r                             # -6.4mm
     x_wing_start = knuckle_r + gap_radial        # 9.9mm

@@ -119,30 +119,26 @@ def construct_base_module():
     dt_cutter = dt_face.extrude(App.Vector(0, 0, dt_cut_h))
     dt_cutter.translate(App.Vector(0, 0, bottom_floor))
 
-    # Master bottom push-out finger access hole (Ø6.0mm through bottom floor)
-    push_hole = Part.makeCylinder(3.0, bottom_floor + 1.0, App.Vector(0, dt_depth * 0.6, -0.5))
-    dt_cutter_with_hole = dt_cutter.fuse(push_hole)
-
     dovetail_cuts = []
     # Front wall (Y=0) -> cuts in +Y direction
-    c_front = dt_cutter_with_hole.copy()
+    c_front = dt_cutter.copy()
     c_front.translate(App.Vector(w / 2.0, 0, 0))
     dovetail_cuts.append(c_front)
 
     # Back wall (Y=h) -> cuts in -Y direction
-    c_back = dt_cutter_with_hole.copy()
+    c_back = dt_cutter.copy()
     c_back.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 180)
     c_back.translate(App.Vector(w / 2.0, h, 0))
     dovetail_cuts.append(c_back)
 
     # Left wall (X=0) -> cuts in +X direction
-    c_left = dt_cutter_with_hole.copy()
+    c_left = dt_cutter.copy()
     c_left.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -90)
     c_left.translate(App.Vector(0, h / 2.0, 0))
     dovetail_cuts.append(c_left)
 
     # Right wall (X=w) -> cuts in -X direction
-    c_right = dt_cutter_with_hole.copy()
+    c_right = dt_cutter.copy()
     c_right.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 90)
     c_right.translate(App.Vector(w, h / 2.0, 0))
     dovetail_cuts.append(c_right)
@@ -161,22 +157,7 @@ def construct_base_module():
 
     main_shell = main_shell.cut(Part.makeCompound(dovetail_cuts + wire_ports)).removeSplitter()
 
-    # 8. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of outer rails for Ø12mm x 2.0mm rubber feet)
-    foot_r = 6.0
-    foot_d = 2.0
-    foot_locs = [
-        (rail_w / 2.0, rail_w / 2.0),
-        (w - rail_w / 2.0, rail_w / 2.0),
-        (w - rail_w / 2.0, h - rail_w / 2.0),
-        (rail_w / 2.0, h - rail_w / 2.0),
-    ]
-    foot_cutters = [
-        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
-        for fx, fy in foot_locs
-    ]
-    main_shell = main_shell.cut(Part.makeCompound(foot_cutters)).removeSplitter()
-
-    # 9. Smooth rounded outer vertical corner fillets (R=3.0mm on all 4 outer corners)
+    # 8. Smooth rounded outer vertical corner fillets (R=3.0mm on all 4 outer corners)
     corner_trims = []
     for cx, cy in [(0, 0), (w, 0), (w, h), (0, h)]:
         bx = -3.0 if cx == 0 else cx - 3.0

@@ -95,7 +95,7 @@ def construct_follower_frame():
 
     # A2. Inner Thrust Flange Counterbore Recesses (Ø16.8mm x 1.2mm for captive pin inner thrust disk)
     disk_recess_r = 8.4  # 8.4mm radius for Ø16.0mm disk (+0.4mm radial clearance)
-    bot_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
+    bot_thrust_recess = Part.makeCylinder(disk_recess_r, 3.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     top_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, h - knuckle_len - 1.2, pivot_z), App.Vector(0, 1, 0))
 
     # B. Semi-Circular Cradle Trough (supports half-cylinder axle from below)
@@ -184,22 +184,7 @@ def construct_follower_frame():
 
     frame = frame.cut(Part.makeCompound(dt_cutters)).removeSplitter()
 
-    # 7. Anti-Slip Foot Pad Recess Sockets (4x on bottom face of rails for Ø12mm x 2.0mm rubber feet)
-    foot_r = 6.0
-    foot_d = 2.0
-    foot_locs = [
-        (w - (rail_w / 2.0), rail_w / 2.0),          # Bottom Right
-        (w - (rail_w / 2.0), h - (rail_w / 2.0)),      # Top Right
-        (25.0, rail_w / 2.0),                          # Bottom Left (along front rail)
-        (25.0, h - (rail_w / 2.0)),                    # Top Left (along back rail)
-    ]
-    foot_cutters = [
-        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(fx, fy, -0.1))
-        for fx, fy in foot_locs
-    ]
-    frame = frame.cut(Part.makeCompound(foot_cutters)).removeSplitter()
-
-    # 8. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into top landing rail at X = w - rail_w/2)
+    # 7. TPU Silent-Flip Landing Bumper Slots (1.5mm recessed into top landing rail at X = w - rail_w/2)
     tpu_cutters = []
     tpu_w = 5.0
     tpu_l = 14.0

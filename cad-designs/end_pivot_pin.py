@@ -47,7 +47,7 @@ def construct_end_pivot_pin():
     
     disk_dia = 16.0                    # Ø16.0mm (larger than Ø13.7mm knuckle bore -> cannot pass through)
     disk_r = disk_dia / 2.0            # 8.00mm
-    disk_thick = 1.0                   # 1.00mm (Y in [15.0, 16.0mm])
+    disk_thick = 3.0                   # 3.00mm (Y in [15.0, 18.0mm], sturdy for 3D printing)
     
     hex_size = HEX_COUPLER_SIZE - 0.3  # 7.70mm flat-to-flat
     peg_len = 9.0                      # 9.00mm engagement depth (Y in [16.0, 25.0mm])
