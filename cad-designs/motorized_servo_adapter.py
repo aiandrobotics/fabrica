@@ -47,11 +47,11 @@ def construct_motorized_servo_adapter():
     h = params.PANEL_HEIGHT
     pivot_z = PIVOT_Z                          # 15.0mm
     disk_r = 10.0                              # 10.0mm radius (Ø20.0mm circular flange matching round horn)
-    y_front = 158.3                            # Front face at Y = 158.3mm (0.8mm clearance from frame knuckle at 157.5mm)
+    y_front = 156.3                            # Front face at Y = 156.3mm (5.8mm clearance from frame knuckle at 150.5mm)
     y_rear = 163.8                             # Rear face at Y = 163.8mm (seats flush against MG996R round horn)
-    disk_t = y_rear - y_front                  # 5.5mm thickness (accommodates longer horn screws & 3.5mm web)
+    disk_t = y_rear - y_front                  # 7.5mm thickness (+2.0mm thicker so horn screws stay recessed)
     hex_size = 7.7                             # 7.7mm flat-to-flat (8.0mm hex socket clearance)
-    peg_len = 8.8                              # 8.8mm hex peg length (Y=158.3 to 149.5mm, engaging 7.5mm into flap journal at Y=157.0mm)
+    peg_len = 13.8                             # 13.8mm hex peg length (Y=156.3 to 142.5mm, engaging 7.5mm into flap journal at Y=150.0mm)
 
     # 1. Main Circular Flange Disk (Y in [159.5, 163.8mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))

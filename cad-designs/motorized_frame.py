@@ -61,8 +61,8 @@ def construct_motorized_frame():
     knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0 # 9.5mm radius
     knuckle_len = 15.0
     # MG996R Motor Module Fixed Hardware Zone (anchored at top edge Y = h):
-    # Total motor module length = 70.0mm (never scaled, fits physical MG996R servo)
-    k_top_start_y = h - 70.0
+    # Total motor module length = 77.0mm (knuckle shifted -7mm for >=5mm adapter clearance with +2mm thicker flange)
+    k_top_start_y = h - 77.0
     k_top_len = 15.0 # Knuckle barrel spans Y in [h - 70.0, h - 55.0]
     towers_start_y = h - 55.0 # Towers span Y in [h - 55.0, h - 44.5]
     bay_start_y = h - 44.5 # Motor bay spans Y in [h - 44.5, h]
@@ -88,8 +88,8 @@ def construct_motorized_frame():
     hinge_pedestal = Part.makeBox(knuckle_r, k_top_start_y, pivot_z)
     hinge_pedestal.translate(App.Vector(-knuckle_r, 0, 0))
 
-    # Continuous Solid Base Plate under entire motor zone and knuckle (X in [-24.0, 48.0mm], Y in [150.0, 220.0mm], Z in [0.0, 3.0mm])
-    module_base_floor = Part.makeBox(72.0, 70.0, bottom_thick)
+    # Continuous Solid Base Plate under entire motor zone and knuckle (X in [-24.0, 48.0mm], Y in [145.0, 220.0mm], Z in [0.0, 3.0mm])
+    module_base_floor = Part.makeBox(72.0, h - k_top_start_y, bottom_thick)
     module_base_floor.translate(App.Vector(-24.0, k_top_start_y, 0.0))
 
     # Knuckle Solid Vertical Pedestal (X in [-knuckle_r, knuckle_r], Y in [150.0, 165.0mm], Z in [0.0, 15.0mm]) anchoring knuckle to base floor
@@ -225,9 +225,9 @@ def construct_motorized_frame():
     catch_snap_right = chan_r.fuse(undercut_r).removeSplitter()
 
     cutters = [pocket_towers_pass, pocket_bay_wide, pocket_rebate, pocket_wire_left, catch_snap_left, catch_snap_right] + screw_holes
-    # 2x Blind Rear Cover Alignment Holes in bay floor (Ø4.5mm, Z in [1.60, 5.35mm])
+    # 2x Blind Rear Cover Alignment Holes in bay floor (Ø4.5mm at Y=216.0mm, leaving 1.75mm solid rear wall to Y=220.0mm)
     for px in [-6.0, 26.7]:
-        cutters.append(Part.makeCylinder(2.25, 3.75, App.Vector(px, 217.4, 1.60)))
+        cutters.append(Part.makeCylinder(2.25, 3.75, App.Vector(px, 216.0, 1.60)))
     for c in cutters:
         frame = frame.cut(c).removeSplitter()
 

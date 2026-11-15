@@ -35,14 +35,14 @@ def construct_motorized_servo_cover():
     top_plate = Part.makeBox(w_top, l_top, t_top)
     top_plate.translate(App.Vector(-20.6, 173.4, z_top_min))
 
-    # Rear End-Wall Retaining Lip (closes off the open rear slide-in bay at Y in [215.0, 219.8mm], Z in [5.5, 25.8mm])
-    rear_lip = Part.makeBox(55.7, 4.8, 20.3)
-    rear_lip.translate(App.Vector(-17.5, 215.0, 5.5))
+    # Rear End-Wall Retaining Lip (closes off the open rear slide-in bay at Y in [214.0, 219.8mm], Z in [5.5, 25.8mm])
+    rear_lip = Part.makeBox(55.7, 5.8, 20.3)
+    rear_lip.translate(App.Vector(-17.5, 214.0, 5.5))
 
-    # 2x Vertical Alignment Pegs under rear_lip (Ø4.0mm x 3.5mm, Z in [2.0, 5.5mm]) for zero-rattle rear seating
+    # 2x Vertical Alignment Pegs under rear_lip (Ø4.0mm x 3.5mm at Y=216.0mm, Z in [2.0, 5.5mm]) for zero-rattle rear seating
     peg_r = 2.0
     peg_h = 3.5
-    peg_y = 217.4
+    peg_y = 216.0
     peg_xs = [-6.0, 26.7]
     rear_pegs = []
     for px in peg_xs:

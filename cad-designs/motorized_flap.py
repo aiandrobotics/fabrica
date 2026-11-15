@@ -64,8 +64,8 @@ def construct_motorized_flap():
 
     # Modular Drop-In Spine Span: Starts at Y=16.0mm (seats against bottom pin inner thrust disk)
     y_knuckle_bot = 16.0                          # 16.0mm
-    y_knuckle_mot_top = h - 70.0 - gap_axial     # 149.5mm
-    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 133.5mm
+    y_knuckle_mot_top = h - 77.0 - gap_axial     # 142.5mm
+    mid_len = y_knuckle_mot_top - y_knuckle_bot  # 126.5mm
 
     x_min = -shaft_r                             # -6.4mm
     x_wing_start = knuckle_r + gap_radial        # 9.9mm
@@ -147,8 +147,8 @@ def construct_motorized_flap():
 
     flap = blade.cut(Part.makeCompound([b_right, b_bot, b_kbot, b_kw_bot, b_top, b_mot_left, b_mot_bot])).removeSplitter()
 
-    # 4. Continuous Full Cylindrical Drive Axle (Ø12.8mm full cylinder extending into top knuckle Y=157.0mm for radial bearing support)
-    axle_top_y = h - 63.0  # 157.0mm (1.3mm axial clearance to adapter flange at Y=158.3mm)
+    # 4. Continuous Full Cylindrical Drive Axle (Ø12.8mm full cylinder extending into top knuckle Y=150.0mm for radial bearing support)
+    axle_top_y = h - 70.0  # 150.0mm (6.3mm axial clearance from knuckle face at 150.5mm to adapter flange at Y=156.3mm)
     axle_mid_full = Part.makeCylinder(shaft_r, axle_top_y - y_knuckle_bot, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     flap = flap.fuse(axle_mid_full).removeSplitter()
 
