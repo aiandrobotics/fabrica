@@ -244,17 +244,7 @@ def construct_interface_case():
     for i in [-1, 0, 1]:
         cooling_slots.append(Part.makeBox(45.0, 2.5, floor_t + 2.0, App.Vector(pca_cx - 22.5, pca_cy + i * 6.0 - 1.25, -1.0)))
         
-    # D) 4x Bottom Anti-Slip Rubber Feet Sockets (Ø20.1mm x 2.0mm):
-    foot_r = params.FOOT_PAD_DIA / 2.0
-    foot_d = params.FOOT_PAD_DEPTH
-    foot_sockets = [
-        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(16.0, 16.0, -0.1)),
-        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(w - 16.0, 16.0, -0.1)),
-        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(16.0, d - 16.0, -0.1)),
-        Part.makeCylinder(foot_r, foot_d + 0.1, App.Vector(w - 16.0, d - 16.0, -0.1)),
-    ]
-    
-    # E) Standardized 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor on Right Half of Rear Wall):
+    # D) Standardized 16 Discrete Motor Wire Slots (1 Slot Per Servo Motor on Right Half of Rear Wall):
     slot_w = 4.0
     slot_h = 16.0
     slot_pitch = 6.0
@@ -267,13 +257,13 @@ def construct_interface_case():
         slot_cut = Part.makeBox(slot_w, wall_t + 4.0, slot_h, App.Vector(sx, d - wall_t - 2.0, slot_z_start))
         motor_slots.append(slot_cut)
         
-    # F) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
+    # E) 0.4mm Elephant's Foot Bed Relief Chamfer on bottom outer perimeter:
     ef_cutter = Part.makeBox(w + 10.0, d + 10.0, params.ELEPHANTS_FOOT_CHAMFER + 0.1, App.Vector(-5.0, -5.0, -0.05))
     ef_inner = make_rounded_box(w - 2 * params.ELEPHANTS_FOOT_CHAMFER, d - 2 * params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER + 0.2, max(0.5, corner_r - params.ELEPHANTS_FOOT_CHAMFER))
     ef_inner.translate(App.Vector(params.ELEPHANTS_FOOT_CHAMFER, params.ELEPHANTS_FOOT_CHAMFER, -0.1))
     ef_ring = ef_cutter.cut(ef_inner)
     
-    all_cuts = [usb_cut, dc_jack_cut, ef_ring, raceway_box] + wall_snap_holes + motor_slots + cooling_slots + foot_sockets
+    all_cuts = [usb_cut, dc_jack_cut, ef_ring, raceway_box] + wall_snap_holes + motor_slots + cooling_slots
     case_body = case_body.cut(Part.makeCompound(all_cuts)).removeSplitter()
     
     return case_body

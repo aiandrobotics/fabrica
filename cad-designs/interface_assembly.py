@@ -163,7 +163,7 @@ def build_assembly():
     buttons = []
     for bx in btn_xs:
         btn = construct_button_16mm_cad_reference()
-        btn.translate(App.Vector(bx, btn_y, h_case + 3.0))
+        btn.translate(App.Vector(bx, btn_y, h_case + 2.2))
         buttons.append(btn)
         
     # 7. Status LED Diffuser / Round Indicator:

@@ -3,7 +3,7 @@ Fabrica Cloth Folding Robot - Interface Control Faceplate (Compact Top Deck with
 Part of Phase 5: Interface Module & Electronics Enclosure.
 
 Features:
-1. Compact ergonomic rectangular top deck (140.0 x 120.0 x 3.0mm, assembled Z = 45.0 to 48.0mm)
+1. Compact ergonomic rectangular top deck (140.0 x 120.0 x 2.2mm, assembled Z = 45.0 to 47.2mm)
    - Sleek R=8.0mm filleted vertical corners matching lower chassis
 2. 4-Sided Toolless Direct Wall Snap Retention System:
    - 4x Cantilever Snap Legs (2 on Front Edge, 2 on Rear Edge @ X=35, 105mm)
@@ -60,7 +60,7 @@ def construct_interface_panel():
     """
     w = params.INTERFACE_PANEL_WIDTH  # 140.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm
-    t_panel = 3.0  # 3.0mm thick top faceplate
+    t_panel = 2.2  # 2.2mm thick top faceplate
     h_case = 45.0  # 45.0mm case chassis height
     wall_t = params.WALL_THICKNESS  # 3.0mm
     corner_r = 8.0  # 8.0mm sleek corner fillet radius
