@@ -53,7 +53,7 @@ extern "C" {
 #define BUTTON_BOND_RESET_MS         5000   /* Simultaneous B1+B4 hold time (5s) to clear BLE bonds */
 #define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
-#define FOLD_DWELL_TIME_MS           300    /* Flap hold time at fold angle */
+#define FOLD_DWELL_TIME_MS           1050   /* Flap travel time to reach fold angle (no extra hold) */
 #define INTER_STEP_DELAY_MS          200    /* Delay between routine steps */
 #define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
 #define CALIBRATION_INACTIVITY_TIMEOUT_MS 15000 /* Calibration auto-home & exit timeout (15s) */
@@ -87,7 +87,8 @@ extern "C" {
 #define HOME_ANGLE_DEG               0.0f   /* Flat resting angle */
 #define NUDGE_ANGLE_DEG              15.0f  /* Identification nudge angle */
 #define STAGE_ANGLE_DEG              30.0f  /* Visual staging hold angle */
-#define FOLD_ANGLE_DEG               180.0f /* Full folding sweep angle */
+#define FOLD_ANGLE_DEG               180.0f /* Full servo mechanical range (degrees) */
+#define FOLD_TARGET_ANGLE_DEG        170.0f /* Max folding sweep target angle */
 
 /* ========================================================================= */
 /* PCA9685 I2C & PWM Configuration                                           */

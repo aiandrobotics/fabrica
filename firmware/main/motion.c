@@ -228,23 +228,23 @@ esp_err_t motion_execute_step(const fold_step_t *step)
         return ESP_ERR_TIMEOUT;
     }
 
-    /* 1. Forward Sweep (0° -> 180°) */
+    /* 1. Forward Sweep (0° -> 170°) */
     if (step->motor_count == 1) {
         uint8_t ch = step->motor_ids[0];
 #ifdef ESP_PLATFORM
-        ESP_LOGI(TAG, "Executing single step on Channel %d (0 -> 180 deg)", ch);
+        ESP_LOGI(TAG, "Executing single step on Channel %d (0 -> %.0f deg)", ch, FOLD_TARGET_ANGLE_DEG);
 #endif
-        pca9685_set_servo_angle(ch, FOLD_ANGLE_DEG);
+        pca9685_set_servo_angle(ch, FOLD_TARGET_ANGLE_DEG);
     } else {
         uint16_t mask = (1U << step->motor_ids[0]) | (1U << step->motor_ids[1]);
 #ifdef ESP_PLATFORM
-        ESP_LOGI(TAG, "Executing parallel step on Channels %d & %d (Mask: 0x%04X, 0 -> 180 deg)",
-                 step->motor_ids[0], step->motor_ids[1], mask);
+        ESP_LOGI(TAG, "Executing parallel step on Channels %d & %d (Mask: 0x%04X, 0 -> %.0f deg)",
+                 step->motor_ids[0], step->motor_ids[1], mask, FOLD_TARGET_ANGLE_DEG);
 #endif
-        pca9685_set_multi_servo_angles(mask, FOLD_ANGLE_DEG);
+        pca9685_set_multi_servo_angles(mask, FOLD_TARGET_ANGLE_DEG);
     }
 
-    /* 2. Fold Dwell Time (300ms) with low-latency abort polling */
+    /* 2. Sweep Travel Time (no extra hold at target) with low-latency abort polling */
     if (motion_delay_ms(FOLD_DWELL_TIME_MS, true)) {
 #ifdef ESP_PLATFORM
         ESP_LOGW(TAG, "E-Stop triggered during fold dwell! Aborting step.");
