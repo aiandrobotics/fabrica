@@ -31,7 +31,12 @@ static volatile uint8_t s_active_step_idx = 0;
 static volatile uint8_t s_active_total_steps = 0;
 static volatile uint16_t s_active_elapsed_ms = 0;
 static volatile uint8_t s_active_progress_pct = 0;
-static volatile uint32_t s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+/* Total active step duration for telemetry progress calculation (~2675 ms) */
+#define STEP_EASE_OUT_STEPS          ((uint32_t)(LANDING_BRAKE_ANGLE_DEG / LANDING_STEP_DEG))
+#define STEP_EASE_OUT_TOTAL_MS       ((STEP_EASE_OUT_STEPS * (LANDING_STEP_MIN_DELAY_MS + LANDING_STEP_MAX_DELAY_MS)) / 2U)
+#define STEP_TARGET_DURATION_MS      (FOLD_DWELL_TIME_MS + LANDING_APPROACH_MS + STEP_EASE_OUT_TOTAL_MS)
+
+static volatile uint32_t s_step_target_duration_ms = STEP_TARGET_DURATION_MS;
 
 static EventGroupHandle_t s_evt_group_handle = NULL;
 
@@ -117,7 +122,7 @@ void motion_reset_state(void)
     s_active_total_steps = 0;
     s_active_elapsed_ms = 0;
     s_active_progress_pct = 0;
-    s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+    s_step_target_duration_ms = STEP_TARGET_DURATION_MS;
 #ifndef ESP_PLATFORM
     s_simulated_elapsed_ms = 0;
 #endif
@@ -192,12 +197,26 @@ bool motion_is_busy(void)
 /* ========================================================================= */
 
 /**
+ * @brief Command all motors in a fold step to a target angle.
+ */
+static void set_step_servo_angle(const fold_step_t *step, float angle_deg)
+{
+    if (step->motor_count == 1) {
+        pca9685_set_servo_angle(step->motor_ids[0], angle_deg);
+    } else {
+        uint16_t mask = (1U << step->motor_ids[0]) | (1U << step->motor_ids[1]);
+        pca9685_set_multi_servo_angles(mask, angle_deg);
+    }
+}
+
+/**
  * @brief Execute a single folding step (single servo or parallel dual servos).
  *
  * Articulation Profile:
- *   1. Forward sweep: Rotate target channel(s) 0° -> 180°
- *   2. Fold dwell: Hold at 180° for FOLD_DWELL_TIME_MS (300ms), polling abort every 10ms
- *   3. Return sweep: Rotate channel(s) back 180° -> 0°
+ *   1. Forward sweep: Rotate target channel(s) 0° -> 170°
+ *   2. Sweep travel wait: Wait FOLD_DWELL_TIME_MS (800ms), polling abort every 10ms
+ *   3. Fast return approach: Rotate target channel(s) 170° -> 35° and wait LANDING_APPROACH_MS (650ms)
+ *   4. Ease-out soft landing: Ramp 34° -> 0° in 1° steps with delay easing 20ms -> 50ms
  *
  * @param step Pointer to fold_step_t containing motor count and channel IDs.
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
@@ -229,39 +248,63 @@ esp_err_t motion_execute_step(const fold_step_t *step)
     }
 
     /* 1. Forward Sweep (0° -> 170°) */
+#ifdef ESP_PLATFORM
     if (step->motor_count == 1) {
-        uint8_t ch = step->motor_ids[0];
-#ifdef ESP_PLATFORM
-        ESP_LOGI(TAG, "Executing single step on Channel %d (0 -> %.0f deg)", ch, FOLD_TARGET_ANGLE_DEG);
-#endif
-        pca9685_set_servo_angle(ch, FOLD_TARGET_ANGLE_DEG);
+        ESP_LOGI(TAG, "Executing single step on Channel %d (0 -> %.0f deg)",
+                 step->motor_ids[0], FOLD_TARGET_ANGLE_DEG);
     } else {
-        uint16_t mask = (1U << step->motor_ids[0]) | (1U << step->motor_ids[1]);
-#ifdef ESP_PLATFORM
-        ESP_LOGI(TAG, "Executing parallel step on Channels %d & %d (Mask: 0x%04X, 0 -> %.0f deg)",
-                 step->motor_ids[0], step->motor_ids[1], mask, FOLD_TARGET_ANGLE_DEG);
-#endif
-        pca9685_set_multi_servo_angles(mask, FOLD_TARGET_ANGLE_DEG);
+        ESP_LOGI(TAG, "Executing parallel step on Channels %d & %d (0 -> %.0f deg)",
+                 step->motor_ids[0], step->motor_ids[1], FOLD_TARGET_ANGLE_DEG);
     }
+#endif
+    set_step_servo_angle(step, FOLD_TARGET_ANGLE_DEG);
 
     /* 2. Sweep Travel Time (no extra hold at target) with low-latency abort polling */
     if (motion_delay_ms(FOLD_DWELL_TIME_MS, true)) {
 #ifdef ESP_PLATFORM
-        ESP_LOGW(TAG, "E-Stop triggered during fold dwell! Aborting step.");
+        ESP_LOGW(TAG, "E-Stop triggered during fold sweep! Aborting step.");
 #endif
         pca9685_home_all();
         s_motion_status = MOTION_STATUS_ABORTED;
         return ESP_ERR_TIMEOUT;
     }
 
-    /* 3. Return Sweep (180° -> 0°) */
-    if (step->motor_count == 1) {
-        pca9685_set_servo_angle(step->motor_ids[0], HOME_ANGLE_DEG);
-    } else {
-        uint16_t mask = (1U << step->motor_ids[0]) | (1U << step->motor_ids[1]);
-        pca9685_set_multi_servo_angles(mask, HOME_ANGLE_DEG);
+    /* 3. Fast Return Approach (170° -> 35° brake angle) */
+    set_step_servo_angle(step, LANDING_BRAKE_ANGLE_DEG);
+    if (motion_delay_ms(LANDING_APPROACH_MS, true)) {
+#ifdef ESP_PLATFORM
+        ESP_LOGW(TAG, "E-Stop triggered during return approach! Aborting step.");
+#endif
+        pca9685_home_all();
+        s_motion_status = MOTION_STATUS_ABORTED;
+        return ESP_ERR_TIMEOUT;
     }
 
+    /* 4. Ease-Out Soft Landing Ramp (34° -> 0° in 1° steps, 20ms -> 50ms delay) */
+    uint32_t total_steps = STEP_EASE_OUT_STEPS;
+    for (uint32_t step_idx = 0; step_idx < total_steps; step_idx++) {
+        float angle = LANDING_BRAKE_ANGLE_DEG - ((float)(step_idx + 1U) * LANDING_STEP_DEG);
+        if (angle < HOME_ANGLE_DEG) {
+            angle = HOME_ANGLE_DEG;
+        }
+        uint32_t delay_ms = LANDING_STEP_MIN_DELAY_MS;
+        if (total_steps > 1U) {
+            delay_ms += (step_idx * (LANDING_STEP_MAX_DELAY_MS - LANDING_STEP_MIN_DELAY_MS)) /
+                        (total_steps - 1U);
+        }
+
+        set_step_servo_angle(step, angle);
+        if (motion_delay_ms(delay_ms, true)) {
+#ifdef ESP_PLATFORM
+            ESP_LOGW(TAG, "E-Stop triggered during soft landing! Aborting step.");
+#endif
+            pca9685_home_all();
+            s_motion_status = MOTION_STATUS_ABORTED;
+            return ESP_ERR_TIMEOUT;
+        }
+    }
+
+    set_step_servo_angle(step, HOME_ANGLE_DEG);
     return ESP_OK;
 }
 
@@ -318,7 +361,7 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
     s_active_step_idx = 0;
     s_active_elapsed_ms = 0;
     s_active_progress_pct = 0;
-    s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+    s_step_target_duration_ms = STEP_TARGET_DURATION_MS;
 
 #ifdef ESP_PLATFORM
     ESP_LOGI(TAG, "Starting routine execution (%d steps total)...", routine->step_count);
@@ -328,7 +371,7 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
         s_active_step_idx = i;
         s_active_elapsed_ms = 0;
         s_active_progress_pct = 0;
-        s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+        s_step_target_duration_ms = STEP_TARGET_DURATION_MS;
 
         if (is_abort_signaled()) {
 #ifdef ESP_PLATFORM
@@ -390,7 +433,7 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
     s_active_total_steps = 0;
     s_active_elapsed_ms = 0;
     s_active_progress_pct = 0;
-    s_step_target_duration_ms = FOLD_DWELL_TIME_MS;
+    s_step_target_duration_ms = STEP_TARGET_DURATION_MS;
     led_set_state(LED_STATE_IDLE);
 
 #ifdef ESP_PLATFORM

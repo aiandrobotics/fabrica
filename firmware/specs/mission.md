@@ -80,7 +80,7 @@ graph TD
 
 ### 3. Daily Run Mode Engine
 * **Instant Recall**: A single short tap (<500ms) on **B1–B4** loads and executes the corresponding saved folding routine from Flash.
-* **Synchronized Motion Execution**: Supports single-motor sweeps and parallel dual-motor sweeps ($0^\circ \rightarrow 180^\circ \rightarrow 0^\circ$ with 300ms fold dwell and 200ms inter-step delay).
+* **Synchronized Motion Execution**: Supports single-motor sweeps and parallel dual-motor sweeps ($0^\circ \rightarrow 170^\circ \rightarrow 35^\circ$ fast return + $35^\circ \rightarrow 0^\circ$ ease-out soft landing, with 800ms sweep travel time, 650ms return approach, ~1209ms ease-out landing, and 200ms inter-step delay).
 * **Safe Completion**: All 16 channels verify flat home position ($0^\circ$) at cycle end, and the system safely idles.
 * **Emergency Stop (E-Stop)**: Tapping any button during an active folding cycle immediately halts PWM output, resets all 16 servos to $0^\circ$, delivers a 5-flash rapid alert, and aborts the routine.
 

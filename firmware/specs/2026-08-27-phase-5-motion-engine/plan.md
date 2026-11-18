@@ -32,14 +32,15 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
      - `esp_err_t motion_execute_step(const fold_step_t *step)`
 2. Implement trajectory execution in `firmware/main/motion.c`:
    - Implement single-motor sweep:
-     - Command servo channel from $0^\circ \to 180^\circ$ (`FOLD_ANGLE_DEG`).
-     - Dwell for `FOLD_DWELL_TIME_MS` (300ms) with periodic abort polling.
-     - Return servo channel from $180^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`).
+     - Command servo channel from $0^\circ \to 170^\circ$ (`FOLD_TARGET_ANGLE_DEG`).
+     - Wait `FOLD_DWELL_TIME_MS` (800ms) with periodic abort polling.
+     - Fast-return to `LANDING_BRAKE_ANGLE_DEG` ($35^\circ$) and wait `LANDING_APPROACH_MS` (650ms).
+     - Ramp $34^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`) in $1^\circ$ steps with delay easing from $20\text{ms}$ to $50\text{ms}$.
    - Implement parallel dual-motor sweep:
      - Generate multi-channel bitmask from `step->motor_ids[0]` and `step->motor_ids[1]`.
-     - Command both channels synchronously to $180^\circ$ via `pca9685_set_multi_servo_angles()`.
-     - Dwell for `FOLD_DWELL_TIME_MS` (300ms) with periodic abort polling.
-     - Return both channels synchronously to $0^\circ$.
+     - Command both channels synchronously to $170^\circ$ via `pca9685_set_multi_servo_angles()`.
+     - Wait `FOLD_DWELL_TIME_MS` (800ms) with periodic abort polling.
+     - Fast-return synchronously to $35^\circ$ (650ms) and ease-out ramp to $0^\circ$.
    - Implement inter-step settling delay:
      - Wait for `INTER_STEP_DELAY_MS` (200ms) between consecutive steps.
    - Bind visual LED status:

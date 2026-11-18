@@ -8,9 +8,9 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 1. **Core 0 Real-Time Motion Task** (`main/motion.h`, `main/motion.c`):
    - Dedicated FreeRTOS task pinned to Core 0 with priority 10.
    - Deterministic execution of sequential steps (Step 1 to $N$, up to 16 steps per routine).
-   - Single motor sweep trajectory ($0^\circ \to 180^\circ \to 0^\circ$).
-   - Synchronized parallel dual-motor sweep trajectory ($0^\circ \to 180^\circ \to 0^\circ$).
-   - `FOLD_DWELL_TIME_MS` (300ms) dwell pause at peak fold angle.
+   - Single motor sweep trajectory ($0^\circ \to 170^\circ \to 35^\circ$ fast return + $35^\circ \to 0^\circ$ ease-out soft landing).
+   - Synchronized parallel dual-motor sweep trajectory ($0^\circ \to 170^\circ \to 35^\circ$ fast return + $35^\circ \to 0^\circ$ ease-out soft landing).
+   - `FOLD_DWELL_TIME_MS` (800ms) forward sweep travel time, `LANDING_APPROACH_MS` (650ms) fast return to $35^\circ$, and ease-out soft-landing ramp ($34^\circ \to 0^\circ$ in $1^\circ$ steps, $20\text{ms} \to 50\text{ms}$).
    - `INTER_STEP_DELAY_MS` (200ms) settling pause between consecutive steps.
 2. **Daily Run Mode Trigger Dispatcher**:
    - Short tap (<500ms) on B1–B4 triggers execution of Preset 1–4.
@@ -28,12 +28,12 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 
 ## Decisions
 
-1. **Direct Target Angle Actuation with RTOS Delays**:
-   - Actuation uses direct target angle commands (`0^\circ \to 180^\circ \to 0^\circ`) via `pca9685_set_servo_angle()` and `pca9685_set_multi_servo_angles()`, relying on high-torque MG996R servo internal gear train and FreeRTOS tick timing (`vTaskDelay()`) for dwell and settling pauses.
+1. **Direct Target Angle Actuation with Soft-Landing Ease-Out**:
+   - Forward sweep and fast return use direct target angle commands (`0^\circ \to 170^\circ \to 35^\circ`) via `pca9685_set_servo_angle()` and `pca9685_set_multi_servo_angles()`, followed by a $35^\circ \to 0^\circ$ ease-out ramp ($1^\circ$ steps, $20\text{ms} \to 50\text{ms}$ delay) using FreeRTOS tick timing (`vTaskDelay()`) to prevent hard mechanical impact at $0^\circ$.
 2. **Core 0 Pinned Task Execution**:
    - The motion task executes on CPU Core 0, isolating real-time I2C actuation and motion timing from UI button debouncing, LED timer patterns, and NVS flash operations running on Core 1.
 3. **Sub-50ms E-Stop Abort Polling**:
-   - During long dwell pauses (e.g. 300ms fold dwell, 200ms inter-step delay), delays are executed in small slices (10ms to 20ms chunks) or via event group waits (`xEventGroupWaitBits`) to ensure E-Stop signals abort motion in $<50\text{ms}$.
+   - During sweep, approach, landing, and inter-step delays (800ms forward sweep, 650ms return approach, 20–50ms landing steps, 200ms inter-step delay), delays are executed in small slices (10ms chunks) or via event group waits (`xEventGroupWaitBits`) to ensure E-Stop signals abort motion in $<50\text{ms}$.
 4. **All-Channel Homing on Abort / Complete**:
    - On both clean completion and emergency abort, the motion engine commands all 16 PCA9685 channels to $0^\circ$ (`HOME_ANGLE_DEG`) to ensure all folding flaps rest flat.
 
@@ -47,8 +47,9 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 | **Motion Task Core** | CPU Core 0 | Dual-core RTOS partition (`tech-stack.md`) |
 | **Motion Task Priority** | 10 (Highest application priority) | Deterministic real-time timing |
 | **Motion Task Stack** | 4096 bytes | Internal DRAM budgeting |
-| **Servo Angles** | Home: $0.0^\circ$, Fold: $180.0^\circ$ | `config.h` mechanical specifications |
-| **Fold Dwell Time** | $300\text{ ms}$ (`FOLD_DWELL_TIME_MS`) | Fabric folding physics & crease settling |
+| **Servo Angles** | Home: $0.0^\circ$, Brake: $35.0^\circ$, Fold Target: $170.0^\circ$, Max Range: $180.0^\circ$ | `config.h` mechanical specifications |
+| **Forward Sweep Time** | $800\text{ ms}$ (`FOLD_DWELL_TIME_MS`) | Servo sweep travel time to $170^\circ$ |
+| **Return Approach / Ease-Out** | $650\text{ ms}$ (`LANDING_APPROACH_MS`) + $1^\circ$ steps ($20\text{–}50\text{ ms}$) | Fast return to $35^\circ$ + soft touch-down to $0^\circ$ |
 | **Inter-Step Delay** | $200\text{ ms}$ (`INTER_STEP_DELAY_MS`) | Flap settling & mechanical inertia damping |
 | **E-Stop Latency** | $< 50\text{ ms}$ | User safety & mechanical jam prevention |
 | **Max Steps Per Routine**| 16 steps (`MAX_STEPS_PER_ROUTINE`) | Storage and memory architecture |
@@ -91,12 +92,14 @@ sequenceDiagram
         M->>LED: led_set_state(LED_STATE_RUNNING) [Solid ON]
         loop For each step (1 to step_count)
             alt Single Motor Step
-                M->>I2C: pca9685_set_servo_angle(ch, 180.0 deg)
+                M->>I2C: pca9685_set_servo_angle(ch, 170.0 deg)
             else Parallel Dual-Motor Step
-                M->>I2C: pca9685_set_multi_servo_angles(mask, 180.0 deg)
+                M->>I2C: pca9685_set_multi_servo_angles(mask, 170.0 deg)
             end
-            M->>M: Dwell for FOLD_DWELL_TIME_MS (300ms)
-            M->>I2C: Command motor(s) back to 0.0 deg
+            M->>M: Wait FOLD_DWELL_TIME_MS (800ms)
+            M->>I2C: Fast return to LANDING_BRAKE_ANGLE_DEG (35.0 deg)
+            M->>M: Wait LANDING_APPROACH_MS (650ms)
+            M->>I2C: Ease-out ramp 34.0 deg -> 0.0 deg (1 deg, 20ms..50ms)
             M->>M: Delay for INTER_STEP_DELAY_MS (200ms)
         end
         M->>I2C: pca9685_home_all()

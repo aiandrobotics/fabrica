@@ -52,9 +52,9 @@ Key goals include:
    - **Mid-Sweep Emergency Stop Preemption Test**:
      - Trigger active motion for multi-step routines.
      - Inject Emergency Stop (`CMD_EMERGENCY_STOP` via button press or simulated interrupt) at variable timing offsets:
-       - During outward sweep ($0^\circ \to 180^\circ$)
-       - During fold dwell (300ms hold)
-       - During return sweep ($180^\circ \to 0^\circ$)
+       - During outward sweep ($0^\circ \to 170^\circ$, 800ms)
+       - During fast return approach ($170^\circ \to 35^\circ$, 650ms)
+       - During ease-out soft landing ($35^\circ \to 0^\circ$, 20–50ms/deg)
        - During inter-step settling delay (200ms pause)
      - Verify all 16 PCA9685 channels drop flat to $0^\circ$ within $<50\text{ms}$ of abort injection.
      - Verify state machine returns immediately to `STATE_IDLE_RUN` with `LED_STATE_ESTOP` (5 rapid flashes).

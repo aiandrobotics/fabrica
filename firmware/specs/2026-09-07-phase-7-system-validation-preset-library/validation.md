@@ -10,9 +10,9 @@ The implementation of Phase 7 must be validated through automated host stress te
 |---|---|---|
 | **Factory Preset Verification** | Load and inspect all 4 factory presets from `storage.c`. | Presets 1–4 match exact garment sequences (T-Shirt, Long-Sleeve Shirt, Trousers, Towel), step counts (4, 5, 3, 4), and CRC32 validity. |
 | **100-Cycle Endurance Test** | Execute 100 consecutive fold sequences cycling through Presets 1–4. | All 100 routines execute to completion without state machine desync, timeout faults, or memory leaks (heap delta = 0 bytes). |
-| **Mid-Sweep E-Stop (Outward Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is sweeping $0^\circ \to 180^\circ$. | Motion halts immediately, all 16 channels drop to $0^\circ$, `LED_STATE_ESTOP` triggered, abort latency $<50\text{ms}$. |
-| **Mid-Sweep E-Stop (Fold Dwell)** | Inject `CMD_EMERGENCY_STOP` while servo is dwelling at $180^\circ$ (300ms hold). | Motion halts immediately, flap returns to $0^\circ$, routine aborted. |
-| **Mid-Sweep E-Stop (Return Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is sweeping $180^\circ \to 0^\circ$. | PWM pulses reset, all channels homed flat to $0^\circ$. |
+| **Mid-Sweep E-Stop (Outward Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is sweeping $0^\circ \to 170^\circ$. | Motion halts immediately, all 16 channels drop to $0^\circ$, `LED_STATE_ESTOP` triggered, abort latency $<50\text{ms}$. |
+| **Mid-Sweep E-Stop (Return Approach)** | Inject `CMD_EMERGENCY_STOP` while servo is returning $170^\circ \to 35^\circ$ (650ms approach). | Motion halts immediately, flap returns to $0^\circ$, routine aborted. |
+| **Mid-Sweep E-Stop (Soft Landing)** | Inject `CMD_EMERGENCY_STOP` during the $35^\circ \to 0^\circ$ ease-out landing ramp. | PWM pulses reset, all channels homed flat to $0^\circ$. |
 | **Mid-Sweep E-Stop (Inter-Step Delay)** | Inject `CMD_EMERGENCY_STOP` during the 200ms inter-step settling delay. | Next step is canceled, robot aborts immediately to `STATE_IDLE_RUN`. |
 | **NVS Single-Bit Bit-Rot Recovery** | Invert single byte in stored NVS preset blob. | `storage_load_routine()` detects CRC32 mismatch (`ESP_ERR_INVALID_CRC`), prevents corrupted playback, and reloads default factory preset. |
 | **NVS Partial Write Truncation** | Simulate size truncation of NVS preset blob. | Read returns `ESP_ERR_INVALID_SIZE`, reloads clean default routine. |

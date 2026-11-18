@@ -42,12 +42,16 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 | Short Press Upper Bound | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Maximum duration classified as a tap |
 | Long Press Threshold | `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration to enter Programming Mode |
 | Inactivity Timeout | `PROGRAMMING_TIMEOUT_MS` | `20000` ms | Auto-exit duration for visual staging mode |
-| Fold Dwell Time | `FOLD_DWELL_TIME_MS` | `300` ms | Flap hold duration at $180^\circ$ |
+| Fold Sweep Travel Time | `FOLD_DWELL_TIME_MS` | `800` ms | Flap travel duration to reach $170^\circ$ |
+| Landing Approach Time | `LANDING_APPROACH_MS` | `650` ms | Fast return duration from $170^\circ$ to $35^\circ$ |
+| Landing Step Delay (Min/Max) | `LANDING_STEP_MIN_DELAY_MS` / `MAX` | `20` / `50` ms | Ease-out soft-landing delay per $1^\circ$ step ($35^\circ \rightarrow 0^\circ$) |
 | Inter-Step Settling Delay | `INTER_STEP_DELAY_MS` | `200` ms | Pause between consecutive folding steps |
 | Flap Rest Angle | `HOME_ANGLE_DEG` | `0.0f` | Flat tabletop resting position ($0^\circ$) |
 | Flap Identification Angle | `NUDGE_ANGLE_DEG` | `15.0f` | Tactile/visual flap identification angle |
 | Flap Visual Staging Angle | `STAGE_ANGLE_DEG` | `30.0f` | Flap staging hold angle |
-| Flap Full Fold Angle | `FOLD_ANGLE_DEG` | `180.0f` | Complete fold flip articulation |
+| Flap Full Mechanical Range | `FOLD_ANGLE_DEG` | `180.0f` | Full servo mechanical range ($0^\circ$–$180^\circ$) |
+| Flap Fold Target Angle | `FOLD_TARGET_ANGLE_DEG` | `170.0f` | Max folding sweep target angle |
+| Landing Brake Angle | `LANDING_BRAKE_ANGLE_DEG` | `35.0f` | Angle where return sweep slows for soft landing |
 | PCA9685 I2C Address | `PCA9685_I2C_ADDR` | `0x40` | Default hardware I2C address |
 | PCA9685 PWM Frequency | `PCA9685_PWM_FREQ_HZ` | `50` Hz | 20 ms frame period for servo motors |
 | PCA9685 Resolution | `PCA9685_PWM_RES_BITS` | `12` | 4096-step PWM count resolution |
