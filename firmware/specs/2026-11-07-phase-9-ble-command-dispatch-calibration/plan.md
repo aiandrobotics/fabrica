@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 9 completes the stateful remote command execution, fast-path preemption, latched Emergency Stop recovery, immediate `FAB2` command status reporting, and thermal-safe interactive servo calibration subsystem (`remote_cmd.h`, `remote_cmd.c`, `command.h`, `state_machine.h`, `state_machine.c`, `buttons.c`, `ble_transport.c`) for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**.
+Phase 9 completes the stateful remote command execution, fast-path preemption, latched Emergency Stop recovery, immediate `FAB2` command status reporting, and thermal-safe interactive servo calibration subsystem (`remote_cmd.h`, `remote_cmd.c`, `command.h`, `state_machine.h`, `state_machine.c`, `buttons.c`, `ble_transport.c`) for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**.
 
 Building on the Phase 8 Apache NimBLE GATT server (`ble_transport.c`), Phase 9 extracts the `FAB1` / `FAB3` wire protocol parser, compact routine unpacker, Core 1 fast-path preemption guards, and `cmd_status_t` tracking into a dedicated `main/remote_cmd.c` module (matching `specs/tech-stack.md` and `specs/roadmap.md`), extends `system_state_t` with `STATE_ESTOP`, `STATE_ERROR`, and `STATE_CALIBRATING`, and enforces the 10-second PCA9685 thermal sleep cutoff and 15-second inactivity auto-home safety timers during live servo jogging.
 

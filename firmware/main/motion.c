@@ -31,10 +31,8 @@ static volatile uint8_t s_active_step_idx = 0;
 static volatile uint8_t s_active_total_steps = 0;
 static volatile uint16_t s_active_elapsed_ms = 0;
 static volatile uint8_t s_active_progress_pct = 0;
-/* Total active step duration for telemetry progress calculation (~2675 ms) */
-#define STEP_EASE_OUT_STEPS          ((uint32_t)(LANDING_BRAKE_ANGLE_DEG / LANDING_STEP_DEG))
-#define STEP_EASE_OUT_TOTAL_MS       ((STEP_EASE_OUT_STEPS * (LANDING_STEP_MIN_DELAY_MS + LANDING_STEP_MAX_DELAY_MS)) / 2U)
-#define STEP_TARGET_DURATION_MS      (FOLD_DWELL_TIME_MS + LANDING_APPROACH_MS + STEP_EASE_OUT_TOTAL_MS)
+/* Total active step duration for telemetry progress calculation (1200 ms) */
+#define STEP_TARGET_DURATION_MS      (FOLD_DWELL_TIME_MS + LANDING_APPROACH_MS)
 
 static volatile uint32_t s_step_target_duration_ms = STEP_TARGET_DURATION_MS;
 
@@ -215,8 +213,7 @@ static void set_step_servo_angle(const fold_step_t *step, float angle_deg)
  * Articulation Profile:
  *   1. Forward sweep: Rotate target channel(s) 0° -> 170°
  *   2. Sweep travel wait: Wait FOLD_DWELL_TIME_MS (800ms), polling abort every 10ms
- *   3. Fast return approach: Rotate target channel(s) 170° -> 35° and wait LANDING_APPROACH_MS (650ms)
- *   4. Ease-out soft landing: Ramp 34° -> 0° in 1° steps with delay easing 20ms -> 50ms
+ *   3. Direct return: Rotate target channel(s) 170° -> 0° and wait LANDING_APPROACH_MS (400ms)
  *
  * @param step Pointer to fold_step_t containing motor count and channel IDs.
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
@@ -269,42 +266,17 @@ esp_err_t motion_execute_step(const fold_step_t *step)
         return ESP_ERR_TIMEOUT;
     }
 
-    /* 3. Fast Return Approach (170° -> 35° brake angle) */
-    set_step_servo_angle(step, LANDING_BRAKE_ANGLE_DEG);
+    /* 3. Direct Return (170° -> 0° home) */
+    set_step_servo_angle(step, HOME_ANGLE_DEG);
     if (motion_delay_ms(LANDING_APPROACH_MS, true)) {
 #ifdef ESP_PLATFORM
-        ESP_LOGW(TAG, "E-Stop triggered during return approach! Aborting step.");
+        ESP_LOGW(TAG, "E-Stop triggered during return sweep! Aborting step.");
 #endif
         pca9685_home_all();
         s_motion_status = MOTION_STATUS_ABORTED;
         return ESP_ERR_TIMEOUT;
     }
 
-    /* 4. Ease-Out Soft Landing Ramp (34° -> 0° in 1° steps, 20ms -> 50ms delay) */
-    uint32_t total_steps = STEP_EASE_OUT_STEPS;
-    for (uint32_t step_idx = 0; step_idx < total_steps; step_idx++) {
-        float angle = LANDING_BRAKE_ANGLE_DEG - ((float)(step_idx + 1U) * LANDING_STEP_DEG);
-        if (angle < HOME_ANGLE_DEG) {
-            angle = HOME_ANGLE_DEG;
-        }
-        uint32_t delay_ms = LANDING_STEP_MIN_DELAY_MS;
-        if (total_steps > 1U) {
-            delay_ms += (step_idx * (LANDING_STEP_MAX_DELAY_MS - LANDING_STEP_MIN_DELAY_MS)) /
-                        (total_steps - 1U);
-        }
-
-        set_step_servo_angle(step, angle);
-        if (motion_delay_ms(delay_ms, true)) {
-#ifdef ESP_PLATFORM
-            ESP_LOGW(TAG, "E-Stop triggered during soft landing! Aborting step.");
-#endif
-            pca9685_home_all();
-            s_motion_status = MOTION_STATUS_ABORTED;
-            return ESP_ERR_TIMEOUT;
-        }
-    }
-
-    set_step_servo_angle(step, HOME_ANGLE_DEG);
     return ESP_OK;
 }
 

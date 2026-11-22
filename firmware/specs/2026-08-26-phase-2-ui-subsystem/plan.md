@@ -2,9 +2,9 @@
 
 ## Overview
 
-Phase 2 implements the front-panel User Interface (UI) subsystem for the **Fabrica Cloth Folding Robot** on Core 1 of the **ESP32 Dev Board v1**. This subsystem encompasses two key modules:
-1. **Status LED Pattern Engine (`main/led.h`, `main/led.c`)**: A non-blocking visual feedback engine driving 7 distinct operational and error blink patterns on `GPIO 2`.
-2. **4-Button Debouncer & Gesture Recognizer (`main/buttons.h`, `main/buttons.c`)**: A 50ms low-pass sampling scanner on `GPIO 4` (B1), `GPIO 16` (B2), `GPIO 17` (B3), and `GPIO 5` (B4) that differentiates Short Taps (<500ms) from Long Presses (≥3000ms) and dispatches standardized `command_t` messages to `xCommandQueue`.
+Phase 2 implements the front-panel User Interface (UI) subsystem for the **Fabrica Cloth Folding Robot** on Core 1 of the **ESP32-S3-DevKitC-1**. This subsystem encompasses two key modules:
+1. **Status LED Pattern Engine (`main/led.h`, `main/led.c`)**: A non-blocking visual feedback engine driving 7 distinct operational and error blink patterns on `GPIO 15`.
+2. **4-Button Debouncer & Gesture Recognizer (`main/buttons.h`, `main/buttons.c`)**: A 50ms low-pass sampling scanner on `GPIO 4` (B1), `GPIO 5` (B2), `GPIO 6` (B3), and `GPIO 7` (B4) that differentiates Short Taps (<500ms) from Long Presses (≥3000ms) and dispatches standardized `command_t` messages to `xCommandQueue`.
 
 ---
 
@@ -19,7 +19,7 @@ Phase 2 implements the front-panel User Interface (UI) subsystem for the **Fabri
      - `LED_STATE_INPUT_ERROR`: 3 fast flashes (60ms ON / 60ms OFF), then return to prior state.
      - `LED_STATE_ESTOP`: 5 rapid flashes (50ms ON / 50ms OFF), then return to IDLE.
    - Declare public API:
-     - `esp_err_t led_init(void)`: Configure `STATUS_LED_GPIO` (GPIO 2) as push-pull output and spawn `app_led_task`.
+     - `esp_err_t led_init(void)`: Configure `STATUS_LED_GPIO` (GPIO 15) as push-pull output and spawn `app_led_task`.
      - `void led_set_state(led_state_t state)`: Thread-safe state update function.
      - `led_state_t led_get_state(void)`: Query current active LED state.
 2. Implement `firmware/main/led.c`:

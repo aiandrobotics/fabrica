@@ -14,15 +14,16 @@ extern "C" {
 /* GPIO Pin Allocations                                                      */
 /* ========================================================================= */
 
-#define STATUS_LED_GPIO              2   /* Built-in Status LED (Active High) */
-
+/* Left header contiguous block (top-to-bottom: 4, 5, 6, 7, 15) -> Buttons & LED */
 #define BTN1_GPIO                    4   /* Button 1: Preset 1 (Adult T-Shirt) */
-#define BTN2_GPIO                    16  /* Button 2: Preset 2 (Long-Sleeve Shirt) */
-#define BTN3_GPIO                    17  /* Button 3: Preset 3 (Trousers / Jeans) */
-#define BTN4_GPIO                    5   /* Button 4: Preset 4 (Towel / Linen) */
+#define BTN2_GPIO                    5   /* Button 2: Preset 2 (Long-Sleeve Shirt) */
+#define BTN3_GPIO                    6   /* Button 3: Preset 3 (Trousers / Jeans) */
+#define BTN4_GPIO                    7   /* Button 4: Preset 4 (Towel / Linen) */
+#define STATUS_LED_GPIO              15  /* External Status LED (Active High) */
 
-#define I2C_SDA_GPIO                 21  /* PCA9685 I2C Data line (SDA) */
-#define I2C_SCL_GPIO                 22  /* PCA9685 I2C Clock line (SCL) */
+/* Right header top adjacent pair (J3 Pins 4 & 5, below top-right GND) -> PCA9685 I2C */
+#define I2C_SCL_GPIO                 1   /* PCA9685 I2C Clock line (SCL) */
+#define I2C_SDA_GPIO                 2   /* PCA9685 I2C Data line (SDA) */
 
 /* ========================================================================= */
 /* System Operational Limits                                                 */
@@ -54,10 +55,8 @@ extern "C" {
 #define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
 #define FOLD_DWELL_TIME_MS           800    /* Flap travel time to reach 170 deg (no extra hold) */
-#define LANDING_APPROACH_MS          650    /* Fast return travel time from 170 deg to 35 deg */
-#define LANDING_STEP_MIN_DELAY_MS    20     /* Initial soft-landing step delay (50 Hz PWM frame) */
-#define LANDING_STEP_MAX_DELAY_MS    50     /* Final soft-landing step delay at 0 deg (ease-out) */
-#define INTER_STEP_DELAY_MS          200    /* Delay between routine steps */
+#define LANDING_APPROACH_MS          400    /* Direct return travel time from 170 deg to 0 deg */
+#define INTER_STEP_DELAY_MS          10     /* Delay between routine steps */
 #define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
 #define CALIBRATION_INACTIVITY_TIMEOUT_MS 15000 /* Calibration auto-home & exit timeout (15s) */
 #define TELEMETRY_STREAM_ACTIVE_HZ   10     /* 10 Hz streaming rate during motion and calibration */
@@ -92,8 +91,6 @@ extern "C" {
 #define STAGE_ANGLE_DEG              30.0f  /* Visual staging hold angle */
 #define FOLD_ANGLE_DEG               180.0f /* Full servo mechanical range (degrees) */
 #define FOLD_TARGET_ANGLE_DEG        170.0f /* Max folding sweep target angle */
-#define LANDING_BRAKE_ANGLE_DEG      35.0f  /* Angle where return sweep slows for soft landing */
-#define LANDING_STEP_DEG             1.0f   /* Degree decrement per soft-landing step */
 
 /* ========================================================================= */
 /* PCA9685 I2C & PWM Configuration                                           */

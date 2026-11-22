@@ -1,4 +1,4 @@
-# Roadmap — ESP32 Firmware
+# Roadmap — ESP32-S3 Firmware
 
 Each phase is a small, independently buildable and testable unit of work.
 Build, validate, and verify each milestone before moving to the next phase.
@@ -7,7 +7,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ## Phase 0 — Project Constitution & Firmware Specs ✅
 - Create `firmware/specs/mission.md`, `firmware/specs/tech-stack.md`, and `firmware/specs/roadmap.md`.
-- Establish target hardware architecture: **ESP32 Dev Board v1**, **PCA9685 16-Channel 12-Bit PWM Driver**, **4 Push Buttons (B1–B4)**, **1 Status LED**, and **up to 16 MG996R Servos**.
+- Establish target hardware architecture: **ESP32-S3-DevKitC-1**, **PCA9685 16-Channel 12-Bit PWM Driver**, **4 Push Buttons (B1–B4)**, **1 Status LED**, and **up to 16 MG996R Servos**.
 - Define dual-core FreeRTOS task partition: Core 0 for real-time motion and I2C actuation; Core 1 for UI event loop, button debouncing, LED patterns, and NVS storage.
 - Align code patterns and project structure with the reference implementation in `poc/esp_hello_world`.
 
@@ -15,13 +15,13 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ## Phase 1 — Project Skeleton, Hardware Configuration & Diagnostics (`main.c`, `config.h`, `command.h`) ✅
 - Create root `CMakeLists.txt`, `main/CMakeLists.txt`, `Makefile`, and `sdkconfig.defaults`.
-- Create `main/config.h` as the single source of truth for GPIO pin assignments (`LED_GPIO 2`, `BTN1_GPIO 4`, `BTN2_GPIO 16`, `BTN3_GPIO 17`, `BTN4_GPIO 5`, `I2C_SDA_GPIO 21`, `I2C_SCL_GPIO 22`), PWM limits, timing constants, and system constraints.
+- Create `main/config.h` as the single source of truth for GPIO pin assignments (`BTN1_GPIO 4`, `BTN2_GPIO 5`, `BTN3_GPIO 6`, `BTN4_GPIO 7`, `STATUS_LED_GPIO 15`, `I2C_SCL_GPIO 1`, `I2C_SDA_GPIO 2`), PWM limits, timing constants, and system constraints.
 - Create `main/command.h` defining the source-agnostic `command_t` schema (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`) and unified command queue to guarantee forward compatibility with the mobile app.
 - Implement `main/main.c` system startup and diagnostics (adapted from `poc/esp_hello_world/main/hello_world_main.c`):
-  - Print ESP32 chip details (model, silicon revision, CPU cores, WiFi/BT features).
+  - Print ESP32-S3 chip details (model, silicon revision, CPU cores, WiFi/BLE features).
   - Print SPI flash size and monitor heap memory via `esp_get_minimum_free_heap_size()`.
   - Initialize FreeRTOS inter-task communication primitives (queues and event groups).
-- **Validation**: Verified with host unit tests (`make test`, 50/50 pass), ESP-IDF build compilation, and live hardware flash/monitor on ESP32 over serial.
+- **Validation**: Verified with host unit tests (`make test`, 50/50 pass), ESP-IDF build compilation, and live hardware flash/monitor on ESP32-S3 over serial.
 
 ---
 
@@ -34,7 +34,7 @@ Build, validate, and verify each milestone before moving to the next phase.
     4. `LED_STATE_INPUT_ERROR`: 3 fast flashes (60ms ON / 60ms OFF).
     5. `LED_STATE_ESTOP`: 5 rapid flashes (50ms ON / 50ms OFF).
 - **4-Button Debouncing & Gesture Recognition** (`main/buttons.h`, `main/buttons.c`):
-  - Configure `GPIO 4`, `GPIO 16`, `GPIO 17`, and `GPIO 5` as inputs with internal pull-ups (`GPIO_PULLUP_ONLY`).
+  - Configure `GPIO 4`, `GPIO 5`, `GPIO 6`, and `GPIO 7` as inputs with internal pull-ups (`GPIO_PULLUP_ONLY`).
   - Implement 50ms low-pass debounce sampling.
   - Distinguish between **Short Tap** (<500ms) and **Long Press** (≥3000ms continuous hold).
   - Translate physical button gestures into standardized `command_t` structs and dispatch to the unified command queue.
@@ -44,7 +44,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 
 ## Phase 3 — I2C PCA9685 16-Channel PWM Servo Driver (`pca9685.c`) ✅
 - **I2C Master Initialization & Configuration** (`main/pca9685.h`, `main/pca9685.c`):
-  - Initialize ESP32 I2C Master peripheral on `GPIO 21 (SDA)` and `GPIO 22 (SCL)` at 100 kHz with FreeRTOS mutex bus synchronization.
+  - Initialize ESP32-S3 I2C Master peripheral on `GPIO 2 (SDA)` and `GPIO 1 (SCL)` at 100 kHz with FreeRTOS mutex bus synchronization.
   - Configure PCA9685 controller (`0x40` address): wake from sleep, set prescale register for 50 Hz PWM ($20\text{ms}$ period), enable auto-increment mode, configure totem-pole output.
 - **Angle to 12-Bit PWM Conversion**:
   - Implement conversion from degrees ($0^\circ \text{ to } 180^\circ$) to 12-bit PWM register counts ($500\,\mu\text{s} \to 2500\,\mu\text{s}$, $102 \to 512$ counts) with mechanical boundary clamping.
@@ -74,9 +74,9 @@ Build, validate, and verify each milestone before moving to the next phase.
 ## Phase 5 — Motion Engine & Daily Run Mode Execution (`motion.c`) ✅
 - **Core 0 Real-Time Motion Task** (`main/motion.h`, `main/motion.c`):
   - High-priority FreeRTOS task pinned to Core 0 executing sequence steps sequentially (Step 1 to $N$).
-  - **Single Motor Sweep**: Target servo sweeps $0^\circ \rightarrow 170^\circ$ (800ms travel), fast-returns to $35^\circ$ (650ms), and performs an ease-out soft landing $35^\circ \rightarrow 0^\circ$ ($1^\circ$ steps, 20ms–50ms).
-  - **Parallel Motor Sweep**: Both assigned servos sweep synchronously $0^\circ \rightarrow 170^\circ$, fast-return to $35^\circ$, and perform a synchronized ease-out soft landing $35^\circ \rightarrow 0^\circ$.
-  - **Inter-Step Settling Delay**: 200ms pause between consecutive steps.
+  - **Single Motor Sweep**: Target servo sweeps $0^\circ \rightarrow 170^\circ$ (800ms travel) and returns directly to $0^\circ$ (400ms).
+  - **Parallel Motor Sweep**: Both assigned servos sweep synchronously $0^\circ \rightarrow 170^\circ$ (800ms) and return directly to $0^\circ$ (400ms).
+  - **Inter-Step Settling Delay**: 10ms pause between consecutive steps.
   - Turn LED Solid ON during execution; turn OFF when returning to Idle.
 - **Daily Run Mode Trigger & Safeguards**:
   - Single short tap on B1–B4 triggers execution of Preset 1–4.
@@ -126,7 +126,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Enable Bluetooth and Apache NimBLE host-only stack in `sdkconfig.defaults` (`CONFIG_BT_ENABLED=y`, `CONFIG_BT_NIMBLE_ENABLED=y`, `CONFIG_BT_NIMBLE_PINNED_TO_CORE_1=y`, `CONFIG_BT_NIMBLE_HOST_TASK_STACK_SIZE=4096`, `CONFIG_BT_NIMBLE_ATT_PREFERRED_MTU=512`, `CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1`, `CONFIG_BT_NIMBLE_MAX_BONDS=4`, `CONFIG_BT_NIMBLE_NVS_PERSIST=y`, `CONFIG_BT_NIMBLE_SM_LEGACY=y`, `CONFIG_BT_NIMBLE_SM_SC=y`, `CONFIG_BT_NIMBLE_RPA_TIMEOUT=900`).
   - Register `bt` component in `main/CMakeLists.txt` and initialize NimBLE host stack on Core 1 (`app_ble_task`, Priority 4, 4KB stack) to maintain zero timing jitter on Core 0 real-time servo motion.
 - **BLE GAP Advertising & iOS/Android Discovery**:
-  - Broadcast custom 128-bit service UUID `0000FAB0-0000-1000-8000-00805F9B34FB` with dynamic device name (`Fabrica-XXXX` derived from the last 2 bytes of the ESP32 factory BT MAC address) at a 100ms fast advertising interval.
+  - Broadcast custom 128-bit service UUID `0000FAB0-0000-1000-8000-00805F9B34FB` with dynamic device name (`Fabrica-XXXX` derived from the last 2 bytes of the ESP32-S3 factory BT MAC address) at a 100ms fast advertising interval.
   - **Advertising Packet Split (31-Byte Legacy Limit for iOS & Android Compatibility)**:
     - **Primary Advertisement Packet (21B)**: Flags (`0x06`: General Discoverable + BR/EDR Not Supported, 3B) + Complete List of 128-bit Service Class UUIDs (`0000FAB0-...`, 18B) $\le 31\text{B}$ legacy limit. Mandatory for iOS `CoreBluetooth` service-filtered and background scan discovery as well as Android `BluetoothLeScanner` UUID filters.
     - **Scan Response Packet (17B)**: Complete Local Name (`Fabrica-XXXX`, 14B) + Tx Power Level (3B) to guarantee immediate human-readable name resolution upon active scanning in off-the-shelf BLE scanner apps (**nRF Connect**, **LightBlue**) on both iOS and Android.
@@ -186,7 +186,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - **Strict LED Preemption Hierarchy**: Transient states (`LED_STATE_BLE_CONNECTED`, `LED_STATE_SAVE_SUCCESS`, `LED_STATE_IDENTIFY`, `LED_STATE_INPUT_ERROR`) preserve and restore the underlying persistent base state (`return_to_prior_base = true`).
 - **Validation**:
   - Verified with host unit test suite (`make test`, 115/115 checks pass in `test_ble_transport.c`, 681/681 total checks pass across all 8 test suites) and clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` 493 KB with 52% app partition free).
-  - Ready for live hardware verification on ESP32 using **nRF Connect** and **LightBlue** on iOS and Android.
+  - Ready for live hardware verification on ESP32-S3 using **nRF Connect** and **LightBlue** on iOS and Android.
 
 ---
 

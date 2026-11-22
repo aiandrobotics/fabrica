@@ -2,8 +2,8 @@
 
 ## Scope
 
-Phase 3 delivers the hardware actuation driver subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. It encompasses:
-1. **Low-Level I2C Master Driver & PCA9685 Communication (`main/pca9685.h`, `main/pca9685.c`)**: Native I2C Master controller initialization on `GPIO 21` (SDA) and `GPIO 22` (SCL) operating at 100 kHz, interfacing with the PCA9685 16-channel 12-bit PWM generator at address `0x40`.
+Phase 3 delivers the hardware actuation driver subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. It encompasses:
+1. **Low-Level I2C Master Driver & PCA9685 Communication (`main/pca9685.h`, `main/pca9685.c`)**: Native I2C Master controller initialization on `GPIO 2` (SDA) and `GPIO 1` (SCL) operating at 100 kHz, interfacing with the PCA9685 16-channel 12-bit PWM generator at address `0x40`.
 2. **Frequency Configuration & Prescaler**: Proper prescaler configuration ($50\text{ Hz}$ refresh rate / $20\text{ms}$ frame period) using PCA9685 internal $25\text{ MHz}$ oscillator.
 3. **Angle-to-PWM Conversion Engine**: High-precision conversion mapping angular inputs ($0.0^\circ \text{ to } 180.0^\circ$) to 12-bit PWM counts ($102 \text{ to } 512$ counts corresponding to $500\,\mu\text{s} \text{ to } 2500\,\mu\text{s}$ pulses for MG996R servos).
 4. **Single and Multi-Channel Command APIs**: Support for single-servo angle commands, bitmask-driven multi-servo synchronized updates, all-channel homing, identification nudging ($15^\circ$), and visual staging ($30^\circ$).
@@ -18,9 +18,9 @@ Phase 3 delivers the hardware actuation driver subsystem for the **Fabrica Cloth
 
 | Parameter | Value / Pin | Description |
 |---|---|---|
-| **I2C Port** | `I2C_NUM_0` | ESP32 hardware I2C controller 0 |
-| **SDA Pin** | `GPIO_NUM_21` | I2C Serial Data line connected to PCA9685 SDA |
-| **SCL Pin** | `GPIO_NUM_22` | I2C Serial Clock line connected to PCA9685 SCL |
+| **I2C Port** | `I2C_NUM_0` | ESP32-S3 hardware I2C controller 0 |
+| **SDA Pin** | `GPIO_NUM_2` | I2C Serial Data line connected to PCA9685 SDA |
+| **SCL Pin** | `GPIO_NUM_1` | I2C Serial Clock line connected to PCA9685 SCL |
 | **Clock Speed** | `100000` Hz (100 kHz) | Standard mode I2C clock |
 | **Pull-Up Mode** | Internal pull-up enabled | `GPIO_PULLUP_ENABLE` on both SDA and SCL |
 | **I2C Address** | `0x40` | Default hardware address with address lines A0–A5 grounded |

@@ -85,7 +85,7 @@ extern "C" {
 /* ========================================================================= */
 
 /**
- * @brief Initialize the ESP32 I2C master driver, configure PCA9685 registers for
+ * @brief Initialize the ESP32-S3 I2C master driver, configure PCA9685 registers for
  *        50Hz PWM operation, and reset all 16 servo channels to flat home (0 deg).
  *
  * @return ESP_OK on success, or ESP-IDF error code.

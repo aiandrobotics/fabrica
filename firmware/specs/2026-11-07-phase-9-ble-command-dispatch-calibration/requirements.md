@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 9 implements the BLE wire command dispatch engine, stateful remote sequence execution & preemption logic, latched Emergency Stop safety workflow, immediate `FAB2` command status notifications, and thermal-protected live servo calibration mode (`remote_cmd.h`, `remote_cmd.c`, `command.h`, `state_machine.h`, `state_machine.c`, `buttons.c`, `ble_transport.c`) on the **ESP32 Dev Board v1**.
+Phase 9 implements the BLE wire command dispatch engine, stateful remote sequence execution & preemption logic, latched Emergency Stop safety workflow, immediate `FAB2` command status notifications, and thermal-protected live servo calibration mode (`remote_cmd.h`, `remote_cmd.c`, `command.h`, `state_machine.h`, `state_machine.c`, `buttons.c`, `ble_transport.c`) on the **ESP32-S3-DevKitC-1**.
 
 All wireless control and calibration features remain strictly firmware-native and directly operable from off-the-shelf App Store BLE scanner apps (**nRF Connect for Mobile** and **LightBlue**) on both **iOS** and **Android** without any custom mobile application code.
 

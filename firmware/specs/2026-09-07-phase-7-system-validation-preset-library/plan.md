@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 7 executes the final validation, stress testing, and factory preset standardization for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. This milestone integrates all previously implemented firmware subsystems—**UI & Button Debouncer** (`buttons.c`), **LED Pattern Engine** (`led.c`), **PCA9685 16-Channel PWM Driver** (`pca9685.c`), **NVS Sequence Manager** (`storage.c`), **Core 0 Real-Time Motion Engine** (`motion.c`), and **Visual Staging State Machine** (`state_machine.c`). 
+Phase 7 executes the final validation, stress testing, and factory preset standardization for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This milestone integrates all previously implemented firmware subsystems—**UI & Button Debouncer** (`buttons.c`), **LED Pattern Engine** (`led.c`), **PCA9685 16-Channel PWM Driver** (`pca9685.c`), **NVS Sequence Manager** (`storage.c`), **Core 0 Real-Time Motion Engine** (`motion.c`), and **Visual Staging State Machine** (`state_machine.c`). 
 
 Key goals include:
 1. Standardizing the 4 factory preset routines in `storage.c` to map to physical garment folding kinematics (T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, and Towel/Linen).
@@ -53,9 +53,8 @@ Key goals include:
      - Trigger active motion for multi-step routines.
      - Inject Emergency Stop (`CMD_EMERGENCY_STOP` via button press or simulated interrupt) at variable timing offsets:
        - During outward sweep ($0^\circ \to 170^\circ$, 800ms)
-       - During fast return approach ($170^\circ \to 35^\circ$, 650ms)
-       - During ease-out soft landing ($35^\circ \to 0^\circ$, 20–50ms/deg)
-       - During inter-step settling delay (200ms pause)
+       - During direct return sweep ($170^\circ \to 0^\circ$, 400ms)
+       - During inter-step settling delay (10ms pause)
      - Verify all 16 PCA9685 channels drop flat to $0^\circ$ within $<50\text{ms}$ of abort injection.
      - Verify state machine returns immediately to `STATE_IDLE_RUN` with `LED_STATE_ESTOP` (5 rapid flashes).
    - **NVS Power-Loss & Flash Corruption Resilience**:
@@ -75,7 +74,7 @@ Key goals include:
 ## Task Group 3: System Documentation & Hardware Wiring Guide (`firmware/README.md`)
 1. Expand `firmware/README.md` into a comprehensive system guide:
    - **Hardware Wiring & Schematic Reference**:
-     - Detailed pinout table (ESP32 Dev Board v1 $\leftrightarrow$ PCA9685 $\leftrightarrow$ 4 Push Buttons $\leftrightarrow$ Status LED $\leftrightarrow$ External 5V/6V Power).
+     - Detailed pinout table (ESP32-S3-DevKitC-1 $\leftrightarrow$ PCA9685 $\leftrightarrow$ 4 Push Buttons $\leftrightarrow$ Status LED $\leftrightarrow$ External 5V/6V Power).
      - Power isolation and common ground recommendations for high-current servo loads.
    - **Dual-Core Architecture Overview**:
      - Clear diagram and description of Core 0 (real-time motion, I2C bus, E-Stop) vs Core 1 (UI, buttons, LED, NVS storage).

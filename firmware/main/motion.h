@@ -106,7 +106,7 @@ esp_err_t motion_execute_step(const fold_step_t *step);
 
 /**
  * @brief Execute a complete multi-step folding routine sequentially (Step 1 to N).
- *        Sets LED_STATE_RUNNING during motion, pauses for INTER_STEP_DELAY_MS (200ms)
+ *        Sets LED_STATE_RUNNING during motion, pauses for INTER_STEP_DELAY_MS (10ms)
  *        between steps, and restores LED_STATE_IDLE and homes all channels on completion.
  * @param routine Pointer to fold_routine_t structure.
  * @return ESP_OK on success, ESP_ERR_INVALID_STATE if empty, ESP_ERR_TIMEOUT if aborted, or ESP error code.

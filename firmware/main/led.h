@@ -41,7 +41,7 @@ typedef enum {
 } led_state_t;
 
 /**
- * @brief Initialize the Status LED GPIO (GPIO 2) and spawn app_led_task on Core 1.
+ * @brief Initialize the Status LED GPIO (GPIO 15) and spawn app_led_task on Core 1.
  * @return ESP_OK on success, or ESP error code.
  */
 esp_err_t led_init(void);

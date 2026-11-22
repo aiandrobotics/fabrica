@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. It provides reliable, power-loss tolerant non-volatile storage and retrieval of multi-step folding sequences for Presets 1 through 4 (`main/storage.h`, `main/storage.c`).
+Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. It provides reliable, power-loss tolerant non-volatile storage and retrieval of multi-step folding sequences for Presets 1 through 4 (`main/storage.h`, `main/storage.c`).
 
 Key deliverables include:
 1. **NVS Partition Initialization & Management**: Initialization of the ESP-IDF Non-Volatile Storage (NVS) flash subsystem (`nvs_flash_init()`) with automatic recovery and partition erasure when encountering corrupted partitions or version upgrades (`ESP_ERR_NVS_NO_FREE_PAGES` / `ESP_ERR_NVS_NEW_VERSION_FOUND`).

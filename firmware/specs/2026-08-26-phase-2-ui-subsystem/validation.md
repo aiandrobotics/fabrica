@@ -39,7 +39,7 @@
 ## Manual Review & Hardware Bench Verification
 
 ### 1. Serial Monitor Logging Inspection
-- [ ] Flash ESP32 Dev Board and connect monitor:
+- [ ] Flash ESP32-S3-DevKitC-1 and connect monitor:
   ```bash
   idf.py flash monitor
   ```
@@ -52,7 +52,7 @@
   - Release B1 after 4s $\rightarrow$ verify no trailing tap message logged.
 
 ### 2. Physical Status LED Inspection
-- [ ] Observe on-board LED (`GPIO 2`) during idle: soft heartbeat (100ms pulse every 2 seconds).
+- [ ] Observe on-board LED (`GPIO 15`) during idle: soft heartbeat (100ms pulse every 2 seconds).
 - [ ] Trigger test states and confirm visual output matches specified blink timings (slow blink in program mode, rapid 5-flash on E-stop, solid ON for save confirmation).
 
 ---

@@ -8,9 +8,9 @@
   gcc -Wall -Wextra -Werror -I./main -o /tmp/test_headers firmware/test/test_headers.c && /tmp/test_headers
   ```
 - [ ] Verify all constants in `main/config.h`:
-  - `STATUS_LED_GPIO == 2`
-  - `BTN1_GPIO == 0`, `BTN2_GPIO == 4`, `BTN3_GPIO == 16`, `BTN4_GPIO == 17`
-  - `I2C_SDA_GPIO == 21`, `I2C_SCL_GPIO == 22`
+  - `STATUS_LED_GPIO == 15`
+  - `BTN1_GPIO == 4`, `BTN2_GPIO == 5`, `BTN3_GPIO == 6`, `BTN4_GPIO == 7`
+  - `I2C_SDA_GPIO == 2`, `I2C_SCL_GPIO == 1`
   - `MAX_STEPS_PER_ROUTINE == 16`
   - `MAX_MOTORS_PER_STEP == 2`
   - `TOTAL_SERVO_CHANNELS == 16`
@@ -43,14 +43,14 @@
 ## Manual Review Steps
 
 ### 1. UART Boot Log Output Inspection
-- [ ] Connect ESP32 Dev Board over USB serial (`idf.py monitor` @ 115200 bps).
+- [ ] Connect ESP32-S3-DevKitC-1 over USB serial (`idf.py monitor` @ 115200 bps).
 - [ ] Verify console output displays structured diagnostic startup banner:
   ```text
   ============================================================
-   Fabrica Cloth Folding Robot - ESP32 Firmware
+   Fabrica Cloth Folding Robot - ESP32-S3 Firmware
    Version: 1.0.0 (Phase 1 Skeleton)
   ============================================================
-  [INFO] Silicon: ESP32 Rev 3 (2 CPU cores, WiFi/BT BLE)
+  [INFO] Silicon: ESP32-S3 Rev 3 (2 CPU cores, WiFi/BLE)
   [INFO] Flash Size: 4 MB
   [INFO] Initial Free Heap: ~295 KB (Min Free: ~295 KB)
   [INFO] Unified Command Queue Initialized (Depth: 16)

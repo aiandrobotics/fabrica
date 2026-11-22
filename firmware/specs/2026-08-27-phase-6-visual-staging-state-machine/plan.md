@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 6 implements the **Visual Staging Programming Mode & State Machine Integration** for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. This subsystem introduces a dedicated state machine engine (`main/state_machine.h`, `main/state_machine.c`) that coordinates operating modes (**Daily Run Mode**, **Visual Staging Programming Mode**, and **Motion Execution**), manages the physical button mapping based on system state, coordinates visual flap staging using PCA9685 servo positions ($15^\circ$ nudge for identification, $30^\circ$ hold for staging), accumulates folding steps into a temporary sequence buffer, enforces safety constraints (max 2 motors per step, empty step rejection, 20s inactivity watchdog timeout, 16-step automatic commit), and commits completed sequences to Non-Volatile Storage (NVS) flash with instant playback availability.
+Phase 6 implements the **Visual Staging Programming Mode & State Machine Integration** for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem introduces a dedicated state machine engine (`main/state_machine.h`, `main/state_machine.c`) that coordinates operating modes (**Daily Run Mode**, **Visual Staging Programming Mode**, and **Motion Execution**), manages the physical button mapping based on system state, coordinates visual flap staging using PCA9685 servo positions ($15^\circ$ nudge for identification, $30^\circ$ hold for staging), accumulates folding steps into a temporary sequence buffer, enforces safety constraints (max 2 motors per step, empty step rejection, 20s inactivity watchdog timeout, 16-step automatic commit), and commits completed sequences to Non-Volatile Storage (NVS) flash with instant playback availability.
 
 ---
 

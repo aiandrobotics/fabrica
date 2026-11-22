@@ -252,7 +252,7 @@ cmd_status_t ble_transport_write_fab1(const uint8_t *data, size_t len)
 }
 
 /* ========================================================================= */
-/* Target Implementation: ESP32 Apache NimBLE Stack (Core 1)                 */
+/* Target Implementation: ESP32-S3 Apache NimBLE Stack (Core 1)              */
 /* ========================================================================= */
 #ifdef ESP_PLATFORM
 
@@ -767,7 +767,7 @@ static void ble_on_sync(void)
 
     /*
      * Peer RPA resolution for bonded iOS/Android centrals is active automatically
-     * on ESP32 via NimBLE Host-Based Privacy (BLE_HOST_BASED_PRIVACY=1) paired with
+     * on ESP32-S3 via NimBLE Host-Based Privacy (BLE_HOST_BASED_PRIVACY=1) paired with
      * BLE_SM_PAIR_KEY_DIST_ID + ble_store_config_init().
      */
     ble_start_advertising();

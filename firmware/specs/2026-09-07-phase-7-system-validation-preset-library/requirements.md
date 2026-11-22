@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 7 delivers comprehensive end-to-end system validation, stress testing, factory preset sequence refinement, and complete hardware/software documentation for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**.
+Phase 7 delivers comprehensive end-to-end system validation, stress testing, factory preset sequence refinement, and complete hardware/software documentation for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**.
 
 ### In-Scope Deliverables
 
@@ -21,12 +21,12 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 
 2. **Dedicated End-to-End Stress & Endurance Test Suite (`test/test_e2e_stress.c`)**:
    - **100-Cycle Endurance Execution**: Continuous, automated playback cycling through presets to verify zero memory leaks and heap stability.
-   - **Mid-Sweep Emergency Stop Preemption**: Injection of `CMD_EMERGENCY_STOP` during active outward sweep ($0^\circ \to 170^\circ$), fast return ($170^\circ \to 35^\circ$), ease-out soft landing ($35^\circ \to 0^\circ$), and inter-step delays; verify all 16 channels drop to $0^\circ$ within $<50\text{ms}$.
+   - **Mid-Sweep Emergency Stop Preemption**: Injection of `CMD_EMERGENCY_STOP` during active outward sweep ($0^\circ \to 170^\circ$), direct return ($170^\circ \to 0^\circ$), and inter-step delays; verify all 16 channels drop to $0^\circ$ within $<50\text{ms}$.
    - **NVS Power-Loss & Flash Corruption Resilience**: Automated verification that single-bit and multi-bit data corruption in stored routine blobs triggers safe fallback to default routines (`ESP_ERR_INVALID_CRC`).
    - **Watchdog & Mode Invariant Stress**: Stress testing rapid mode toggling between Daily Run Mode, Visual Staging Mode, and E-Stop.
 
 3. **System Documentation & Hardware Guides (`firmware/README.md`)**:
-   - Complete pinout mapping and wiring diagram (ESP32 Dev Board v1, PCA9685, 4 push buttons, status LED, external servo power).
+   - Complete pinout mapping and wiring diagram (ESP32-S3-DevKitC-1, PCA9685, 4 push buttons, status LED, external servo power).
    - Dual-Core FreeRTOS architecture breakdown (Core 0 motion engine vs Core 1 UI/event loop).
    - Operator guide for Daily Run Mode and Visual Staging Programming Mode.
    - ESP-IDF build, flash, and serial monitor instructions.
@@ -38,7 +38,7 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 1. **Physical Flap Geometry Standardization**:
    - Formalize 4-flap geometric configuration: Channel 0 (Left Flap), Channel 1 (Right Flap), Channel 2 (Bottom Flap), Channel 3 (Top Flap). This ensures standard 4-panel garment folding aligns with physical mechanical assemblies.
 2. **Dual-Layer Validation Architecture**:
-   - Combine automated host stress test harnesses (`make test`, validating 100 continuous cycles, heap tracking, and mid-sweep preemption) with structured manual verification checklists for live ESP32 hardware flashing.
+   - Combine automated host stress test harnesses (`make test`, validating 100 continuous cycles, heap tracking, and mid-sweep preemption) with structured manual verification checklists for live ESP32-S3 hardware flashing.
 3. **Zero Heap Leak Requirement**:
    - The firmware architecture uses static allocations for queues, tasks, and sequence buffers. The 100-cycle endurance test must prove zero dynamic allocation growth (`esp_get_minimum_free_heap_size()` stays flat).
 4. **Autonomous Corruption Recovery**:
@@ -52,13 +52,13 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 
 | Constraint | Specification | Source / Rationale |
 |---|---|---|
-| **Target Hardware** | ESP32 Dev Board v1 (ESP-WROOM-32) | Hardware Constitution |
-| **PWM Servo Driver** | PCA9685 over I2C (`GPIO 21 SDA`, `GPIO 22 SCL`) | Hardware Constitution |
+| **Target Hardware** | ESP32-S3-DevKitC-1 (ESP32-S3-WROOM-1) | Hardware Constitution |
+| **PWM Servo Driver** | PCA9685 over I2C (`GPIO 2 SDA`, `GPIO 1 SCL`) | Hardware Constitution |
 | **Max Presets** | 4 Presets (Presets 1–4) | 4 physical tactile buttons B1–B4 |
 | **Max Steps Per Routine** | 16 steps (`MAX_STEPS_PER_ROUTINE`) | Storage schema & RAM budget |
 | **Max Motors Per Step** | 2 motors (`MAX_MOTORS_PER_STEP`) | Servo current draw & kinematics |
 | **Emergency Stop Latency** | $< 50\text{ ms}$ from trigger to PWM abort | Safety requirement |
-| **Servo Timing** | 800ms sweep travel ($170^\circ$), 650ms return approach ($35^\circ$), 20–50ms/deg ease-out landing ($0^\circ$), 200ms inter-step delay | Sweep completion & soft-landing mechanics |
+| **Servo Timing** | 800ms sweep travel ($170^\circ$), 400ms direct return ($0^\circ$), 10ms inter-step delay | Sweep completion & fast-return mechanics |
 | **SRAM Headroom** | $\ge 120\text{ KB}$ DRAM free | Reserved for Phase 8 BLE Mobile Integration |
 | **NVS Integrity** | IEEE 802.3 CRC32 polynomial (`0xEDB88320`) | Bit-rot and power loss protection |
 

@@ -2,9 +2,9 @@
 
 ## Scope
 
-Phase 2 delivers the physical User Interface (UI) front-panel subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. It encompasses:
-1. **Status LED Pattern Engine (`main/led.h`, `main/led.c`)**: Non-blocking driver generating 7 standardized visual pulse patterns on `GPIO 2`.
-2. **4-Button Debouncing & Gesture Recognizer (`main/buttons.h`, `main/buttons.c`)**: Active-low button scanner with 50ms low-pass debounce sampling on `GPIO 4`, `GPIO 16`, `GPIO 17`, and `GPIO 5`, discriminating Short Tap (<500ms) and Long Press (≥3000ms) gestures.
+Phase 2 delivers the physical User Interface (UI) front-panel subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. It encompasses:
+1. **Status LED Pattern Engine (`main/led.h`, `main/led.c`)**: Non-blocking driver generating 7 standardized visual pulse patterns on `GPIO 15`.
+2. **4-Button Debouncing & Gesture Recognizer (`main/buttons.h`, `main/buttons.c`)**: Active-low button scanner with 50ms low-pass debounce sampling on `GPIO 4`, `GPIO 5`, `GPIO 6`, and `GPIO 7`, discriminating Short Tap (<500ms) and Long Press (≥3000ms) gestures.
 3. **Unified Command Queue Dispatch**: Direct translation of button gestures into source-agnostic `command_t` objects (`SOURCE_PHYSICAL_BUTTON`) posted to `xCommandQueue`.
 4. **FreeRTOS Dual-Core UI Scheduling**: Dedicated Core 1 tasks (`app_ui_task` at Priority 5, `app_led_task` at Priority 3) ensuring zero blocking on Core 0 motion timing.
 5. **Host Unit Test Harness (`test/test_ui_subsystem.c`)**: C unit test harness validating debounce filtering, gesture timing, and LED pattern transitions under simulated clock ticks.
@@ -22,13 +22,13 @@ Phase 2 delivers the physical User Interface (UI) front-panel subsystem for the 
 
 ### 2. GPIO Pin Configuration (Sequential Physical Board Order)
 
-| Signal Name | ESP32 GPIO | Direction | Pull Mode | Active Level | Assigned Function | Physical Header Order |
+| Signal Name | ESP32-S3 GPIO | Direction | Pull Mode | Active Level | Assigned Function | Physical Header Order |
 |---|---|---|---|---|---|---|
-| `STATUS_LED_GPIO` | `GPIO_NUM_2` | Output | None (Push-Pull) | High (1 = LED ON) | Built-in DevKit Status Indicator | Pin 1 (D2) |
-| `BTN1_GPIO` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 1 (Preset 1 / Cycle & Nudge) | Pin 2 (D4) |
-| `BTN2_GPIO` | `GPIO_NUM_16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 2 (Preset 2 / Stage & Toggle) | Pin 3 (D16) |
-| `BTN3_GPIO` | `GPIO_NUM_17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 3 (Preset 3 / Lock Step) | Pin 4 (D17) |
-| `BTN4_GPIO` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 4 (Preset 4 / Save & Exit) | Pin 5 (D5) |
+| `BTN1_GPIO` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 1 (Preset 1 / Cycle & Nudge) | Left Header Pin 4 |
+| `BTN2_GPIO` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 2 (Preset 2 / Stage & Toggle) | Left Header Pin 5 |
+| `BTN3_GPIO` | `GPIO_NUM_6` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 3 (Preset 3 / Lock Step) | Left Header Pin 6 |
+| `BTN4_GPIO` | `GPIO_NUM_7` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0 = Pressed) | Button 4 (Preset 4 / Save & Exit) | Left Header Pin 7 |
+| `STATUS_LED_GPIO` | `GPIO_NUM_15` | Output | None (Push-Pull) | High (1 = LED ON) | External Status Indicator LED (220Ω) | Left Header Pin 8 |
 
 ### 3. LED Pattern Specifications (`main/led.h`)
 

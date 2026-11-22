@@ -27,7 +27,7 @@
 - Run `make test` from `firmware/` and verify all checks pass across all unit test suites (all 10 suites including `test_telemetry.c`) with `-Wall -Wextra -Werror`.
 
 ### 3. ESP-IDF Target Compilation
-- Execute `idf.py build` targeting ESP32 Dev Board v1.
+- Execute `idf.py build` targeting ESP32-S3-DevKitC-1.
 - Assert 0 compilation errors and 0 compiler warnings.
 - Confirm binary footprint remains well within partition limits ($\ge 50\%$ flash free).
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. This subsystem manages the non-volatile storage and retrieval of multi-step folding routines for Presets 1–4 (`main/storage.h`, `main/storage.c`), providing CRC32 data integrity verification, power-loss resilience, and automatic seeding of factory default routines for standard garments (T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
+Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem manages the non-volatile storage and retrieval of multi-step folding routines for Presets 1–4 (`main/storage.h`, `main/storage.c`), providing CRC32 data integrity verification, power-loss resilience, and automatic seeding of factory default routines for standard garments (T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen).
 
 ---
 

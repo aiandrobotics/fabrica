@@ -1,4 +1,4 @@
-# Tech Stack — ESP32 Firmware
+# Tech Stack — ESP32-S3 Firmware
 
 ## Firmware Toolchain & Build System
 
@@ -6,7 +6,7 @@
 |---|---|---|
 | **Framework / SDK** | Espressif ESP-IDF (v5.x / v6.x) | Native C / FreeRTOS development framework |
 | **Language Standard** | C99 / C11 | High-efficiency embedded C with strict type definitions (`stdint.h`, `stdbool.h`) |
-| **Target Microcontroller** | ESP32 Dev Board v1 / ESP-WROOM-32 | Dual-core Xtensa 32-bit LX6 @ 240 MHz, 520 KB SRAM, 4 MB SPI Flash |
+| **Target Microcontroller** | ESP32-S3-DevKitC-1 (ESP32-S3-WROOM-1) | Dual-core Xtensa 32-bit LX7 @ 240 MHz, 512 KB SRAM, 4 MB+ SPI Flash |
 | **Build System** | CMake 3.16+ & Ninja | Standard ESP-IDF build flow (`idf.py build`, `idf.py flash`, `idf.py monitor`) |
 | **Reference Baseline** | `poc/esp_hello_world` | ESP-IDF structure, `esp_chip_info.h`, `esp_flash.h`, FreeRTOS tasks, `driver/gpio.h` |
 | **Non-Volatile Storage** | ESP-IDF NVS Flash (`nvs_flash.h`) | Key-value blob sequence storage for 4 physical Button Routines (user-programmed & factory defaults) |
@@ -16,7 +16,7 @@
 
 ---
 
-## ESP32 Dual-Core Architecture & Task Allocation
+## ESP32-S3 Dual-Core Architecture & Task Allocation
 
 ```mermaid
 graph LR
@@ -61,10 +61,10 @@ graph LR
 ### Core 0 — Real-Time Motion & Actuation Engine
 - **`app_main` Command Consumer & Motion Engine (Core ID: 0)**:
   - Consumes motion execution commands from the inter-core queue.
-  - Implements smooth single-servo and synchronized parallel dual-servo sweep trajectories ($0^\circ \rightarrow 170^\circ \rightarrow 35^\circ$ fast return + $35^\circ \rightarrow 0^\circ$ ease-out soft landing).
-  - Controls deterministic sweep/landing timings (800ms sweep travel, 650ms return approach, 20ms–50ms/deg ease-out ramp, 200ms inter-step delay) using low-latency sliced delays.
+  - Implements smooth single-servo and synchronized parallel dual-servo sweep trajectories ($0^\circ \rightarrow 170^\circ \rightarrow 0^\circ$).
+  - Controls deterministic sweep/return timings (800ms forward sweep, 400ms direct return, 10ms inter-step delay) using low-latency sliced delays.
   - Continuously samples the E-Stop / Stop abort event flag before and during step transitions ($<50\text{ms}$ preemption latency).
-- **PCA9685 I2C Driver**: Direct register reads/writes over ESP32 hardware I2C peripheral (`I2C_NUM_0`).
+- **PCA9685 I2C Driver**: Direct register reads/writes over ESP32-S3 hardware I2C peripheral (`I2C_NUM_0`).
 
 ### Core 1 — UI, Dedicated BLE Wireless, Telemetry & System Coordination
 - **`app_ble_task` (Priority: 4, Core ID: 1)**:
@@ -81,7 +81,7 @@ graph LR
   - Differentiates between Short Tap (<500ms), Single-Button Long Press ($\ge 3000\text{ms}$ for BLE pairing window), and B1+B4 Simultaneous Hold ($\ge 5000\text{ms}$ for BLE bond reset).
   - Coordinates physical mode transitions and button gesture translations.
 - **`app_led_task` (Priority: 3, Core ID: 1)**:
-  - Non-blocking pattern generator driving 8 visual pulse trains on `GPIO 2` (including `LED_STATE_BLE_PAIRING`, `LED_STATE_BLE_CONNECTED`, and `LED_STATE_IDENTIFY`) with a strict preemption hierarchy preserving underlying base state.
+  - Non-blocking pattern generator driving 8 visual pulse trains on `GPIO 15` (including `LED_STATE_BLE_PAIRING`, `LED_STATE_BLE_CONNECTED`, and `LED_STATE_IDENTIFY`) with a strict preemption hierarchy preserving underlying base state.
 - **`storage` Subsystem**:
   - Manages serialized read/write operations to ESP-IDF NVS flash for the 4 physical button routines, bonded BLE keys (`"ble_bonds"`), and factory default fallback with IEEE 802.3 CRC32 integrity validation.
 
@@ -89,17 +89,17 @@ graph LR
 
 ## Hardware Pinout & Peripheral Configuration
 
-### 1. ESP32 GPIO Pin Allocations
+### 1. ESP32-S3-DevKitC-1 GPIO Pin Allocations
 
-| Signal Name | ESP32 GPIO | Direction | Configuration | Active State | Description |
+| Signal Name | ESP32-S3 GPIO | Direction | Configuration | Active State | Description |
 |---|---|---|---|---|---|
-| `PIN_STATUS_LED` | `GPIO_NUM_2` | Output | Push-Pull / No Pull | High (1) | Visual status indicator LED (Built-in on DevKit) |
-| `PIN_BTN_1` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B1: Preset 1 Routine (Default: Adult T-Shirt) / E-Stop |
-| `PIN_BTN_2` | `GPIO_NUM_16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B2: Preset 2 Routine (Default: Long-Sleeve Shirt) / E-Stop |
-| `PIN_BTN_3` | `GPIO_NUM_17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B3: Preset 3 Routine (Default: Trousers / Jeans) / E-Stop |
-| `PIN_BTN_4` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | B4: Preset 4 Routine (Default: Towel / Linen) / E-Stop |
-| `PIN_I2C_SDA` | `GPIO_NUM_21` | I/O | Open-Drain + External 4.7k Pull-Up | — | PCA9685 I2C Data line (SDA) |
-| `PIN_I2C_SCL` | `GPIO_NUM_22` | Output | Open-Drain + External 4.7k Pull-Up | — | PCA9685 I2C Clock line (SCL) |
+| `BTN1_GPIO` | `GPIO_NUM_4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Left Header J1 Pin 4 — B1: Preset 1 Routine (Default: Adult T-Shirt) / E-Stop |
+| `BTN2_GPIO` | `GPIO_NUM_5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Left Header J1 Pin 5 — B2: Preset 2 Routine (Default: Long-Sleeve Shirt) / E-Stop |
+| `BTN3_GPIO` | `GPIO_NUM_6` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Left Header J1 Pin 6 — B3: Preset 3 Routine (Default: Trousers / Jeans) / E-Stop |
+| `BTN4_GPIO` | `GPIO_NUM_7` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Left Header J1 Pin 7 — B4: Preset 4 Routine (Default: Towel / Linen) / E-Stop |
+| `STATUS_LED_GPIO` | `GPIO_NUM_15` | Output | Push-Pull / No Pull | High (1) | Left Header J1 Pin 8 — External status indicator LED (Active High, 220Ω) |
+| `I2C_SCL_GPIO` | `GPIO_NUM_1` | Output | Open-Drain + Internal/PCA9685 Pull-Up | — | Right Header J3 Pin 4 (top-right, below GND) — PCA9685 I2C Clock line (SCL) |
+| `I2C_SDA_GPIO` | `GPIO_NUM_2` | I/O | Open-Drain + Internal/PCA9685 Pull-Up | — | Right Header J3 Pin 5 (top-right, below GPIO 1) — PCA9685 I2C Data line (SDA) |
 
 ### 2. PCA9685 PWM Driver Configuration
 
@@ -153,12 +153,9 @@ graph LR
 | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Upper bound for tap gesture detection in Daily Run Mode |
 | `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second (2-minute) timeout for multi-device pairing (indefinite on 0 bonds) |
 | `FOLD_DWELL_TIME_MS` | `800` ms | Travel time for flap to reach $170^\circ$ before returning |
-| `LANDING_APPROACH_MS` | `650` ms | Fast return travel time from $170^\circ$ to $35^\circ$ brake angle |
-| `LANDING_STEP_MIN_DELAY_MS` | `20` ms | Initial step delay at $34^\circ$ during ease-out soft landing |
-| `LANDING_STEP_MAX_DELAY_MS` | `50` ms | Final step delay at $0^\circ$ during ease-out soft landing |
+| `LANDING_APPROACH_MS` | `400` ms | Direct return travel time from $170^\circ$ to $0^\circ$ |
 | `FOLD_TARGET_ANGLE_DEG` | `170.0f` | Max folding sweep target angle |
-| `LANDING_BRAKE_ANGLE_DEG` | `35.0f` | Angle where return sweep slows for soft landing |
-| `INTER_STEP_DELAY_MS` | `200` ms | Settling delay between consecutive folding steps |
+| `INTER_STEP_DELAY_MS` | `10` ms | Settling delay between consecutive folding steps |
 | `CALIBRATION_THERMAL_TIMEOUT_MS` | `10000` ms | Stationary servo thermal de-energize cutoff in calibration mode |
 | `CALIBRATION_INACTIVITY_TIMEOUT_MS` | `15000` ms | Calibration inactivity watchdog auto-homing servos and exiting to Idle |
 | `TELEMETRY_STREAM_ACTIVE_HZ` | `10` Hz | Active sequence execution & calibration streaming rate |
@@ -209,7 +206,7 @@ typedef struct __attribute__((packed)) {
     uint16_t elapsed_step_time_ms;   // Elapsed time in active step (ms, Little-Endian)
     uint8_t channel_angles[16];      // Live angles for channels 0-15 (0 to 180 deg)
     uint8_t last_cmd_status;         // cmd_status_t (0: OK, 1: ERR_BUSY, 2: ERR_INVALID_STEP, 3: ERR_MOTOR_BOUNDS, 4: ERR_ROUTINE_FULL, 5: ERR_CRC_MISMATCH, 6: ERR_INVALID_ARG)
-    uint16_t free_heap_kb;           // ESP32 internal free DRAM in KB (Little-Endian)
+    uint16_t free_heap_kb;           // ESP32-S3 internal free DRAM in KB (Little-Endian)
     int8_t ble_rssi_dbm;             // BLE RSSI in dBm (-128 if disconnected, signed int8)
     uint8_t error_code;              // Error bitmask (BIT0=I2C_Fail, BIT1=NVS_Fail, BIT2=EStop_Active)
     uint16_t sequence_counter;       // Monotonically increasing packet counter (Little-Endian)
@@ -405,7 +402,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 
 #### 4. Firmware LED State & Telemetry Encoding (`led_state_t`)
 
-| Value | Enumeration | Physical GPIO 2 Pattern | Pattern Type & Return Behavior |
+| Value | Enumeration | Physical GPIO 15 Pattern | Pattern Type & Return Behavior |
 |---|---|---|---|
 | `0` | `LED_STATE_IDLE` | Soft heartbeat (`100ms` ON / `1900ms` OFF) | Persistent base state |
 | `1` | `LED_STATE_RUNNING` | Continuous Solid ON | Persistent base state during active motion |
@@ -453,7 +450,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 
 * **Advertising Packet Split (31-Byte Limit for iOS & Android)**:
   - **Primary Advertisement Packet (21 Bytes)**: Flags (`0x06`, 3B) + Complete List of 128-bit Service Class UUIDs (`0000FAB0-...`, 18B) $\le 31\text{B}$ legacy limit. Mandatory for iOS `CoreBluetooth` service-filtered and background scanning.
-  - **Scan Response Packet (17 Bytes)**: Complete Local Name (`Fabrica-XXXX`, 14B derived from the last 2 bytes of the ESP32 BT MAC address) + Tx Power Level (3B) for immediate human-readable name display in nRF Connect and LightBlue on iOS and Android.
+  - **Scan Response Packet (17 Bytes)**: Complete Local Name (`Fabrica-XXXX`, 14B derived from the last 2 bytes of the ESP32-S3 BT MAC address) + Tx Power Level (3B) for immediate human-readable name display in nRF Connect and LightBlue on iOS and Android.
 * **Advertising Interval**: 100ms fast advertising on startup or disconnect.
 * **Peripheral-Initiated Connection Parameter Negotiation (`ble_gap_update_params`)**:
   - Firmware requests connection parameter updates from the peripheral side (1.5s after connection) compliant with Apple Bluetooth Accessory Design Guidelines and Android:
@@ -481,7 +478,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 
 ### 2. Internal SRAM & Heap Budget Analysis
 
-* **Total Internal SRAM**: $520\text{ KB}$ ($\approx 320\text{ KB}$ available for application heap).
+* **Total Internal SRAM**: $512\text{ KB}$ ($\approx 320\text{ KB}$ available for application heap).
 * **Firmware Baseline (Phases 1–7)**: Consumes $\approx 85\text{ KB}$.
 * **Apache NimBLE Stack**: Consumes $\approx 40\text{ KB}$.
 * **Telemetry & Sequence Buffers**: Consumes $\approx 4\text{ KB}$.

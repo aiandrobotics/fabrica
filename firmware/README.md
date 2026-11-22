@@ -1,6 +1,6 @@
 # Embedded Firmware — Fabrica Cloth Folding Robot
 
-This directory contains the production-grade embedded C / FreeRTOS firmware running natively on the **ESP32 Dev Board v1** for the **Fabrica Cloth Folding Robot**.
+This directory contains the production-grade embedded C / FreeRTOS firmware running natively on the **ESP32-S3-DevKitC-1** for the **Fabrica Cloth Folding Robot**.
 
 ---
 
@@ -8,54 +8,65 @@ This directory contains the production-grade embedded C / FreeRTOS firmware runn
 
 The Fabrica firmware coordinates the physical user interface, non-volatile sequence storage, system state machine, and the **PCA9685 16-channel 12-bit PWM driver** over I2C to actuate high-torque servo motors (MG996R) driving modular cloth-folding grids.
 
-* **Target Microcontroller**: ESP32 Dev Board v1 (Xtensa dual-core LX6 @ 240 MHz, 520 KB SRAM, 4 MB SPI Flash)
-* **Actuation Driver**: PCA9685 16-Channel 12-Bit PWM Driver over I2C (`GPIO 21 SDA`, `GPIO 22 SCL`)
-* **User Interface**: 4 Push Buttons (`B1–B4`) + 1 Multi-Pattern Status LED (`GPIO 2`)
+* **Target Microcontroller**: ESP32-S3-DevKitC-1 (Xtensa dual-core LX7 @ 240 MHz, 512 KB SRAM, 4 MB+ SPI Flash)
+* **Actuation Driver**: PCA9685 16-Channel 12-Bit PWM Driver over I2C (`GPIO 2 SDA`, `GPIO 1 SCL`)
+* **User Interface**: 4 Push Buttons (`B1–B4` on `GPIO 4–7`) + 1 External Multi-Pattern Status LED (`GPIO 15`)
 * **Operating Architecture**: Dual-Core FreeRTOS (Core 0: Motion & I2C Bus / Core 1: UI, Buttons, NimBLE Wireless, Telemetry & NVS Storage)
 * **Operating Modes**:
-  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized parallel dual-servo sweeps, 300ms fold dwell, 200ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
+  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized parallel dual-servo sweeps, 800ms fold sweep ($0^\circ \to 170^\circ$), 400ms direct return ($170^\circ \to 0^\circ$), 10ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
   2. **Wireless Mobile Programming & Control (BLE)**: Custom sequence creation, live servo calibration jogging, stateless sequence previewing, real-time 10 Hz / 1 Hz adaptive telemetry streaming, and assigning custom sequences to Buttons 1–4 are handled visually over Bluetooth Low Energy.
 
 ---
 
 ## Hardware Pinout & Wiring Specifications
 
-### 1. ESP32 Dev Board v1 Pin Allocations
+### 1. ESP32-S3-DevKitC-1 Pin Allocations
 
-| Signal Name | ESP32 GPIO | Direction | Pin Configuration | Active Level | Connected Peripheral |
+| Signal Name | ESP32-S3 GPIO | Direction | Pin Configuration | Active Level | Connected Peripheral |
 |---|---|---|---|---|---|
-| `STATUS_LED_GPIO` | `GPIO 2` | Output | Push-Pull / No Pull | High (1) | Status LED (Built-in on DevKit) |
-| `BTN1_GPIO` | `GPIO 4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 1 (B1): Preset 1 (Default: Adult T-Shirt) / E-Stop / Hold-to-Pair (3s) |
-| `BTN2_GPIO` | `GPIO 16` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 2 (B2): Preset 2 (Default: Long-Sleeve Shirt) / E-Stop / Hold-to-Pair (3s) |
-| `BTN3_GPIO` | `GPIO 17` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 3 (B3): Preset 3 (Default: Trousers / Jeans) / E-Stop / Hold-to-Pair (3s) |
-| `BTN4_GPIO` | `GPIO 5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 4 (B4): Preset 4 (Default: Towel / Linen) / E-Stop / Hold-to-Pair (3s) |
-| `I2C_SDA_GPIO` | `GPIO 21` | In/Out | Open-Drain + Pull-Up | — | PCA9685 SDA (I2C Data) |
-| `I2C_SCL_GPIO` | `GPIO 22` | Output | Open-Drain + Pull-Up | — | PCA9685 SCL (I2C Clock) |
+| `BTN1_GPIO` | `GPIO 4` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 1 (B1) — Left header pin 4: Preset 1 (Adult T-Shirt) / E-Stop / Hold-to-Pair (3s) |
+| `BTN2_GPIO` | `GPIO 5` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 2 (B2) — Left header pin 5: Preset 2 (Long-Sleeve Shirt) / E-Stop / Hold-to-Pair (3s) |
+| `BTN3_GPIO` | `GPIO 6` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 3 (B3) — Left header pin 6: Preset 3 (Trousers / Jeans) / E-Stop / Hold-to-Pair (3s) |
+| `BTN4_GPIO` | `GPIO 7` | Input | Internal Pull-Up (`GPIO_PULLUP_ONLY`) | Low (0) | Tactile Button 4 (B4) — Left header pin 7: Preset 4 (Towel / Linen) / E-Stop / Hold-to-Pair (3s) |
+| `STATUS_LED_GPIO` | `GPIO 15` | Output | Push-Pull / No Pull | High (1) | External Status LED (Active High, 220Ω) — Left header pin 8 |
+| `I2C_SCL_GPIO` | `GPIO 1` | Output | Open-Drain + Pull-Up | — | PCA9685 SCL (I2C Clock) — Right header pin 4 (top-right, below GND) |
+| `I2C_SDA_GPIO` | `GPIO 2` | In/Out | Open-Drain + Pull-Up | — | PCA9685 SDA (I2C Data) — Right header pin 5 (top-right, below GPIO 1) |
 
 > **B1 + B4 Hardware Bond Reset**: Holding **Button 1 + Button 4 simultaneously for 5 seconds** clears all stored BLE bonds from NVS flash (`CMD_CLEAR_BLE_BONDS`) and resets the wireless subsystem.
 
-### 2. PCA9685 PWM Driver Wiring & Power Isolation
+### 2. PCA9685 PWM Driver Wiring, Perfboard Layout & Power Isolation
+
+To achieve a **zero-crossover, single-row-aligned perfboard layout** with the **minimum number of short jumper wires**, all logic signals sit in the **top 8 rows** of the **ESP32-S3-DevKitC-1** while high-current 5V power sits along the **bottom edge**:
+
+1. **Left Header (`J1`, Pins 4–8) — Contiguous User Interface Block (Buttons B1–B4 + Status LED)**:
+   - Pins 4, 5, 6, 7 (`GPIO 4`, `GPIO 5`, `GPIO 6`, `GPIO 7`) wire straight horizontally across the perfboard to the 5-pin **Buttons B1–B4 + GND** header with **zero wire jumps**.
+   - Pin 8 (`GPIO 15`, immediately below `GPIO 7`) wires straight horizontally through a **220 Ω resistor** to the 2-pin **Status LED** header, sharing the adjacent common `GND` rail with the buttons (saving an extra ground run across the board).
+   - Bottom-left Pins 21 & 22 (`5V/VIN` and `GND`) receive the diode-isolated 5V logic rail directly from the adjacent power filter section (`1N5819` Schottky + `1000 µF` + `100 nF`).
+2. **Right Header (`J3`, Pins 1, 4, 5) — Top-Right PCA9685 I2C Block**:
+   - Top-right Pin 1 (`GND`), Pin 4 (`GPIO 1` $\to$ `SCL`), and Pin 5 (`GPIO 2` $\to$ `SDA`) sit right at the top of the board across from top-left Pin 1 (`3V3`) and align directly with the top logic header of the **PCA9685** (`GND`, `OE`, `SCL`, `SDA`, `VCC`).
+   - On the **PCA9685** logic header, bridge **`OE` directly to the adjacent `GND` pin** on the PCA9685 board so only **4 short logic wires** (`GND` $\to$ `GND+OE`, `GPIO 1` $\to$ `SCL`, `GPIO 2` $\to$ `SDA`, `3V3` $\to$ `VCC`) are needed between the ESP32-S3 and PCA9685, all running parallel at the top of the board well away from the bottom 5V servo power rail.
 
 ```
-           +------------------+              +----------------------+
-           |  ESP32 DevKit    |              |  PCA9685 16-Ch PWM   |
-           |                  |              |                      |
-           |             3V3  |------------->| VCC (Logic Power)    |
-           |             GND  |---+--------->| GND (Common Ground)  |
-           |         GPIO 21  |---|--------->| SDA (I2C Data)       |
-           |         GPIO 22  |---|--------->| SCL (I2C Clock)      |
-           +------------------+   |          | OE  (Grounded/Active)|
-                                  |          +----------------------+
-                                  |                     |
-     +-----------------------+    |                     |
-     | External 5V/6V Supply |    |           [Servo Header Rails]
-     | (10A - 20A DC)        |    |                     |
-     |                   (+) |----+-------------------->| V+ (Servo Power)
-     |                   (-) |------------------------->| GND (Common Ground)
+     [Left Header J1: UI & Logic Power]       [Right Header J3: PCA9685 I2C]
+  +--------------------------------------+  +----------------------------------+
+  | (Pin 1/2)  3V3 -----------------------> | ------------------------> VCC    |
+  | B1 (Preset 1) <--- GPIO 4  (Pin 4)   |  |  (Pin 1)   GND ---------> GND+OE |
+  | B2 (Preset 2) <--- GPIO 5  (Pin 5)   |  |  (Pin 4)   GPIO 1 ------> SCL    |
+  | B3 (Preset 3) <--- GPIO 6  (Pin 6)   |  |  (Pin 5)   GPIO 2 ------> SDA    |
+  | B4 (Preset 4) <--- GPIO 7  (Pin 7)   |  +----------------------------------+
+  | Status LED    <--- GPIO 15 (Pin 8)   |                   |
+  |                    (via 220 Ohm)     |        +----------------------+
+  | 5V Logic Rail ---> 5V/VIN  (Pin 21)  |        |  PCA9685 16-Ch PWM   |
+  | Common GND    ---> GND     (Pin 22)  |        |  [Servo Header V+]   |
+  +--------------------------------------+        +----------------------+
+                                                             ^
+     +-----------------------+                               |
+     | External 5V/6V Supply |-------------------------------+ (16 AWG High-Current Rail
+     | (5A - 20A DC)         |                                  + 2200 uF Bulk Cap)
      +-----------------------+
 ```
 
-> **IMPORTANT**: Never power high-torque MG996R servos directly from the ESP32 3.3V or 5V (VIN) rail. Always use an external regulated 5V–6V DC power supply capable of delivering 10A–20A surge currents, with common ground shared between the ESP32 and PCA9685.
+> **IMPORTANT**: Never power high-torque MG996R servos directly from the ESP32-S3 3.3V or 5V (VIN) rail. Always use an external regulated 5V–6V DC power supply capable of delivering 10A–20A surge currents, with common ground shared between the ESP32-S3 and PCA9685.
 
 ### 3. Physical Servo Flap Channel Mapping (Standard 4-Panel Grid)
 
@@ -75,15 +86,15 @@ The firmware uses FreeRTOS symmetric multiprocessing to cleanly separate real-ti
 
 ```
                   +----------------------------------------------+
-                  |               ESP32 DUAL CORE                |
+                  |              ESP32-S3 DUAL CORE              |
                   +----------------------------------------------+
                                 |                              |
            CORE 0 (Motion Engine)           CORE 1 (UI, BLE Wireless & System Coordination)
            ----------------------           ------------------------------------------------
            * app_main (Command & Motion)    * app_ble_task (Priority 4, NimBLE GATT Server)
            * Real-time 50Hz PWM Trajectory  * app_telem_task (Priority 3, Adaptive Telemetry)
-           * 300ms Fold Dwell Timing        * app_ui_task (Priority 5, 50ms Debounce)
-           * 200ms Inter-Step Delays        * Short Tap vs 3s Hold (BLE Pairing)
+           * 800ms Fold / 400ms Return      * app_ui_task (Priority 5, 50ms Debounce)
+           * 10ms Inter-Step Delays         * Short Tap vs 3s Hold (BLE Pairing)
            * PCA9685 I2C Bus Management     * System State Machine Coordinator
            * <50ms E-Stop Preemption Abort  * app_led_task (Priority 2, Status LED Engine)
                                             * NVS Flash Storage Manager
@@ -183,7 +194,7 @@ The robot can be fully monitored, calibrated, and controlled using off-the-shelf
    - **Hardware Wipe Shortcuts**:
      - `B1 + B4` (5s chord hold): Clears BLE bonds from NVS.
      - `B1 + B3 + B4` (10s chord hold): Full Factory Reset (wipes both NVS presets and BLE bonds, homes all 16 servos, and restarts indefinite pairing mode).
-   - The device advertises as `Fabrica-XXXX` (where `XXXX` is derived from the ESP32 BT MAC address).
+   - The device advertises as `Fabrica-XXXX` (where `XXXX` is derived from the ESP32-S3 BT MAC address).
 2. **Scan and Connect**:
    - In **nRF Connect** or **LightBlue**, scan for `Fabrica-XXXX` and tap **Connect**.
    - The firmware proactively initiates SMP security: tap **Pair** / **Bond** on the phone prompt.
@@ -301,13 +312,14 @@ Total: 911 / 911 checks passed (100% Success)
 ```
 
 ### 2. ESP-IDF Target Compilation
-Build the firmware binary targeting the ESP32 Dev Board v1:
+Build the firmware binary targeting the ESP32-S3-DevKitC-1:
 ```bash
+idf.py set-target esp32s3
 idf.py build
 ```
 
 ### 3. Flashing & Serial Monitor
-Flash the firmware to an attached ESP32 Dev Board and monitor diagnostic output:
+Flash the firmware to an attached ESP32-S3-DevKitC-1 and monitor diagnostic output:
 ```bash
 idf.py -p /dev/tty.usbserial-* flash monitor
 ```

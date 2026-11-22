@@ -27,7 +27,7 @@
   11. `test_ble_integration`
 
 ### 3. ESP-IDF Target Compilation
-- Execute `idf.py build` targeting ESP32 Dev Board v1.
+- Execute `idf.py build` targeting ESP32-S3-DevKitC-1.
 - Assert 0 compilation errors and 0 compiler warnings.
 - Confirm binary footprint remains well within partition limits ($\ge 50\%$ flash free).
 

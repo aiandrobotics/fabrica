@@ -2,7 +2,7 @@
 
 ## Required Checks
 
-Phase 9 requires passing automated host unit tests (`make test` with `-Wall -Wextra -Werror`) across the new `test/test_remote_cmd.c` suite and all 8 existing suites, plus a clean ESP-IDF target firmware build (`idf.py build`). Live hardware verification on ESP32 using **nRF Connect** / **LightBlue** is documented under Manual Review.
+Phase 9 requires passing automated host unit tests (`make test` with `-Wall -Wextra -Werror`) across the new `test/test_remote_cmd.c` suite and all 8 existing suites, plus a clean ESP-IDF target firmware build (`idf.py build`). Live hardware verification on ESP32-S3 using **nRF Connect** / **LightBlue** is documented under Manual Review.
 
 ### 1. Automated Host Unit Tests (`test/test_remote_cmd.c` & Full Suite)
 
@@ -40,9 +40,9 @@ idf.py build
 
 ---
 
-## Manual Review & Optional Live Hardware Verification (ESP32 + nRF Connect)
+## Manual Review & Optional Live Hardware Verification (ESP32-S3 + nRF Connect)
 
-After flashing the ESP32 (`idf.py -p <PORT> flash monitor`) and connecting with **nRF Connect** (subscribed to `FAB2` and `FAB3` notifications):
+After flashing the ESP32-S3 (`idf.py -p <PORT> flash monitor`) and connecting with **nRF Connect** (subscribed to `FAB2` and `FAB3` notifications):
 
 1. **Stateless Raw Sequence (`0x01`) & 100% Completion Push**:
    - Write compact hex `01 02 01 00 00 01 01 00` to `FAB1` (`0000FAB1-...` value row, not `0x2901`).

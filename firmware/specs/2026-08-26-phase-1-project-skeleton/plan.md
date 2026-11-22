@@ -10,7 +10,7 @@ Phase 1 establishes the foundational embedded C / ESP-IDF build architecture, ha
 1. Create root project build configuration files:
    - `firmware/CMakeLists.txt`: ESP-IDF project definition registering project name `fabrica_firmware` and standard component path discovery.
    - `firmware/Makefile`: Helper entrypoint for standard build commands (`build`, `flash`, `monitor`, `clean`).
-   - `firmware/sdkconfig.defaults`: Baseline ESP32 configuration specifying:
+   - `firmware/sdkconfig.defaults`: Baseline ESP32-S3 configuration specifying:
      - Xtensa Dual-Core CPU frequency @ 240 MHz (`CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y`).
      - FreeRTOS tick rate @ 1000 Hz / 1 ms tick (`CONFIG_FREERTOS_HZ=1000`).
      - 4 MB SPI Flash support with standard DIO mode (`CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y`).
@@ -24,13 +24,13 @@ Phase 1 establishes the foundational embedded C / ESP-IDF build architecture, ha
 ## Task Group 2: Hardware Configuration & Unified Command Protocol Headers
 1. Create `firmware/main/config.h`:
    - Define single source of truth for GPIO pin allocations:
-     - `STATUS_LED_GPIO = GPIO_NUM_2` (Built-in DevKit status indicator)
-     - `BTN1_GPIO = GPIO_NUM_0` (B1: Preset 1 / Cycle & Nudge)
-     - `BTN2_GPIO = GPIO_NUM_4` (B2: Preset 2 / Stage & Toggle)
-     - `BTN3_GPIO = GPIO_NUM_16` (B3: Preset 3 / Lock Step)
-     - `BTN4_GPIO = GPIO_NUM_17` (B4: Preset 4 / Save & Exit)
-     - `I2C_SDA_GPIO = GPIO_NUM_21` (PCA9685 I2C Data line)
-     - `I2C_SCL_GPIO = GPIO_NUM_22` (PCA9685 I2C Clock line)
+     - `BTN1_GPIO = GPIO_NUM_4` (Left Header Pin 4 — B1: Preset 1 / E-Stop / Hold-to-Pair)
+     - `BTN2_GPIO = GPIO_NUM_5` (Left Header Pin 5 — B2: Preset 2 / E-Stop / Hold-to-Pair)
+     - `BTN3_GPIO = GPIO_NUM_6` (Left Header Pin 6 — B3: Preset 3 / E-Stop / Hold-to-Pair)
+     - `BTN4_GPIO = GPIO_NUM_7` (Left Header Pin 7 — B4: Preset 4 / E-Stop / Hold-to-Pair)
+     - `STATUS_LED_GPIO = GPIO_NUM_15` (Left Header Pin 8 — External Status LED, Active High)
+     - `I2C_SCL_GPIO = GPIO_NUM_1` (Right Header Pin 4 — PCA9685 I2C Clock line)
+     - `I2C_SDA_GPIO = GPIO_NUM_2` (Right Header Pin 5 — PCA9685 I2C Data line)
    - Define system operational limits and timing constants:
      - `MAX_STEPS_PER_ROUTINE = 16`
      - `MAX_MOTORS_PER_STEP = 2`
@@ -40,17 +40,13 @@ Phase 1 establishes the foundational embedded C / ESP-IDF build architecture, ha
      - `BUTTON_SHORT_PRESS_MAX_MS = 500`
      - `PROGRAMMING_TIMEOUT_MS = 20000`
      - `FOLD_DWELL_TIME_MS = 800`
-     - `LANDING_APPROACH_MS = 650`
-     - `LANDING_STEP_MIN_DELAY_MS = 20`
-     - `LANDING_STEP_MAX_DELAY_MS = 50`
-     - `INTER_STEP_DELAY_MS = 200`
+     - `LANDING_APPROACH_MS = 400`
+     - `INTER_STEP_DELAY_MS = 10`
      - `NUDGE_ANGLE_DEG = 15.0f`
      - `STAGE_ANGLE_DEG = 30.0f`
      - `HOME_ANGLE_DEG = 0.0f`
      - `FOLD_ANGLE_DEG = 180.0f`
      - `FOLD_TARGET_ANGLE_DEG = 170.0f`
-     - `LANDING_BRAKE_ANGLE_DEG = 35.0f`
-     - `LANDING_STEP_DEG = 1.0f`
    - Define PCA9685 constants (I2C address `0x40`, 50 Hz PWM frequency, 12-bit resolution ticks).
 2. Create `firmware/main/command.h`:
    - Define transport sources enum `cmd_source_t` (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_WIFI`, `SOURCE_INTERNAL_TIMER`).

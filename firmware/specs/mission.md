@@ -4,7 +4,7 @@
 
 Develop, implement, and validate robust, modular, production-grade embedded firmware for **Fabrica** — an open-source, automated cloth folding robot.
 
-The `firmware` sub-system provides the real-time embedded software executing natively on the **ESP32 Dev Board v1**. It controls the physical 4-button and status LED interface, manages non-volatile sequence storage, coordinates multi-state system workflows, and commands the **PCA9685 16-channel 12-bit PWM driver** over I2C to actuate up to 16 high-torque servo motors (e.g., MG996R) driving the modular folding grid panels.
+The `firmware` sub-system provides the real-time embedded software executing natively on the **ESP32-S3-DevKitC-1**. It controls the physical 4-button and status LED interface, manages non-volatile sequence storage, coordinates multi-state system workflows, and commands the **PCA9685 16-channel 12-bit PWM driver** over I2C to actuate up to 16 high-torque servo motors (e.g., MG996R) driving the modular folding grid panels.
 
 The firmware is designed to be:
 - **Autonomous & Standalone**: Complete computer-free operation for daily laundry folding out of the box via 4 physical preset buttons (Presets 1–4 pre-seeded with factory defaults exercising all 4 folding flaps, including the top collar flap).
@@ -24,7 +24,7 @@ graph TD
         BLE[NimBLE GATT Server<br/>Mobile App Control (Core 1)]
     end
 
-    subgraph ESP32 Dual-Core Firmware
+    subgraph ESP32-S3 Dual-Core Firmware
         subgraph Core 1: System Management & UI
             BTN_DEBOUNCE[Button Scanner & Debouncer<br/>50ms Low-Pass Filter]
             TRANSPORT_LAYER[Command Ingestion Layer<br/>Source-Agnostic Abstraction]
@@ -80,13 +80,13 @@ graph TD
 
 ### 3. Daily Run Mode Engine
 * **Instant Recall**: A single short tap (<500ms) on **B1–B4** loads and executes the corresponding saved folding routine from Flash.
-* **Synchronized Motion Execution**: Supports single-motor sweeps and parallel dual-motor sweeps ($0^\circ \rightarrow 170^\circ \rightarrow 35^\circ$ fast return + $35^\circ \rightarrow 0^\circ$ ease-out soft landing, with 800ms sweep travel time, 650ms return approach, ~1209ms ease-out landing, and 200ms inter-step delay).
+* **Synchronized Motion Execution**: Supports single-motor sweeps and parallel dual-motor sweeps ($0^\circ \rightarrow 170^\circ \rightarrow 0^\circ$, with 800ms forward sweep travel time, 400ms direct return time, and 10ms inter-step delay).
 * **Safe Completion**: All 16 channels verify flat home position ($0^\circ$) at cycle end, and the system safely idles.
 * **Emergency Stop (E-Stop)**: Tapping any button during an active folding cycle immediately halts PWM output, resets all 16 servos to $0^\circ$, delivers a 5-flash rapid alert, and aborts the routine.
 
 ### 4. Wireless BLE Sequence Configuration & Calibration
 * **Minimal Physical Pad, Full BLE GATT Control**: To keep the physical control pad effortless and free of hidden modes, custom sequence programming is handled entirely over BLE GATT (`FAB1` / `FAB3`) rather than by multi-button combinations on the unit.
-* **Direct Button Assignment (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`)**: Assign custom folding sequences (up to 16 steps, up to 2 simultaneous motors per step) directly to physical Buttons 1–4 stored in ESP32 NVS Flash using either full packed structs or compact step payloads.
+* **Direct Button Assignment (`CMD_SET_BUTTON_SEQUENCE` / `FAB3`)**: Assign custom folding sequences (up to 16 steps, up to 2 simultaneous motors per step) directly to physical Buttons 1–4 stored in ESP32-S3 NVS Flash using either full packed structs or compact step payloads.
 * **Stateless Sequence Preview (`CMD_RUN_RAW_SEQUENCE`)**: Test and preview custom routines directly over BLE before committing them to a physical button slot.
 * **Factory Preset Restoration (`CMD_RESTORE_FACTORY_PRESETS`)**: Instant restoration of the 4 built-in factory garment presets exercising all 4 motors (Preset 1: Adult T-Shirt [4 steps: Ch 0 $\to$ 1 $\to$ 2 $\to$ 3], Preset 2: Long-Sleeve Shirt [5 steps], Preset 3: Trousers/Jeans [3 steps], Preset 4: Towel/Linen [4 steps]).
 * **Live Servo Jog (`CMD_JOG_MOTOR_ANGLE`)**: Interactive servo angle control over BLE for panel identification and mechanical calibration.
@@ -109,13 +109,13 @@ graph TD
 
 | Peripheral | Component / Interface | Pin / Channel | Description |
 |---|---|---|---|
-| **MCU** | ESP32 Dev Board v1 (ESP-WROOM-32) | — | 240 MHz dual-core, 520KB SRAM, 4MB Flash |
-| **PWM Driver** | PCA9685 16-Channel 12-Bit Driver | I2C (SDA: `GPIO 21`, SCL: `GPIO 22`) | 50 Hz PWM frequency, I2C address `0x40` |
-| **Status LED** | 5mm Diffused Red/Blue LED | `GPIO 2` | Active-high visual status indicator |
-| **Button 1 (B1)** | Tactile Push Button | `GPIO 4` (Pull-up) | Preset 1 Routine (Default: Adult T-Shirt) / E-Stop / 3s BLE Pair / 5s B1+B4 Bond Reset |
-| **Button 2 (B2)** | Tactile Push Button | `GPIO 16` (Pull-up) | Preset 2 Routine (Default: Long-Sleeve Shirt) / E-Stop / 3s BLE Pair |
-| **Button 3 (B3)** | Tactile Push Button | `GPIO 17` (Pull-up) | Preset 3 Routine (Default: Trousers / Jeans) / E-Stop / 3s BLE Pair |
-| **Button 4 (B4)** | Tactile Push Button | `GPIO 5` (Pull-up) | Preset 4 Routine (Default: Towel / Linen) / E-Stop / 3s BLE Pair / 5s B1+B4 Bond Reset |
+| **MCU** | ESP32-S3-DevKitC-1 (ESP32-S3-WROOM-1) | — | 240 MHz dual-core LX7, 512KB SRAM, 4MB+ Flash |
+| **PWM Driver** | PCA9685 16-Channel 12-Bit Driver | I2C (SDA: `GPIO 2`, SCL: `GPIO 1`) | 50 Hz PWM frequency, I2C address `0x40` (Right header top adjacent pins 4 & 5, below top-right GND) |
+| **Status LED** | 5mm Diffused Red/Blue LED | `GPIO 15` | Active-high external status indicator (Left header pin 8, contiguous with B1–B4) |
+| **Button 1 (B1)** | Tactile Push Button | `GPIO 4` (Pull-up) | Left header pin 4: Preset 1 Routine (Default: Adult T-Shirt) / E-Stop / 3s BLE Pair / 5s B1+B4 Bond Reset |
+| **Button 2 (B2)** | Tactile Push Button | `GPIO 5` (Pull-up) | Left header pin 5: Preset 2 Routine (Default: Long-Sleeve Shirt) / E-Stop / 3s BLE Pair |
+| **Button 3 (B3)** | Tactile Push Button | `GPIO 6` (Pull-up) | Left header pin 6: Preset 3 Routine (Default: Trousers / Jeans) / E-Stop / 3s BLE Pair |
+| **Button 4 (B4)** | Tactile Push Button | `GPIO 7` (Pull-up) | Left header pin 7: Preset 4 Routine (Default: Towel / Linen) / E-Stop / 3s BLE Pair / 5s B1+B4 Bond Reset |
 | **Servos** | MG996R High-Torque Servos (up to 16) | PCA9685 Channels 0–15 | $0^\circ$ to $180^\circ$ panel actuation |
 
 ---

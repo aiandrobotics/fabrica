@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 3 implements the hardware actuation subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. This subsystem provides the low-level I2C communication and 12-bit PWM servo motor control layer via the **PCA9685 16-Channel PWM Driver** (`main/pca9685.h`, `main/pca9685.c`), enabling precise angular control ($0^\circ \text{ to } 180^\circ$) across up to 16 high-torque MG996R servos driving the modular folding grid panels.
+Phase 3 implements the hardware actuation subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem provides the low-level I2C communication and 12-bit PWM servo motor control layer via the **PCA9685 16-Channel PWM Driver** (`main/pca9685.h`, `main/pca9685.c`), enabling precise angular control ($0^\circ \text{ to } 180^\circ$) across up to 16 high-torque MG996R servos driving the modular folding grid panels.
 
 ---
 
@@ -26,7 +26,7 @@ Phase 3 implements the hardware actuation subsystem for the **Fabrica Cloth Fold
      - `MODE1_RESTART` (`0x80`), `MODE1_EXTCLK` (`0x40`), `MODE1_AI` (`0x20`), `MODE1_SLEEP` (`0x10`), `MODE1_ALLCALL` (`0x01`).
      - `MODE2_INVRT` (`0x10`), `MODE2_OCH` (`0x08`), `MODE2_OUTDRV` (`0x04`), `MODE2_OUTNE_TP` (`0x01`).
    - Declare public API:
-     - `esp_err_t pca9685_init(void)`: Configure ESP32 I2C Master peripheral on `GPIO 21 (SDA)` / `GPIO 22 (SCL)` at 100 kHz, wake PCA9685 from sleep, set 50 Hz PWM prescale (`121`), enable Auto-Increment, configure totem-pole output, and initialize FreeRTOS bus mutex.
+     - `esp_err_t pca9685_init(void)`: Configure ESP32-S3 I2C Master peripheral on `GPIO 2 (SDA)` / `GPIO 1 (SCL)` at 100 kHz, wake PCA9685 from sleep, set 50 Hz PWM prescale (`121`), enable Auto-Increment, configure totem-pole output, and initialize FreeRTOS bus mutex.
      - `esp_err_t pca9685_probe(void)`: Check if PCA9685 responds at address `0x40`.
      - `esp_err_t pca9685_write_reg(uint8_t reg, uint8_t val)`: Thread-safe register write.
      - `esp_err_t pca9685_read_reg(uint8_t reg, uint8_t *val)`: Thread-safe register read.

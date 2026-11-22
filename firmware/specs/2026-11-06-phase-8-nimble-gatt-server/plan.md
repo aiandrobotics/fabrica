@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 8 implements the dedicated Bluetooth Low Energy (BLE) wireless transport subsystem (`ble_transport.h`, `ble_transport.c`) on **Core 1** using the **Apache NimBLE** stack for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**.
+Phase 8 implements the dedicated Bluetooth Low Energy (BLE) wireless transport subsystem (`ble_transport.h`, `ble_transport.c`) on **Core 1** using the **Apache NimBLE** stack for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**.
 
 This milestone provides native iOS (`CoreBluetooth`) and Android (`BluetoothGatt`) BLE interoperability directly from the firmware, enabling complete testing and verification with existing App Store BLE scanner apps (**nRF Connect for Mobile** and **LightBlue**) without requiring custom mobile application code.
 
@@ -54,7 +54,7 @@ Key goals include:
 ## Task Group 3: NimBLE GAP, SMP Security & GATT Server Implementation (`main/ble_transport.h`, `main/ble_transport.c`, `main/main.c`)
 1. Create `main/ble_transport.h` and `main/ble_transport.c` with dual-target support (`#ifdef ESP_PLATFORM` real NimBLE stack and `#else` deterministic host simulation mock for unit tests):
    - **Dynamic Device Name & Advertising Split**:
-     - Derive `"Fabrica-XXXX"` from the last 2 bytes of the ESP32 Bluetooth MAC address (`esp_read_mac(..., ESP_MAC_BT)`).
+     - Derive `"Fabrica-XXXX"` from the last 2 bytes of the ESP32-S3 Bluetooth MAC address (`esp_read_mac(..., ESP_MAC_BT)`).
      - Build the 21-byte Primary Advertisement packet: Flags (`0x06`, 3B) + Complete 128-bit Service UUID (`0000FAB0-0000-1000-8000-00805F9B34FB`, 18B) $\le 31\text{B}$ limit for iOS `CoreBluetooth` background/filtered scanning.
      - Build the 17-byte Scan Response packet: Complete Local Name (`"Fabrica-XXXX"`, 14B) + Tx Power Level (3B) for immediate human-readable discovery in nRF Connect and LightBlue on iOS and Android.
      - Configure 100ms fast advertising (`itvl_min = 0x00A0`, `itvl_max = 0x00A0`), stopping advertising while 1 central is connected and automatically restarting advertising upon disconnect.

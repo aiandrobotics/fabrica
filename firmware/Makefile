@@ -1,4 +1,4 @@
-# Convenience Makefile for Fabrica ESP32 Firmware
+# Convenience Makefile for Fabrica ESP32-S3 Firmware
 
 .PHONY: all build flash monitor clean test
 

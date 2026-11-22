@@ -48,7 +48,7 @@
 ## Manual Review & Hardware Bench Verification
 
 ### 1. Serial Monitor Startup Diagnostics & Preset Loading
-- [ ] Flash ESP32 Dev Board and open serial monitor:
+- [ ] Flash ESP32-S3-DevKitC-1 and open serial monitor:
   ```bash
   idf.py flash monitor
   ```
@@ -64,7 +64,7 @@
 
 ### 2. Persistence & Power-Cut Recovery Verification
 - [ ] Save a modified folding sequence to Preset 1.
-- [ ] Perform hard reset or power cycle of the ESP32.
+- [ ] Perform hard reset or power cycle of the ESP32-S3.
 - [ ] Confirm on boot that the custom Preset 1 sequence is restored identically with valid CRC.
 
 ---

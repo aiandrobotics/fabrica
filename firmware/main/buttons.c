@@ -23,9 +23,9 @@ static QueueHandle_t s_cmd_queue = NULL;
 /* GPIO mapping corresponding to Button 1..4 */
 static const uint8_t s_btn_gpios[BTN_ID_COUNT] = {
     BTN1_GPIO, /* GPIO 4 */
-    BTN2_GPIO, /* GPIO 16 */
-    BTN3_GPIO, /* GPIO 17 */
-    BTN4_GPIO  /* GPIO 5 */
+    BTN2_GPIO, /* GPIO 5 */
+    BTN3_GPIO, /* GPIO 6 */
+    BTN4_GPIO  /* GPIO 7 */
 };
 
 /* Button debouncing and hold state array */
@@ -345,7 +345,7 @@ static void app_ui_task(void *pvParameters)
 /**
  * @brief Initialize the 4-button hardware subsystem and spawn Core 1 UI task.
  *
- * Configures GPIO 4, 16, 17, 5 with internal pull-up resistors and creates app_ui_task.
+ * Configures GPIO 4, 5, 6, 7 with internal pull-up resistors and creates app_ui_task.
  *
  * @return ESP_OK on success, or an ESP-IDF error code on failure.
  */

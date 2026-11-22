@@ -38,12 +38,12 @@ idf.py build
 
 ## Manual Review & Live Hardware Verification (nRF Connect / LightBlue on iOS & Android)
 
-After flashing the ESP32 Dev Board (`idf.py -p <PORT> flash monitor`):
+After flashing the ESP32-S3-DevKitC-1 (`idf.py -p <PORT> flash monitor`):
 
 1. **Discovery & Unbonded Protection Check**:
    - Open **nRF Connect** or **LightBlue** on iOS and Android.
    - Verify `"Fabrica-XXXX"` appears with primary Service UUID `0000FAB0-0000-1000-8000-00805F9B34FB`.
-   - Tap **Connect** without holding any button on the robot $\rightarrow$ verify the ESP32 rejects/terminates the unbonded connection immediately.
+   - Tap **Connect** without holding any button on the robot $\rightarrow$ verify the ESP32-S3 rejects/terminates the unbonded connection immediately.
 2. **3-Second Hold-to-Pair & Bonding Check**:
    - Hold **B1** on the robot for **3 seconds** $\rightarrow$ verify Status LED enters fast double-blink (`LED_STATE_BLE_PAIRING`).
    - Tap **Connect** in nRF Connect / LightBlue $\rightarrow$ accept the native iOS/Android Bluetooth pairing prompt; verify Status LED pulses solid ON for 1.0s (`LED_STATE_BLE_CONNECTED`) and disconnects/reconnects thereafter succeed automatically without holding a button.

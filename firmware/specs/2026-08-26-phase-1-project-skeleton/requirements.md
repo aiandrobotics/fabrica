@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 1 delivers the base firmware skeleton and build infrastructure for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1** microcontroller. It encompasses:
+Phase 1 delivers the base firmware skeleton and build infrastructure for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1** microcontroller. It encompasses:
 1. Root and component build configuration files (`CMakeLists.txt`, `main/CMakeLists.txt`, `Makefile`, `sdkconfig.defaults`).
 2. Single-source-of-truth hardware pinout mapping, system timing constants, and configuration header (`main/config.h`).
 3. Source-agnostic unified command protocol, routine data structures, and event models (`main/command.h`).
@@ -14,22 +14,22 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 ## Decisions & Technical Specifications
 
 ### 1. Framework & Toolchain Compatibility
-- **Target Microcontroller**: ESP32 Dev Board v1 (ESP-WROOM-32 / Xtensa Dual-Core 32-bit LX6 @ 240 MHz).
+- **Target Microcontroller**: ESP32-S3-DevKitC-1 (ESP32-S3-WROOM-1 / Xtensa Dual-Core 32-bit LX7 @ 240 MHz).
 - **Framework**: Espressif ESP-IDF v5.x / v6.x native C toolchain with modern API header inclusions (`esp_chip_info.h`, `esp_flash.h`, `esp_system.h`, `freertos/FreeRTOS.h`, `freertos/queue.h`, `freertos/event_groups.h`).
 - **Language Standard**: C99 / C11 with strict standard integer type definitions (`stdint.h`, `stdbool.h`, `stddef.h`).
 - **Build System**: CMake 3.16+ with Ninja generator.
 
 ### 2. Hardware Pinout Allocations (`config.h`)
 
-| Signal Name | ESP32 GPIO | Direction | Pull Mode | Active Level | Target Peripheral / Function |
+| Signal Name | ESP32-S3 GPIO | Direction | Pull Mode | Active Level | Target Peripheral / Function |
 |---|---|---|---|---|---|
-| `STATUS_LED_GPIO` | `GPIO_NUM_2` | Output | None | High (1) | Visual status indicator LED (Built-in DevKit LED) |
-| `BTN1_GPIO` | `GPIO_NUM_0` | Input | Internal Pull-Up | Low (0) | B1: Preset 1 Run / Cycle & Nudge Flap ($15^\circ$) |
-| `BTN2_GPIO` | `GPIO_NUM_4` | Input | Internal Pull-Up | Low (0) | B2: Preset 2 Run / Stage & Toggle Flap ($30^\circ$) |
-| `BTN3_GPIO` | `GPIO_NUM_16` | Input | Internal Pull-Up | Low (0) | B3: Preset 3 Run / Lock Step & Drop Flaps |
-| `BTN4_GPIO` | `GPIO_NUM_17` | Input | Internal Pull-Up | Low (0) | B4: Preset 4 Run / Save to NVS & Exit |
-| `I2C_SDA_GPIO` | `GPIO_NUM_21` | I/O | Open-Drain + Pull-Up | — | PCA9685 I2C Serial Data Bus |
-| `I2C_SCL_GPIO` | `GPIO_NUM_22` | Output | Open-Drain + Pull-Up | — | PCA9685 I2C Serial Clock Bus |
+| `BTN1_GPIO` | `GPIO_NUM_4` | Input | Internal Pull-Up | Low (0) | Left Header Pin 4 — B1: Preset 1 Run / E-Stop / Hold-to-Pair |
+| `BTN2_GPIO` | `GPIO_NUM_5` | Input | Internal Pull-Up | Low (0) | Left Header Pin 5 — B2: Preset 2 Run / E-Stop / Hold-to-Pair |
+| `BTN3_GPIO` | `GPIO_NUM_6` | Input | Internal Pull-Up | Low (0) | Left Header Pin 6 — B3: Preset 3 Run / E-Stop / Hold-to-Pair |
+| `BTN4_GPIO` | `GPIO_NUM_7` | Input | Internal Pull-Up | Low (0) | Left Header Pin 7 — B4: Preset 4 Run / E-Stop / Hold-to-Pair |
+| `STATUS_LED_GPIO` | `GPIO_NUM_15` | Output | None | High (1) | Left Header Pin 8 — External Status LED (Active High, 220Ω) |
+| `I2C_SCL_GPIO` | `GPIO_NUM_1` | Output | Open-Drain + Pull-Up | — | Right Header Pin 4 — PCA9685 I2C Serial Clock Bus |
+| `I2C_SDA_GPIO` | `GPIO_NUM_2` | I/O | Open-Drain + Pull-Up | — | Right Header Pin 5 — PCA9685 I2C Serial Data Bus |
 
 ### 3. System Limits & Timing Parameters (`config.h`)
 
@@ -43,15 +43,13 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 | Long Press Threshold | `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration to enter Programming Mode |
 | Inactivity Timeout | `PROGRAMMING_TIMEOUT_MS` | `20000` ms | Auto-exit duration for visual staging mode |
 | Fold Sweep Travel Time | `FOLD_DWELL_TIME_MS` | `800` ms | Flap travel duration to reach $170^\circ$ |
-| Landing Approach Time | `LANDING_APPROACH_MS` | `650` ms | Fast return duration from $170^\circ$ to $35^\circ$ |
-| Landing Step Delay (Min/Max) | `LANDING_STEP_MIN_DELAY_MS` / `MAX` | `20` / `50` ms | Ease-out soft-landing delay per $1^\circ$ step ($35^\circ \rightarrow 0^\circ$) |
-| Inter-Step Settling Delay | `INTER_STEP_DELAY_MS` | `200` ms | Pause between consecutive folding steps |
+| Return Sweep Time | `LANDING_APPROACH_MS` | `400` ms | Direct return duration from $170^\circ$ to $0^\circ$ |
+| Inter-Step Settling Delay | `INTER_STEP_DELAY_MS` | `10` ms | Pause between consecutive folding steps |
 | Flap Rest Angle | `HOME_ANGLE_DEG` | `0.0f` | Flat tabletop resting position ($0^\circ$) |
 | Flap Identification Angle | `NUDGE_ANGLE_DEG` | `15.0f` | Tactile/visual flap identification angle |
 | Flap Visual Staging Angle | `STAGE_ANGLE_DEG` | `30.0f` | Flap staging hold angle |
 | Flap Full Mechanical Range | `FOLD_ANGLE_DEG` | `180.0f` | Full servo mechanical range ($0^\circ$–$180^\circ$) |
 | Flap Fold Target Angle | `FOLD_TARGET_ANGLE_DEG` | `170.0f` | Max folding sweep target angle |
-| Landing Brake Angle | `LANDING_BRAKE_ANGLE_DEG` | `35.0f` | Angle where return sweep slows for soft landing |
 | PCA9685 I2C Address | `PCA9685_I2C_ADDR` | `0x40` | Default hardware I2C address |
 | PCA9685 PWM Frequency | `PCA9685_PWM_FREQ_HZ` | `50` Hz | 20 ms frame period for servo motors |
 | PCA9685 Resolution | `PCA9685_PWM_RES_BITS` | `12` | 4096-step PWM count resolution |
@@ -108,12 +106,12 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 
 ### 5. Boot Sequence & Diagnostics (`main.c`)
 - On startup in `app_main()`:
-  1. Print startup banner with project identity: `Fabrica Cloth Folding Robot - ESP32 Firmware`.
+  1. Print startup banner with project identity: `Fabrica Cloth Folding Robot - ESP32-S3 Firmware`.
   2. Query `esp_chip_info()` and output:
-     - Chip model (e.g. ESP32).
+     - Chip model (e.g. ESP32-S3).
      - Silicon revision.
-     - Number of CPU cores (Dual-Core Xtensa LX6).
-     - Supported features (Wi-Fi 802.11b/g/n, Bluetooth V4.2 BR/EDR/BLE).
+     - Number of CPU cores (Dual-Core Xtensa LX7).
+     - Supported features (Wi-Fi 802.11b/g/n, Bluetooth 5 (LE)).
   3. Query `esp_flash_get_size()` and output detected SPI flash size in MB.
   4. Query `esp_get_minimum_free_heap_size()` and output initial free heap statistics.
   5. Allocate FreeRTOS unified command queue (`xCommandQueue`) and system event group (`xSystemEvents`).

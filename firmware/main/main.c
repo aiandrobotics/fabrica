@@ -44,11 +44,11 @@ static void print_system_diagnostics(void)
     size_t min_free_heap = esp_get_minimum_free_heap_size();
 
     ESP_LOGI(TAG, "============================================================");
-    ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32 Firmware");
+    ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32-S3 Firmware");
     ESP_LOGI(TAG, " System State Machine & Preset Engine Ready");
     ESP_LOGI(TAG, "============================================================");
 
-    ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32) ? "ESP32" : "Unknown");
+    ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32S3) ? "ESP32-S3" : "Unknown");
     ESP_LOGI(TAG, "Silicon Revision : %d", chip_info.revision);
     ESP_LOGI(TAG, "CPU Cores        : %d @ 240 MHz", chip_info.cores);
     ESP_LOGI(TAG, "Features         : %s%s%s",

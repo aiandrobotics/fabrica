@@ -51,13 +51,13 @@
 ## Manual Review & Hardware Bench Verification
 
 ### 1. Serial Monitor I2C Probe Diagnostics
-- [ ] Flash ESP32 Dev Board and open serial monitor:
+- [ ] Flash ESP32-S3-DevKitC-1 and open serial monitor:
   ```bash
   idf.py flash monitor
   ```
 - [ ] Verify serial startup logs confirm successful I2C bus initialization and PCA9685 communication:
   ```text
-  [I2C] Initialized I2C Master on SDA: GPIO 21, SCL: GPIO 22 @ 100 kHz
+  [I2C] Initialized I2C Master on SDA: GPIO 2, SCL: GPIO 1 @ 100 kHz
   [PCA9685] PCA9685 detected at I2C address 0x40
   [PCA9685] Prescaler set to 121 (50 Hz PWM)
   [PCA9685] All 16 channels initialized to home position (0 deg / 102 counts)

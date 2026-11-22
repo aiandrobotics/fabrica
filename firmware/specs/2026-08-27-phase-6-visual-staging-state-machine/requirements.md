@@ -2,7 +2,7 @@
 
 ## Scope
 
-The Visual Staging Programming Mode & State Machine Integration subsystem provides computer-free, screen-free sequence creation, state coordination, and safety mechanisms for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**.
+The Visual Staging Programming Mode & State Machine Integration subsystem provides computer-free, screen-free sequence creation, state coordination, and safety mechanisms for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**.
 
 ### In-Scope Deliverables
 1. **Core State Machine Engine** (`main/state_machine.h`, `main/state_machine.c`):
@@ -45,7 +45,7 @@ The Visual Staging Programming Mode & State Machine Integration subsystem provid
 
 | Parameter | Specification | Source / Rationale |
 |---|---|---|
-| **Target Microcontroller** | ESP32 Dev Board v1 (ESP-WROOM-32) | Hardware Constitution |
+| **Target Microcontroller** | ESP32-S3-DevKitC-1 (ESP32-S3-WROOM-1) | Hardware Constitution |
 | **Max Presets** | 4 presets (Presets 1–4) | 4 physical buttons B1–B4 |
 | **Max Steps Per Routine** | 16 steps (`MAX_STEPS_PER_ROUTINE`) | Storage schema & RAM budget |
 | **Max Motors Per Step** | 2 motors (`MAX_MOTORS_PER_STEP`) | Servo current draw & kinematics |

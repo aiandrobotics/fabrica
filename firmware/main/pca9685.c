@@ -159,7 +159,7 @@ esp_err_t pca9685_read_reg(uint8_t reg, uint8_t *val)
  * @brief Initialize I2C bus master, configure PCA9685 registers for 50Hz, and home all servos.
  *
  * Steps performed:
- *   1. Initialize ESP32 I2C Master bus (SDA: GPIO 21, SCL: GPIO 22 @ 400kHz).
+ *   1. Initialize ESP32-S3 I2C Master bus (SDA: GPIO 2, SCL: GPIO 1 @ 100kHz).
  *   2. Attach PCA9685 device handle at I2C address 0x40.
  *   3. Probe bus presence.
  *   4. Configure internal clock prescaler for 50Hz RC servo PWM.

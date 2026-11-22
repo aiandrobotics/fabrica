@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 8 delivers the Bluetooth Low Energy (BLE) peripheral and GATT server subsystem (`ble_transport.h`, `ble_transport.c`) on **Core 1** of the **ESP32 Dev Board v1** using the ESP-IDF native **Apache NimBLE** stack.
+Phase 8 delivers the Bluetooth Low Energy (BLE) peripheral and GATT server subsystem (`ble_transport.h`, `ble_transport.c`) on **Core 1** of the **ESP32-S3-DevKitC-1** using the ESP-IDF native **Apache NimBLE** stack.
 
 All BLE functionality is implemented strictly in firmware to support both **iOS (`CoreBluetooth`)** and **Android (`BluetoothGatt`)** out of the box and to allow full functional verification using off-the-shelf App Store BLE scanner/test applications (**nRF Connect for Mobile** and **LightBlue**) prior to building any custom mobile app.
 
@@ -14,7 +14,7 @@ All BLE functionality is implemented strictly in firmware to support both **iOS 
 
 2. **31-Byte Split Advertising for iOS & Android Discovery**:
    - **Primary Advertisement Packet (21 Bytes $\le 31\text{B}$ limit)**: Flags (`0x06`: LE General Discoverable + BR/EDR Not Supported, 3B) + Complete List of 128-bit Service UUIDs (`0000FAB0-0000-1000-8000-00805F9B34FB`, 18B). Required for iOS `CoreBluetooth` service-filtered and background scanning and Android `BluetoothLeScanner` filters.
-   - **Scan Response Packet (17 Bytes $\le 31\text{B}$ limit)**: Complete Local Name (`"Fabrica-XXXX"` derived from the last 2 bytes of the ESP32 BT MAC address, 14B) + Tx Power Level (3B) for immediate human-readable identification in nRF Connect and LightBlue on iOS and Android.
+   - **Scan Response Packet (17 Bytes $\le 31\text{B}$ limit)**: Complete Local Name (`"Fabrica-XXXX"` derived from the last 2 bytes of the ESP32-S3 BT MAC address, 14B) + Tx Power Level (3B) for immediate human-readable identification in nRF Connect and LightBlue on iOS and Android.
 
 3. **Firmware-Driven Connection Parameters & ATT MTU Exchange**:
    - **Peripheral-Initiated Connection Parameter Update (`ble_gap_update_params`)**: Firmware requests Apple Accessory Design Guidelines and Android compliant parameters 1.5 seconds after connection establishment:
@@ -50,7 +50,7 @@ All BLE functionality is implemented strictly in firmware to support both **iOS 
 1. **Hold-to-Pair Policy with Zero-Bond Auto-Start**:
    - On first boot or immediately following a hardware bond reset (`CMD_CLEAR_BLE_BONDS`), if zero devices are bonded in NVS, indefinite pairing mode (`LED_STATE_BLE_PAIRING`) automatically opens and remains open until the first phone pairs out-of-the-box without requiring a button press. For subsequent devices, pairing requires holding any button for 3 seconds (`CMD_ENTER_BLE_PAIRING`), which opens a 120-second timed window. Outside an active pairing window, unbonded centrals connecting are terminated immediately, preventing unauthorized BLE connections while allowing bonded devices to reconnect seamlessly via IRK resolution.
 2. **Peripheral-Initiated Security, MTU & Connection Parameters**:
-   - Because off-the-shelf test apps (nRF Connect / LightBlue) on iOS and Android do not execute custom connection-setup hooks, the ESP32 peripheral proactively initiates `ble_gap_security_initiate()`, `ble_gattc_exchange_mtu()`, and `ble_gap_update_params()` upon connection.
+   - Because off-the-shelf test apps (nRF Connect / LightBlue) on iOS and Android do not execute custom connection-setup hooks, the ESP32-S3 peripheral proactively initiates `ble_gap_security_initiate()`, `ble_gattc_exchange_mtu()`, and `ble_gap_update_params()` upon connection.
 3. **Full Struct + Compact Payload Dual Support on `FAB3` & `FAB1`**:
    - Supporting both the fixed 53B/54B/212B packed binary structures and compact variable-length step payloads (`[preset_id][step_count][3B * step_count]`) with automatic zero-padding and IEEE 802.3 CRC32 computation makes manual sequence entry in nRF Connect / LightBlue fast and error-free while preserving strict binary struct parity.
 4. **Backward-Compatible `cmd_type_t` Enumeration**:
@@ -95,7 +95,7 @@ sequenceDiagram
     participant Central as iOS / Android Test App<br/>(nRF Connect / LightBlue)
     participant BLE as Core 1: ble_transport.c<br/>(NimBLE GAP/SMP/GATT)
     participant SM as Core 1/0: State Machine & Storage
-    participant LED as Core 1: Status LED (GPIO 2)
+    participant LED as Core 1: Status LED (GPIO 15)
 
     Note over Operator,LED: 1. Hold-to-Pair Authorization & Native SMP Bonding
     Operator->>SM: Hold B1 for 3.0s (CMD_ENTER_BLE_PAIRING)

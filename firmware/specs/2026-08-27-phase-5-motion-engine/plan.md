@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32 Dev Board v1**. This subsystem runs a dedicated high-priority FreeRTOS task pinned to Core 0 (`main/motion.h`, `main/motion.c`) that consumes folding routines from NVS storage or direct command payloads, orchestrates deterministic single and parallel dual-servo sweep trajectories ($0^\circ \to 180^\circ \to 0^\circ$), manages fold dwell and inter-step settling delays, coordinates status LED feedback, and enforces instantaneous Emergency Stop (E-Stop) preemption (<50ms response, all 16 channels homed flat to $0^\circ$).
+Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem runs a dedicated high-priority FreeRTOS task pinned to Core 0 (`main/motion.h`, `main/motion.c`) that consumes folding routines from NVS storage or direct command payloads, orchestrates deterministic single and parallel dual-servo sweep trajectories ($0^\circ \to 180^\circ \to 0^\circ$), manages fold dwell and inter-step settling delays, coordinates status LED feedback, and enforces instantaneous Emergency Stop (E-Stop) preemption (<50ms response, all 16 channels homed flat to $0^\circ$).
 
 ---
 
@@ -34,15 +34,14 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
    - Implement single-motor sweep:
      - Command servo channel from $0^\circ \to 170^\circ$ (`FOLD_TARGET_ANGLE_DEG`).
      - Wait `FOLD_DWELL_TIME_MS` (800ms) with periodic abort polling.
-     - Fast-return to `LANDING_BRAKE_ANGLE_DEG` ($35^\circ$) and wait `LANDING_APPROACH_MS` (650ms).
-     - Ramp $34^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`) in $1^\circ$ steps with delay easing from $20\text{ms}$ to $50\text{ms}$.
+     - Direct return to $0^\circ$ (`HOME_ANGLE_DEG`) and wait `LANDING_APPROACH_MS` (400ms).
    - Implement parallel dual-motor sweep:
      - Generate multi-channel bitmask from `step->motor_ids[0]` and `step->motor_ids[1]`.
      - Command both channels synchronously to $170^\circ$ via `pca9685_set_multi_servo_angles()`.
      - Wait `FOLD_DWELL_TIME_MS` (800ms) with periodic abort polling.
-     - Fast-return synchronously to $35^\circ$ (650ms) and ease-out ramp to $0^\circ$.
+     - Direct return synchronously to $0^\circ$ (`HOME_ANGLE_DEG`) and wait `LANDING_APPROACH_MS` (400ms).
    - Implement inter-step settling delay:
-     - Wait for `INTER_STEP_DELAY_MS` (200ms) between consecutive steps.
+     - Wait for `INTER_STEP_DELAY_MS` (10ms) between consecutive steps.
    - Bind visual LED status:
      - Set `led_set_state(LED_STATE_RUNNING)` when motion begins.
      - Set `led_set_state(LED_STATE_IDLE)` upon clean completion of all steps.
@@ -74,7 +73,7 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
    - Implement host test harness with simulated PCA9685, LED, and NVS subsystems:
      - Test single-motor sweep trajectory ($0^\circ \to 180^\circ \to 0^\circ$) and timing parameters.
      - Test synchronized parallel dual-motor sweep execution.
-     - Test multi-step routine sequencing (Step 1 to $N$) and 200ms inter-step delay.
+     - Test multi-step routine sequencing (Step 1 to $N$) and 10ms inter-step delay.
      - Test empty preset safeguard (0 steps triggers `LED_STATE_INPUT_ERROR`).
      - Test invalid preset ID rejection ($<1$ or $>4$).
      - Test instant Emergency Stop preemption during active sweep, verifying abort latency $<50\text{ms}$, all channels homed, and `LED_STATE_ESTOP` triggered.
