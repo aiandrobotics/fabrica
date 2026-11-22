@@ -15,6 +15,7 @@ Thumbs.db
 *~
 .project
 .settings/
+.clangd
 
 # Python & MicroPython Firmware
 __pycache__/
