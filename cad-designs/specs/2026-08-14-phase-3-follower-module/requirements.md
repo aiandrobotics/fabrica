@@ -74,29 +74,28 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
   - **Zero Fabric Catch Points**: Eliminates all perimeter seam gaps so thin garments and loose threads can never slip between flap and frame.
   - **Rock-Solid $0^\circ$ Home Hard Stop**: Prevents flap sagging or over-travel under heavy garment loads.
   - **Optimized 2.4mm Blade Thickness**: High flexural stiffness (12 solid layers) while keeping moving blade mass light ($\approx 75\text{g}$).
-- **Heavy-Duty Continuous Solid-Core Drive Axle ($\varnothing 13.0\text{ mm}$)**:
-  - Spans the hinge axis at $(X = 0, Z = 8.0\text{ mm})$ across the full $240.0\text{ mm}$ length.
+- **Heavy-Duty Continuous Solid-Core Drive Axle ($\varnothing 12.8\text{ mm}$)**:
+  - Spans the hinge axis at $(X = 0, Z = 15.0\text{ mm})$ across the drop-in knuckle span.
   - **100% Solid Central Core**: Maximizes torsional rigidity and eliminates torsional twist when transmitting motor torque across multiple follower stages.
-  - Hollow hex connector cavities located exclusively at the top and bottom ends ($12.0\text{ mm}$ deep).
+  - Hollow hex connector cavities located exclusively at the top and bottom ends ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`).
 - **Bottom Reinforcing Fillet Gusset**: Smooth curved structural transition from axle underside up to the blade floor providing $3\times$ torsional load distribution.
 - **Dual Symmetrical Female Hex Coupler Sockets**:
-  - **Top End ($Y = 240\text{ mm}$)**: $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($12.0\text{ mm}$ engagement depth in $-Y$).
-  - **Bottom End ($Y = 0\text{ mm}$)**: Identical $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($12.0\text{ mm}$ engagement depth in $+Y$).
+  - **Top End**: $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($22.0\text{ mm}$ engagement depth, `HEX_COUPLER_DEPTH = 22.00` in $-Y$).
+  - **Bottom End**: Identical $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($22.0\text{ mm}$ engagement depth, `HEX_COUPLER_DEPTH = 22.00` in $+Y$).
   - **100% Flat 3D Printability**: Zero protruding male pegs, allowing the flap to print 100% flat on the bed with clean surface finishes.
 - **Organic Gradient Circular Cutouts (~45% Mass Reduction)**:
   - Multi-tiered circular cutouts (ranging from $\varnothing 12\text{ mm}$ to $\varnothing 34\text{ mm}$) distributed across the paddle face matching reference images `follower-module.png` and `3d-overview.png`.
   - $0.8\text{ mm}$ chamfers on all cutout edges.
 - **Dual-Tone Accent Bevel**: $1.2\text{ mm}$ recessed perimeter shadow bevel along top perimeter edges.
-- **Diamond Micro-Grip Texture**: $0.6\text{ mm}$ debossed diamond knurling pattern across the top garment-contact face to prevent cloth slippage.
+- **Diamond Micro-Grip Texture**: $0.6\text{ mm}$ debossed diamond knurling pattern across the top garment-contact face to prevent cloth slippage, excluding the hinge neck strip ($X \in [0.0, 11.9\text{ mm}]$) to preserve a `100%` solid $2.4\text{ mm}$ hinge spine transition.
 
 ---
 
 ## 2.3 Modular Double-Male Hex Drive Coupler Pin (`hex_drive_coupler.py`)
-- **Overall Dimensions**: $8.0\text{ mm} \text{ (Hex)} \times 22.0\text{ mm} \text{ (Total Length)}$.
-- **Double-Ended Hex Keys**: $7.7\text{ mm}$ Flat-to-Flat ($0.15\text{ mm}$ sliding fit clearance per side) with $1.5\text{ mm} \times 45^\circ$ self-aligning lead-in entry chamfers on both ends.
-- **Center Stop Flange**: $\varnothing 13.8\text{ mm} \times 1.0\text{ mm}$ collar that keeps the coupler centered across the module seam.
-- **Through-Hole**: $\varnothing 3.2\text{ mm}$ central bore for mass reduction or optional M3 reinforcing tension rod.
-- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap.
+- **Overall Dimensions**: $8.0\text{ mm} \text{ (Nominal Hex)} \times 78.0\text{ mm} \text{ (Total Length)}$.
+- **Double-Ended Hex Keys**: $7.88\text{ mm}$ Flat-to-Flat ($0.12\text{ mm}$ AF zero-backlash slip-fit clearance) $\times 18.0\text{ mm}$ engagement length (`HEX_PEG_DEPTH = 18.00`) with $1.0\text{ mm} \times 45^\circ$ self-aligning lead-in entry chamfers on both ends.
+- **Inter-Module Bridge & Knuckle Journals**: $10.0\text{ mm}$ inter-module bridge with central $\varnothing 15.0\text{ mm} \times 2.0\text{ mm}$ locating collar and $\varnothing 12.8\text{ mm} \times 16.0\text{ mm}$ smooth knuckle journals on both sides.
+- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap (paired with `end_pivot_pin.py`, $36.0\text{ mm}$ total length with $\varnothing 16.0 \times 3.0\text{ mm}$ thrust flange and $7.88\text{ mm}$ AF $\times 18.0\text{ mm}$ male hex peg).
 
 ---
 

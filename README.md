@@ -1,6 +1,6 @@
 # Fabrica — Smart Open-Source Cloth Folding Robot
 
-[![Firmware Tests](https://img.shields.io/badge/firmware%20tests-911%2F911%20passing-brightgreen.svg)](firmware/)
+[![Firmware Tests](https://img.shields.io/badge/firmware%20tests-886%2F886%20passing-brightgreen.svg)](firmware/)
 [![FreeCAD API](https://img.shields.io/badge/CAD-FreeCAD%20Python%20Parametric-blue.svg)](cad-designs/)
 [![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.0.2%20FreeRTOS-red.svg)](firmware/)
 [![Mobile App](https://img.shields.io/badge/mobile%20app-air--robotics--app-orange.svg)](https://github.com/aiandrobotics/air-robotics-app)
@@ -67,7 +67,7 @@ graph TD
 - **Dual Operating Modes**:
   - **Standalone Daily Run Mode**: Instant 1-touch execution of Presets 1–4 via physical tactile buttons on the robot console. No phone or computer needed for daily laundry routines.
   - **Wireless Mobile App Mode**: Complete Bluetooth Low Energy (BLE) control for designing custom routines, previewing sequences, live servo jog calibration, and real-time telemetry streaming.
-- **Modular & Parametric Grid**: Standard 4×3 grid (expandable up to 16 motorized modules) engineered in FreeCAD Python with sliding dovetails, captive wire conduits, and heavy-duty continuous Ø13mm hinge knuckles.
+- **Modular & Parametric Grid**: Standard 4×3 grid (expandable up to 16 motorized modules) engineered in FreeCAD Python with sliding dovetails, captive wire conduits, heavy-duty $\varnothing 12.8\text{ mm}$ drive axles, solid un-grooved $2.4\text{ mm}$ hinge necks, and $22.0\text{ mm}$ deep $8.0\text{ mm}$ hex couplers.
 - **Robust Hardware E-Stop (<50ms Abort)**: Tapping any physical button or issuing a BLE stop command during active movement halts motion within 50ms and returns all panels to a safe home position.
 - **Fail-Safe Flash Storage**: Non-volatile NVS flash persistence with IEEE 802.3 CRC32 checksum verification to protect stored garment sequences against data corruption.
 
@@ -81,25 +81,25 @@ The mechanical system is built programmatically using parametric FreeCAD Python 
 
 - **Modular Panels**:
   - **Base Chassis (`base_module.py`)**: Rigid stationary platform with internal hexagonal weight-reduction web, non-slip TPU foot recesses, and captive cable channels.
-  - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, continuous Ø13.0mm hinge axle, 25T metal servo horn pocket, and quick-release vented snap-cover.
-  - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual Ø13.5mm bearing knuckles and 8.0mm hex torque drive sockets.
-  - **Interface Enclosure (`interface_case.py`, `interface_panel.py`)**: Angled 15° control deck housing the 4 tactile push buttons, status LED diffuser, ESP32, and PCA9685 circuit boards.
-  - **Hardware Interlocks (`frame_joiner.py`, `hex_drive_coupler.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels and double-male 8.0mm hex torque coupler pins.
+  - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, continuous $\varnothing 12.8\text{ mm}$ hinge axle, $\varnothing 20.0 \times 7.5\text{ mm}$ horn adapter ($7.88\text{ mm}$ AF $\times 23.8\text{ mm}$ hex peg), dual $22.0\text{ mm}$ deep female hex sockets, solid un-grooved $2.4\text{ mm}$ hinge neck, and vented snap-cover.
+  - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual $\varnothing 13.7\text{ mm}$ bearing knuckles, dual $22.0\text{ mm}$ deep $8.0\text{ mm}$ female hex torque drive sockets, and solid un-grooved $2.4\text{ mm}$ hinge neck.
+  - **Interface Enclosure (`interface_case.py`, `interface_panel.py`)**: Compact enclosure housing the 4 tactile push buttons, status LED diffuser, ESP32-S3-DevKitC-1, PCA9685, and power distribution boards.
+  - **Hardware Interlocks (`frame_joiner.py`, `hex_drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $7.88\text{ mm}$ AF $\times 18.0\text{ mm}$ zero-backlash hex torque coupler pins, and captive shoulder end pivot pins.
 - **Pre-Exported Assets**: Clean STEP and STL files available in [`cad-designs/exports/`](cad-designs/exports/).
 - **Slicer Profile**: Bambu Studio / OrcaSlicer project file ready for printing in [`cad-designs/3d-print/fabrica-bambu-lab-256.3mf`](cad-designs/3d-print/fabrica-bambu-lab-256.3mf).
 
 ### 2. Embedded Firmware (`firmware/`)
 
-The embedded firmware runs natively on the **ESP32 DevKit v1** using **ESP-IDF v6.0.2** and a dual-core FreeRTOS architecture:
+The embedded firmware runs natively on the **ESP32-S3-DevKitC-1** using **ESP-IDF v6.0.2** and a dual-core FreeRTOS architecture:
 
 - **Core 0 (Motion Engine & Actuation)**:
-  - High-precision 50 Hz PWM servo trajectory generator driving the PCA9685 controller over I2C (`GPIO 21 SDA`, `GPIO 22 SCL`).
-  - Fluid parallel sweeps (e.g. folding left and right flaps simultaneously).
-  - 300ms fold dwell and 200ms inter-step delay tuning.
+  - High-precision 50 Hz PWM servo trajectory generator driving the PCA9685 controller over I2C (`GPIO 2 SDA`, `GPIO 1 SCL`).
+  - Fluid parallel sweeps using a 5-phase 40 Hz balance-point braked S-curve ($0^\circ \to 150^\circ \to 0^\circ$ so the coupled follower completes the fold without overshooting $180^\circ$ or slamming home).
+  - `1350ms` forward sweep (including `250ms` top hold), `1450ms` early gravity-braked return sweep, and `10ms` inter-step settling delay.
   - Sub-50ms latched Emergency Stop (E-Stop) preemption handler.
 - **Core 1 (UI, BLE Wireless & Storage)**:
   - 4-Button debouncer with 50ms low-pass filter and multi-gesture detection (short press vs. 3-second hold).
-  - Non-blocking multi-pattern status LED engine (`GPIO 2`).
+  - Non-blocking multi-pattern status LED engine (`GPIO 15`).
   - NVS Flash Sequence Manager with IEEE 802.3 CRC32 integrity validation.
   - Apache NimBLE GATT Server supporting native iOS (`CoreBluetooth`) and Android (`BluetoothGatt`) central connections.
   - Adaptive real-time telemetry streaming (10 Hz high-rate in motion / 1 Hz low-rate when idle).
@@ -108,7 +108,7 @@ The embedded firmware runs natively on the **ESP32 DevKit v1** using **ESP-IDF v
   - **Button 2**: Long-Sleeve Shirt (Collar staging $\to$ Dual side tucks $\to$ Waist fold).
   - **Button 3**: Trousers / Jeans (Parallel leg align $\to$ Bottom fold).
   - **Button 4**: Towel / Linen (Symmetric half-fold $\to$ Quarter-fold).
-- **Automated Test Coverage**: 11 unit and integration test suites passing **911/911 host checks** with zero warnings (`-Wall -Wextra -Werror`).
+- **Automated Test Coverage**: 11 unit and integration test suites passing **886/886 host checks** with zero warnings (`-Wall -Wextra -Werror`).
 
 ### 3. Mobile Application (`mobile-app/` & External Repo)
 
@@ -141,18 +141,18 @@ The [`docs/`](docs/) directory contains guides and reference manuals:
 
 ```
                   +--------------------------+
-                  |      ESP32 DevKit v1     |
+                  |    ESP32-S3-DevKitC-1    |
                   |                          |
                   |         3V3 Logic   (1)  |------------> PCA9685 VCC
                   |         GND         (2)  |----+-------> PCA9685 GND
-                  |         GPIO 21 SDA (3)  |---|--------> PCA9685 SDA
-                  |         GPIO 22 SCL (4)  |---|--------> PCA9685 SCL
+                  |         GPIO 2  SDA (3)  |---|--------> PCA9685 SDA
+                  |         GPIO 1  SCL (4)  |---|--------> PCA9685 SCL
                   |                          |   |
-                  |         GPIO 2 LED       |   |
+                  |         GPIO 15 LED      |   |
                   |         GPIO 4  (Btn 1)  |   |
-                  |         GPIO 16 (Btn 2)  |   |
-                  |         GPIO 17 (Btn 3)  |   |
-                  |         GPIO 5  (Btn 4)  |   |
+                  |         GPIO 5  (Btn 2)  |   |
+                  |         GPIO 6  (Btn 3)  |   |
+                  |         GPIO 7  (Btn 4)  |   |
                   +--------------------------+   |
                                                  |
   +-------------------------------+              |
@@ -165,19 +165,19 @@ The [`docs/`](docs/) directory contains guides and reference manuals:
 ```
 
 > [!WARNING]
-> **Power Isolation Rule**: High-torque MG996R servos can draw peak stall currents above 2.5A each. Never power the PCA9685 servo power terminal (`V+`) from the ESP32 3.3V or 5V (VIN) pin. Always use an external regulated 5V–6V DC power supply capable of 10A–20A surge capacity, sharing a common ground with the ESP32.
+> **Power Isolation Rule**: High-torque MG996R servos can draw peak stall currents above 2.5A each. Never power the PCA9685 servo power terminal (`V+`) from the ESP32-S3 3.3V or 5V pin. Always use an external regulated 5V–6V DC power supply capable of 10A–20A surge capacity, sharing a common ground with the ESP32-S3.
 
 ### Pinout Table
 
-| ESP32 Pin | Direction | Active Level | Target Component / Function |
+| ESP32-S3 Pin | Direction | Active Level | Target Component / Function |
 |---|---|---|---|
-| `GPIO 2` | Output | High (1) | Status LED (Built-in DevKit LED + External Diffuser) |
+| `GPIO 15` | Output | High (1) | Status LED (External Front-Panel Diffuser) |
 | `GPIO 4` | Input (Pull-Up) | Low (0) | Button 1 (`B1`): Adult T-Shirt Preset / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 16` | Input (Pull-Up) | Low (0) | Button 2 (`B2`): Long-Sleeve Preset / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 17` | Input (Pull-Up) | Low (0) | Button 3 (`B3`): Trousers Preset / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 5` | Input (Pull-Up) | Low (0) | Button 4 (`B4`): Towel Preset / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 21` | In/Out (Open-Drain) | — | PCA9685 I2C Data (`SDA`) |
-| `GPIO 22` | Output (Open-Drain) | — | PCA9685 I2C Clock (`SCL`) |
+| `GPIO 5` | Input (Pull-Up) | Low (0) | Button 2 (`B2`): Long-Sleeve Preset / E-Stop / Hold-to-Pair (3s) |
+| `GPIO 6` | Input (Pull-Up) | Low (0) | Button 3 (`B3`): Trousers Preset / E-Stop / Hold-to-Pair (3s) |
+| `GPIO 7` | Input (Pull-Up) | Low (0) | Button 4 (`B4`): Towel Preset / E-Stop / Hold-to-Pair (3s) |
+| `GPIO 2` | In/Out (Open-Drain) | — | PCA9685 I2C Data (`SDA`) |
+| `GPIO 1` | Output (Open-Drain) | — | PCA9685 I2C Clock (`SCL`) |
 
 ---
 
@@ -185,7 +185,7 @@ The [`docs/`](docs/) directory contains guides and reference manuals:
 
 | Item | Component | Qty | Purpose | Est. Cost (USD) |
 |---|---|---|---|---|
-| 1 | **ESP32 DevKit v1** | 1 | Main dual-core microcontroller board | \$4.00 – \$6.00 |
+| 1 | **ESP32-S3-DevKitC-1** | 1 | Main dual-core microcontroller board | \$5.00 – \$8.00 |
 | 2 | **PCA9685 16-Channel PWM Board** | 1 | Dedicated I2C servo controller | \$3.00 – \$5.00 |
 | 3 | **MG996R Metal-Gear Servos** | 4 | High-torque 180° flap actuators | \$24.00 – \$32.00 |
 | 4 | **DC Power Supply (5V or 6V, 10A–20A)** | 1 | High-current isolated servo power | \$15.00 – \$25.00 |
@@ -205,14 +205,17 @@ fabrica/
 ├── cad-designs/               # FreeCAD parametric scripts & 3D models
 │   ├── base_module.py         # Stationary rigid base chassis
 │   ├── motorized_frame.py     # Active motorized chassis (MG996R servo well)
-│   ├── motorized_flap.py      # Active flap with 25T horn pocket
+│   ├── motorized_flap.py      # Active flap with 22.0mm hex sockets & solid hinge neck
+│   ├── motorized_servo_adapter.py # Circular horn adapter (7.88mm AF × 23.8mm hex peg)
 │   ├── motorized_servo_cover.py # Snap-cover with cooling gills
 │   ├── follower_frame.py      # Passive follower chassis
-│   ├── follower_flap.py       # Passive follower flap
-│   ├── interface_case.py      # Dual-board electronics enclosure
-│   ├── interface_panel.py     # 15° sloped button & LED faceplate
-│   ├── frame_joiner.py        # Interlocking dovetail joiners
-│   ├── hex_drive_coupler.py   # Double-male 8.0mm hex drive pin
+│   ├── follower_flap.py       # Passive follower flap with 22.0mm hex sockets
+│   ├── interface_case.py      # Triple-board electronics enclosure
+│   ├── interface_panel.py     # Compact snap-lock button & LED faceplate
+│   ├── frame_joiner.py        # Interlocking dovetail joiners with wire raceway
+│   ├── hex_drive_coupler.py   # Double-male 7.88mm AF × 18.0mm hex drive pin
+│   ├── end_pivot_pin.py       # Captive shoulder pivot pin (7.88mm AF × 18.0mm peg)
+│   ├── assembly.py            # Full 6-module universal folding robot assembly
 │   ├── export_all.py          # Batch export script (STEP & STL)
 │   ├── 3d-print/              # Bambu Studio 3MF slicer projects
 │   └── exports/               # Exported STEP and STL assets
@@ -230,7 +233,7 @@ fabrica/
 │   │   ├── ble_transport.c/h  # Apache NimBLE GATT server (FAB0)
 │   │   ├── remote_cmd.c/h     # BLE command parser & dispatcher
 │   │   └── telemetry.c/h      # Adaptive 10 Hz / 1 Hz telemetry engine
-│   ├── test/                  # Host unit test suites (911 passing checks)
+│   ├── test/                  # Host unit test suites (886 passing checks)
 │   └── Makefile               # Unit test runner
 ├── mobile-app/                # Mobile app integration guide & wire specs
 │   └── README.md              # BLE GATT specs & external repository link
@@ -281,7 +284,7 @@ cd firmware
 make test
 ```
 
-To view verbose assertions across all 911 test checks:
+To view verbose assertions across all 886 test checks:
 
 ```bash
 make test-verbose

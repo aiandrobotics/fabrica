@@ -151,7 +151,10 @@ def construct_frame_joiner():
     return joiner_solid
 
 def export_part():
-    construct_frame_joiner()
+    doc = App.newDocument("FrameJoiner")
+    shape = construct_frame_joiner()
+    feature = doc.addObject("Part::Feature", "FrameJoiner")
+    feature.Shape = shape
 
 export_part()
 

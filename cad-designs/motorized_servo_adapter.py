@@ -19,6 +19,8 @@ if SCRIPT_DIR not in sys.path:
 from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
+    HEX_COUPLER_SIZE,
+    HEX_COUPLER_CLEARANCE,
     EXPORT_DIR,
 )
 
@@ -50,8 +52,8 @@ def construct_motorized_servo_adapter():
     y_front = 156.3                            # Front face at Y = 156.3mm (5.8mm clearance from frame knuckle at 150.5mm)
     y_rear = 163.8                             # Rear face at Y = 163.8mm (seats flush against MG996R round horn)
     disk_t = y_rear - y_front                  # 7.5mm thickness (+2.0mm thicker so horn screws stay recessed)
-    hex_size = 7.7                             # 7.7mm flat-to-flat (8.0mm hex socket clearance)
-    peg_len = 13.8                             # 13.8mm hex peg length (Y=156.3 to 142.5mm, engaging 7.5mm into flap journal at Y=150.0mm)
+    hex_size = HEX_COUPLER_SIZE - HEX_COUPLER_CLEARANCE  # 7.88mm flat-to-flat zero-backlash slip fit
+    peg_len = 23.8                             # 23.8mm hex peg (Y=156.3 to 132.5mm, engaging 17.5mm into flap shaft)
 
     # 1. Main Circular Flange Disk (Y in [159.5, 163.8mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))
@@ -62,7 +64,7 @@ def construct_motorized_servo_adapter():
     hex_peg = hex_face.extrude(App.Vector(0, -peg_len, 0))
 
     # 45° Lead-in nose chamfer on hex peg tip
-    chamfer_cone = Part.makeCone(disk_r, disk_r - 2.0, 2.0, App.Vector(0, y_front - peg_len, pivot_z), App.Vector(0, -1, 0))
+    chamfer_cone = Part.makeCone(disk_r, disk_r - 1.2, 1.2, App.Vector(0, y_front - peg_len, pivot_z), App.Vector(0, -1, 0))
     hex_peg = hex_peg.cut(chamfer_cone).removeSplitter()
 
     adapter = flange.fuse(hex_peg).removeSplitter()

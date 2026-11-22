@@ -23,6 +23,8 @@ from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
+    HEX_COUPLER_CLEARANCE,
+    HEX_PEG_DEPTH,
     EXPORT_DIR,
 )
 
@@ -49,8 +51,8 @@ def construct_end_pivot_pin():
     disk_r = disk_dia / 2.0            # 8.00mm
     disk_thick = 3.0                   # 3.00mm (Y in [15.0, 18.0mm], sturdy for 3D printing)
     
-    hex_size = HEX_COUPLER_SIZE - 0.3  # 7.70mm flat-to-flat
-    peg_len = 9.0                      # 9.00mm engagement depth (Y in [16.0, 25.0mm])
+    hex_size = HEX_COUPLER_SIZE - HEX_COUPLER_CLEARANCE  # 7.88mm flat-to-flat zero-backlash slip fit
+    peg_len = HEX_PEG_DEPTH            # 18.00mm engagement depth (Y in [18.0, 36.0mm])
 
     # 1. Smooth Cylindrical Bearing Journal (Y in [0.0, 15.0mm])
     journal = Part.makeCylinder(journal_r, journal_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
@@ -67,8 +69,8 @@ def construct_end_pivot_pin():
     hex_face = Part.Face(hex_wire)
     hex_peg = hex_face.extrude(App.Vector(0, peg_len, 0))
 
-    # 1.5mm x 45° Self-aligning nose cone on hex peg tip (Y in [23.5, 25.0mm])
-    c_tip = Part.makeCone(journal_r, journal_r - 1.5, 1.5, App.Vector(0, journal_len + disk_thick + peg_len, pivot_z), App.Vector(0, 1, 0))
+    # 1.0mm x 45° Self-aligning nose cone on hex peg tip
+    c_tip = Part.makeCone(journal_r, journal_r - 1.0, 1.0, App.Vector(0, journal_len + disk_thick + peg_len, pivot_z), App.Vector(0, 1, 0))
     hex_peg = hex_peg.cut(c_tip).removeSplitter()
 
     # Fuse into monolithic solid shoulder pin

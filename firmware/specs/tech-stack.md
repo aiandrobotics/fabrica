@@ -61,8 +61,8 @@ graph LR
 ### Core 0 — Real-Time Motion & Actuation Engine
 - **`app_main` Command Consumer & Motion Engine (Core ID: 0)**:
   - Consumes motion execution commands from the inter-core queue.
-  - Implements smooth single-servo and synchronized parallel dual-servo sweep trajectories ($0^\circ \rightarrow 170^\circ \rightarrow 0^\circ$).
-  - Controls deterministic sweep/return timings (800ms forward sweep, 400ms direct return, 10ms inter-step delay) using low-latency sliced delays.
+  - Implements smooth single-servo and synchronized parallel dual-servo balance-point braked S-curve trajectories ($0^\circ \rightarrow 150^\circ \rightarrow 0^\circ$).
+  - Controls deterministic 40 Hz frame-paced sweep/return timings (1350ms forward sweep including 250ms top hold, 1450ms return with early gravity braking from $78^\circ \rightarrow 0^\circ$, 10ms inter-step delay) using low-latency sliced delays.
   - Continuously samples the E-Stop / Stop abort event flag before and during step transitions ($<50\text{ms}$ preemption latency).
 - **PCA9685 I2C Driver**: Direct register reads/writes over ESP32-S3 hardware I2C peripheral (`I2C_NUM_0`).
 
@@ -152,9 +152,13 @@ graph LR
 | `BUTTON_FACTORY_RESET_MS` | `10000` ms | Simultaneous B1+B3+B4 hold threshold for Full Factory Reset (wiping presets & bonds) |
 | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Upper bound for tap gesture detection in Daily Run Mode |
 | `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second (2-minute) timeout for multi-device pairing (indefinite on 0 bonds) |
-| `FOLD_DWELL_TIME_MS` | `800` ms | Travel time for flap to reach $170^\circ$ before returning |
-| `LANDING_APPROACH_MS` | `400` ms | Direct return travel time from $170^\circ$ to $0^\circ$ |
-| `FOLD_TARGET_ANGLE_DEG` | `170.0f` | Max folding sweep target angle |
+| `FOLD_DWELL_TIME_MS` | `1350` ms | Forward S-curve sweep time ($0^\circ \to 150^\circ$ + 250ms top hold) |
+| `LANDING_APPROACH_MS` | `1450` ms | Return S-curve sweep time ($150^\circ \to 0^\circ$ early balance-point braking) |
+| `FOLD_TOP_HOLD_MS` | `250` ms | Top settle hold at $150^\circ$ so follower panel finishes folding |
+| `SCURVE_FRAME_MS` | `25` ms | 40 Hz paced frame interval matching 2-panel load |
+| `SCURVE_BRAKE_FRAME_MS` | `25` ms | Gravity-brake frame interval |
+| `FOLD_TARGET_ANGLE_DEG` | `150.0f` | Motor target angle (follower reaches $\sim 170^\circ$ without hitting $180^\circ$) |
+| `SCURVE_CRUISE_STEP_DEG` | `4.0f` | Climb angle increment per 25ms frame ($160^\circ\text{/s}$) |
 | `INTER_STEP_DELAY_MS` | `10` ms | Settling delay between consecutive folding steps |
 | `CALIBRATION_THERMAL_TIMEOUT_MS` | `10000` ms | Stationary servo thermal de-energize cutoff in calibration mode |
 | `CALIBRATION_INACTIVITY_TIMEOUT_MS` | `15000` ms | Calibration inactivity watchdog auto-homing servos and exiting to Idle |

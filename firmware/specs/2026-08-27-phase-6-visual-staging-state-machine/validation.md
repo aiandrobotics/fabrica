@@ -48,7 +48,7 @@ When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
    - Press **B3** $\rightarrow$ Servo 4 drops flat to $0^\circ$, LED flashes twice quickly (Step 2 locked).
    - Press **B4** $\rightarrow$ LED illuminates solid ON for 2.0 seconds, then returns to Idle heartbeat.
 2. **Immediate Routine Recall Verification**:
-   - Short tap **B1** $\rightarrow$ LED turns solid ON, robot executes Step 1 (Servos 1 & 2 parallel fold $170^\circ$, direct return to $0^\circ$), then executes Step 2 (Servo 4 fold $170^\circ$, direct return to $0^\circ$).
+   - Short tap **B1** $\rightarrow$ LED turns solid ON, robot executes Step 1 (Servos 1 & 2 parallel S-curve fold $150^\circ$ and early-braked return to $0^\circ$), then executes Step 2 (Servo 4 S-curve fold $150^\circ$ and return to $0^\circ$).
 3. **20-Second Timeout Verification**:
    - Hold **B2** for 3 seconds $\rightarrow$ Enters Programming Mode (slow blink). Stage a servo to $30^\circ$.
    - Wait 20 seconds without touching any buttons.

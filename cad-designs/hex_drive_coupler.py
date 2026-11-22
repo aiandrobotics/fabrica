@@ -17,6 +17,8 @@ from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
+    HEX_COUPLER_CLEARANCE,
+    HEX_PEG_DEPTH,
     EXPORT_DIR,
 )
 
@@ -40,8 +42,8 @@ def construct_hex_drive_coupler():
     - Central Ø3.4mm driver access / weight-relief through-hole.
     """
     pivot_z = PIVOT_Z
-    hex_size = HEX_COUPLER_SIZE - 0.3                 # 7.7mm flat-to-flat
-    socket_depth = 9.0                                # 9.0mm hex engagement depth into flap
+    hex_size = HEX_COUPLER_SIZE - HEX_COUPLER_CLEARANCE # 7.88mm flat-to-flat zero-backlash slip fit
+    socket_depth = HEX_PEG_DEPTH                        # 18.0mm hex engagement depth into flap
     knuckle_len = 15.0                                # 15.0mm journal through frame knuckle
     gap_half = MODULE_GAP / 2.0                       # 5.0mm
     thrust_gap = 1.0                                  # 1.0mm thrust gap
@@ -71,7 +73,7 @@ def construct_hex_drive_coupler():
     hex_pos_wire = make_hexagon_wire(hex_size, 0, pivot_z, gap_half + knuckle_len + thrust_gap)
     hex_pos_face = Part.Face(hex_pos_wire)
     hex_pos_peg = hex_pos_face.extrude(App.Vector(0, socket_depth, 0))
-    c_pos = Part.makeCone(journal_r, journal_r - 1.5, 1.5, App.Vector(0, gap_half + knuckle_len + thrust_gap + socket_depth, pivot_z), App.Vector(0, 1, 0))
+    c_pos = Part.makeCone(journal_r, journal_r - 1.0, 1.0, App.Vector(0, gap_half + knuckle_len + thrust_gap + socket_depth, pivot_z), App.Vector(0, 1, 0))
     hex_pos_peg = hex_pos_peg.cut(c_pos).removeSplitter()
 
     # 3. -Y Smooth Knuckle Journal (Y in [-21.0, -5.0mm]) with seamless ruled loft from Ø12.8mm circle to 7.7mm hex
@@ -85,7 +87,7 @@ def construct_hex_drive_coupler():
     hex_neg_wire = make_hexagon_wire(hex_size, 0, pivot_z, -gap_half - knuckle_len - thrust_gap)
     hex_neg_face = Part.Face(hex_neg_wire)
     hex_neg_peg = hex_neg_face.extrude(App.Vector(0, -socket_depth, 0))
-    c_neg = Part.makeCone(journal_r, journal_r - 1.5, 1.5, App.Vector(0, -gap_half - knuckle_len - thrust_gap - socket_depth, pivot_z), App.Vector(0, -1, 0))
+    c_neg = Part.makeCone(journal_r, journal_r - 1.0, 1.0, App.Vector(0, -gap_half - knuckle_len - thrust_gap - socket_depth, pivot_z), App.Vector(0, -1, 0))
     hex_neg_peg = hex_neg_peg.cut(c_neg).removeSplitter()
 
     # Fuse into a smooth, 100% solid coupler pin

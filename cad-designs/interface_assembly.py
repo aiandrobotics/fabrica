@@ -129,6 +129,8 @@ def build_assembly():
     """
     Constructs and positions all parts for the Compact Interface Assembly.
     """
+    for doc_name in list(App.listDocuments().keys()):
+        App.closeDocument(doc_name)
     doc = App.newDocument("InterfaceAssemblyDoc")
     w = params.INTERFACE_PANEL_WIDTH  # 140.0mm
     d = params.INTERFACE_PANEL_HEIGHT  # 120.0mm

@@ -8,9 +8,9 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 1. **Core 0 Real-Time Motion Task** (`main/motion.h`, `main/motion.c`):
    - Dedicated FreeRTOS task pinned to Core 0 with priority 10.
    - Deterministic execution of sequential steps (Step 1 to $N$, up to 16 steps per routine).
-   - Single motor sweep trajectory ($0^\circ \to 170^\circ \to 0^\circ$).
-   - Synchronized parallel dual-motor sweep trajectory ($0^\circ \to 170^\circ \to 0^\circ$).
-   - `FOLD_DWELL_TIME_MS` (800ms) forward sweep travel time and `LANDING_APPROACH_MS` (400ms) direct return to $0^\circ$.
+   - Single motor 5-phase balance-point braked S-curve sweep trajectory ($0^\circ \to 150^\circ \to 0^\circ$).
+   - Synchronized parallel dual-motor 5-phase balance-point braked S-curve sweep trajectory ($0^\circ \to 150^\circ \to 0^\circ$).
+   - `FOLD_DWELL_TIME_MS` (1350ms) paced forward sweep including 250ms top hold (`FOLD_TOP_HOLD_MS`) and `LANDING_APPROACH_MS` (1450ms) early-braked return to $0^\circ$.
    - `INTER_STEP_DELAY_MS` (10ms) settling pause between consecutive steps.
 2. **Daily Run Mode Trigger Dispatcher**:
    - Short tap (<500ms) on B1–B4 triggers execution of Preset 1–4.
@@ -28,12 +28,12 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 
 ## Decisions
 
-1. **Direct Target Angle Actuation**:
-   - Forward sweep and direct return use target angle commands (`0^\circ \to 170^\circ \to 0^\circ`) via `pca9685_set_servo_angle()` and `pca9685_set_multi_servo_angles()` using FreeRTOS tick timing (`vTaskDelay()`).
+1. **40 Hz Balance-Point Braked S-Curve Actuation**:
+   - Forward sweep and return execute a 5-phase frame-paced S-curve trajectory ($0^\circ \to 24^\circ$ coupler take-up, $28^\circ \to 84^\circ$ climb at $160^\circ\text{/s}$, $87^\circ \to 150^\circ$ early gravity brake + 250ms top settle hold, $148^\circ \to 80^\circ$ return climb, $78^\circ \to 20^\circ$ early gravity-braked descent at $80^\circ\text{/s}$, $16^\circ \to 0^\circ$ soft table touch-down) via `pca9685_set_servo_angle()` and `pca9685_set_multi_servo_angles()` using FreeRTOS tick timing (`vTaskDelay()`).
 2. **Core 0 Pinned Task Execution**:
    - The motion task executes on CPU Core 0, isolating real-time I2C actuation and motion timing from UI button debouncing, LED timer patterns, and NVS flash operations running on Core 1.
 3. **Sub-50ms E-Stop Abort Polling**:
-   - During sweep, return, and inter-step delays (800ms forward sweep, 400ms direct return, 10ms inter-step delay), delays are executed in small slices (10ms chunks) or via event group waits (`xEventGroupWaitBits`) to ensure E-Stop signals abort motion in $<50\text{ms}$.
+   - During every S-curve frame and inter-step delay (25ms frames, 250ms hold, 10ms inter-step delay), delays are executed in small slices (10ms chunks) or via event group waits (`xEventGroupWaitBits`) to ensure E-Stop signals abort motion in $<50\text{ms}$.
 4. **All-Channel Homing on Abort / Complete**:
    - On both clean completion and emergency abort, the motion engine commands all 16 PCA9685 channels to $0^\circ$ (`HOME_ANGLE_DEG`) to ensure all folding flaps rest flat.
 
@@ -47,9 +47,9 @@ The Motion Engine & Daily Run Mode Execution subsystem provides the real-time mo
 | **Motion Task Core** | CPU Core 0 | Dual-core RTOS partition (`tech-stack.md`) |
 | **Motion Task Priority** | 10 (Highest application priority) | Deterministic real-time timing |
 | **Motion Task Stack** | 4096 bytes | Internal DRAM budgeting |
-| **Servo Angles** | Home: $0.0^\circ$, Fold Target: $170.0^\circ$, Max Range: $180.0^\circ$ | `config.h` mechanical specifications |
-| **Forward Sweep Time** | $800\text{ ms}$ (`FOLD_DWELL_TIME_MS`) | Servo sweep travel time to $170^\circ$ |
-| **Return Sweep Time** | $400\text{ ms}$ (`LANDING_APPROACH_MS`) | Direct return to $0^\circ$ |
+| **Servo Angles** | Home: $0.0^\circ$, Fold Target: $150.0^\circ$, Max Range: $180.0^\circ$ | `config.h` mechanical specifications |
+| **Forward Sweep Time** | $1350\text{ ms}$ (`FOLD_DWELL_TIME_MS`) | Paced S-curve forward sweep + 250ms top hold at $150^\circ$ |
+| **Return Sweep Time** | $1450\text{ ms}$ (`LANDING_APPROACH_MS`) | Paced S-curve return + early gravity braking ($78^\circ \to 0^\circ$) |
 | **Inter-Step Delay** | $10\text{ ms}$ (`INTER_STEP_DELAY_MS`) | Flap settling & mechanical inertia damping |
 | **E-Stop Latency** | $< 50\text{ ms}$ | User safety & mechanical jam prevention |
 | **Max Steps Per Routine**| 16 steps (`MAX_STEPS_PER_ROUTINE`) | Storage and memory architecture |
@@ -92,13 +92,11 @@ sequenceDiagram
         M->>LED: led_set_state(LED_STATE_RUNNING) [Solid ON]
         loop For each step (1 to step_count)
             alt Single Motor Step
-                M->>I2C: pca9685_set_servo_angle(ch, 170.0 deg)
+                M->>I2C: Balance-point S-curve forward (0 -> 150 deg, 1350ms incl. 250ms hold)
             else Parallel Dual-Motor Step
-                M->>I2C: pca9685_set_multi_servo_angles(mask, 170.0 deg)
+                M->>I2C: Parallel S-curve forward (0 -> 150 deg, 1350ms incl. 250ms hold)
             end
-            M->>M: Wait FOLD_DWELL_TIME_MS (800ms)
-            M->>I2C: Direct return to HOME_ANGLE_DEG (0.0 deg)
-            M->>M: Wait LANDING_APPROACH_MS (400ms)
+            M->>I2C: Early-braked S-curve return & landing (150 -> 0 deg, 1450ms)
             M->>M: Delay for INTER_STEP_DELAY_MS (10ms)
         end
         M->>I2C: pca9685_home_all()

@@ -64,7 +64,9 @@ PIVOT_Z                   = BASE_PANEL_THICKNESS  # 15.00mm (Hinge line at top d
 DRIVE_SHAFT_DIAMETER      = 12.80 # Ø12.8mm outer axle diameter (R=6.4mm half-cylinder axle in R=6.85mm cradle bore)
 DRIVE_SHAFT_BORE          = 8.00  # Ø8mm inner weight-relief bore
 HEX_COUPLER_SIZE          = 8.00  # 8.0mm Flat-to-Flat standard hex drive interface
-HEX_COUPLER_DEPTH         = 12.00 # 12.0mm engagement depth for zero slip under 35kg-cm servo load
+HEX_COUPLER_CLEARANCE     = 0.12  # 0.12mm AF clearance (7.88mm male hex peg for zero-backlash slip fit)
+HEX_COUPLER_DEPTH         = 22.00 # 22.0mm deep female hex socket in flaps for high torsional stiffness
+HEX_PEG_DEPTH             = 18.00 # 18.0mm male hex peg engagement depth (3x deeper torque contact)
 BEARING_ROTATING_CLEARANCE = 0.45  # 0.45mm radial clearance (Ø13.7mm frame knuckle bore for friction-free FDM 3D printing rotation)
 
 

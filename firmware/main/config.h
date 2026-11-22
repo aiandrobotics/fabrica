@@ -54,8 +54,11 @@ extern "C" {
 #define BUTTON_BOND_RESET_MS         5000   /* Simultaneous B1+B4 hold time (5s) to clear BLE bonds */
 #define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
-#define FOLD_DWELL_TIME_MS           800    /* Flap travel time to reach 170 deg (no extra hold) */
-#define LANDING_APPROACH_MS          400    /* Direct return travel time from 170 deg to 0 deg */
+#define FOLD_DWELL_TIME_MS           1350   /* Forward S-curve (0 -> 150 deg + 250ms top hold) */
+#define LANDING_APPROACH_MS          1450   /* Return S-curve (150 -> 0 deg early balance-point braking) */
+#define FOLD_TOP_HOLD_MS             250    /* Top settle hold at 150 deg so follower panel finishes folding */
+#define SCURVE_FRAME_MS              25     /* 40 Hz paced frame interval (25ms) matching 2-panel load */
+#define SCURVE_BRAKE_FRAME_MS        25     /* Gravity-brake frame interval (25ms) */
 #define INTER_STEP_DELAY_MS          10     /* Delay between routine steps */
 #define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
 #define CALIBRATION_INACTIVITY_TIMEOUT_MS 15000 /* Calibration auto-home & exit timeout (15s) */
@@ -90,7 +93,8 @@ extern "C" {
 #define NUDGE_ANGLE_DEG              15.0f  /* Identification nudge angle */
 #define STAGE_ANGLE_DEG              30.0f  /* Visual staging hold angle */
 #define FOLD_ANGLE_DEG               180.0f /* Full servo mechanical range (degrees) */
-#define FOLD_TARGET_ANGLE_DEG        170.0f /* Max folding sweep target angle */
+#define FOLD_TARGET_ANGLE_DEG        150.0f /* Motor target angle (follower reaches ~170 deg without hitting 180) */
+#define SCURVE_CRUISE_STEP_DEG       4.0f   /* Climb angle increment per 25ms frame (160 deg/s) */
 
 /* ========================================================================= */
 /* PCA9685 I2C & PWM Configuration                                           */

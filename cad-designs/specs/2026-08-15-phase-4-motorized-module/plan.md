@@ -16,21 +16,21 @@ Implementation plan for the Active Motorized Module of the Fabrica Cloth Folding
 ---
 
 ## Task Group 2: Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)
-1. Model the $\varnothing 19.0\text{ mm}$ circular flange disk of $7.0\text{ mm}$ thickness spanning $Y \in [178.0, 185.0\text{ mm}]$ centered at $(X=0, Z=10.0\text{ mm})$.
-2. Model 4x M2/M2.5 screw through-holes ($\varnothing 2.2\text{ mm}$) in a $90^\circ$ cross on $\varnothing 14.0\text{ mm}$ bolt circle for bolting directly to the MG996R round horn disk.
-3. Model central $\varnothing 6.5\text{ mm}$ counterbore for screwdriver access to the M3 spline lock screw.
-4. Model male 8.0mm hex drive peg ($7.7\text{ mm}$ flat-to-flat, $10.5\text{ mm}$ length extending along $-Y$ into the flap) with $1.5\text{ mm} \times 45^\circ$ self-aligning lead-in chamfer.
+1. Model the $\varnothing 20.0\text{ mm}$ circular flange disk of $7.5\text{ mm}$ thickness spanning $Y \in [156.3, 163.8\text{ mm}]$ centered at $(X=0, Z_{pivot}=15.0\text{ mm})$.
+2. Model 4x M2/M2.5 screw through-holes ($\varnothing 2.5\text{ mm}$) in a $90^\circ$ cross on $\varnothing 14.0\text{ mm}$ bolt circle for bolting directly to the MG996R round horn disk.
+3. Model central $\varnothing 8.0\text{ mm} \times 2.0\text{ mm}$ rear horn boss / screw head relief pocket.
+4. Model male 8.0mm nominal hex drive peg ($7.88\text{ mm}$ flat-to-flat with $0.12\text{ mm}$ AF zero-backlash slip-fit clearance, $23.8\text{ mm}$ length extending along $-Y$ from $Y = 156.3\text{ mm}$ to $132.5\text{ mm}$, engaging $17.5\text{ mm}$ into the flap socket) with $1.2\text{ mm} \times 45^\circ$ self-aligning lead-in chamfer.
 5. Implement headless STEP and STL export in `construct_motorized_servo_adapter()`.
 
 ---
 
 ## Task Group 3: Symmetrical Dual-Hex Active Folding Flap (`motorized_flap.py`)
-1. Model the full-size folding flap paddle body ($239.0 \times 238.0 \times 2.4\text{ mm}$) resting directly on frame landing rails ($Z = 15.0$ to $17.4\text{ mm}$).
+1. Model the full-size folding flap paddle body ($219.0 \times 219.5 \times 2.4\text{ mm}$) resting directly on frame landing rails ($Z = 15.0$ to $17.4\text{ mm}$).
 2. Model the top-left servo clearance corner relief notch ($45.0 \times 55.0\text{ mm}$) providing collision-free rotation around the motor bay across full $0^\circ \to 180^\circ$ swing.
-3. Model integrated continuous solid-core drive axle ($\varnothing 12.9\text{ mm}$) along $X = 0$ spanning $Y = 0.5$ to $178.0\text{ mm}$, centered at $Z_{pivot} = 10.0\text{ mm}$.
-4. Model **Driven Top End ($Y = 178.0\text{ mm}$)** with standardized $8.0\text{ mm}$ female hex torque socket ($10.5\text{ mm}$ deep) receiving the `motorized_servo_adapter` male hex peg.
-5. Model **Output Bottom End ($Y = 0.5\text{ mm}$)** with standardized $8.0\text{ mm}$ female hex torque socket ($10.5\text{ mm}$ deep) transmitting torque down the column via `hex_drive_coupler`.
-6. Model multi-tiered organic circular cutouts (~45% mass reduction), $0.6\text{ mm}$ diamond micro-grip knurling texture, and $1.2\text{ mm}$ perimeter shadow bevel.
+3. Model integrated continuous solid-core drive axle ($\varnothing 12.8\text{ mm}$) along $X = 0$ spanning $Y = 18.0$ to $142.5\text{ mm}$, centered at $Z_{pivot} = 15.0\text{ mm}$.
+4. Model **Driven Top End** with standardized $8.0\text{ mm}$ female hex torque socket ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`) receiving the `motorized_servo_adapter` male hex peg.
+5. Model **Output Bottom End** with standardized $8.0\text{ mm}$ female hex torque socket ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`) transmitting torque down the column via `hex_drive_coupler`.
+6. Model multi-tiered organic circular cutouts (~45% mass reduction), $0.6\text{ mm}$ diamond micro-grip knurling texture keeping the hinge neck strip ($X \in [0.0, 11.9\text{ mm}]$) $100\%$ solid $2.4\text{ mm}$ un-grooved, and $1.2\text{ mm}$ perimeter shadow bevel.
 7. Implement headless STEP and STL export in `construct_motorized_flap()`.
 
 ---

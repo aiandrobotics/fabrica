@@ -67,7 +67,7 @@ graph TD
 ## Product Roadmap
 
 - [x] **Deliverable 1: CAD Designs**: Modular 3D printed panel models, drive shafts, hinge links, controller housing, and full 4×3 grid assembly models.
-- [x] **Deliverable 2: ESP32 Firmware (Core Engine & Presets)**: Embedded C/FreeRTOS firmware, PCA9685 I2C driver, 4-button debounced interface, status LED driver, parallel sequence executor, CRC32 NVS sequence manager, and 4 factory presets exercising all 4 flap motors (566/566 tests passing).
+- [x] **Deliverable 2: ESP32 Firmware (Core Engine & Presets)**: Embedded C/FreeRTOS firmware, PCA9685 I2C driver, 4-button debounced interface, status LED driver, parallel sequence executor, CRC32 NVS sequence manager, and 4 factory presets exercising all 4 flap motors (886/886 tests passing).
 - [ ] **Deliverable 2b: Wireless BLE Mobile Integration**: Native NimBLE GATT services (`FAB1`, `FAB2`, `FAB3`), zero-bond indefinite auto-pairing & 120-second multi-device hold-to-pair window, and live telemetry.
 - [ ] **Deliverable 3: Documentation Website**: Step-by-step mechanical assembly guides, wiring schematics, interactive BOM table, and user manuals.
 - [ ] **Deliverable 4: Mobile Application**: Bluetooth Low Energy (BLE) wireless control, sequence configuration per button, start/stop execution, real-time motor progress streaming, and client-side garment profiles.

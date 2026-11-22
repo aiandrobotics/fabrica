@@ -35,22 +35,22 @@ The mobile application enables:
 
 ## Hardware Wiring & Electrical Schematics
 
-The Fabrica electronics system consists of the **ESP32 DevKit v1**, the **PCA9685 16-channel 12-bit PWM servo driver**, high-torque **MG996R servos**, a dedicated **5V/6V 10A–20A external DC power supply**, four tactile push buttons, and a status LED.
+The Fabrica electronics system consists of the **ESP32-S3-DevKitC-1**, the **PCA9685 16-channel 12-bit PWM servo driver**, high-torque **MG996R servos**, a dedicated **5V/6V 10A–20A external DC power supply**, four tactile push buttons, and a status LED.
 
 ```
                   +--------------------------+
-                  |      ESP32 DevKit v1     |
+                  |    ESP32-S3-DevKitC-1    |
                   |                          |
                   |         3V3 Logic   (1)  |------------> PCA9685 VCC
                   |         GND         (2)  |----+-------> PCA9685 GND
-                  |         GPIO 21 SDA (3)  |---|--------> PCA9685 SDA
-                  |         GPIO 22 SCL (4)  |---|--------> PCA9685 SCL
+                  |         GPIO 2  SDA (3)  |---|--------> PCA9685 SDA
+                  |         GPIO 1  SCL (4)  |---|--------> PCA9685 SCL
                   |                          |   |
-                  |         GPIO 2 LED       |   |
+                  |         GPIO 15 LED      |   |
                   |         GPIO 4  (Btn 1)  |   |
-                  |         GPIO 16 (Btn 2)  |   |
-                  |         GPIO 17 (Btn 3)  |   |
-                  |         GPIO 5  (Btn 4)  |   |
+                  |         GPIO 5  (Btn 2)  |   |
+                  |         GPIO 6  (Btn 3)  |   |
+                  |         GPIO 7  (Btn 4)  |   |
                   +--------------------------+   |
                                                  |
   +-------------------------------+              |
@@ -63,19 +63,19 @@ The Fabrica electronics system consists of the **ESP32 DevKit v1**, the **PCA968
 ```
 
 > [!WARNING]
-> **Power Isolation**: Never attempt to power the MG996R servo motors from the ESP32 board's 3.3V or 5V (VIN) rails. High-torque servos draw peak stall currents exceeding 2.5A each. Always power the PCA9685 servo power terminal (`V+`) from an external 5V/6V supply with shared common ground (`GND`).
+> **Power Isolation**: Never attempt to power the MG996R servo motors from the ESP32-S3 board's 3.3V or 5V rails. High-torque servos draw peak stall currents exceeding 2.5A each. Always power the PCA9685 servo power terminal (`V+`) from an external 5V/6V supply with shared common ground (`GND`).
 
-### ESP32 Pin Assignment Table
+### ESP32-S3 Pin Assignment Table
 
 | Pin | Function | Configuration | Description |
 |---|---|---|---|
-| `GPIO 2` | Status LED | Output (Push-Pull) | Onboard/External Status LED diffuser indicator |
+| `GPIO 15` | Status LED | Output (Push-Pull) | External Status LED diffuser indicator |
 | `GPIO 4` | Button 1 (`B1`) | Input (`PULLUP_ONLY`) | Preset 1 (Adult T-Shirt) / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 16` | Button 2 (`B2`) | Input (`PULLUP_ONLY`) | Preset 2 (Long-Sleeve Shirt) / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 17` | Button 3 (`B3`) | Input (`PULLUP_ONLY`) | Preset 3 (Trousers / Jeans) / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 5` | Button 4 (`B4`) | Input (`PULLUP_ONLY`) | Preset 4 (Towel / Linen) / E-Stop / Hold-to-Pair (3s) |
-| `GPIO 21` | I2C Data (`SDA`) | In/Out (Open-Drain + Pullup) | PCA9685 PWM Controller I2C Data |
-| `GPIO 22` | I2C Clock (`SCL`) | Output (Open-Drain + Pullup) | PCA9685 PWM Controller I2C Clock |
+| `GPIO 5` | Button 2 (`B2`) | Input (`PULLUP_ONLY`) | Preset 2 (Long-Sleeve Shirt) / E-Stop / Hold-to-Pair (3s) |
+| `GPIO 6` | Button 3 (`B3`) | Input (`PULLUP_ONLY`) | Preset 3 (Trousers / Jeans) / E-Stop / Hold-to-Pair (3s) |
+| `GPIO 7` | Button 4 (`B4`) | Input (`PULLUP_ONLY`) | Preset 4 (Towel / Linen) / E-Stop / Hold-to-Pair (3s) |
+| `GPIO 2` | I2C Data (`SDA`) | In/Out (Open-Drain + Pullup) | PCA9685 PWM Controller I2C Data |
+| `GPIO 1` | I2C Clock (`SCL`) | Output (Open-Drain + Pullup) | PCA9685 PWM Controller I2C Clock |
 
 ---
 
@@ -83,7 +83,7 @@ The Fabrica electronics system consists of the **ESP32 DevKit v1**, the **PCA968
 
 | Component | Quantity | Specification / Details | Approx Cost (USD) |
 |---|---|---|---|
-| **ESP32 DevKit v1** | 1 | 30-pin dual-core Xtensa LX6 @ 240 MHz, 4MB Flash | \$4.00 – \$6.00 |
+| **ESP32-S3-DevKitC-1** | 1 | Dual-core Xtensa LX7 @ 240 MHz | \$5.00 – \$8.00 |
 | **PCA9685 PWM Driver** | 1 | 16-channel 12-bit PWM I2C breakout module | \$3.00 – \$5.00 |
 | **MG996R Servos** | 4 | Metal-gear high-torque 180° servos (10–13 kg·cm) | \$24.00 – \$32.00 |
 | **DC Power Supply** | 1 | Regulated 5V or 6V DC @ 10A–20A (50W–100W) | \$15.00 – \$25.00 |

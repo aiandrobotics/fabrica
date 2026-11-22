@@ -17,6 +17,7 @@ from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
     HEX_COUPLER_SIZE,
+    HEX_COUPLER_DEPTH,
     ACCENT_BEVEL_DEPTH,
     TEXTURE_HEIGHT,
     HOLE_CHAMFER,
@@ -143,8 +144,8 @@ def construct_follower_flap():
     axle_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     flap = flap.fuse(axle_full).removeSplitter()
 
-    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 16.0 and Y = 204.0mm ends)
-    socket_d = 10.0
+    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 18.0 and Y = 204.0mm ends)
+    socket_d = HEX_COUPLER_DEPTH
     hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_knuckle_top + 0.1)
     hex_socket_top_face = Part.Face(hex_socket_top_wire)
     hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
@@ -204,15 +205,11 @@ def construct_follower_flap():
         g2.translate(App.Vector(i, h, top_z - tex_d))
         tex_cutters.extend([g1, g2])
 
-    # Bound for the outer slab inset by border_w
-    tb_outer = Part.makeBox(full_wing_w - border_w + 1.0, total_blade_len - 2 * border_w, t + 2.0)
-    tb_outer.translate(App.Vector(x_wing_start - 0.5, y_min_blade + border_w, panel_z_min - 1.0))
+    # Bound for the outer slab inset by border_w (keep hinge spine neck X in [0.0, 11.9mm] 100% solid 2.4mm)
+    tb_outer = Part.makeBox(full_wing_w - 2 * border_w, total_blade_len - 2 * border_w, t + 2.0)
+    tb_outer.translate(App.Vector(x_wing_start + border_w, y_min_blade + border_w, panel_z_min - 1.0))
 
-    # Bound for the hinge extension between knuckles (X in [shaft_r, x_wing_start])
-    tb_hinge = Part.makeBox(x_wing_start - shaft_r + 1.0, mid_len - 2 * border_w, t + 2.0)
-    tb_hinge.translate(App.Vector(shaft_r, y_knuckle_bot + border_w, panel_z_min - 1.0))
-
-    tex_bound_all = tb_outer.fuse(tb_hinge).removeSplitter()
+    tex_bound_all = tb_outer
     tex_compound = Part.makeCompound(tex_cutters).common(tex_bound_all)
     flap = flap.cut(tex_compound).removeSplitter()
 

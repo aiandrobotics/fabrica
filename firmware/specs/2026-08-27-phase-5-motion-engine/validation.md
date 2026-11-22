@@ -8,8 +8,8 @@ The implementation of Phase 5 must be validated against automated host test suit
 
 | Test Case | Description | Pass Criteria |
 |---|---|---|
-| **Single Motor Step Execution** | Execute a single-motor step (`ch 2`). | Verify `pca9685_set_servo_angle(2, 170.0f)` called, followed by 800ms sweep wait, direct return to `0.0f` (400ms), and LED state set to `LED_STATE_RUNNING`. |
-| **Parallel Dual-Motor Step Execution** | Execute a 2-motor step (`ch 0` and `ch 1`). | Verify `pca9685_set_multi_servo_angles(0x0003, 170.0f)` called synchronously, followed by 800ms sweep wait, and direct return to `0.0f` (400ms). |
+| **Single Motor Step Execution** | Execute a single-motor step (`ch 2`). | Verify 5-phase S-curve trajectory reaches `150.0f` (`FOLD_TARGET_ANGLE_DEG`) in `1350ms` (including `250ms` hold), returns cleanly with early balance-point braking to `0.0f` in `1450ms`, and LED state set to `LED_STATE_RUNNING`. |
+| **Parallel Dual-Motor Step Execution** | Execute a 2-motor step (`ch 0` and `ch 1`). | Verify `pca9685_set_multi_servo_angles(0x0003, ...)` sweeps synchronously through the balance-point braked S-curve trajectory `0 -> 150 -> 0 deg` (`1350ms` forward, `1450ms` return). |
 | **Multi-Step Routine Sequencing** | Execute 3-step routine (e.g. Preset 1). | Verify steps execute sequentially with 10ms `INTER_STEP_DELAY_MS` between steps and `pca9685_home_all()` on completion. |
 | **Empty Preset Protection** | Trigger preset with 0 steps. | Verify `motion_trigger_preset()` returns `ESP_ERR_INVALID_STATE`, zero servo commands issued, and `led_set_state(LED_STATE_INPUT_ERROR)` triggered. |
 | **Invalid Preset Bounds** | Trigger preset 0 or preset 5. | Verify rejection with `ESP_ERR_INVALID_ARG`. |
@@ -32,8 +32,8 @@ idf.py build
 When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
 
 1. **Preset Execution Visual Verification**:
-   - Tap **B1**: Status LED turns solid ON, Servo 0 sweeps $0^\circ \to 170^\circ \to 0^\circ$, Servo 1 sweeps $0^\circ \to 170^\circ \to 0^\circ$, Servo 2 sweeps $0^\circ \to 170^\circ \to 0^\circ$, then LED returns to soft heartbeat (IDLE).
-   - Tap **B2**: Servo 0 and Servo 1 sweep synchronously to $170^\circ$ (800ms) and return directly to $0^\circ$ (400ms), followed by Servo 2 then Servo 3.
+   - Tap **B1**: Status LED turns solid ON, Servo 0 sweeps $0^\circ \to 150^\circ \to 0^\circ$ (S-curve), Servo 1 sweeps $0^\circ \to 150^\circ \to 0^\circ$, Servo 2 sweeps $0^\circ \to 150^\circ \to 0^\circ$, Servo 3 sweeps $0^\circ \to 150^\circ \to 0^\circ$, then LED returns to soft heartbeat (IDLE).
+   - Tap **B2**: Servo 0 and Servo 1 execute a synchronized balance-point braked S-curve sweep to $150^\circ$ (1350ms forward with 250ms top hold) and early-braked return to $0^\circ$ (1450ms), followed by Servo 3, 0, 1, and 2.
 2. **Emergency Stop (E-Stop) Latency Verification**:
    - While a multi-step routine is running, tap any button (B1–B4).
    - Servos must immediately stop forward stroke, return flat to $0^\circ$, and the Status LED must emit 5 rapid flashes (50ms ON / 50ms OFF).
