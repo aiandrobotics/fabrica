@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem runs a dedicated high-priority FreeRTOS task pinned to Core 0 (`main/motion.h`, `main/motion.c`) that consumes folding routines from NVS storage or direct command payloads, orchestrates deterministic single and parallel dual-servo sweep trajectories ($0^\circ \to 150^\circ \to 0^\circ$), manages fold dwell and inter-step settling delays, coordinates status LED feedback, and enforces instantaneous Emergency Stop (E-Stop) preemption (<50ms response, all 16 channels homed flat to $0^\circ$).
+Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem runs a dedicated high-priority FreeRTOS task pinned to Core 0 (`main/motion.h`, `main/motion.c`) that consumes folding routines from NVS storage or direct command payloads, orchestrates deterministic single and parallel dual-servo sweep trajectories ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$), manages fold dwell, soft-landing, and inter-step settling delays, coordinates status LED feedback, and enforces instantaneous Emergency Stop (E-Stop) preemption (<50ms response, all 16 channels homed flat to $0^\circ$).
 
 ---
 
@@ -31,15 +31,13 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
      - `esp_err_t motion_execute_routine(const fold_routine_t *routine)`
      - `esp_err_t motion_execute_step(const fold_step_t *step)`
 2. Implement trajectory execution in `firmware/main/motion.c`:
-   - Implement single-motor 5-phase balance-point braked S-curve sweep ($0^\circ \to 150^\circ \to 0^\circ$):
-     - Phase 1 (Soft Start Coupler Take-Up): Ramp $0^\circ \to 24^\circ$ (8 frames @ `SCURVE_FRAME_MS` = 200ms).
-     - Phase 2 (Controlled Climb): Step $28^\circ \to 84^\circ$ by $+4^\circ$ (`SCURVE_CRUISE_STEP_DEG`) @ 25ms (375ms, $160^\circ\text{/s}$).
-     - Phase 3 (Early Balance-Point Flip & Top Gravity Brake): Brake $87^\circ \to 150^\circ$ (`FOLD_TARGET_ANGLE_DEG`) by $+3^\circ$ @ `SCURVE_BRAKE_FRAME_MS` (25ms, $120^\circ\text{/s}$) and hold `FOLD_TOP_HOLD_MS` (250ms). (`FOLD_DWELL_TIME_MS` = 1350ms).
-     - Phase 4 (Return Coupler Take-Up & Climb): Ease $148^\circ \to 136^\circ$ (6 frames @ 25ms = 150ms), then climb $132^\circ \to 80^\circ$ by $-4^\circ$ @ 25ms (350ms).
-     - Phase 5 (Early Gravity-Braked Descent & Landing): Brake $78^\circ \to 20^\circ$ by $-2^\circ$ @ 25ms (750ms, $80^\circ\text{/s}$), then touch down $16^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`, 8 frames @ 25ms = 200ms). (`LANDING_APPROACH_MS` = 1450ms).
-   - Implement parallel dual-motor S-curve sweep:
+   - Implement single-motor fold sweep with soft-landing ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$, 2050ms total):
+     - Phase 1 (Direct Forward Sweep): Command `FOLD_TARGET_ANGLE_DEG` ($150^\circ$) and wait `FOLD_DWELL_TIME_MS` (800ms).
+     - Phase 2 (Fast Return Approach): Command `LANDING_START_ANGLE_DEG` ($40^\circ$) and wait `LANDING_APPROACH_MS` (450ms).
+     - Phase 3 (Uniform Soft-Landing): Step $39^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`) by $-1^\circ$ per `LANDING_STEP_MS` (20ms, 50 Hz native PWM = 800ms, $50^\circ\text{/s}$).
+   - Implement parallel dual-motor fold sweep:
      - Generate multi-channel bitmask from `step->motor_ids[0]` and `step->motor_ids[1]`.
-     - Command both channels synchronously through the identical balance-point braked S-curve trajectory ($0^\circ \to 150^\circ \to 0^\circ$) via `pca9685_set_multi_servo_angles()`.
+     - Command both channels synchronously through the identical trajectory ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$) via `pca9685_set_multi_servo_angles()`.
    - Implement inter-step settling delay:
      - Wait for `INTER_STEP_DELAY_MS` (10ms) between consecutive steps.
    - Bind visual LED status:
@@ -71,7 +69,7 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
 ## Task Group 4: Host Verification Harness, Mock Motion Suite & ESP-IDF Integration (`test/test_motion.c`, `Makefile`, `main/main.c`, `main/CMakeLists.txt`)
 1. Create `firmware/test/test_motion.c`:
    - Implement host test harness with simulated PCA9685, LED, and NVS subsystems:
-     - Test single-motor sweep trajectory ($0^\circ \to 150^\circ \to 0^\circ$) and timing parameters.
+     - Test single-motor sweep trajectory ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$) and timing parameters.
      - Test synchronized parallel dual-motor sweep execution.
      - Test multi-step routine sequencing (Step 1 to $N$) and 10ms inter-step delay.
      - Test empty preset safeguard (0 steps triggers `LED_STATE_INPUT_ERROR`).

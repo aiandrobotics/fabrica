@@ -96,10 +96,10 @@ motion_status_t motion_get_status(void);
 bool motion_is_busy(void);
 
 /**
- * @brief Execute a single folding step (single or parallel dual-motor S-curve sweep).
- *        Runs a 40 Hz paced balance-point-braked S-curve trajectory 0° -> 150°
- *        (1350ms forward with 250ms top hold) -> 0° (1450ms return with early
- *        gravity braking from 78° -> 0°). Checks for E-Stop abort every frame/10ms.
+ * @brief Execute a single folding step (single or parallel dual-motor sweep).
+ *        Sweeps target motor(s) directly 0° -> 150° (800ms), fast-returns
+ *        150° -> 40° (450ms), and performs a uniform -1°/20ms soft-landing
+ *        40° -> 0° (800ms). Checks for E-Stop every 10ms.
  * @param step Pointer to fold_step_t structure.
  * @return ESP_OK on clean completion, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
  */

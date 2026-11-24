@@ -22,21 +22,49 @@ if SCRIPT_DIR not in sys.path:
 from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
-    HEX_COUPLER_SIZE,
-    HEX_COUPLER_CLEARANCE,
-    HEX_PEG_DEPTH,
+    SQUARE_DRIVE_BASE_SIZE,
+    SQUARE_DRIVE_TIP_SIZE,
+    SQUARE_DRIVE_PEG_DEPTH,
+    SQUARE_DRIVE_CORNER_CLIP,
     EXPORT_DIR,
 )
 
-def make_hexagon_wire(size_af, center_x, center_z, y_pos):
-    """Generates an explicit closed hexagon wire in the XZ plane."""
-    r = (size_af / 2.0) / math.cos(math.radians(30))
-    pts = []
-    for i in range(6):
-        ang = math.radians(60 * i + 30)
-        pts.append(App.Vector(center_x + r * math.cos(ang), y_pos, center_z + r * math.sin(ang)))
-    pts.append(pts[0])
+def make_diamond_square_wire(size_af, center_x, center_z, y_pos):
+    """Generates a 45°-rotated diamond square wire in the XZ plane."""
+    r = (size_af / 2.0) * math.sqrt(2.0)
+    pts = [
+        App.Vector(center_x + r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z + r),
+        App.Vector(center_x - r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z - r),
+        App.Vector(center_x + r, y_pos, center_z),
+    ]
     return Part.makePolygon(pts)
+
+def make_tapered_diamond_peg(y_start, direction, taper_len, pivot_z):
+    """Builds a corner-relieved 45° diamond tapered square peg with a 45° nose chamfer."""
+    chamf_len = 1.2
+    y_chamf_start = y_start + direction * (taper_len - chamf_len)
+    y_tip = y_start + direction * taper_len
+
+    taper_body = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_BASE_SIZE, 0, pivot_z, y_start),
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE, 0, pivot_z, y_chamf_start),
+    ], True, True)
+    nose_chamf = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE, 0, pivot_z, y_chamf_start),
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE - 2.0, 0, pivot_z, y_tip),
+    ], True, True)
+    peg = taper_body.fuse(nose_chamf).removeSplitter()
+
+    r_clip = (SQUARE_DRIVE_BASE_SIZE / 2.0) * math.sqrt(2.0) - SQUARE_DRIVE_CORNER_CLIP
+    clip_cyl = Part.makeCylinder(
+        r_clip,
+        taper_len + 0.2,
+        App.Vector(0, y_start - direction * 0.1, pivot_z),
+        App.Vector(0, direction, 0),
+    )
+    return peg.common(clip_cyl).removeSplitter()
 
 def construct_end_pivot_pin():
     """
@@ -51,8 +79,7 @@ def construct_end_pivot_pin():
     disk_r = disk_dia / 2.0            # 8.00mm
     disk_thick = 3.0                   # 3.00mm (Y in [15.0, 18.0mm], sturdy for 3D printing)
     
-    hex_size = HEX_COUPLER_SIZE - HEX_COUPLER_CLEARANCE  # 7.88mm flat-to-flat zero-backlash slip fit
-    peg_len = HEX_PEG_DEPTH            # 18.00mm engagement depth (Y in [18.0, 36.0mm])
+    peg_len = SQUARE_DRIVE_PEG_DEPTH   # 12.00mm tapered square engagement depth (Y in [18.0, 30.0mm])
 
     # 1. Smooth Cylindrical Bearing Journal (Y in [0.0, 15.0mm])
     journal = Part.makeCylinder(journal_r, journal_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
@@ -61,20 +88,14 @@ def construct_end_pivot_pin():
     c_outer = Part.makeCone(journal_r, journal_r - 0.8, 0.8, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
     journal = journal.cut(c_outer).removeSplitter()
 
-    # 2. Inner Retaining Thrust Flange Disk (Y in [15.0, 16.0mm])
+    # 2. Inner Retaining Thrust Flange Disk (Y in [15.0, 18.0mm])
     disk = Part.makeCylinder(disk_r, disk_thick, App.Vector(0, journal_len, pivot_z), App.Vector(0, 1, 0))
 
-    # 3. Male 8.0mm Hex Drive Peg (Y in [16.0, 25.0mm])
-    hex_wire = make_hexagon_wire(hex_size, 0, pivot_z, journal_len + disk_thick)
-    hex_face = Part.Face(hex_wire)
-    hex_peg = hex_face.extrude(App.Vector(0, peg_len, 0))
-
-    # 1.0mm x 45° Self-aligning nose cone on hex peg tip
-    c_tip = Part.makeCone(journal_r, journal_r - 1.0, 1.0, App.Vector(0, journal_len + disk_thick + peg_len, pivot_z), App.Vector(0, 1, 0))
-    hex_peg = hex_peg.cut(c_tip).removeSplitter()
+    # 3. Male 45° Diamond Tapered Square Drive Peg (Y in [18.0, 30.0mm])
+    sq_peg = make_tapered_diamond_peg(journal_len + disk_thick, 1.0, peg_len, pivot_z)
 
     # Fuse into monolithic solid shoulder pin
-    pin = journal.fuse([disk, hex_peg]).removeSplitter()
+    pin = journal.fuse([disk, sq_peg]).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "end_pivot_pin.step")

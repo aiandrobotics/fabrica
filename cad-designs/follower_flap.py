@@ -16,22 +16,24 @@ if SCRIPT_DIR not in sys.path:
 from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
-    HEX_COUPLER_SIZE,
-    HEX_COUPLER_DEPTH,
+    SQUARE_DRIVE_SIZE,
+    SQUARE_DRIVE_SOCKET_DEPTH,
     ACCENT_BEVEL_DEPTH,
     TEXTURE_HEIGHT,
     HOLE_CHAMFER,
     EXPORT_DIR,
 )
 
-def make_hexagon_wire(size_af, center_x, center_z, y_pos):
-    """Generates an explicit closed hexagon wire oriented for extrusion along the Y-axis."""
-    r = (size_af / 2.0) / math.cos(math.radians(30))
-    pts = []
-    for i in range(6):
-        ang = math.radians(60 * i + 30)
-        pts.append(App.Vector(center_x + r * math.cos(ang), y_pos, center_z + r * math.sin(ang)))
-    pts.append(pts[0])
+def make_diamond_square_wire(size_af, center_x, center_z, y_pos):
+    """Generates a 45°-rotated diamond square wire in the XZ plane (self-supporting FDM roof)."""
+    r = (size_af / 2.0) * math.sqrt(2.0)
+    pts = [
+        App.Vector(center_x + r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z + r),
+        App.Vector(center_x - r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z - r),
+        App.Vector(center_x + r, y_pos, center_z),
+    ]
     return Part.makePolygon(pts)
 
 def construct_follower_flap():
@@ -144,17 +146,23 @@ def construct_follower_flap():
     axle_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     flap = flap.fuse(axle_full).removeSplitter()
 
-    # 5. Top & Bottom End Female 8.0mm Hex Torque Sockets (At Y = 18.0 and Y = 204.0mm ends)
-    socket_d = HEX_COUPLER_DEPTH
-    hex_socket_top_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_knuckle_top + 0.1)
-    hex_socket_top_face = Part.Face(hex_socket_top_wire)
-    hex_socket_top_cutter = hex_socket_top_face.extrude(App.Vector(0, -socket_d - 0.1, 0))
+    # 5. Top & Bottom End Female 45° Diamond Square Torque Sockets (At Y = 18.0 and Y = 204.0mm ends) with 0.8mm x 45° entry bevel
+    socket_d = SQUARE_DRIVE_SOCKET_DEPTH
+    sq_top_wire = make_diamond_square_wire(SQUARE_DRIVE_SIZE, 0, pivot_z, y_knuckle_top + 0.1)
+    sq_top_cutter = Part.Face(sq_top_wire).extrude(App.Vector(0, -socket_d - 0.1, 0))
+    sq_top_bevel = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_SIZE + 1.6, 0, pivot_z, y_knuckle_top + 0.1),
+        make_diamond_square_wire(SQUARE_DRIVE_SIZE, 0, pivot_z, y_knuckle_top - 0.8),
+    ], True, True)
 
-    hex_socket_bot_wire = make_hexagon_wire(HEX_COUPLER_SIZE, 0, pivot_z, y_knuckle_bot - 0.1)
-    hex_socket_bot_face = Part.Face(hex_socket_bot_wire)
-    hex_socket_bot_cutter = hex_socket_bot_face.extrude(App.Vector(0, socket_d + 0.1, 0))
+    sq_bot_wire = make_diamond_square_wire(SQUARE_DRIVE_SIZE, 0, pivot_z, y_knuckle_bot - 0.1)
+    sq_bot_cutter = Part.Face(sq_bot_wire).extrude(App.Vector(0, socket_d + 0.1, 0))
+    sq_bot_bevel = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_SIZE + 1.6, 0, pivot_z, y_knuckle_bot - 0.1),
+        make_diamond_square_wire(SQUARE_DRIVE_SIZE, 0, pivot_z, y_knuckle_bot + 0.8),
+    ], True, True)
 
-    flap = flap.cut(Part.makeCompound([hex_socket_top_cutter, hex_socket_bot_cutter])).removeSplitter()
+    flap = flap.cut(Part.makeCompound([sq_top_cutter, sq_top_bevel, sq_bot_cutter, sq_bot_bevel])).removeSplitter()
 
     # 6. Multi-Tiered Organic Gradient Circular Cutouts (~45% mass reduction)
     scale_geo = min(total_w, total_blade_len) / 200.0

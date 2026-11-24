@@ -74,10 +74,12 @@ All part and assembly Python scripts must be visually and analytically validated
 | `ACCENT_BEVEL_DEPTH` | 1.2 mm | Recessed perimeter shadow bevel for dual-tone panel aesthetics |
 | `PIVOT_Z` | 15.00 mm | Hinge axis centerline at top frame deck (`BASE_PANEL_THICKNESS`) |
 | `DRIVE_SHAFT_DIAMETER` | 12.80 mm | Outer cylindrical drive axle diameter |
-| `HEX_COUPLER_SIZE` | 8.00 mm | Nominal flat-to-flat female hex socket size |
-| `HEX_COUPLER_CLEARANCE` | 0.12 mm | Total across-flats clearance (`7.88 mm` AF male hex peg for zero-backlash slip fit) |
-| `HEX_COUPLER_DEPTH` | 22.00 mm | Female hex socket depth in `motorized_flap.py` and `follower_flap.py` |
-| `HEX_PEG_DEPTH` | 18.00 mm | Male hex peg engagement depth in `hex_drive_coupler.py` and `end_pivot_pin.py` |
+| `SQUARE_DRIVE_SIZE` | 6.50 mm | Nominal flat-to-flat 45° diamond female square socket (self-supporting roof, zero overhang droop) |
+| `SQUARE_DRIVE_BASE_SIZE` | 6.35 mm | Male tapered square peg base width (`0.15 mm` total clearance for zero-backlash snug seat) |
+| `SQUARE_DRIVE_TIP_SIZE` | 5.90 mm | Male tapered square peg tip width (`0.60 mm` total clearance for effortless hand insertion) |
+| `SQUARE_DRIVE_SOCKET_DEPTH` | 14.00 mm | Female 45° diamond square socket depth in `motorized_flap.py` and `follower_flap.py` (`2.0 mm` bottom air gap) |
+| `SQUARE_DRIVE_PEG_DEPTH` | 12.00 mm | Male tapered square peg engagement depth in `hex_drive_coupler.py`, `motorized_servo_adapter.py`, and `end_pivot_pin.py` |
+| `SQUARE_DRIVE_CORNER_CLIP` | 0.35 mm | Corner relief clip on male peg preventing FDM seam-blob binding in socket corners |
 | `BEARING_ROTATING_CLEARANCE` | 0.45 mm | Radial bearing clearance in frame knuckles (`Ø13.7 mm` bore) |
 
 ## File & Folder Structure
@@ -88,19 +90,19 @@ cad-designs/
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
 ├── base_module.py                  ← monolithic base chassis (4-wall frame, open-bottom cavity, wire ports, micro-grip texture, circular cutouts, dovetail sockets)
 ├── follower_frame.py               ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
-├── follower_flap.py                ← passive follower flap (continuous Ø12.8mm axle, dual 22.0mm deep 8.0mm female hex sockets, solid un-grooved 2.4mm hinge neck X∈[0.0,11.9mm], gradient cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
+├── follower_flap.py                ← passive follower flap (continuous Ø12.8mm axle, dual 14.0mm deep 6.50mm 45° diamond square sockets with 0.8mm entry bevel, solid un-grooved 2.4mm hinge neck X∈[0.0,11.9mm], gradient cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
 ├── follower_assembly.py            ← follower module sub-assembly (FollowerFrame + FollowerFlap + EndPivotPin + FrameJoiners + HexDriveCoupler)
 ├── motorized_frame.py              ← active motorized 4-sided frame (servo mounting bay, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, dovetail sockets)
-├── motorized_flap.py               ← monolithic active folding flap (integrated Ø12.8mm axle, dual 22.0mm deep 8.0mm female hex sockets, solid un-grooved 2.4mm hinge neck X∈[0.0,11.9mm], gradient cutouts, micro-grip texture)
-├── motorized_servo_adapter.py      ← circular servo horn adapter (Ø20.0×7.5mm flange, 7.88mm AF × 23.8mm male hex drive peg)
+├── motorized_flap.py               ← monolithic active folding flap (integrated Ø12.8mm axle, dual 14.0mm deep 6.50mm 45° diamond square sockets with 0.8mm entry bevel, solid un-grooved 2.4mm hinge neck X∈[0.0,11.9mm], gradient cutouts, micro-grip texture)
+├── motorized_servo_adapter.py      ← circular servo horn adapter (Ø20.0×7.5mm flange, 6.35→5.90mm 45° diamond tapered square peg, 6.3mm span + 12.0mm engagement, 25.8mm total)
 ├── motorized_servo_cover.py        ← toolless snap-latch servo housing cover with wire strain relief and cooling gills
 ├── motorized_assembly.py           ← motorized module sub-assembly (MotorizedFrame + MotorizedServoCover + MotorizedFlap + ServoDriveAdapter + EndPivotPin + FrameJoiners + Servo)
 ├── interface_case.py                ← triple-board enclosure case (housing PDB + PCA9685 + ESP32 DevKit, 11.5mm DC jack, zip-tie saddles, cooling chimneys, dovetail sockets)
 ├── interface_panel.py               ← compact horizontal control deck faceplate (4 button cutouts, LED status window, hole chamfers, micro-grip texture)
 ├── interface_assembly.py            ← interface module sub-assembly (InterfaceCase + InterfacePanel + PDB + PCA9685 + ESP32 + 4 Buttons + Status LED)
 ├── frame_joiner.py                 ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
-├── hex_drive_coupler.py            ← modular double-male 7.88mm AF × 18.0mm hex torque drive coupler pin (78.0mm total length)
-├── end_pivot_pin.py                ← captive inner-flanged shoulder pivot pin (Ø16.0×3.0mm flange, 7.88mm AF × 18.0mm male hex peg, 36.0mm total length)
+├── hex_drive_coupler.py            ← modular double-male 6.35→5.90mm × 12.0mm 45° diamond tapered square coupler (smooth Ø12.6mm body, 66.0mm total length)
+├── end_pivot_pin.py                ← captive inner-flanged shoulder pivot pin (Ø16.0×3.0mm flange, 6.35→5.90mm × 12.0mm 45° diamond tapered square peg, 30.0mm total length)
 ├── assembly.py                     ← full universal folding robot assembly model (2 Base + 2 Follower + 2 Motorized + 7 Joiners)
 ├── export_all.py                   ← batch script to export all STEP and STL models
 ├── run.sh                          ← CLI entrypoint for building and exporting CAD models

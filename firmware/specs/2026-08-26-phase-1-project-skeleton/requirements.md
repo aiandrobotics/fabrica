@@ -42,17 +42,16 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 | Short Press Upper Bound | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Maximum duration classified as a tap |
 | Long Press Threshold | `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration to enter Programming Mode |
 | Inactivity Timeout | `PROGRAMMING_TIMEOUT_MS` | `20000` ms | Auto-exit duration for visual staging mode |
-| Fold Sweep Travel Time | `FOLD_DWELL_TIME_MS` | `1350` ms | Forward S-curve duration ($0^\circ \to 150^\circ$ + 250ms top hold) |
-| Return Sweep Time | `LANDING_APPROACH_MS` | `1450` ms | Return S-curve duration ($150^\circ \to 0^\circ$ early balance-point braking) |
-| Top Settle Hold | `FOLD_TOP_HOLD_MS` | `250` ms | Pause at $150^\circ$ so follower panel finishes folding |
-| S-Curve Cruise / Brake Frame | `SCURVE_FRAME_MS` / `SCURVE_BRAKE_FRAME_MS` | `25` / `25` ms | 40 Hz frame intervals matching 2-panel load |
+| Fold Sweep Travel Time | `FOLD_DWELL_TIME_MS` | `800` ms | Direct forward travel time ($0^\circ \to 150^\circ$) |
+| Fast Return Approach Time | `LANDING_APPROACH_MS` | `450` ms | Fast return travel time ($150^\circ \to 40^\circ$) |
+| Soft-Landing Frame Interval | `LANDING_STEP_MS` | `20` ms | Uniform $-1^\circ$ per 20ms soft-landing frame (50 Hz native PWM, 800ms total) |
 | Inter-Step Settling Delay | `INTER_STEP_DELAY_MS` | `10` ms | Pause between consecutive folding steps |
 | Flap Rest Angle | `HOME_ANGLE_DEG` | `0.0f` | Flat tabletop resting position ($0^\circ$) |
 | Flap Identification Angle | `NUDGE_ANGLE_DEG` | `15.0f` | Tactile/visual flap identification angle |
 | Flap Visual Staging Angle | `STAGE_ANGLE_DEG` | `30.0f` | Flap staging hold angle |
+| Soft-Landing Start Angle | `LANDING_START_ANGLE_DEG` | `40.0f` | Soft-landing ramp start angle on return ($40^\circ \to 0^\circ$) |
 | Flap Full Mechanical Range | `FOLD_ANGLE_DEG` | `180.0f` | Full servo mechanical range ($0^\circ$–$180^\circ$) |
-| Flap Fold Target Angle | `FOLD_TARGET_ANGLE_DEG` | `150.0f` | Motor target angle (follower reaches $\sim 170^\circ$ without hitting $180^\circ$) |
-| S-Curve Cruise Increment | `SCURVE_CRUISE_STEP_DEG` | `4.0f` | Climb angle step per 25ms frame ($160^\circ\text{/s}$) |
+| Flap Fold Target Angle | `FOLD_TARGET_ANGLE_DEG` | `150.0f` | Max folding sweep target angle |
 | PCA9685 I2C Address | `PCA9685_I2C_ADDR` | `0x40` | Default hardware I2C address |
 | PCA9685 PWM Frequency | `PCA9685_PWM_FREQ_HZ` | `50` Hz | 20 ms frame period for servo motors |
 | PCA9685 Resolution | `PCA9685_PWM_RES_BITS` | `12` | 4096-step PWM count resolution |

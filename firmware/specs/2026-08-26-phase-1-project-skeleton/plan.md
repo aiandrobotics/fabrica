@@ -39,18 +39,16 @@ Phase 1 establishes the foundational embedded C / ESP-IDF build architecture, ha
      - `BUTTON_LONG_PRESS_MS = 3000`
      - `BUTTON_SHORT_PRESS_MAX_MS = 500`
      - `PROGRAMMING_TIMEOUT_MS = 20000`
-     - `FOLD_DWELL_TIME_MS = 1350`
-     - `LANDING_APPROACH_MS = 1450`
-     - `FOLD_TOP_HOLD_MS = 250`
-     - `SCURVE_FRAME_MS = 25`
-     - `SCURVE_BRAKE_FRAME_MS = 25`
+     - `FOLD_DWELL_TIME_MS = 800`
+     - `LANDING_APPROACH_MS = 450`
+     - `LANDING_STEP_MS = 20`
      - `INTER_STEP_DELAY_MS = 10`
      - `NUDGE_ANGLE_DEG = 15.0f`
      - `STAGE_ANGLE_DEG = 30.0f`
+     - `LANDING_START_ANGLE_DEG = 40.0f`
      - `HOME_ANGLE_DEG = 0.0f`
      - `FOLD_ANGLE_DEG = 180.0f`
      - `FOLD_TARGET_ANGLE_DEG = 150.0f`
-     - `SCURVE_CRUISE_STEP_DEG = 4.0f`
    - Define PCA9685 constants (I2C address `0x40`, 50 Hz PWM frequency, 12-bit resolution ticks).
 2. Create `firmware/main/command.h`:
    - Define transport sources enum `cmd_source_t` (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_WIFI`, `SOURCE_INTERNAL_TIMER`).

@@ -1,6 +1,6 @@
 # Requirements — Phase 4: Active Motorized Module (Horizontal Drive & Modular Horn Adapter Architecture)
 
-Requirements specification for the Active Motorized Module of the Fabrica Cloth Folding Robot, featuring **Horizontal Inline MG996R Servo Bay with Inner Enclosure Wall**, **Solid Mounting Towers with Captive Hex Nut Housings**, **100% Flat Bottom Base ($Z = 0.0\text{ mm}$)**, **Unified Hinge Pivot Axis ($Z_{pivot} = 10.0\text{ mm}$)**, **Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)**, **Symmetrical Dual-Ended 8.0mm Female Hex Active Flap Axle**, **Full Enclosure Slide-In Hood Cover**, and **Synchronous Column Hex Torque Transmission**.
+Requirements specification for the Active Motorized Module of the Fabrica Cloth Folding Robot, featuring **Horizontal Inline MG996R Servo Bay with Inner Enclosure Wall**, **Solid Mounting Towers with Captive Hex Nut Housings**, **100% Flat Bottom Base ($Z = 0.0\text{ mm}$)**, **Unified Hinge Pivot Axis ($Z_{pivot} = 15.0\text{ mm}$)**, **Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)**, **Symmetrical Dual-Ended 6.50mm 45° Diamond Female Square Active Flap Axle**, **Full Enclosure Slide-In Hood Cover**, and **Synchronous Column Square Torque Transmission**.
 
 ---
 
@@ -14,9 +14,9 @@ In the Fabrica $4 \times 3$ modular folding grid:
 - **Modular Circular Servo Horn Drive Adapter (`motorized_servo_adapter.py`)**:
   - Solves the FDM printability limitation of 3D-printing micro 25T metal gear splines.
   - Bolted directly onto the standard circular servo horn ($\varnothing 20\text{ mm}$) included in the MG996R kit via 4x screws on a $\varnothing 14.0\text{ mm}$ bolt pattern.
-  - Extends an $8.0\text{ mm}$ nominal male hex torque peg ($7.88\text{ mm}$ flat-to-flat with $0.12\text{ mm}$ AF clearance, $23.8\text{ mm}$ length along $-Y$ from $Y = 156.3\text{ mm}$ to $132.5\text{ mm}$) into the active flap.
-- **Symmetrical Dual-Ended Female Hex Flap**:
-  - The `motorized_flap` features identical $8.0\text{ mm}$ female hex sockets at both ends ($Y = 0.5\text{ mm}$ and $Y = 178.0\text{ mm}$), identical to `follower_flap`.
+  - Extends a 45° diamond tapered square torque peg ($6.35 \to 5.90\text{ mm}$ with $0.35\text{ mm}$ corner-relief clip, $18.3\text{ mm}$ total length along $-Y$ from $Y = 156.3\text{ mm}$ to $138.0\text{ mm}$: $6.3\text{ mm}$ knuckle span + $12.0\text{ mm}$ tapered engagement) into the active flap.
+- **Symmetrical Dual-Ended Female 45° Diamond Square Flap**:
+  - The `motorized_flap` features identical $6.50\text{ mm}$ 45° diamond female square sockets ($14.0\text{ mm}$ deep with $0.8\text{ mm} \times 45^\circ$ entry bevel) at both ends ($Y = 18.0\text{ mm}$ and $Y = 150.0\text{ mm}$), identical to `follower_flap`.
 - **Synchronous Column Torque Transmission**:
   - Rotational torque is transmitted from the servo through the metal horn, into the 3D-printed drive adapter, down the active flap axle, and through the `hex_drive_coupler` into the follower flap below.
 
@@ -85,9 +85,9 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
 - **Horn Fastening Interface**:
   - 4x M2/M2.5 clearance through-holes ($\varnothing 2.5\text{ mm}$) arranged in a $90^\circ$ cross on a $\varnothing 14.0\text{ mm}$ bolt circle to screw directly into the metal/plastic round horn.
   - Coaxial $\varnothing 8.0\text{ mm} \times 2.0\text{ mm}$ central rear horn boss / screw head relief pocket ($Y \in [161.8, 163.8\text{ mm}]$).
-- **Male Hex Drive Peg**:
-  - $8.0\text{ mm}$ nominal male hex peg ($7.88\text{ mm}$ flat-to-flat with $0.12\text{ mm}$ AF zero-backlash slip-fit clearance, $23.8\text{ mm}$ length extending along $-Y$ into the flap from $Y = 156.3\text{ mm}$ to $132.5\text{ mm}$, engaging $17.5\text{ mm}$ into the flap socket).
-  - $1.2\text{ mm} \times 45^\circ$ self-aligning lead-in entry chamfer on the hex peg tip.
+- **Male 45° Diamond Tapered Square Drive Peg**:
+  - $6.35 \to 5.90\text{ mm}$ corner-relieved (`0.35 mm`) 45° diamond tapered square peg ($18.3\text{ mm}$ total length along $-Y$ from $Y = 156.3\text{ mm}$ to $138.0\text{ mm}$: $6.3\text{ mm}$ straight knuckle span + $12.0\text{ mm}$ tapered engagement inside the $14.0\text{ mm}$ flap socket).
+  - $1.2\text{ mm} \times 45^\circ$ self-aligning nose chamfer on the peg tip.
 
 ---
 
@@ -95,11 +95,11 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
 - **Overall Dimensions**: $219.0\text{ mm} \text{ (W)} \times 219.5\text{ mm} \text{ (H)} \times 2.4\text{ mm} \text{ (T)}$.
 - **Operating Height**: Resting plane at $Z = 15.0$ to $17.4\text{ mm}$.
 - **Continuous Solid-Core Drive Axle**:
-  - $\varnothing 12.8\text{ mm}$ solid-core continuous drive axle along $X = 0$ ($Y = 18.0$ to $142.5\text{ mm}$), centered at $Z_{pivot} = 15.0\text{ mm}$.
+  - $\varnothing 12.8\text{ mm}$ solid-core continuous drive axle along $X = 0$ ($Y = 18.0$ to $150.0\text{ mm}$), centered at $Z_{pivot} = 15.0\text{ mm}$.
   - Fused with bottom reinforcing fillet gusset between knuckles.
-- **Dual Symmetrical 8.0mm Female Hex Sockets**:
-  - **Driven Top End**: $8.0\text{ mm}$ female hex socket ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`) receiving the `motorized_servo_adapter` male hex peg.
-  - **Output Bottom End**: $8.0\text{ mm}$ female hex socket ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`) receiving the `hex_drive_coupler` pin.
+- **Dual Symmetrical 6.50mm 45° Diamond Female Square Sockets**:
+  - **Driven Top End**: $6.50\text{ mm}$ 45° diamond female square socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) receiving the `motorized_servo_adapter` tapered square peg.
+  - **Output Bottom End**: $6.50\text{ mm}$ 45° diamond female square socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) receiving the `hex_drive_coupler` pin.
 - **Weight Reduction & Aesthetics**:
   - Multi-tiered organic circular cutouts (~45% mass reduction, target blade weight $\le 75\text{g}$).
   - $0.6\text{ mm}$ diamond micro-grip knurling texture on top garment face, excluding the hinge neck strip ($X \in [0.0, 11.9\text{ mm}]$) to preserve a `100%` solid $2.4\text{ mm}$ hinge spine transition.
@@ -141,6 +141,6 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
 | Servo Mounting Holes | Top & Bottom spacing per ear ($\Delta Z$), Ear-to-Ear spacing ($\Delta X$) | $\Delta Z = 10.0\text{ mm}$, $\Delta X = 48.0\text{ mm}$ | `params.py` / `specs/reference-images/mg996r-servo.png` |
 | Captive Hex Nut Housings | Regular Hexagon Across-Flats / Depth | $W_{af} = 5.8\text{ mm}$, depth $3.2\text{ mm}$ | `motorized_frame.py` |
 | Servo Drive Adapter Disk | Flange Diameter / Thickness | $\varnothing 20.0\text{ mm} \times 7.5\text{ mm}$ ($Y \in [156.3, 163.8\text{ mm}]$) | `motorized_servo_adapter.py` |
-| Adapter Male Hex Peg | Across-Flats / Length / Lead-in Chamfer | $7.88\text{ mm} \times 23.8\text{ mm}$, $1.2\text{ mm} \times 45^\circ$ | `motorized_servo_adapter.py` |
-| Flap Hex Sockets (Both Ends) | `HEX_COUPLER_SIZE`, `HEX_COUPLER_DEPTH` | $8.0\text{ mm}$ Flat-to-Flat, $22.0\text{ mm}$ deep | `params.py` |
+| Adapter Male Tapered Square Peg | Taper / Length / Corner Clip / Nose Chamfer | $6.35 \to 5.90\text{ mm}$, $18.3\text{ mm}$ ($6.3 + 12.0\text{ mm}$), $0.35\text{ mm}$ clip, $1.2\text{ mm} \times 45^\circ$ | `motorized_servo_adapter.py` |
+| Flap 45° Diamond Square Sockets | `SQUARE_DRIVE_SIZE`, `SQUARE_DRIVE_SOCKET_DEPTH` | $6.50\text{ mm}$ 45° diamond, $14.0\text{ mm}$ deep + $0.8\text{ mm}$ entry bevel | `params.py` |
 | Active Flap Axle Span | Drop-in knuckle spine span | $Y = 18.0\text{ mm}$ to $Y = 142.5\text{ mm}$ | `motorized_flap.py` |

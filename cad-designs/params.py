@@ -59,14 +59,16 @@ DOVETAIL_DEPTH           = 12.00 # 12mm deep insertion into frame for high momen
 DOVETAIL_CLEARANCE       = 0.20  # 0.20mm sliding tolerance per side (0.40mm total clearance for smooth FDM assembly)
 DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
-# Heavy-Duty Drive Axle & Hex Torque Coupler (Column Synchronous Folding - Fixed Universal Hardware)
+# Heavy-Duty Drive Axle & 45° Diamond Tapered Square Coupler (Column Synchronous Folding - Fixed Universal Hardware)
 PIVOT_Z                   = BASE_PANEL_THICKNESS  # 15.00mm (Hinge line at top deck surface for full-coverage panels resting on top of frame)
-DRIVE_SHAFT_DIAMETER      = 12.80 # Ø12.8mm outer axle diameter (R=6.4mm half-cylinder axle in R=6.85mm cradle bore)
+DRIVE_SHAFT_DIAMETER      = 12.80 # Ø12.8mm outer axle diameter (R=6.4mm axle in R=6.85mm cradle bore)
 DRIVE_SHAFT_BORE          = 8.00  # Ø8mm inner weight-relief bore
-HEX_COUPLER_SIZE          = 8.00  # 8.0mm Flat-to-Flat standard hex drive interface
-HEX_COUPLER_CLEARANCE     = 0.12  # 0.12mm AF clearance (7.88mm male hex peg for zero-backlash slip fit)
-HEX_COUPLER_DEPTH         = 22.00 # 22.0mm deep female hex socket in flaps for high torsional stiffness
-HEX_PEG_DEPTH             = 18.00 # 18.0mm male hex peg engagement depth (3x deeper torque contact)
+SQUARE_DRIVE_SIZE         = 6.50  # 6.50mm flat-to-flat 45° diamond female socket (self-supporting roof, zero overhang droop)
+SQUARE_DRIVE_BASE_SIZE    = 6.35  # 6.35mm male peg base width (0.15mm total clearance -> zero-backlash snug seat)
+SQUARE_DRIVE_TIP_SIZE     = 5.90  # 5.90mm male peg tip width (0.60mm total clearance -> effortless hand insertion)
+SQUARE_DRIVE_SOCKET_DEPTH = 14.00 # 14.0mm deep female diamond socket in flaps (2.0mm bottom air gap)
+SQUARE_DRIVE_PEG_DEPTH    = 12.00 # 12.0mm male tapered square peg engagement depth
+SQUARE_DRIVE_CORNER_CLIP  = 0.35  # 0.35mm corner relief clip on male peg (prevents FDM seam blob binding)
 BEARING_ROTATING_CLEARANCE = 0.45  # 0.45mm radial clearance (Ø13.7mm frame knuckle bore for friction-free FDM 3D printing rotation)
 
 

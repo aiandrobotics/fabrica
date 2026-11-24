@@ -19,20 +19,62 @@ if SCRIPT_DIR not in sys.path:
 from params import (
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
-    HEX_COUPLER_SIZE,
-    HEX_COUPLER_CLEARANCE,
+    SQUARE_DRIVE_BASE_SIZE,
+    SQUARE_DRIVE_TIP_SIZE,
+    SQUARE_DRIVE_PEG_DEPTH,
+    SQUARE_DRIVE_CORNER_CLIP,
     EXPORT_DIR,
 )
 
-def make_hexagon_wire(size_af, center_x, center_z, y_pos):
-    """Generates an explicit closed hexagon wire in the XZ plane."""
-    r = (size_af / 2.0) / math.cos(math.radians(30))
-    pts = []
-    for i in range(6):
-        ang = math.radians(60 * i + 30)
-        pts.append(App.Vector(center_x + r * math.cos(ang), y_pos, center_z + r * math.sin(ang)))
-    pts.append(pts[0])
+def make_diamond_square_wire(size_af, center_x, center_z, y_pos):
+    """Generates a 45°-rotated diamond square wire in the XZ plane."""
+    r = (size_af / 2.0) * math.sqrt(2.0)
+    pts = [
+        App.Vector(center_x + r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z + r),
+        App.Vector(center_x - r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z - r),
+        App.Vector(center_x + r, y_pos, center_z),
+    ]
     return Part.makePolygon(pts)
+
+def make_tapered_diamond_peg(y_start, direction, straight_len, taper_len, pivot_z):
+    """Builds a corner-relieved 45° diamond tapered square peg with a 45° nose chamfer."""
+    chamf_len = 1.2
+    y_taper_start = y_start + direction * straight_len
+    y_chamf_start = y_taper_start + direction * (taper_len - chamf_len)
+    y_tip = y_taper_start + direction * taper_len
+
+    parts = []
+    if straight_len > 0.0:
+        w0 = make_diamond_square_wire(SQUARE_DRIVE_BASE_SIZE, 0, pivot_z, y_start)
+        parts.append(Part.Face(w0).extrude(App.Vector(0, direction * straight_len, 0)))
+
+    taper_body = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_BASE_SIZE, 0, pivot_z, y_taper_start),
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE, 0, pivot_z, y_chamf_start),
+    ], True, True)
+    nose_chamf = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE, 0, pivot_z, y_chamf_start),
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE - 2.0, 0, pivot_z, y_tip),
+    ], True, True)
+    parts.extend([taper_body, nose_chamf])
+
+    peg = parts[0]
+    for p in parts[1:]:
+        peg = peg.fuse(p)
+    peg = peg.removeSplitter()
+
+    # Clip the 4 sharp outer corners slightly so FDM seam blobs never bind in socket corners
+    r_clip = (SQUARE_DRIVE_BASE_SIZE / 2.0) * math.sqrt(2.0) - SQUARE_DRIVE_CORNER_CLIP
+    total_len = straight_len + taper_len
+    clip_cyl = Part.makeCylinder(
+        r_clip,
+        total_len + 0.2,
+        App.Vector(0, y_start - direction * 0.1, pivot_z),
+        App.Vector(0, direction, 0),
+    )
+    return peg.common(clip_cyl).removeSplitter()
 
 def construct_motorized_servo_adapter():
     """
@@ -49,25 +91,19 @@ def construct_motorized_servo_adapter():
     h = params.PANEL_HEIGHT
     pivot_z = PIVOT_Z                          # 15.0mm
     disk_r = 10.0                              # 10.0mm radius (Ø20.0mm circular flange matching round horn)
-    y_front = 156.3                            # Front face at Y = 156.3mm (5.8mm clearance from frame knuckle at 150.5mm)
+    y_front = 156.3                            # Front face at Y = 156.3mm (6.3mm span to flap top face at Y = 150.0mm)
     y_rear = 163.8                             # Rear face at Y = 163.8mm (seats flush against MG996R round horn)
     disk_t = y_rear - y_front                  # 7.5mm thickness (+2.0mm thicker so horn screws stay recessed)
-    hex_size = HEX_COUPLER_SIZE - HEX_COUPLER_CLEARANCE  # 7.88mm flat-to-flat zero-backlash slip fit
-    peg_len = 23.8                             # 23.8mm hex peg (Y=156.3 to 132.5mm, engaging 17.5mm into flap shaft)
+    knuckle_span = 6.3                         # 6.3mm straight span from flange (156.3) to flap entry (150.0)
+    taper_len = SQUARE_DRIVE_PEG_DEPTH         # 12.0mm tapered square engagement inside flap (150.0 -> 138.0mm)
 
-    # 1. Main Circular Flange Disk (Y in [159.5, 163.8mm])
+    # 1. Main Circular Flange Disk (Y in [156.3, 163.8mm])
     flange = Part.makeCylinder(disk_r, disk_t, App.Vector(0, y_front, pivot_z), App.Vector(0, 1, 0))
 
-    # 2. Male 8.0mm Hex Drive Peg (Continuous along -Y from Y = 159.5 to 141.5mm)
-    hex_wire = make_hexagon_wire(hex_size, 0, pivot_z, y_front)
-    hex_face = Part.Face(hex_wire)
-    hex_peg = hex_face.extrude(App.Vector(0, -peg_len, 0))
+    # 2. Male 45° Diamond Tapered Square Drive Peg (18.3mm total: 6.3mm span + 12.0mm tapered engagement)
+    sq_peg = make_tapered_diamond_peg(y_front, -1.0, knuckle_span, taper_len, pivot_z)
 
-    # 45° Lead-in nose chamfer on hex peg tip
-    chamfer_cone = Part.makeCone(disk_r, disk_r - 1.2, 1.2, App.Vector(0, y_front - peg_len, pivot_z), App.Vector(0, -1, 0))
-    hex_peg = hex_peg.cut(chamfer_cone).removeSplitter()
-
-    adapter = flange.fuse(hex_peg).removeSplitter()
+    adapter = flange.fuse(sq_peg).removeSplitter()
 
     # 3. 4x M2/M2.5 Mounting Screw Clearance Holes (Ø2.5mm) on Ø14.0mm PCD (R = 7.0mm)
     pcd_r = 7.0

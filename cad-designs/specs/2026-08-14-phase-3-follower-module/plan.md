@@ -19,7 +19,7 @@ Implementation plan for the Passive Follower Module of the Fabrica Cloth Folding
 ## Task Group 2: Full-Size Follower Flap Panel (`follower_flap.py`)
 1. Model the full-size folding flap paddle body ($239.0 \times 238.0 \times 2.4\text{ mm}$) resting directly on frame landing rails ($Z = 15.0$ to $17.4\text{ mm}$).
 2. Model integrated continuous full-length $\varnothing 13.0\text{ mm}$ solid-core drive axle ($Y = 0$ to $240\text{ mm}$, centered at $X = 0, Z = 8.0\text{ mm}$) with bottom reinforcing fillet gusset.
-3. Model dual symmetrical $8.0\text{ mm}$ female hex torque drive sockets ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`) at top and bottom ends.
+3. Model dual symmetrical $6.50\text{ mm}$ 45° diamond female square torque drive sockets ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) at top and bottom ends.
 4. Model multi-tiered organic gradient circular weight-reduction cutouts (~45% mass reduction, target weight $\le 80\text{g}$) matching reference visuals.
 5. Model $1.2\text{ mm}$ recessed perimeter accent shadow bevel.
 6. Model $0.6\text{ mm}$ diamond micro-grip knurling texture on the top garment face while keeping the hinge neck strip ($X \in [0.0, 11.9\text{ mm}]$) $100\%$ solid $2.4\text{ mm}$ un-grooved.
@@ -28,9 +28,9 @@ Implementation plan for the Passive Follower Module of the Fabrica Cloth Folding
 
 ---
 
-## Task Group 3: Modular Hex Drive Coupler Pin (`hex_drive_coupler.py`) & End Pivot Pin (`end_pivot_pin.py`)
-1. Model double-male $8.0\text{ mm}$ nominal hex torque coupler (`hex_drive_coupler.py`, $78.0\text{ mm}$ total length) with $7.88\text{ mm}$ Flat-to-Flat ($0.12\text{ mm}$ AF zero-backlash slip-fit clearance) and $18.0\text{ mm}$ male hex peg depth (`HEX_PEG_DEPTH = 18.00`), plus `end_pivot_pin.py` ($36.0\text{ mm}$ total length with $\varnothing 16.0 \times 3.0\text{ mm}$ retaining flange and $7.88\text{ mm}$ AF $\times 18.0\text{ mm}$ male hex peg).
-2. Model central $\varnothing 15.0 \times 2.0\text{ mm}$ locating stop collar and $1.0\text{ mm} \times 45^\circ$ self-aligning lead-in chamfers.
+## Task Group 3: Modular Square Drive Coupler Pin (`hex_drive_coupler.py`) & End Pivot Pin (`end_pivot_pin.py`)
+1. Model double-male 45° diamond tapered square torque coupler (`hex_drive_coupler.py`, $66.0\text{ mm}$ total length) with $6.35 \to 5.90\text{ mm}$ corner-relieved (`0.35 mm`) tapered square pegs (`SQUARE_DRIVE_PEG_DEPTH = 12.00`), plus `end_pivot_pin.py` ($30.0\text{ mm}$ total length with $\varnothing 16.0 \times 3.0\text{ mm}$ retaining flange and $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ tapered square peg).
+2. Model continuous smooth $\varnothing 12.6\text{ mm}$ journal body (no center stop collar), $45^\circ$ conical shoulders, and $1.2\text{ mm} \times 45^\circ$ self-aligning nose chamfers.
 3. Implement headless STEP and STL export.
 
 ---

@@ -13,7 +13,7 @@ The Fabrica firmware coordinates the physical user interface, non-volatile seque
 * **User Interface**: 4 Push Buttons (`B1–B4` on `GPIO 4–7`) + 1 External Multi-Pattern Status LED (`GPIO 15`)
 * **Operating Architecture**: Dual-Core FreeRTOS (Core 0: Motion & I2C Bus / Core 1: UI, Buttons, NimBLE Wireless, Telemetry & NVS Storage)
 * **Operating Modes**:
-  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized parallel dual-servo balance-point braked S-curve sweeps (`0° -> 150° -> 0°`: 1350ms forward with 250ms top hold, 1450ms early-braked return), 10ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
+  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized single and parallel dual-servo fold sweeps (`0° -> 150°` direct forward sweep in 800ms, `150° -> 40°` fast return in 450ms, and uniform `-1°/20ms` soft-landing `40° -> 0°` in 800ms = 2050ms per step), 10ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
   2. **Wireless Mobile Programming & Control (BLE)**: Custom sequence creation, live servo calibration jogging, stateless sequence previewing, real-time 10 Hz / 1 Hz adaptive telemetry streaming, and assigning custom sequences to Buttons 1–4 are handled visually over Bluetooth Low Energy.
 
 ---
@@ -93,7 +93,7 @@ The firmware uses FreeRTOS symmetric multiprocessing to cleanly separate real-ti
            ----------------------           ------------------------------------------------
            * app_main (Command & Motion)    * app_ble_task (Priority 4, NimBLE GATT Server)
            * Real-time 50Hz PWM Trajectory  * app_telem_task (Priority 3, Adaptive Telemetry)
-           * 1350ms Forward / 1450ms Return * app_ui_task (Priority 5, 50ms Debounce)
+           * 800ms Fwd / 450ms+800ms Return * app_ui_task (Priority 5, 50ms Debounce)
            * 10ms Inter-Step Delays         * Short Tap vs 3s Hold (BLE Pairing)
            * PCA9685 I2C Bus Management     * System State Machine Coordinator
            * <50ms E-Stop Preemption Abort  * app_led_task (Priority 2, Status LED Engine)

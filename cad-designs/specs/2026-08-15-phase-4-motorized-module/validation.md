@@ -19,7 +19,7 @@ Validation specification and acceptance criteria for the Active Motorized Module
 - **Pivot Centerline Alignment**: All axles, knuckles, and coupler ports centered at $Z_{pivot} = 10.0\text{ mm}$.
 - **Servo Drive Adapter Interface**:
   - 4x M2/M2.5 screw holes aligned with round horn disk bolt pattern.
-  - Male 8.0mm hex peg engages into flap top female hex socket with $0.00000\text{ mm}^3$ interference.
+  - Male 45° diamond tapered square peg ($6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ engagement) engages into flap top $6.50\text{ mm}$ female diamond square socket with $0.00000\text{ mm}^3$ interference.
 - **Boolean Overlap Volume Check**: `0.00000 mm³` overlap across all mating assembly pairs.
 
 ---

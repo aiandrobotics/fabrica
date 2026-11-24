@@ -67,7 +67,7 @@ graph TD
 - **Dual Operating Modes**:
   - **Standalone Daily Run Mode**: Instant 1-touch execution of Presets 1–4 via physical tactile buttons on the robot console. No phone or computer needed for daily laundry routines.
   - **Wireless Mobile App Mode**: Complete Bluetooth Low Energy (BLE) control for designing custom routines, previewing sequences, live servo jog calibration, and real-time telemetry streaming.
-- **Modular & Parametric Grid**: Standard 4×3 grid (expandable up to 16 motorized modules) engineered in FreeCAD Python with sliding dovetails, captive wire conduits, heavy-duty $\varnothing 12.8\text{ mm}$ drive axles, solid un-grooved $2.4\text{ mm}$ hinge necks, and $22.0\text{ mm}$ deep $8.0\text{ mm}$ hex couplers.
+- **Modular & Parametric Grid**: Standard 4×3 grid (expandable up to 16 motorized modules) engineered in FreeCAD Python with sliding dovetails, captive wire conduits, heavy-duty $\varnothing 12.8\text{ mm}$ drive axles, solid un-grooved $2.4\text{ mm}$ hinge necks, and $6.50\text{ mm}$ 45° diamond tapered square drive couplers.
 - **Robust Hardware E-Stop (<50ms Abort)**: Tapping any physical button or issuing a BLE stop command during active movement halts motion within 50ms and returns all panels to a safe home position.
 - **Fail-Safe Flash Storage**: Non-volatile NVS flash persistence with IEEE 802.3 CRC32 checksum verification to protect stored garment sequences against data corruption.
 
@@ -81,10 +81,10 @@ The mechanical system is built programmatically using parametric FreeCAD Python 
 
 - **Modular Panels**:
   - **Base Chassis (`base_module.py`)**: Rigid stationary platform with internal hexagonal weight-reduction web, non-slip TPU foot recesses, and captive cable channels.
-  - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, continuous $\varnothing 12.8\text{ mm}$ hinge axle, $\varnothing 20.0 \times 7.5\text{ mm}$ horn adapter ($7.88\text{ mm}$ AF $\times 23.8\text{ mm}$ hex peg), dual $22.0\text{ mm}$ deep female hex sockets, solid un-grooved $2.4\text{ mm}$ hinge neck, and vented snap-cover.
-  - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual $\varnothing 13.7\text{ mm}$ bearing knuckles, dual $22.0\text{ mm}$ deep $8.0\text{ mm}$ female hex torque drive sockets, and solid un-grooved $2.4\text{ mm}$ hinge neck.
+  - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, continuous $\varnothing 12.8\text{ mm}$ hinge axle, $\varnothing 20.0 \times 7.5\text{ mm}$ horn adapter ($6.35 \to 5.90\text{ mm}$ 45° diamond tapered square peg), dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ diamond square sockets, solid un-grooved $2.4\text{ mm}$ hinge neck, and vented snap-cover.
+  - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual $\varnothing 13.7\text{ mm}$ bearing knuckles, dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ 45° diamond female square drive sockets, and solid un-grooved $2.4\text{ mm}$ hinge neck.
   - **Interface Enclosure (`interface_case.py`, `interface_panel.py`)**: Compact enclosure housing the 4 tactile push buttons, status LED diffuser, ESP32-S3-DevKitC-1, PCA9685, and power distribution boards.
-  - **Hardware Interlocks (`frame_joiner.py`, `hex_drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $7.88\text{ mm}$ AF $\times 18.0\text{ mm}$ zero-backlash hex torque coupler pins, and captive shoulder end pivot pins.
+  - **Hardware Interlocks (`frame_joiner.py`, `hex_drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ 45° diamond tapered square coupler pins (smooth $\varnothing 12.6\text{ mm}$ body), and captive shoulder end pivot pins.
 - **Pre-Exported Assets**: Clean STEP and STL files available in [`cad-designs/exports/`](cad-designs/exports/).
 - **Slicer Profile**: Bambu Studio / OrcaSlicer project file ready for printing in [`cad-designs/3d-print/fabrica-bambu-lab-256.3mf`](cad-designs/3d-print/fabrica-bambu-lab-256.3mf).
 
@@ -94,8 +94,8 @@ The embedded firmware runs natively on the **ESP32-S3-DevKitC-1** using **ESP-ID
 
 - **Core 0 (Motion Engine & Actuation)**:
   - High-precision 50 Hz PWM servo trajectory generator driving the PCA9685 controller over I2C (`GPIO 2 SDA`, `GPIO 1 SCL`).
-  - Fluid parallel sweeps using a 5-phase 40 Hz balance-point braked S-curve ($0^\circ \to 150^\circ \to 0^\circ$ so the coupled follower completes the fold without overshooting $180^\circ$ or slamming home).
-  - `1350ms` forward sweep (including `250ms` top hold), `1450ms` early gravity-braked return sweep, and `10ms` inter-step settling delay.
+  - Single-motor and parallel dual-servo sequential fold sweeps with 50 Hz uniform soft-landing ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$).
+  - `800ms` direct forward sweep (`0° -> 150°`), `450ms` fast return (`150° -> 40°`), `800ms` uniform `-1°/20ms` soft-landing (`40° -> 0°`), and `10ms` inter-step settling delay.
   - Sub-50ms latched Emergency Stop (E-Stop) preemption handler.
 - **Core 1 (UI, BLE Wireless & Storage)**:
   - 4-Button debouncer with 50ms low-pass filter and multi-gesture detection (short press vs. 3-second hold).
@@ -205,16 +205,16 @@ fabrica/
 ├── cad-designs/               # FreeCAD parametric scripts & 3D models
 │   ├── base_module.py         # Stationary rigid base chassis
 │   ├── motorized_frame.py     # Active motorized chassis (MG996R servo well)
-│   ├── motorized_flap.py      # Active flap with 22.0mm hex sockets & solid hinge neck
-│   ├── motorized_servo_adapter.py # Circular horn adapter (7.88mm AF × 23.8mm hex peg)
+│   ├── motorized_flap.py      # Active flap with 14.0mm 45° diamond square sockets & solid hinge neck
+│   ├── motorized_servo_adapter.py # Circular horn adapter (6.35→5.90mm diamond tapered square peg)
 │   ├── motorized_servo_cover.py # Snap-cover with cooling gills
 │   ├── follower_frame.py      # Passive follower chassis
-│   ├── follower_flap.py       # Passive follower flap with 22.0mm hex sockets
+│   ├── follower_flap.py       # Passive follower flap with 14.0mm 45° diamond square sockets
 │   ├── interface_case.py      # Triple-board electronics enclosure
 │   ├── interface_panel.py     # Compact snap-lock button & LED faceplate
 │   ├── frame_joiner.py        # Interlocking dovetail joiners with wire raceway
-│   ├── hex_drive_coupler.py   # Double-male 7.88mm AF × 18.0mm hex drive pin
-│   ├── end_pivot_pin.py       # Captive shoulder pivot pin (7.88mm AF × 18.0mm peg)
+│   ├── hex_drive_coupler.py   # Double-male 6.35→5.90mm × 12.0mm 45° diamond square coupler pin
+│   ├── end_pivot_pin.py       # Captive shoulder pivot pin (6.35→5.90mm × 12.0mm square peg)
 │   ├── assembly.py            # Full 6-module universal folding robot assembly
 │   ├── export_all.py          # Batch export script (STEP & STL)
 │   ├── 3d-print/              # Bambu Studio 3MF slicer projects

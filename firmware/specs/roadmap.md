@@ -74,8 +74,8 @@ Build, validate, and verify each milestone before moving to the next phase.
 ## Phase 5 — Motion Engine & Daily Run Mode Execution (`motion.c`) ✅
 - **Core 0 Real-Time Motion Task** (`main/motion.h`, `main/motion.c`):
   - High-priority FreeRTOS task pinned to Core 0 executing sequence steps sequentially (Step 1 to $N$).
-  - **Single Motor Sweep**: Target servo executes a 40 Hz balance-point braked S-curve sweep $0^\circ \rightarrow 150^\circ$ (1350ms forward with 250ms top hold) and early-braked return $150^\circ \rightarrow 0^\circ$ (1450ms with braking from $78^\circ \rightarrow 0^\circ$).
-  - **Parallel Motor Sweep**: Both assigned servos execute the synchronized balance-point braked S-curve trajectory $0^\circ \rightarrow 150^\circ \rightarrow 0^\circ$ (1350ms forward, 1450ms return).
+  - **Single Motor Sweep**: Target servo executes a direct forward sweep $0^\circ \rightarrow 150^\circ$ (800ms), fast return $150^\circ \rightarrow 40^\circ$ (450ms), and uniform $-1^\circ\text{/20ms}$ soft-landing $40^\circ \rightarrow 0^\circ$ (800ms, 50 Hz native PWM).
+  - **Parallel Motor Sweep**: Both assigned servos execute the synchronized trajectory $0^\circ \rightarrow 150^\circ \rightarrow 40^\circ \rightarrow 0^\circ$ (800ms forward, 450ms fast return, 800ms soft-landing).
   - **Inter-Step Settling Delay**: 10ms pause between consecutive steps.
   - Turn LED Solid ON during execution; turn OFF when returning to Idle.
 - **Daily Run Mode Trigger & Safeguards**:

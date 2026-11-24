@@ -16,82 +16,82 @@ from params import (
     MODULE_GAP,
     PIVOT_Z,
     DRIVE_SHAFT_DIAMETER,
-    HEX_COUPLER_SIZE,
-    HEX_COUPLER_CLEARANCE,
-    HEX_PEG_DEPTH,
+    SQUARE_DRIVE_BASE_SIZE,
+    SQUARE_DRIVE_TIP_SIZE,
+    SQUARE_DRIVE_PEG_DEPTH,
+    SQUARE_DRIVE_CORNER_CLIP,
     EXPORT_DIR,
 )
 
-def make_hexagon_wire(size_af, center_x, center_z, y_pos):
-    """Generates an explicit closed hexagon wire in the XZ plane."""
-    r = (size_af / 2.0) / math.cos(math.radians(30))
-    pts = []
-    for i in range(6):
-        ang = math.radians(60 * i + 30)
-        pts.append(App.Vector(center_x + r * math.cos(ang), y_pos, center_z + r * math.sin(ang)))
-    pts.append(pts[0])
+def make_diamond_square_wire(size_af, center_x, center_z, y_pos):
+    """Generates a 45°-rotated diamond square wire in the XZ plane."""
+    r = (size_af / 2.0) * math.sqrt(2.0)
+    pts = [
+        App.Vector(center_x + r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z + r),
+        App.Vector(center_x - r, y_pos, center_z),
+        App.Vector(center_x,     y_pos, center_z - r),
+        App.Vector(center_x + r, y_pos, center_z),
+    ]
     return Part.makePolygon(pts)
+
+def make_tapered_diamond_peg(y_start, direction, taper_len, pivot_z):
+    """Builds a corner-relieved 45° diamond tapered square peg with a 45° nose chamfer."""
+    chamf_len = 1.2
+    y_chamf_start = y_start + direction * (taper_len - chamf_len)
+    y_tip = y_start + direction * taper_len
+
+    taper_body = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_BASE_SIZE, 0, pivot_z, y_start),
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE, 0, pivot_z, y_chamf_start),
+    ], True, True)
+    nose_chamf = Part.makeLoft([
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE, 0, pivot_z, y_chamf_start),
+        make_diamond_square_wire(SQUARE_DRIVE_TIP_SIZE - 2.0, 0, pivot_z, y_tip),
+    ], True, True)
+    peg = taper_body.fuse(nose_chamf).removeSplitter()
+
+    r_clip = (SQUARE_DRIVE_BASE_SIZE / 2.0) * math.sqrt(2.0) - SQUARE_DRIVE_CORNER_CLIP
+    clip_cyl = Part.makeCylinder(
+        r_clip,
+        taper_len + 0.2,
+        App.Vector(0, y_start - direction * 0.1, pivot_z),
+        App.Vector(0, direction, 0),
+    )
+    return peg.common(clip_cyl).removeSplitter()
 
 def construct_hex_drive_coupler():
     """
-    Constructs the Symmetric Inter-Module Hex Drive Coupler (Part 11).
+    Constructs the Symmetric Inter-Module 45° Diamond Tapered Square Drive Coupler (Part 11).
     Spans the 10mm gap between adjacent modules and bridges their 360° knuckles:
-    - Central 10mm Bridge (Y in [-5.0, 5.0mm]) with Ø15mm centering collar.
-    - +Y Smooth Journal (Ø12.8mm x 15mm, Y in [5.0, 20.0mm]) + Hex Peg (7.7mm AF x 9mm, Y in [21.0, 30.0mm]).
-    - -Y Smooth Journal (Ø12.8mm x 15mm, Y in [-20.0, -5.0mm]) + Hex Peg (7.7mm AF x 9mm, Y in [-30.0, -21.0mm]).
-    - Central Ø3.4mm driver access / weight-relief through-hole.
+    - Continuous smooth Ø12.6mm journal cylinder (Y in [-18.84, +18.84mm]) with 45° conical shoulders.
+    - +Y / -Y 45° Diamond Tapered Square Pegs (6.35 -> 5.90mm x 12.0mm, corner-relieved + 45° nose chamfer).
     """
     pivot_z = PIVOT_Z
-    hex_size = HEX_COUPLER_SIZE - HEX_COUPLER_CLEARANCE # 7.88mm flat-to-flat zero-backlash slip fit
-    socket_depth = HEX_PEG_DEPTH                        # 18.0mm hex engagement depth into flap
+    peg_depth = SQUARE_DRIVE_PEG_DEPTH                # 12.0mm tapered square engagement depth into flap
     knuckle_len = 15.0                                # 15.0mm journal through frame knuckle
     gap_half = MODULE_GAP / 2.0                       # 5.0mm
     thrust_gap = 1.0                                  # 1.0mm thrust gap
-    journal_d = DRIVE_SHAFT_DIAMETER - 0.2            # 12.8mm cylinder
-    journal_r = journal_d / 2.0                       # 6.4mm
-    collar_r = 7.5                                    # Ø15.0mm central centering collar
+    journal_d = DRIVE_SHAFT_DIAMETER - 0.2            # 12.6mm cylinder
+    journal_r = journal_d / 2.0                       # 6.3mm
+    r_clip = (SQUARE_DRIVE_BASE_SIZE / 2.0) * math.sqrt(2.0) - SQUARE_DRIVE_CORNER_CLIP  # 4.14mm
 
-    # 1. Central 10.0mm Inter-Module Bridge Cylinder (Y in [-5.0, 5.0mm])
-    bridge_cyl = Part.makeCylinder(journal_r, 2 * gap_half, App.Vector(0, -gap_half, pivot_z), App.Vector(0, 1, 0))
-    # Central centering collar (Ø15.0mm x 2.0mm at Y in [-1.0, 1.0mm]) with 45° support-free transitions
-    collar = Part.makeCylinder(collar_r, 2.0, App.Vector(0, -1.0, pivot_z), App.Vector(0, 1, 0))
-    collar_taper_h = collar_r - journal_r  # 1.1mm for 45° slope
-    collar_cone_pos = Part.makeCone(collar_r, journal_r, collar_taper_h, App.Vector(0, 1.0, pivot_z), App.Vector(0, 1, 0))
-    collar_cone_neg = Part.makeCone(collar_r, journal_r, collar_taper_h, App.Vector(0, -1.0, pivot_z), App.Vector(0, -1, 0))
-    bridge = bridge_cyl.fuse([collar, collar_cone_pos, collar_cone_neg]).removeSplitter()
+    # 1. Continuous Smooth Bearing Journal Cylinder spanning bridge + both frame knuckles
+    shoulder_h = journal_r - r_clip  # ~2.16mm for 45° support-free cone
+    y_peg_base = gap_half + knuckle_len + thrust_gap  # 21.0mm
+    y_cone_start = y_peg_base - shoulder_h            # ~18.84mm
+    main_shaft = Part.makeCylinder(journal_r, 2.0 * y_cone_start, App.Vector(0, -y_cone_start, pivot_z), App.Vector(0, 1, 0))
 
-    # 2. +Y Smooth Knuckle Journal (Y in [5.0, 21.0mm]) with seamless ruled loft from Ø12.8mm circle to 7.7mm hex
-    hex_taper_h = journal_r - (hex_size / 2.0)  # 2.55mm (~45° slope)
-    journal_straight_len = knuckle_len + thrust_gap - hex_taper_h
-    pos_journal = Part.makeCylinder(journal_r, journal_straight_len, App.Vector(0, gap_half, pivot_z), App.Vector(0, 1, 0))
-    pos_circ = Part.makeCircle(journal_r, App.Vector(0, gap_half + journal_straight_len, pivot_z), App.Vector(0, 1, 0))
-    pos_circ.rotate(App.Vector(0, gap_half + journal_straight_len, pivot_z), App.Vector(0, 1, 0), -30)
-    pos_circ_wire = Part.Wire([pos_circ])
-    pos_hex_start_wire = make_hexagon_wire(hex_size, 0, pivot_z, gap_half + knuckle_len + thrust_gap)
-    pos_taper = Part.makeLoft([pos_circ_wire, pos_hex_start_wire], True, True)
-    # +Y Hex Drive Peg (Y in [21.0, 30.0mm])
-    hex_pos_wire = make_hexagon_wire(hex_size, 0, pivot_z, gap_half + knuckle_len + thrust_gap)
-    hex_pos_face = Part.Face(hex_pos_wire)
-    hex_pos_peg = hex_pos_face.extrude(App.Vector(0, socket_depth, 0))
-    c_pos = Part.makeCone(journal_r, journal_r - 1.0, 1.0, App.Vector(0, gap_half + knuckle_len + thrust_gap + socket_depth, pivot_z), App.Vector(0, 1, 0))
-    hex_pos_peg = hex_pos_peg.cut(c_pos).removeSplitter()
+    # 2. +Y 45° Conical Shoulder & Tapered Diamond Square Peg (Y in [21.0, 33.0mm])
+    pos_cone = Part.makeCone(journal_r, r_clip, shoulder_h, App.Vector(0, y_cone_start, pivot_z), App.Vector(0, 1, 0))
+    sq_pos_peg = make_tapered_diamond_peg(y_peg_base, 1.0, peg_depth, pivot_z)
 
-    # 3. -Y Smooth Knuckle Journal (Y in [-21.0, -5.0mm]) with seamless ruled loft from Ø12.8mm circle to 7.7mm hex
-    neg_journal = Part.makeCylinder(journal_r, journal_straight_len, App.Vector(0, -gap_half - journal_straight_len, pivot_z), App.Vector(0, 1, 0))
-    neg_circ = Part.makeCircle(journal_r, App.Vector(0, -gap_half - journal_straight_len, pivot_z), App.Vector(0, 1, 0))
-    neg_circ.rotate(App.Vector(0, -gap_half - journal_straight_len, pivot_z), App.Vector(0, 1, 0), -30)
-    neg_circ_wire = Part.Wire([neg_circ])
-    neg_hex_start_wire = make_hexagon_wire(hex_size, 0, pivot_z, -gap_half - knuckle_len - thrust_gap)
-    neg_taper = Part.makeLoft([neg_circ_wire, neg_hex_start_wire], True, True)
-    # -Y Hex Drive Peg (Y in [-30.0, -21.0mm])
-    hex_neg_wire = make_hexagon_wire(hex_size, 0, pivot_z, -gap_half - knuckle_len - thrust_gap)
-    hex_neg_face = Part.Face(hex_neg_wire)
-    hex_neg_peg = hex_neg_face.extrude(App.Vector(0, -socket_depth, 0))
-    c_neg = Part.makeCone(journal_r, journal_r - 1.0, 1.0, App.Vector(0, -gap_half - knuckle_len - thrust_gap - socket_depth, pivot_z), App.Vector(0, -1, 0))
-    hex_neg_peg = hex_neg_peg.cut(c_neg).removeSplitter()
+    # 3. -Y 45° Conical Shoulder & Tapered Diamond Square Peg (Y in [-33.0, -21.0mm])
+    neg_cone = Part.makeCone(journal_r, r_clip, shoulder_h, App.Vector(0, -y_cone_start, pivot_z), App.Vector(0, -1, 0))
+    sq_neg_peg = make_tapered_diamond_peg(-y_peg_base, -1.0, peg_depth, pivot_z)
 
     # Fuse into a smooth, 100% solid coupler pin
-    coupler = bridge.fuse([pos_journal, pos_taper, hex_pos_peg, neg_journal, neg_taper, hex_neg_peg]).removeSplitter()
+    coupler = main_shaft.fuse([pos_cone, sq_pos_peg, neg_cone, sq_neg_peg]).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "hex_drive_coupler.step")

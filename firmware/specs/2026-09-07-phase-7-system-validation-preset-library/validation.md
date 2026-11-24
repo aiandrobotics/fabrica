@@ -10,8 +10,8 @@ The implementation of Phase 7 must be validated through automated host stress te
 |---|---|---|
 | **Factory Preset Verification** | Load and inspect all 4 factory presets from `storage.c`. | Presets 1–4 match exact garment sequences (T-Shirt, Long-Sleeve Shirt, Trousers, Towel), step counts (4, 5, 3, 4), and CRC32 validity. |
 | **100-Cycle Endurance Test** | Execute 100 consecutive fold sequences cycling through Presets 1–4. | All 100 routines execute to completion without state machine desync, timeout faults, or memory leaks (heap delta = 0 bytes). |
-| **Mid-Sweep E-Stop (Outward Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is sweeping $0^\circ \to 150^\circ$ (1350ms S-curve forward). | Motion halts immediately, all 16 channels drop to $0^\circ$, `LED_STATE_ESTOP` triggered, abort latency $<50\text{ms}$. |
-| **Mid-Sweep E-Stop (Return Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is returning $150^\circ \to 0^\circ$ (1450ms S-curve return). | Motion halts immediately, flap returns to $0^\circ$, routine aborted. |
+| **Mid-Sweep E-Stop (Outward Sweep)** | Inject `CMD_EMERGENCY_STOP` while servo is sweeping $0^\circ \to 150^\circ$ (800ms direct forward). | Motion halts immediately, all 16 channels drop to $0^\circ$, `LED_STATE_ESTOP` triggered, abort latency $<50\text{ms}$. |
+| **Mid-Sweep E-Stop (Return / Soft-Landing)** | Inject `CMD_EMERGENCY_STOP` while servo is returning $150^\circ \to 40^\circ \to 0^\circ$ (450ms fast return + 800ms soft-landing). | Motion halts immediately, flap returns to $0^\circ$, routine aborted. |
 | **Mid-Sweep E-Stop (Inter-Step Delay)** | Inject `CMD_EMERGENCY_STOP` during the 10ms inter-step settling delay. | Next step is canceled, robot aborts immediately to `STATE_IDLE_RUN`. |
 | **NVS Single-Bit Bit-Rot Recovery** | Invert single byte in stored NVS preset blob. | `storage_load_routine()` detects CRC32 mismatch (`ESP_ERR_INVALID_CRC`), prevents corrupted playback, and reloads default factory preset. |
 | **NVS Partial Write Truncation** | Simulate size truncation of NVS preset blob. | Read returns `ESP_ERR_INVALID_SIZE`, reloads clean default routine. |
@@ -36,7 +36,7 @@ idf.py build
 When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
 
 1. **Factory Preset Execution Verification**:
-   - Tap **B1** $\rightarrow$ Robot executes Preset 1 (Adult T-Shirt): Left Flap (Ch 0) $150^\circ$ fold, Right Flap (Ch 1) $150^\circ$ fold, Bottom Flap (Ch 2) $150^\circ$ fold, Top / Collar Flap (Ch 3) $150^\circ$ fold (testing all 4 motors; coupled follower reaches $\sim 170^\circ$ without hard end-stop overshoot).
+   - Tap **B1** $\rightarrow$ Robot executes Preset 1 (Adult T-Shirt): Left Flap (Ch 0) $150^\circ$ fold, Right Flap (Ch 1) $150^\circ$ fold, Bottom Flap (Ch 2) $150^\circ$ fold, Top / Collar Flap (Ch 3) $150^\circ$ fold (with 40° soft-landing to $0^\circ$).
    - Tap **B2** $\rightarrow$ Robot executes Preset 2 (Long-Sleeve Shirt): Parallel sleeve fold (Ch 0 & Ch 1 simultaneously), then body folds.
    - Tap **B3** $\rightarrow$ Robot executes Preset 3 (Trousers / Jeans): Vertical fold (Ch 0) then bottom fold (Ch 2).
    - Tap **B4** $\rightarrow$ Robot executes Preset 4 (Towel / Linen): Quarter fold sequence.

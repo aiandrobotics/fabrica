@@ -1,6 +1,6 @@
 # Requirements — Phase 3: Passive Follower Module
 
-Requirements specification for the Passive Follower Module of the Fabrica Cloth Folding Robot, updated with **Heavy-Duty $\varnothing 13\text{ mm}$ Drive Axles**, **Standardized $8.0\text{ mm}$ Hex Torque Couplers**, and **4-Sided Rigid Chassis with Clean Solid Through-Dovetail Stiffener Joint**.
+Requirements specification for the Passive Follower Module of the Fabrica Cloth Folding Robot, updated with **Heavy-Duty $\varnothing 12.8\text{ mm}$ Drive Axles**, **Standardized $6.50\text{ mm}$ 45° Diamond Tapered Square Torque Couplers**, and **4-Sided Rigid Chassis with Clean Solid Through-Dovetail Stiffener Joint**.
 
 ---
 
@@ -10,8 +10,8 @@ In the Fabrica $4 \times 3$ modular folding grid:
 - The **Passive Follower Module** ($240.0 \times 240.0\text{ mm}$) is positioned in the outer grid columns directly below the Motorized Module (Row 1).
 - It contains a full-size rotating folding flap ($239.0 \times 238.0 \times 2.4\text{ mm}$) integrated with a heavy-duty continuous $\varnothing 13.0\text{ mm}$ drive axle.
 - **Synchronous Column Torque Transmission**: The drive axle has standardized torque couplers on both ends:
-  - **Top End**: $8.0\text{ mm}$ Hex Socket to receive rotational torque from the module above (Motorized Module or Follower Module).
-  - **Bottom End**: $8.0\text{ mm}$ Hex Socket connected via the double-male **Part 11 Hex Drive Coupler Pin** to transmit torque downward to the next Follower Module in the column.
+  - **Top End**: $6.50\text{ mm}$ 45° Diamond Square Socket to receive rotational torque from the module above (Motorized Module or Follower Module).
+  - **Bottom End**: $6.50\text{ mm}$ 45° Diamond Square Socket connected via the double-male **Part 11 Drive Coupler Pin** (`hex_drive_coupler.py`) to transmit torque downward to the next Follower Module in the column.
   - When the single servo motor in Row 1 rotates, **all flaps in that column rotate together in unison**.
 
 ```
@@ -77,11 +77,11 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 - **Heavy-Duty Continuous Solid-Core Drive Axle ($\varnothing 12.8\text{ mm}$)**:
   - Spans the hinge axis at $(X = 0, Z = 15.0\text{ mm})$ across the drop-in knuckle span.
   - **100% Solid Central Core**: Maximizes torsional rigidity and eliminates torsional twist when transmitting motor torque across multiple follower stages.
-  - Hollow hex connector cavities located exclusively at the top and bottom ends ($22.0\text{ mm}$ deep, `HEX_COUPLER_DEPTH = 22.00`).
+  - Hollow square connector cavities located exclusively at the top and bottom ends ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`).
 - **Bottom Reinforcing Fillet Gusset**: Smooth curved structural transition from axle underside up to the blade floor providing $3\times$ torsional load distribution.
-- **Dual Symmetrical Female Hex Coupler Sockets**:
-  - **Top End**: $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($22.0\text{ mm}$ engagement depth, `HEX_COUPLER_DEPTH = 22.00` in $-Y$).
-  - **Bottom End**: Identical $8.0\text{ mm}$ Flat-to-Flat female hexagonal torque drive socket ($22.0\text{ mm}$ engagement depth, `HEX_COUPLER_DEPTH = 22.00` in $+Y$).
+- **Dual Symmetrical Female 45° Diamond Square Coupler Sockets**:
+  - **Top End**: $6.50\text{ mm}$ Flat-to-Flat 45° diamond female square torque drive socket ($14.0\text{ mm}$ engagement depth, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00` in $-Y$, with $0.8\text{ mm} \times 45^\circ$ entry bevel and self-supporting 45° roof).
+  - **Bottom End**: Identical $6.50\text{ mm}$ Flat-to-Flat 45° diamond female square torque drive socket ($14.0\text{ mm}$ engagement depth, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00` in $+Y$, with $0.8\text{ mm} \times 45^\circ$ entry bevel).
   - **100% Flat 3D Printability**: Zero protruding male pegs, allowing the flap to print 100% flat on the bed with clean surface finishes.
 - **Organic Gradient Circular Cutouts (~45% Mass Reduction)**:
   - Multi-tiered circular cutouts (ranging from $\varnothing 12\text{ mm}$ to $\varnothing 34\text{ mm}$) distributed across the paddle face matching reference images `follower-module.png` and `3d-overview.png`.
@@ -91,11 +91,11 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 
 ---
 
-## 2.3 Modular Double-Male Hex Drive Coupler Pin (`hex_drive_coupler.py`)
-- **Overall Dimensions**: $8.0\text{ mm} \text{ (Nominal Hex)} \times 78.0\text{ mm} \text{ (Total Length)}$.
-- **Double-Ended Hex Keys**: $7.88\text{ mm}$ Flat-to-Flat ($0.12\text{ mm}$ AF zero-backlash slip-fit clearance) $\times 18.0\text{ mm}$ engagement length (`HEX_PEG_DEPTH = 18.00`) with $1.0\text{ mm} \times 45^\circ$ self-aligning lead-in entry chamfers on both ends.
-- **Inter-Module Bridge & Knuckle Journals**: $10.0\text{ mm}$ inter-module bridge with central $\varnothing 15.0\text{ mm} \times 2.0\text{ mm}$ locating collar and $\varnothing 12.8\text{ mm} \times 16.0\text{ mm}$ smooth knuckle journals on both sides.
-- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap (paired with `end_pivot_pin.py`, $36.0\text{ mm}$ total length with $\varnothing 16.0 \times 3.0\text{ mm}$ thrust flange and $7.88\text{ mm}$ AF $\times 18.0\text{ mm}$ male hex peg).
+## 2.3 Modular Double-Male 45° Diamond Tapered Square Coupler Pin (`hex_drive_coupler.py`)
+- **Overall Dimensions**: $6.50\text{ mm}$ nominal 45° diamond square drive $\times 66.0\text{ mm}$ total length.
+- **Double-Ended Tapered Square Keys**: $6.35\text{ mm}$ base tapering to $5.90\text{ mm}$ tip over $12.0\text{ mm}$ engagement length (`SQUARE_DRIVE_PEG_DEPTH = 12.00`), with $0.35\text{ mm}$ corner-relief clips (`SQUARE_DRIVE_CORNER_CLIP`) and $1.2\text{ mm} \times 45^\circ$ self-aligning nose chamfers on both ends.
+- **Continuous Smooth Journal Body**: Single uninterrupted $\varnothing 12.6\text{ mm}$ bearing journal cylinder spanning the $10.0\text{ mm}$ inter-module gap and both frame knuckles (no center stop collar), transitioning into the pegs via $45^\circ$ conical shoulders.
+- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap (paired with `end_pivot_pin.py`, $30.0\text{ mm}$ total length with $\varnothing 16.0 \times 3.0\text{ mm}$ thrust flange and $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ tapered square peg).
 
 ---
 
