@@ -102,7 +102,7 @@ cad-designs/
 ├── interface_assembly.py            ← interface module sub-assembly (InterfaceCase + InterfacePanel + PDB + PCA9685 + ESP32 + 4 Buttons + Status LED)
 ├── frame_joiner.py                 ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── hex_drive_coupler.py            ← modular double-male 6.35→5.90mm × 12.0mm 45° diamond tapered square coupler (smooth Ø12.6mm body, 66.0mm total length)
-├── end_pivot_pin.py                ← captive inner-flanged shoulder pivot pin (Ø16.0×3.0mm flange, 6.35→5.90mm × 12.0mm 45° diamond tapered square peg, 30.0mm total length)
+├── end_pivot_pin.py                ← outside-headed click-lock pivot pin (Ø16.0×2.5mm outer cap, dual Ø14.4mm cantilever snap barbs, 6.35→5.90mm × 12.0mm 45° diamond tapered square peg, 32.5mm total length)
 ├── assembly.py                     ← full universal folding robot assembly model (2 Base + 2 Follower + 2 Motorized + 7 Joiners)
 ├── export_all.py                   ← batch script to export all STEP and STL models
 ├── run.sh                          ← CLI entrypoint for building and exporting CAD models

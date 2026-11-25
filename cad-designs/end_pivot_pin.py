@@ -1,12 +1,13 @@
 """
-end_pivot_pin.py — Captive Inner-Flanged Shoulder Pivot Pin
+end_pivot_pin.py — Outside-Headed Click-Lock Snap-Barb End Pivot Pin
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 
 Features:
-1. Smooth Cylindrical Journal (Ø12.8mm x 15.0mm, Y in [0.0, 15.0mm]) rotating inside frame's 360° knuckle.
-2. Inner Retaining Thrust Flange Disk (Ø16.0mm x 1.0mm, Y in [15.0, 16.0mm]) providing 100% pop-out-proof retention and low-friction thrust bearing action.
-3. Male 8.0mm Hex Drive Peg (7.7mm AF x 9.0mm, Y in [16.0, 25.0mm]) with 1.5mm x 45° self-aligning nose cone.
-4. Central Ø3.4mm driver access / weight-relief through-hole.
+1. Outer End-Cap Head (Ø16.0mm x 2.5mm, Y in [-2.5, 0.0mm]) stopping flush against outer knuckle face.
+2. Smooth Cylindrical Bearing Journal (Ø12.8mm, Y in [0.0, 18.0mm]) sliding straight in from outside (Y=0).
+3. Dual Integrated Cantilever Click-Lock Snap Barbs (Ø14.4mm at Y in [15.3, 17.8mm]) that flex inward
+   through the Ø13.7mm frame knuckle bore and snap open into the frame's Ø16.8mm inner recess (zero pull-out).
+4. Male 45° Diamond Tapered Square Peg (6.35 -> 5.90mm x 12.0mm, Y in [18.0, 30.0mm]) with corner relief & 45° nose chamfer.
 """
 
 import os
@@ -68,34 +69,73 @@ def make_tapered_diamond_peg(y_start, direction, taper_len, pivot_z):
 
 def construct_end_pivot_pin():
     """
-    Constructs the Captive Inner-Flanged Shoulder Pivot Pin.
+    Constructs the 1-piece Outside-Headed Click-Lock Snap-Barb End Pivot Pin.
+    Installs straight from the outside (Y=0) through the Ø13.7mm frame knuckle bore
+    and clicks permanently behind the knuckle into the Ø16.8mm inner recess.
     """
     pivot_z = PIVOT_Z                  # 15.00mm
     journal_d = DRIVE_SHAFT_DIAMETER   # 12.80mm
     journal_r = journal_d / 2.0        # 6.40mm
-    journal_len = 15.0                 # 15.00mm (spans frame knuckle Y in [0.0, 15.0mm])
-    
-    disk_dia = 16.0                    # Ø16.0mm (larger than Ø13.7mm knuckle bore -> cannot pass through)
-    disk_r = disk_dia / 2.0            # 8.00mm
-    disk_thick = 3.0                   # 3.00mm (Y in [15.0, 18.0mm], sturdy for 3D printing)
-    
+    journal_len = 18.0                 # 18.00mm (spans 15mm frame knuckle + 3mm inner recess)
+
+    cap_dia = 16.0                     # Ø16.0mm outer end-cap head (stops flush at Y=0.0mm)
+    cap_r = cap_dia / 2.0              # 8.00mm
+    cap_thick = 2.5                    # 2.50mm (Y in [-2.5, 0.0mm])
+
     peg_len = SQUARE_DRIVE_PEG_DEPTH   # 12.00mm tapered square engagement depth (Y in [18.0, 30.0mm])
 
-    # 1. Smooth Cylindrical Bearing Journal (Y in [0.0, 15.0mm])
+    # 1. Outer End-Cap Head (Y in [-2.5, 0.0mm]) with 0.8mm x 45° outer rim chamfer
+    cap = Part.makeCylinder(cap_r, cap_thick, App.Vector(0, -cap_thick, pivot_z), App.Vector(0, 1, 0))
+    c_cap_bound = Part.makeCylinder(cap_r + 0.1, 0.85, App.Vector(0, -cap_thick - 0.05, pivot_z), App.Vector(0, 1, 0))
+    c_cap_keep = Part.makeCone(cap_r - 0.8, cap_r, 0.85, App.Vector(0, -cap_thick - 0.05, pivot_z), App.Vector(0, 1, 0))
+    cap = cap.cut(c_cap_bound.cut(c_cap_keep)).removeSplitter()
+
+    # 2. Smooth Cylindrical Bearing Journal (Y in [0.0, 18.0mm])
     journal = Part.makeCylinder(journal_r, journal_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
-    
-    # 0.8mm x 45° Lead-in entry chamfer on outer face (Y = 0.0mm)
-    c_outer = Part.makeCone(journal_r, journal_r - 0.8, 0.8, App.Vector(0, 0, pivot_z), App.Vector(0, -1, 0))
-    journal = journal.cut(c_outer).removeSplitter()
 
-    # 2. Inner Retaining Thrust Flange Disk (Y in [15.0, 18.0mm])
-    disk = Part.makeCylinder(disk_r, disk_thick, App.Vector(0, journal_len, pivot_z), App.Vector(0, 1, 0))
+    # 3. Dual Cantilever Click-Lock Snap Barbs on ±X (Y in [15.3, 17.8mm], R = 7.2mm -> Ø14.4mm)
+    #    Flexes 0.4mm inward per side through Ø13.7mm knuckle bore, clicks open in Ø16.8mm recess
+    barb_h = 4.2                       # Z height of snap arm (pivot_z ± 2.1mm)
+    barb_z0 = pivot_z - (barb_h / 2.0)
+    barbs = []
+    for sign in (1.0, -1.0):
+        pts = [
+            App.Vector(sign * (journal_r - 0.6), 15.3, barb_z0),
+            App.Vector(sign * 7.2,               15.3, barb_z0),  # 90° locking shoulder facing -Y
+            App.Vector(sign * 7.2,               15.8, barb_z0),  # 0.5mm crest
+            App.Vector(sign * (journal_r - 0.1), 17.8, barb_z0),  # ~22° support-free insertion ramp
+            App.Vector(sign * (journal_r - 0.6), 17.8, barb_z0),
+            App.Vector(sign * (journal_r - 0.6), 15.3, barb_z0),
+        ]
+        barb_face = Part.Face(Part.makePolygon(pts))
+        barbs.append(barb_face.extrude(App.Vector(0, 0, barb_h)))
 
-    # 3. Male 45° Diamond Tapered Square Drive Peg (Y in [18.0, 30.0mm])
-    sq_peg = make_tapered_diamond_peg(journal_len + disk_thick, 1.0, peg_len, pivot_z)
+    # 4. Male 45° Diamond Tapered Square Drive Peg (Y in [18.0, 30.0mm])
+    sq_peg = make_tapered_diamond_peg(journal_len, 1.0, peg_len, pivot_z)
 
-    # Fuse into monolithic solid shoulder pin
-    pin = journal.fuse([disk, sq_peg]).removeSplitter()
+    # Fuse body before cutting cantilever flex slots
+    pin = cap.fuse([journal, sq_peg] + barbs).removeSplitter()
+
+    # 5. Cantilever Flex Relief Slots (Y in [7.5, 18.0mm]) freeing both ±X snap arms to deflect inward
+    slot_cutters = []
+    slot_y0 = 7.5
+    slot_len = journal_len - slot_y0 + 0.1  # extends to Y=18.1mm so arm tip is free from square peg
+    for sign in (1.0, -1.0):
+        # Inner flex clearance gap behind the 1.6mm thick cantilever beam (|X| in [3.4, 4.8mm])
+        x_min = 3.4 if sign > 0 else -4.8
+        inner_slot = Part.makeBox(1.4, slot_len, barb_h + 1.4)
+        inner_slot.translate(App.Vector(x_min, slot_y0, pivot_z - (barb_h / 2.0) - 0.7))
+        slot_cutters.append(inner_slot)
+
+        # Top & bottom horizontal release slits (0.7mm tall) freeing the cantilever arm from cylinder walls
+        x_slit = 3.4 if sign > 0 else -8.0
+        slit_top = Part.makeBox(4.6, slot_len, 0.7)
+        slit_top.translate(App.Vector(x_slit, slot_y0, pivot_z + (barb_h / 2.0)))
+        slit_bot = Part.makeBox(4.6, slot_len, 0.7)
+        slit_bot.translate(App.Vector(x_slit, slot_y0, pivot_z - (barb_h / 2.0) - 0.7))
+        slot_cutters.extend([slit_top, slit_bot])
+
+    pin = pin.cut(Part.makeCompound(slot_cutters)).removeSplitter()
 
     # Export STEP and STL
     step_path = os.path.join(EXPORT_DIR, "end_pivot_pin.step")

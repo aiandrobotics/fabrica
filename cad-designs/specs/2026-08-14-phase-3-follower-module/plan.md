@@ -29,7 +29,7 @@ Implementation plan for the Passive Follower Module of the Fabrica Cloth Folding
 ---
 
 ## Task Group 3: Modular Square Drive Coupler Pin (`hex_drive_coupler.py`) & End Pivot Pin (`end_pivot_pin.py`)
-1. Model double-male 45° diamond tapered square torque coupler (`hex_drive_coupler.py`, $66.0\text{ mm}$ total length) with $6.35 \to 5.90\text{ mm}$ corner-relieved (`0.35 mm`) tapered square pegs (`SQUARE_DRIVE_PEG_DEPTH = 12.00`), plus `end_pivot_pin.py` ($30.0\text{ mm}$ total length with $\varnothing 16.0 \times 3.0\text{ mm}$ retaining flange and $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ tapered square peg).
+1. Model double-male 45° diamond tapered square torque coupler (`hex_drive_coupler.py`, $66.0\text{ mm}$ total length) with $6.35 \to 5.90\text{ mm}$ corner-relieved (`0.35 mm`) tapered square pegs (`SQUARE_DRIVE_PEG_DEPTH = 12.00`), plus `end_pivot_pin.py` ($32.5\text{ mm}$ total length outside-headed click-lock pin with $\varnothing 16.0 \times 2.5\text{ mm}$ outer cap, dual $\varnothing 14.4\text{ mm}$ cantilever snap barbs, and $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ tapered square peg).
 2. Model continuous smooth $\varnothing 12.6\text{ mm}$ journal body (no center stop collar), $45^\circ$ conical shoulders, and $1.2\text{ mm} \times 45^\circ$ self-aligning nose chamfers.
 3. Implement headless STEP and STL export.
 
