@@ -54,9 +54,11 @@ extern "C" {
 #define BUTTON_BOND_RESET_MS         5000   /* Simultaneous B1+B4 hold time (5s) to clear BLE bonds */
 #define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
-#define FOLD_FORWARD_SWEEP_MS        700    /* Forward travel time to reach 165 deg */
-#define LANDING_APPROACH_MS          300    /* Fast return travel time from 165 deg to 50 deg */
-#define LANDING_RAMP_MS              400    /* Soft-landing ramp duration from 50 deg to 0 deg */
+#define FOLD_FORWARD_SWEEP_MS        700    /* Forward travel time to reach 160 deg */
+#define LANDING_APPROACH_MS          200    /* Direct lift back to vertical (160 deg -> 90 deg) */
+#define LANDING_STAGE1_MS            240    /* Controlled descent against gravity (90 deg -> 30 deg, 250 deg/s) */
+#define LANDING_STAGE2_MS            360    /* Soft touchdown ramp (30 deg -> 0 deg, 83 deg/s) */
+#define LANDING_RAMP_MS              (LANDING_STAGE1_MS + LANDING_STAGE2_MS) /* 600 ms total */
 #define LANDING_STEP_MS              20     /* Soft-landing frame interval (50 Hz native PWM) */
 #define INTER_STEP_DELAY_MS          10     /* Delay between routine steps */
 #define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
@@ -85,9 +87,10 @@ extern "C" {
 /* ========================================================================= */
 
 #define HOME_ANGLE_DEG               0.0f   /* Flat resting angle */
-#define LANDING_START_ANGLE_DEG      50.0f  /* Soft-landing ramp start angle on return */
+#define LANDING_MID_ANGLE_DEG        30.0f  /* Soft-landing stage 2 touchdown angle */
+#define LANDING_START_ANGLE_DEG      90.0f  /* Vertical top-dead-center: start of gravity-controlled descent */
 #define FOLD_ANGLE_DEG               180.0f /* Full servo mechanical range (degrees) */
-#define FOLD_TARGET_ANGLE_DEG        165.0f /* Max folding sweep target angle */
+#define FOLD_TARGET_ANGLE_DEG        160.0f /* Max folding sweep target angle */
 
 /* ========================================================================= */
 /* PCA9685 I2C & PWM Configuration                                           */

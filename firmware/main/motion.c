@@ -31,8 +31,9 @@ static volatile uint8_t s_active_step_idx = 0;
 static volatile uint8_t s_active_total_steps = 0;
 static volatile uint16_t s_active_elapsed_ms = 0;
 static volatile uint8_t s_active_progress_pct = 0;
-/* Total active step duration for telemetry progress calculation (700 + 300 + 400 = 1400 ms) */
-#define LANDING_RAMP_FRAMES          (LANDING_RAMP_MS / LANDING_STEP_MS)
+/* Total active step duration for telemetry progress calculation (700 + 200 + 600 = 1500 ms) */
+#define LANDING_STAGE1_FRAMES        (LANDING_STAGE1_MS / LANDING_STEP_MS)
+#define LANDING_STAGE2_FRAMES        (LANDING_STAGE2_MS / LANDING_STEP_MS)
 #define STEP_TARGET_DURATION_MS      (FOLD_FORWARD_SWEEP_MS + LANDING_APPROACH_MS + LANDING_RAMP_MS)
 
 static EventGroupHandle_t s_evt_group_handle = NULL;
@@ -210,10 +211,11 @@ static bool is_step_valid(const fold_step_t *step)
 /**
  * @brief Execute a single folding step (single servo or parallel dual servos).
  *
- * Articulation Profile (Direct Fold + Uniform Soft-Landing, 0° -> 165° -> 50° -> 0°, 1400ms):
- *   1. Direct Forward Sweep: 0° -> 165° (700ms)
- *   2. Fast Return to Soft-Landing Point: 165° -> 50° (300ms)
- *   3. Uniform Soft-Landing: 50° -> 0° (-2.5° per 20ms frame = 400ms, 125°/s)
+ * Articulation Profile (Direct Fold + Gravity-Controlled 2-Stage Return, 0° -> 160° -> 90° -> 30° -> 0°, 1500ms):
+ *   1. Direct Forward Sweep: 0° -> 160° (700ms)
+ *   2. Direct Lift to Vertical: 160° -> 90° (200ms; gravity opposes lift)
+ *   3a. Controlled Descent: 90° -> 30° (12 frames x 20ms = 240ms, 250°/s)
+ *   3b. Soft Touchdown: 30° -> 0° (18 frames x 20ms = 360ms, 83°/s)
  *
  * @param step Pointer to fold_step_t containing motor count and channel IDs.
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
@@ -241,21 +243,32 @@ esp_err_t motion_execute_step(const fold_step_t *step)
     }
 #endif
 
-    /* 1. Direct Forward Sweep (0° -> 165°, 700ms) */
+    /* 1. Direct Forward Sweep (0° -> 160°, 700ms) */
     set_step_servo_angle(step, FOLD_TARGET_ANGLE_DEG);
     if (motion_delay_ms(FOLD_FORWARD_SWEEP_MS, true)) {
         goto abort_step;
     }
 
-    /* 2. Fast Return to Soft-Landing Point (165° -> 50°, 300ms) */
+    /* 2. Direct Lift to Vertical (160° -> 90°, 200ms; gravity opposes lift) */
     set_step_servo_angle(step, LANDING_START_ANGLE_DEG);
     if (motion_delay_ms(LANDING_APPROACH_MS, true)) {
         goto abort_step;
     }
 
-    /* 3. Uniform Soft-Landing (50° -> 0°, 20 frames x 20ms = 400ms) */
-    for (uint32_t frame = 1; frame <= LANDING_RAMP_FRAMES; frame++) {
-        float angle = LANDING_START_ANGLE_DEG * (1.0f - ((float)frame / (float)LANDING_RAMP_FRAMES));
+    /* 3a. Controlled Descent (90° -> 30°, 12 frames x 20ms = 240ms, 250°/s) */
+    for (uint32_t frame = 1; frame <= LANDING_STAGE1_FRAMES; frame++) {
+        float t = (float)frame / (float)LANDING_STAGE1_FRAMES;
+        float angle = LANDING_START_ANGLE_DEG - ((LANDING_START_ANGLE_DEG - LANDING_MID_ANGLE_DEG) * t);
+        set_step_servo_angle(step, angle);
+        if (motion_delay_ms(LANDING_STEP_MS, true)) {
+            goto abort_step;
+        }
+    }
+
+    /* 3b. Soft Touchdown (30° -> 0°, 18 frames x 20ms = 360ms, 83°/s) */
+    for (uint32_t frame = 1; frame <= LANDING_STAGE2_FRAMES; frame++) {
+        float t = (float)frame / (float)LANDING_STAGE2_FRAMES;
+        float angle = LANDING_MID_ANGLE_DEG * (1.0f - t);
         set_step_servo_angle(step, angle);
         if (motion_delay_ms(LANDING_STEP_MS, true)) {
             goto abort_step;
