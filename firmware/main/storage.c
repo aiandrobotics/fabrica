@@ -27,6 +27,13 @@ typedef struct {
 static mock_nvs_entry_t s_mock_nvs[MOCK_NVS_MAX_ENTRIES];
 #endif
 
+static volatile bool s_nvs_fault = false;
+
+bool storage_has_fault(void)
+{
+    return s_nvs_fault;
+}
+
 /* ========================================================================= */
 /* CRC32 Integrity Checksum Engine (IEEE 802.3 Standard)                     */
 /* ========================================================================= */
@@ -245,9 +252,11 @@ esp_err_t storage_save_routine(uint8_t preset_id, const fold_routine_t *routine)
     nvs_close(handle);
 
     if (err == ESP_OK) {
+        s_nvs_fault = false;
         ESP_LOGI(TAG, "Saved Preset %d to NVS (Steps: %d, CRC: 0x%08" PRIX32 ")",
                  preset_id, to_save.step_count, to_save.checksum);
     } else {
+        s_nvs_fault = true;
         ESP_LOGE(TAG, "Failed to commit Preset %d blob to NVS: %s",
                  preset_id, esp_err_to_name(err));
     }
@@ -337,6 +346,7 @@ esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine)
     /* Verify CRC32 Integrity */
     uint32_t computed_crc = storage_compute_crc32(routine);
     if (computed_crc != routine->checksum) {
+        s_nvs_fault = true;
 #ifdef ESP_PLATFORM
         ESP_LOGE(TAG, "CRC error on Preset %d! Expected 0x%08" PRIX32 ", Got 0x%08" PRIX32 ". Restoring default...",
                  preset_id, routine->checksum, computed_crc);
@@ -460,15 +470,18 @@ esp_err_t storage_init(void)
         ESP_LOGI(TAG, "First boot detected (NVS uninitialized). Seeding factory presets...");
         err = storage_init_factory_defaults();
         if (err != ESP_OK) {
+            s_nvs_fault = true;
             ESP_LOGE(TAG, "Failed to seed factory defaults: %s", esp_err_to_name(err));
             return err;
         }
     }
 
+    s_nvs_fault = false;
     ESP_LOGI(TAG, "Storage Subsystem initialized successfully.");
     return ESP_OK;
 #else
     /* Host Mock Initialization */
+    s_nvs_fault = false;
     bool need_seed = !storage_mock_key_exists(STORAGE_INIT_KEY);
     if (need_seed) {
         return storage_init_factory_defaults();
@@ -487,6 +500,7 @@ esp_err_t storage_init(void)
 void storage_mock_reset(void)
 {
     memset(s_mock_nvs, 0, sizeof(s_mock_nvs));
+    s_nvs_fault = false;
 }
 
 /**

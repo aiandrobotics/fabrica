@@ -31,13 +31,14 @@ static QueueHandle_t s_sm_cmd_queue = NULL;
 
 static volatile system_state_t s_system_state = STATE_IDLE_RUN;
 static volatile uint8_t s_active_preset_id = 0;
-static bool s_ble_pairing_active = false;
+static volatile bool s_ble_pairing_active = false;
+static volatile bool s_ble_pairing_indefinite = false;
 static uint32_t s_ble_pairing_timer_ms = 0;
 
-static uint32_t s_calib_inactivity_ms = 0;
+static volatile uint32_t s_calib_inactivity_ms = 0;
 static volatile bool s_calib_thermal_sleep = false;
-static bool s_calib_thermal_dispatched = false;
-static bool s_calib_autohome_dispatched = false;
+static volatile bool s_calib_thermal_dispatched = false;
+static volatile bool s_calib_autohome_dispatched = false;
 
 /* ========================================================================= */
 /* Internal Calibration & Recovery Helpers                                   */
@@ -89,6 +90,7 @@ void state_machine_reset(void)
     s_system_state = STATE_IDLE_RUN;
     s_active_preset_id = 0;
     s_ble_pairing_active = false;
+    s_ble_pairing_indefinite = false;
     s_ble_pairing_timer_ms = 0;
     s_calib_thermal_sleep = false;
     reset_calibration_tracking();
@@ -131,6 +133,7 @@ void state_machine_close_ble_pairing(void)
 {
     if (s_ble_pairing_active) {
         s_ble_pairing_active = false;
+        s_ble_pairing_indefinite = false;
         s_ble_pairing_timer_ms = 0;
         if (led_get_base_state() == LED_STATE_BLE_PAIRING) {
             led_set_state(LED_STATE_IDLE);
@@ -209,6 +212,7 @@ void state_machine_check_initial_pairing(void)
         ESP_LOGI(TAG, "Zero bonded devices in NVS (new/wiped device). Auto-starting indefinite BLE pairing mode.");
 #endif
         s_ble_pairing_active = true;
+        s_ble_pairing_indefinite = true;
         s_ble_pairing_timer_ms = 0;
         led_set_state(LED_STATE_BLE_PAIRING);
         (void)ble_transport_enter_pairing_mode();
@@ -230,24 +234,20 @@ void state_machine_check_initial_pairing(void)
  */
 void state_machine_tick(uint32_t elapsed_ms)
 {
-    if (s_ble_pairing_active) {
+    if (s_ble_pairing_active && !s_ble_pairing_indefinite) {
         /*
-         * When zero devices are bonded in NVS (brand new unit or post-factory wipe),
-         * pairing mode remains open indefinitely until the first central successfully pairs.
-         * For subsequent devices (bond_count > 0) entered via 3s button hold,
-         * enforce the standard 120-second timeout.
+         * For subsequent devices (bond_count > 0 at pairing entry) entered via 3s hold,
+         * enforce the standard 120-second timeout without polling NVS every 10ms.
          */
-        if (ble_transport_get_bond_count() > 0) {
-            s_ble_pairing_timer_ms += elapsed_ms;
-            if (s_ble_pairing_timer_ms >= BLE_PAIRING_TIMEOUT_MS) {
+        s_ble_pairing_timer_ms += elapsed_ms;
+        if (s_ble_pairing_timer_ms >= BLE_PAIRING_TIMEOUT_MS) {
 #ifdef ESP_PLATFORM
-                ESP_LOGI(TAG, "BLE pairing window (%d ms) expired. Returning to IDLE.",
-                         BLE_PAIRING_TIMEOUT_MS);
+            ESP_LOGI(TAG, "BLE pairing window (%d ms) expired. Returning to IDLE.",
+                     BLE_PAIRING_TIMEOUT_MS);
 #endif
-                s_ble_pairing_active = false;
-                s_ble_pairing_timer_ms = 0;
-                led_set_state(LED_STATE_IDLE);
-            }
+            s_ble_pairing_active = false;
+            s_ble_pairing_timer_ms = 0;
+            led_set_state(LED_STATE_IDLE);
         }
     }
 
@@ -320,6 +320,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #endif
         s_active_preset_id = 0;
         s_ble_pairing_active = false;
+        s_ble_pairing_indefinite = false;
         s_ble_pairing_timer_ms = 0;
         if (s_calib_thermal_sleep) {
             (void)pca9685_sleep(false);
@@ -399,6 +400,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                 set_system_state(STATE_IDLE_RUN);
             }
             s_ble_pairing_active = true;
+            s_ble_pairing_indefinite = (ble_transport_get_bond_count() == 0);
             s_ble_pairing_timer_ms = 0;
             led_set_state(LED_STATE_BLE_PAIRING);
             (void)ble_transport_enter_pairing_mode();
@@ -417,6 +419,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
             esp_err_t err = ble_transport_clear_bonds();
             /* Zero bonds remain: auto-start indefinite BLE pairing mode immediately */
             s_ble_pairing_active = true;
+            s_ble_pairing_indefinite = true;
             s_ble_pairing_timer_ms = 0;
             (void)ble_transport_enter_pairing_mode();
             led_set_state(LED_STATE_BLE_PAIRING);
@@ -448,6 +451,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
             set_system_state(STATE_IDLE_RUN);
             s_active_preset_id = 0;
             s_ble_pairing_active = true;
+            s_ble_pairing_indefinite = true;
             s_ble_pairing_timer_ms = 0;
             (void)ble_transport_enter_pairing_mode();
 
@@ -505,6 +509,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                     ESP_LOGI(TAG, "Starting Preset %d execution (%d steps)", preset_id, routine.step_count);
 #endif
                     s_ble_pairing_active = false;
+                    s_ble_pairing_indefinite = false;
                     s_ble_pairing_timer_ms = 0;
                     s_active_preset_id = preset_id;
                     set_system_state(STATE_RUNNING_MOTION);
@@ -548,6 +553,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                     ESP_LOGI(TAG, "Executing raw sequence (%d steps)", step_cnt);
 #endif
                     s_ble_pairing_active = false;
+                    s_ble_pairing_indefinite = false;
                     s_ble_pairing_timer_ms = 0;
                     s_active_preset_id = 0;
                     set_system_state(STATE_RUNNING_MOTION);

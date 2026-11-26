@@ -50,9 +50,10 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Implement conversion from degrees ($0^\circ \text{ to } 180^\circ$) to 12-bit PWM register counts ($500\,\mu\text{s} \to 2500\,\mu\text{s}$, $102 \to 512$ counts) with mechanical boundary clamping.
   - Implement single channel angle command: `pca9685_set_servo_angle(channel, angle_deg)`.
   - Implement synchronized multi-channel angle command: `pca9685_set_multi_servo_angles(mask, angle_deg)`.
-  - Implement mechanical identification nudge ($15^\circ$) and visual staging hold ($30^\circ$).
   - Implement all-channel home reset ($0^\circ$ for all channels 0–15).
   - Implement low-power sleep and wake control (`pca9685_sleep()`).
+  - Implement live I2C fault state reporting (`pca9685_has_fault()`, wired into `FAB2` telemetry `error_code` `BIT0`).
+  - *(Note: Legacy on-device visual staging helpers `pca9685_nudge_channel` / `pca9685_stage_channel` were removed once sequence programming moved to live BLE jog calibration `CMD_JOG_MOTOR_ANGLE`.)*
 - **Validation**: Verified with host unit test suite (`make test`, 82/82 checks pass, 193/193 total across all test suites) covering angle conversion math, bounds clamping, register writes, sleep/wake, multi-channel masks, and simulated homing across all 16 channels.
 
 ---
@@ -65,7 +66,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 - **CRUD Operations & Factory Seeding**:
   - `storage_save_routine(preset_id, &routine)`: Atomic NVS blob write with automatic CRC32 calculation.
   - `storage_load_routine(preset_id, &routine)`: Read blob with CRC verification; graceful fallback to factory defaults on corruption or uninitialized slots.
-  - `storage_erase_routine(preset_id)`: Remove individual preset slot from NVS.
+  - `storage_has_fault()`: Report live NVS flash or CRC32 fallback faults (wired into `FAB2` telemetry `error_code` `BIT1`; individual key deletion is host-test-only via `storage_mock_erase_key()`).
   - `storage_init_factory_defaults()` / `storage_get_default_routine()`: Seed 4 default folding sequences (Adult T-shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen) on initial boot using `"preset_init"` flag.
 - **Validation**: Verified with host unit test suite (`make test`, 65/65 checks pass, 261/261 total across all test suites) covering CRC32 determinism, bit-mutation sensitivity, save/load/erase cycles, corruption fallbacks, boundary parameter rejection, and factory preset seeding.
 
@@ -74,8 +75,8 @@ Build, validate, and verify each milestone before moving to the next phase.
 ## Phase 5 — Motion Engine & Daily Run Mode Execution (`motion.c`) ✅
 - **Core 0 Real-Time Motion Task** (`main/motion.h`, `main/motion.c`):
   - High-priority FreeRTOS task pinned to Core 0 executing sequence steps sequentially (Step 1 to $N$).
-  - **Single Motor Sweep**: Target servo executes a direct forward sweep $0^\circ \rightarrow 150^\circ$ (800ms), fast return $150^\circ \rightarrow 40^\circ$ (450ms), and uniform $-1^\circ\text{/20ms}$ soft-landing $40^\circ \rightarrow 0^\circ$ (800ms, 50 Hz native PWM).
-  - **Parallel Motor Sweep**: Both assigned servos execute the synchronized trajectory $0^\circ \rightarrow 150^\circ \rightarrow 40^\circ \rightarrow 0^\circ$ (800ms forward, 450ms fast return, 800ms soft-landing).
+  - **Single Motor Sweep**: Target servo executes a direct forward fold $0^\circ \rightarrow 165^\circ$ (900ms), return & mid-air brake $165^\circ \rightarrow 30^\circ$ (600ms), and linear $-1.2^\circ\text{/20ms}$ soft-landing $30^\circ \rightarrow 0^\circ$ (500ms, 25 frames, $60^\circ\text{/s}$, 50 Hz native PWM = 2000ms total).
+  - **Parallel Motor Sweep**: Both assigned servos execute the synchronized trajectory $0^\circ \rightarrow 165^\circ \rightarrow 30^\circ \rightarrow 0^\circ$ (900ms forward, 600ms return & brake, 500ms linear soft-landing).
   - **Inter-Step Settling Delay**: 10ms pause between consecutive steps.
   - Turn LED Solid ON during execution; turn OFF when returning to Idle.
 - **Daily Run Mode Trigger & Safeguards**:
@@ -160,7 +161,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - **Full Factory Reset (`B1 + B3 + B4` 10-Second Chord Hold & BLE Opcode `0x1F`)**: Holding physical buttons **B1 + B3 + B4** simultaneously for 10 seconds (`BUTTON_FACTORY_RESET_MS = 10000`) or writing Opcode `0x1F` (`BLE_OP_FACTORY_RESET_ALL`) on `FAB1` dispatches `CMD_FACTORY_RESET_ALL`, wipes all custom button sequences in NVS back to factory defaults, homes all 16 servos to $0^\circ$, clears all BLE bonds from NVS, terminates any active central connection, and restarts into indefinite BLE pairing mode (`LED_STATE_BLE_PAIRING`).
   - **120-Second Pairing Timeout (Multi-Device)**: When $\ge 1$ devices are bonded, if no new device pairs within 120 seconds after a 3s hold, `state_machine_tick()` closes the pairing window and restores `LED_STATE_IDLE`.
 - **Standard Device Information Service (DIS `0x180A`)**:
-  - Expose read-only Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"Fabrica Robotics"`) characteristics visible natively in nRF Connect and LightBlue.
+  - Expose read-only Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"AIR Robotics"`) characteristics visible natively in nRF Connect and LightBlue.
 - **Fabrica Primary GATT Service & Self-Describing Descriptors for Test Apps**:
   - Register custom Primary Service `0000FAB0-0000-1000-8000-00805F9B34FB` with read-only **Characteristic User Description Descriptors (`0x2901`)** on every characteristic so off-the-shelf BLE test apps (nRF Connect / LightBlue on iOS and Android) display human-readable labels instead of `"Unknown Characteristic"`:
     1. **Control Point Characteristic (`FAB1` / `0000FAB1-0000-1000-8000-00805F9B34FB`)**:
@@ -224,10 +225,10 @@ Build, validate, and verify each milestone before moving to the next phase.
 - **Adaptive Telemetry Streaming Engine (`app_telem_task`, Core 1, Priority 3)**:
   - **Adaptive Streaming Rate**:
     - **High-Rate (10 Hz / 100ms)**: Automatically streamed to subscribed `FAB2` centrals when active motion is running (`STATE_RUNNING_MOTION`) or live servo jogging is active (`STATE_CALIBRATING`).
-    - **Low-Rate (1 Hz / 1000ms)**: Automatically throttled during `STATE_IDLE_RUN`, `STATE_ESTOP`, or `STATE_ERROR` to conserve central battery and prevent iOS `CoreBluetooth` background notification throttling.
+    - **Low-Rate (1 Hz / 1000ms)**: Automatically throttled during `STATE_IDLE_RUN` or `STATE_ESTOP` to conserve central battery and prevent iOS `CoreBluetooth` background notification throttling.
     - **Stream Control (`CMD_SET_TELEMETRY_STREAM`, Opcode `0x11` & `CMD_GET_TELEMETRY`, Opcode `0x10`)**: Allow BLE centrals to pause/resume periodic streaming (`0x11 00` / `0x11 01`) or request an on-demand single-shot 31-byte telemetry frame (`0x10`).
   - **Packed 31-Byte Binary Telemetry Frame (`telemetry_packet_t`, `__attribute__((packed))`)**:
-    - `system_state` (`uint8_t`): `0 = STATE_IDLE_RUN`, `1 = STATE_RUNNING_MOTION`, `2 = STATE_ESTOP`, `3 = STATE_ERROR`, `4 = STATE_CALIBRATING`.
+    - `system_state` (`uint8_t`): `0 = STATE_IDLE_RUN`, `1 = STATE_RUNNING_MOTION`, `2 = STATE_ESTOP`, `3 = Reserved`, `4 = STATE_CALIBRATING`.
     - `led_state` (`uint8_t`): Active `led_state_t` (`0 = IDLE`, `1 = RUNNING`, `2 = SAVE_SUCCESS`, `3 = INPUT_ERROR`, `4 = ESTOP`, `5 = BLE_PAIRING`, `6 = BLE_CONNECTED`, `7 = IDENTIFY`).
     - `active_button_id` (`uint8_t`): Currently executing preset slot (`1–4`), or `0` during raw sequence preview / idle.
     - `current_step_idx` (`uint8_t`): Active step index (`0–15`).
@@ -238,7 +239,7 @@ Build, validate, and verify each milestone before moving to the next phase.
     - `last_cmd_status` (`uint8_t`): Result of last processed command (`0 = OK`, `1 = ERR_BUSY`, `2 = ERR_INVALID_STEP`, `3 = ERR_MOTOR_BOUNDS`, `4 = ERR_ROUTINE_FULL`, `5 = ERR_CRC_MISMATCH`, `6 = ERR_INVALID_ARG`).
     - `free_heap_kb` (`uint16_t`, Little-Endian): Current free internal SRAM in KB.
     - `ble_rssi_dbm` (`int8_t`): Connected central RSSI in dBm via `ble_gap_conn_rssi()` (`-128` when disconnected).
-    - `error_code` (`uint8_t`): Hardware/system fault bitmask (`BIT0 = I2C_FAULT`, `BIT1 = NVS_FAULT`, `BIT2 = ESTOP_ACTIVE`).
+    - `error_code` (`uint8_t`): Hardware/system fault bitmask (`BIT0 = I2C_FAULT` via `pca9685_has_fault()`, `BIT1 = NVS_FAULT` via `storage_has_fault()`, `BIT2 = ESTOP_ACTIVE`).
     - `sequence_counter` (`uint16_t`, Little-Endian): Monotonically increasing packet counter for drop detection.
   - **Strict Little-Endian Wire Serialization**:
     - All multi-byte fields (`elapsed_step_time_ms`, `free_heap_kb`, `sequence_counter`, and `fold_routine_t.checksum`) are serialized in Little-Endian byte order (`sizeof(telemetry_packet_t) == 31`).
@@ -248,7 +249,7 @@ Build, validate, and verify each milestone before moving to the next phase.
   - Automatically push a `FAB3` GATT notification containing the 212-byte 4-button table whenever any preset sequence is modified in NVS (`CMD_SET_BUTTON_SEQUENCE`, `FAB3` write, or `CMD_RESTORE_FACTORY_PRESETS`).
   - Support on-demand `FAB3` notification trigger via `CMD_GET_BUTTON_CONFIG` (Opcode `0x0B`) in addition to direct GATT Read on `FAB3`.
 - **Validation**:
-  - Host unit test suite (`test/test_telemetry.c`, 70/70 checks pass, 833/833 total checks pass across all 10 test suites with `-Wall -Wextra -Werror`) verifying exact 31-byte struct packing and field offsets, Little-Endian multi-byte encoding, live servo angle tracking across all 16 channels, mid-sweep progress percentage and elapsed time calculation, adaptive 10 Hz vs 1 Hz rate switching, stream pause/resume via Opcode `0x11`, disconnect safety mute, and `FAB3` 212-byte synchronization notifications.
+  - Host unit test suite (`test/test_telemetry.c`, 77/77 checks pass with `-Wall -Wextra -Werror`) verifying exact 31-byte struct packing and field offsets, Little-Endian multi-byte encoding, live servo angle tracking across all 16 channels, mid-sweep progress percentage and elapsed time calculation, live `error_code` `BIT0` (I2C fault) and `BIT1` (NVS fault) reporting, adaptive 10 Hz vs 1 Hz rate switching, stream pause/resume via Opcode `0x11`, disconnect safety mute, and `FAB3` 212-byte synchronization notifications.
   - Clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` `0x7c690` bytes / 498 KB with 51% app partition free).
 
 ---
@@ -280,7 +281,7 @@ Build, validate, and verify each milestone before moving to the next phase.
 - **Off-the-Shelf App Store BLE Test App Verification Guide (`firmware/README.md`)**:
   - Document step-by-step hardware verification procedures and ready-to-paste hex payloads for testing all firmware features on **iOS** and **Android** using **nRF Connect for Mobile** and **LightBlue** (covering pairing/bonding, `FAB1` command opcodes `0x00–0x11`, compact custom sequence programming, `FAB2` 31-byte telemetry decoding, and `FAB3` read/write/notify).
 - **Validation**:
-  - Host integration test suite (`test/test_ble_integration.c`, 78/78 checks pass, 911/911 total checks pass across all 11 test suites with `-Wall -Wextra -Werror`).
+  - Host integration test suite (`test/test_ble_integration.c`, 98/98 checks pass, 880/880 total checks pass across all 11 test suites with `-Wall -Wextra -Werror`).
   - Clean ESP-IDF v6.0.2 target build (`idf.py build`, `fabrica_firmware.bin` `0x7c6c0` bytes / 498 KB with 51% app partition free).
   - Comprehensive App Store BLE test app playbook documented in `firmware/README.md`.
 

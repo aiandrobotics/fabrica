@@ -95,7 +95,7 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 - **Overall Dimensions**: $6.50\text{ mm}$ nominal 45° diamond square drive $\times 66.0\text{ mm}$ total length.
 - **Double-Ended Tapered Square Keys**: $6.35\text{ mm}$ base tapering to $5.90\text{ mm}$ tip over $12.0\text{ mm}$ engagement length (`SQUARE_DRIVE_PEG_DEPTH = 12.00`), with $0.35\text{ mm}$ corner-relief clips (`SQUARE_DRIVE_CORNER_CLIP`) and $1.2\text{ mm} \times 45^\circ$ self-aligning nose chamfers on both ends.
 - **Continuous Smooth Journal Body**: Single uninterrupted $\varnothing 12.6\text{ mm}$ bearing journal cylinder spanning the $10.0\text{ mm}$ inter-module gap and both frame knuckles (no center stop collar), transitioning into the pegs via $45^\circ$ conical shoulders.
-- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap (paired with `end_pivot_pin.py`, $32.5\text{ mm}$ total length outside-headed click-lock pin with $\varnothing 16.0 \times 2.5\text{ mm}$ outer cap, dual $\varnothing 14.4\text{ mm}$ cantilever snap barbs clicking into the frame's $\varnothing 16.8\text{ mm}$ inner recess, and $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ tapered square peg).
+- **Modular Wear Component**: Easily 3D printed and replaced in seconds without replacing the entire flap (paired with `end_pivot_pin.py`, $32.5\text{ mm}$ total length outside-headed click-lock pin with $\varnothing 16.0 \times 2.5\text{ mm}$ outer cap, single blade-side $R = 9.1\text{ mm}$ cantilever snap barb on a $1.5\text{ mm}$ spring beam locking behind the $Y = 15.0\text{ mm}$ knuckle face, and $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ tapered square peg).
 
 ---
 

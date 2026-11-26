@@ -13,6 +13,12 @@
 #include "esp_log.h"
 static const char *TAG = "FABRICA_LED";
 static TaskHandle_t s_led_task_handle = NULL;
+static portMUX_TYPE s_led_mux = portMUX_INITIALIZER_UNLOCKED;
+#define LED_LOCK()   taskENTER_CRITICAL(&s_led_mux)
+#define LED_UNLOCK() taskEXIT_CRITICAL(&s_led_mux)
+#else
+#define LED_LOCK()   ((void)0)
+#define LED_UNLOCK() ((void)0)
 #endif
 
 /* Maximum number of steps in a pattern sequence */
@@ -98,6 +104,15 @@ static const led_pattern_def_t s_patterns[] = {
     }
 };
 
+static int led_current_level_unlocked(void)
+{
+    const led_pattern_def_t *pdef = &s_patterns[s_current_state];
+    if (s_current_segment_idx >= pdef->segment_count) {
+        return 0;
+    }
+    return pdef->segments[s_current_segment_idx].level;
+}
+
 /**
  * @brief Get the currently active LED visual pattern.
  *
@@ -108,7 +123,10 @@ static const led_pattern_def_t s_patterns[] = {
  */
 led_state_t led_get_state(void)
 {
-    return s_current_state;
+    LED_LOCK();
+    led_state_t state = s_current_state;
+    LED_UNLOCK();
+    return state;
 }
 
 /**
@@ -121,7 +139,10 @@ led_state_t led_get_state(void)
  */
 led_state_t led_get_base_state(void)
 {
-    return s_base_state;
+    LED_LOCK();
+    led_state_t state = s_base_state;
+    LED_UNLOCK();
+    return state;
 }
 
 /**
@@ -139,6 +160,7 @@ void led_set_state(led_state_t state)
         state = LED_STATE_IDLE;
     }
 
+    LED_LOCK();
     const led_pattern_def_t *pdef = &s_patterns[state];
     if (!pdef->is_transient) {
         s_base_state = state;
@@ -147,6 +169,7 @@ void led_set_state(led_state_t state)
     s_current_state = state;
     s_current_segment_idx = 0;
     s_segment_time_elapsed_ms = 0;
+    LED_UNLOCK();
 
 #ifdef ESP_PLATFORM
     if (s_led_task_handle != NULL) {
@@ -165,11 +188,10 @@ void led_set_state(led_state_t state)
  */
 int led_get_current_level(void)
 {
-    const led_pattern_def_t *pdef = &s_patterns[s_current_state];
-    if (s_current_segment_idx >= pdef->segment_count) {
-        return 0;
-    }
-    return pdef->segments[s_current_segment_idx].level;
+    LED_LOCK();
+    int level = led_current_level_unlocked();
+    LED_UNLOCK();
+    return level;
 }
 
 /**
@@ -182,15 +204,19 @@ int led_get_current_level(void)
  */
 uint32_t led_get_segment_delay_ms(void)
 {
+    LED_LOCK();
+    uint32_t delay = 0;
     const led_pattern_def_t *pdef = &s_patterns[s_current_state];
     if (s_current_segment_idx >= pdef->segment_count) {
-        return 100;
+        delay = 100;
+    } else {
+        uint32_t total = pdef->segments[s_current_segment_idx].duration_ms;
+        if (total > s_segment_time_elapsed_ms) {
+            delay = total - s_segment_time_elapsed_ms;
+        }
     }
-    uint32_t total = pdef->segments[s_current_segment_idx].duration_ms;
-    if (total > s_segment_time_elapsed_ms) {
-        return total - s_segment_time_elapsed_ms;
-    }
-    return 0;
+    LED_UNLOCK();
+    return delay;
 }
 
 /**
@@ -206,6 +232,7 @@ uint32_t led_get_segment_delay_ms(void)
  */
 int led_step_ms(uint32_t elapsed_ms)
 {
+    LED_LOCK();
     const led_pattern_def_t *pdef = &s_patterns[s_current_state];
     s_segment_time_elapsed_ms += elapsed_ms;
 
@@ -232,7 +259,9 @@ int led_step_ms(uint32_t elapsed_ms)
         }
     }
 
-    return led_get_current_level();
+    int level = led_current_level_unlocked();
+    LED_UNLOCK();
+    return level;
 }
 
 #ifdef ESP_PLATFORM

@@ -188,6 +188,13 @@ uint16_t pca9685_angle_to_counts(float angle_deg);
  */
 uint8_t pca9685_get_channel_angle(uint8_t channel);
 
+/**
+ * @brief Query whether the PCA9685 I2C driver has encountered a bus or device fault.
+ *
+ * @return true if the most recent I2C init/probe/transaction failed, false otherwise.
+ */
+bool pca9685_has_fault(void);
+
 /* ========================================================================= */
 /* Test Harness Mock Helper Functions (Host-Only)                            */
 /* ========================================================================= */

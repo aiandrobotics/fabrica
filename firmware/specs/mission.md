@@ -80,7 +80,7 @@ graph TD
 
 ### 3. Daily Run Mode Engine
 * **Instant Recall**: A single short tap (<500ms) on **B1–B4** loads and executes the corresponding saved folding routine from Flash.
-* **Synchronized Motion Execution**: Supports single-motor and parallel dual-motor sequential fold sweeps ($0^\circ \rightarrow 150^\circ \rightarrow 40^\circ \rightarrow 0^\circ$, with 800ms direct forward sweep, 450ms fast return to $40^\circ$, 800ms uniform $-1^\circ\text{/20ms}$ soft-landing to $0^\circ$, and 10ms inter-step delay).
+* **Synchronized Motion Execution**: Supports single-motor and parallel dual-motor sequential fold sweeps ($0^\circ \rightarrow 165^\circ \rightarrow 30^\circ \rightarrow 0^\circ$, with 900ms direct forward fold, 600ms return & mid-air brake to $30^\circ$, 500ms linear $-1.2^\circ\text{/20ms}$ soft-landing to $0^\circ$ [$60^\circ\text{/s}$, 2000ms total], and 10ms inter-step delay).
 * **Safe Completion**: All 16 channels verify flat home position ($0^\circ$) at cycle end, and the system safely idles.
 * **Emergency Stop (E-Stop)**: Tapping any button during an active folding cycle immediately halts PWM output, resets all 16 servos to $0^\circ$, delivers a 5-flash rapid alert, and aborts the routine.
 
@@ -132,7 +132,7 @@ graph TD
 
 - **100% Deterministic Execution**: Zero dropped FreeRTOS ticks, zero blocking delays on Core 1 UI loop, and precise $\pm 10\text{ms}$ motion timing on Core 0.
 - **Zero-Latency E-Stop / Stop**: Start/stop commands and emergency stop trigger within $< 50\text{ms}$ of button tap or wireless BLE command, cutting active PWM commands and homing all panels.
-- **Real-Time Telemetry & LED State Encoding**: Adaptive streaming of packed 30-byte telemetry frames (`telemetry_packet_t`: system state, LED state, active button ID, step progress, all 16 motor angles, and command status, Little-Endian encoded) over BLE notifications (10 Hz in active motion/calibration, 1 Hz when idle) without requiring hardware current sensors.
+- **Real-Time Telemetry & LED State Encoding**: Adaptive streaming of packed 31-byte telemetry frames (`telemetry_packet_t`: system state, LED state, active button ID, step progress, all 16 motor angles, and command status, Little-Endian encoded) over BLE notifications (10 Hz in active motion/calibration, 1 Hz when idle) without requiring hardware current sensors.
 - **Fail-Safe BLE Control**: Ingress re-entrancy guards rejecting concurrent execution requests (`CMD_STATUS_ERR_BUSY`), empty sequence validation (`CMD_STATUS_ERR_INVALID_STEP`), motion safety interlocks prohibiting servo jogging during running cycles or E-Stop, 10s calibration thermal cutoff, 15s calibration auto-home, and `<50ms` E-Stop preemption with BLE clear recovery.
 - **Reliable Button Sequence Persistence**: 100% NVS data persistence for the 4 user-programmed button sequences and factory defaults across reboots and power cuts with CRC32 integrity checks, active motion sequence write locks (`CMD_STATUS_ERR_BUSY`), and automatic zero-padding / CRC32 calculation on compact or zero-checksum writes.
 - **Stateless BLE Sequence Execution**: Direct preview execution of custom routines (`CMD_RUN_RAW_SEQUENCE`, reporting `active_button_id == 0`) and 1-write binding to physical buttons (`CMD_SET_BUTTON_SEQUENCE` or `FAB3`) in both full struct and compact hex formats.

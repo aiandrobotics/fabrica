@@ -88,8 +88,8 @@ All part and assembly Python scripts must be visually and analytically validated
 cad-designs/
 ├── specs/                          ← project constitution (mission.md, tech-stack.md, roadmap.md, and phase specs)
 ├── params.py                       ← single source of truth (dimensions, SCALE, clearances)
-├── base_module.py                  ← monolithic base chassis (4-wall frame, open-bottom cavity, wire ports, micro-grip texture, circular cutouts, dovetail sockets)
-├── follower_frame.py               ← passive follower 4-sided frame (360° closed bore, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, open-top dovetail sockets)
+├── base_module.py                  ← monolithic base chassis (slimmed 8.0mm rails, 15.0mm dovetail bosses, 13 circular cutouts, 4 countersunk corner nail/screw holes, diagonal micro-grip texture, wire conduits)
+├── follower_frame.py               ← passive follower chassis (dual 360° Ø13.7mm closed bores, uniform Ø13.7mm axle cradle, 180° fold relief, TPU bumpers, open-top dovetail sockets with push-out holes)
 ├── follower_flap.py                ← passive follower flap (continuous Ø12.8mm axle, dual 14.0mm deep 6.50mm 45° diamond square sockets with 0.8mm entry bevel, solid un-grooved 2.4mm hinge neck X∈[0.0,11.9mm], gradient cutouts, 0.8mm hole chamfers, 0.6mm micro-grip texture, 1.2mm bevel)
 ├── follower_assembly.py            ← follower module sub-assembly (FollowerFrame + FollowerFlap + EndPivotPin + FrameJoiners + DriveCoupler)
 ├── motorized_frame.py              ← active motorized 4-sided frame (servo mounting bay, 4th wall dovetail joint, 4x rubber feet, TPU bumpers, dovetail sockets)
@@ -102,7 +102,7 @@ cad-designs/
 ├── interface_assembly.py            ← interface module sub-assembly (InterfaceCase + InterfacePanel + PDB + PCA9685 + ESP32 + 4 Buttons + Status LED)
 ├── frame_joiner.py                 ← click-lock hollow dovetail frame joiner peg (0.3mm detent bump + internal wire raceway)
 ├── drive_coupler.py                ← modular double-male 6.35→5.90mm × 12.0mm 45° diamond tapered square coupler (smooth Ø12.6mm body, 66.0mm total length)
-├── end_pivot_pin.py                ← outside-headed click-lock pivot pin (Ø16.0×2.5mm outer cap, dual Ø14.4mm cantilever snap barbs, 6.35→5.90mm × 12.0mm 45° diamond tapered square peg, 32.5mm total length)
+├── end_pivot_pin.py                ← outside-headed click-lock pivot pin (Ø16.0×2.5mm outer cap with +X tick, single blade-side R=9.1mm cantilever snap barb on 1.5mm spring beam with 45° slot roof, 6.35→5.90mm × 12.0mm 45° diamond tapered square peg, 32.5mm total length)
 ├── assembly.py                     ← full universal folding robot assembly model (2 Base + 2 Follower + 2 Motorized + 7 Joiners)
 ├── export_all.py                   ← batch script to export all STEP and STL models
 ├── run.sh                          ← CLI entrypoint for building and exporting CAD models

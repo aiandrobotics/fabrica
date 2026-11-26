@@ -110,6 +110,13 @@ esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine
  */
 uint32_t storage_compute_crc32(const fold_routine_t *routine);
 
+/**
+ * @brief Query whether the NVS storage subsystem has encountered a flash or CRC fault.
+ *
+ * @return true if an NVS failure or CRC recovery fault occurred, false otherwise.
+ */
+bool storage_has_fault(void);
+
 /* ========================================================================= */
 /* Test Harness Mock Helper Functions (Host-Only)                            */
 /* ========================================================================= */

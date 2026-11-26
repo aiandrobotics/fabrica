@@ -61,9 +61,9 @@ static const uint8_t s_fab0_uuid128_le[16] = {
 };
 
 static char s_device_name[16] = "Fabrica-0000";
-static bool s_is_connected = false;
-static uint16_t s_negotiated_mtu = 23;
-static uint16_t s_telemetry_seq_counter = 0;
+static volatile bool s_is_connected = false;
+static volatile uint16_t s_negotiated_mtu = 23;
+static volatile uint16_t s_telemetry_seq_counter = 0;
 
 /* ========================================================================= */
 /* Shared Pure-C Protocol, Advertisement & GATT Payload Logic                */
@@ -218,6 +218,12 @@ void ble_transport_build_telemetry(telemetry_packet_t *out_pkt)
 #endif
 
     uint8_t err_mask = 0;
+    if (pca9685_has_fault()) {
+        err_mask |= (1U << 0);
+    }
+    if (storage_has_fault()) {
+        err_mask |= (1U << 1);
+    }
     if (out_pkt->system_state == STATE_ESTOP || motion_get_status() == MOTION_STATUS_ABORTED) {
         err_mask |= (1U << 2);
     }
@@ -243,12 +249,12 @@ cmd_status_t ble_transport_write_fab1(const uint8_t *data, size_t len)
 static QueueHandle_t s_cmd_queue = NULL;
 static TimerHandle_t s_conn_param_timer = NULL;
 static uint8_t s_own_addr_type = BLE_OWN_ADDR_PUBLIC;
-static uint16_t s_conn_handle = BLE_HS_CONN_HANDLE_NONE;
+static volatile uint16_t s_conn_handle = BLE_HS_CONN_HANDLE_NONE;
 static uint16_t s_fab1_val_handle = 0;
 static uint16_t s_fab2_val_handle = 0;
 static uint16_t s_fab3_val_handle = 0;
-static bool s_fab2_subscribed = false;
-static bool s_fab3_subscribed = false;
+static volatile bool s_fab2_subscribed = false;
+static volatile bool s_fab3_subscribed = false;
 
 /* Standard Device Information Service (0x180A) UUIDs */
 static const ble_uuid16_t s_dis_svc_uuid  = BLE_UUID16_INIT(0x180A);
@@ -282,8 +288,9 @@ static void ble_start_advertising(void);
 static int8_t ble_platform_query_rssi(void)
 {
     int8_t rssi = -128;
-    if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
-        if (ble_gap_conn_rssi(s_conn_handle, &rssi) != 0) {
+    uint16_t conn_handle = s_conn_handle;
+    if (conn_handle != BLE_HS_CONN_HANDLE_NONE) {
+        if (ble_gap_conn_rssi(conn_handle, &rssi) != 0) {
             rssi = -128;
         }
     }
@@ -498,7 +505,10 @@ static bool is_peer_bonded_in_store(const ble_addr_t *peer_id_addr)
      * If the peer address is a Resolvable Private Address (RPA, common on iOS & modern Android),
      * cryptographically resolve it against stored peer Identity Resolving Keys (IRKs) in NVS.
      */
-    if (BLE_ADDR_IS_RPA(peer_id_addr) || ((peer_id_addr->val[5] & 0xC0) == 0x40)) {
+    bool is_random_type = (peer_id_addr->type == BLE_ADDR_RANDOM ||
+                           peer_id_addr->type == BLE_ADDR_RANDOM_ID);
+    if (BLE_ADDR_IS_RPA(peer_id_addr) ||
+        (is_random_type && ((peer_id_addr->val[5] & 0xC0U) == 0x40U))) {
         uint8_t ida[6];
         uint8_t ida_type = 0;
         if (ble_gap_rpa_resolve((uint8_t *)peer_id_addr->val, ida, &ida_type)) {
@@ -777,10 +787,11 @@ int ble_transport_get_bond_count(void)
 
 esp_err_t ble_transport_enter_pairing_mode(void)
 {
-    if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
+    uint16_t conn_handle = s_conn_handle;
+    if (conn_handle != BLE_HS_CONN_HANDLE_NONE) {
         ESP_LOGI(TAG, "3s Hold-to-Pair priority: disconnecting active central (conn_handle=%u) to advertise for pairing.",
-                 s_conn_handle);
-        if (ble_gap_terminate(s_conn_handle, BLE_ERR_REM_USER_CONN_TERM) != 0) {
+                 conn_handle);
+        if (ble_gap_terminate(conn_handle, BLE_ERR_REM_USER_CONN_TERM) != 0) {
             s_is_connected = false;
             s_conn_handle = BLE_HS_CONN_HANDLE_NONE;
             state_machine_on_ble_disconnect();
@@ -803,8 +814,9 @@ esp_err_t ble_transport_clear_bonds(void)
     }
     (void)ble_store_clear();
 
-    if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
-        (void)ble_gap_terminate(s_conn_handle, BLE_ERR_REM_USER_CONN_TERM);
+    uint16_t conn_handle = s_conn_handle;
+    if (conn_handle != BLE_HS_CONN_HANDLE_NONE) {
+        (void)ble_gap_terminate(conn_handle, BLE_ERR_REM_USER_CONN_TERM);
     }
 
     ESP_LOGW(TAG, "All stored BLE bonds cleared from NVS.");
@@ -818,7 +830,8 @@ bool ble_transport_is_telemetry_subscribed(void)
 
 esp_err_t ble_transport_notify_telemetry(void)
 {
-    if (!s_is_connected || !s_fab2_subscribed || s_conn_handle == BLE_HS_CONN_HANDLE_NONE) {
+    uint16_t conn_handle = s_conn_handle;
+    if (!s_is_connected || !s_fab2_subscribed || conn_handle == BLE_HS_CONN_HANDLE_NONE) {
         return ESP_OK;
     }
 
@@ -830,13 +843,14 @@ esp_err_t ble_transport_notify_telemetry(void)
         return ESP_ERR_NO_MEM;
     }
 
-    int rc = ble_gatts_notify_custom(s_conn_handle, s_fab2_val_handle, om);
+    int rc = ble_gatts_notify_custom(conn_handle, s_fab2_val_handle, om);
     return (rc == 0) ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t ble_transport_notify_button_config(void)
 {
-    if (!s_is_connected || !s_fab3_subscribed || s_conn_handle == BLE_HS_CONN_HANDLE_NONE) {
+    uint16_t conn_handle = s_conn_handle;
+    if (!s_is_connected || !s_fab3_subscribed || conn_handle == BLE_HS_CONN_HANDLE_NONE) {
         return ESP_OK;
     }
 
@@ -848,7 +862,7 @@ esp_err_t ble_transport_notify_button_config(void)
         return ESP_ERR_NO_MEM;
     }
 
-    int rc = ble_gatts_notify_custom(s_conn_handle, s_fab3_val_handle, om);
+    int rc = ble_gatts_notify_custom(conn_handle, s_fab3_val_handle, om);
     return (rc == 0) ? ESP_OK : ESP_FAIL;
 }
 

@@ -26,6 +26,12 @@ static bool s_mock_probe_success = true;
 #endif
 
 static volatile uint8_t s_channel_angles[TOTAL_SERVO_CHANNELS];
+static volatile bool s_i2c_fault = false;
+
+bool pca9685_has_fault(void)
+{
+    return s_i2c_fault;
+}
 
 static uint8_t clamp_angle_u8(float angle_deg)
 {
@@ -95,13 +101,17 @@ esp_err_t pca9685_probe(void)
     }
     esp_err_t ret = i2c_master_probe(s_i2c_bus_handle, PCA9685_I2C_ADDR, I2C_TIMEOUT_MS);
     if (ret != ESP_OK) {
+        s_i2c_fault = true;
         return ESP_ERR_NOT_FOUND;
     }
+    s_i2c_fault = false;
     return ESP_OK;
 #else
     if (!s_mock_probe_success) {
+        s_i2c_fault = true;
         return ESP_ERR_NOT_FOUND;
     }
+    s_i2c_fault = false;
     return ESP_OK;
 #endif
 }
@@ -117,10 +127,13 @@ esp_err_t pca9685_write_reg(uint8_t reg, uint8_t val)
 {
 #ifdef ESP_PLATFORM
     if (s_pca9685_dev_handle == NULL) {
+        s_i2c_fault = true;
         return ESP_ERR_INVALID_STATE;
     }
     uint8_t write_buf[2] = {reg, val};
-    return i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
+    esp_err_t err = i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
+    s_i2c_fault = (err != ESP_OK);
+    return err;
 #else
     s_mock_regs[reg] = val;
     return ESP_OK;
@@ -284,9 +297,12 @@ esp_err_t pca9685_set_pwm(uint8_t channel, uint16_t on_count, uint16_t off_count
 
 #ifdef ESP_PLATFORM
     if (s_pca9685_dev_handle == NULL) {
+        s_i2c_fault = true;
         return ESP_ERR_INVALID_STATE;
     }
-    return i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
+    esp_err_t err = i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
+    s_i2c_fault = (err != ESP_OK);
+    return err;
 #else
     for (int i = 0; i < 4; i++) {
         s_mock_regs[PCA9685_CHANNEL_ON_L(channel) + i] = write_buf[1 + i];
@@ -316,9 +332,12 @@ esp_err_t pca9685_set_all_pwm(uint16_t on_count, uint16_t off_count)
 
 #ifdef ESP_PLATFORM
     if (s_pca9685_dev_handle == NULL) {
+        s_i2c_fault = true;
         return ESP_ERR_INVALID_STATE;
     }
-    return i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
+    esp_err_t err = i2c_master_transmit(s_pca9685_dev_handle, write_buf, sizeof(write_buf), I2C_TIMEOUT_MS);
+    s_i2c_fault = (err != ESP_OK);
+    return err;
 #else
     for (int i = 0; i < 4; i++) {
         s_mock_regs[PCA9685_REG_ALL_LED_ON_L + i] = write_buf[1 + i];
@@ -425,7 +444,7 @@ esp_err_t pca9685_sleep(bool enable)
         mode1 |= PCA9685_MODE1_SLEEP;
         return pca9685_write_reg(PCA9685_REG_MODE1, mode1);
     } else {
-        mode1 &= ~PCA9685_MODE1_SLEEP;
+        mode1 &= (uint8_t)(~PCA9685_MODE1_SLEEP);
         err = pca9685_write_reg(PCA9685_REG_MODE1, mode1);
         if (err != ESP_OK) return err;
 
@@ -448,6 +467,7 @@ void pca9685_mock_reset(void)
     memset(s_mock_regs, 0, sizeof(s_mock_regs));
     memset((void *)s_channel_angles, 0, sizeof(s_channel_angles));
     s_mock_probe_success = true;
+    s_i2c_fault = false;
 }
 
 /**

@@ -13,7 +13,7 @@ The Fabrica firmware coordinates the physical user interface, non-volatile seque
 * **User Interface**: 4 Push Buttons (`B1–B4` on `GPIO 4–7`) + 1 External Multi-Pattern Status LED (`GPIO 15`)
 * **Operating Architecture**: Dual-Core FreeRTOS (Core 0: Motion & I2C Bus / Core 1: UI, Buttons, NimBLE Wireless, Telemetry & NVS Storage)
 * **Operating Modes**:
-  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized single and parallel dual-servo fold sweeps (`0° -> 150°` direct forward sweep in 800ms, `150° -> 40°` fast return in 450ms, and uniform `-1°/20ms` soft-landing `40° -> 0°` in 800ms = 2050ms per step), 10ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
+  1. **Daily Run Mode (Physical Buttons B1–B4)**: Instant 1-touch execution of Presets 1–4 (pre-seeded with 4 factory defaults out of the box), synchronized single and parallel dual-servo fold sweeps (`0° -> 165°` direct forward sweep in 900ms, `165° -> 30°` return & mid-air brake in 600ms, and uniform `-1.2°/20ms` soft-landing `30° -> 0°` in 500ms = 2000ms per step), 10ms inter-step delay, and $<50\text{ms}$ Emergency Stop preemption on any button tap.
   2. **Wireless Mobile Programming & Control (BLE)**: Custom sequence creation, live servo calibration jogging, stateless sequence previewing, real-time 10 Hz / 1 Hz adaptive telemetry streaming, and assigning custom sequences to Buttons 1–4 are handled visually over Bluetooth Low Energy.
 
 ---
@@ -70,13 +70,13 @@ To achieve a **zero-crossover, single-row-aligned perfboard layout** with the **
 
 ### 3. Physical Servo Flap Channel Mapping (Standard 4-Panel Grid)
 
-| Channel | Identifier | Description | Resting Angle | Staged Angle | Fold Angle |
-|---|---|---|---|---|---|
-| **0** | `SERVO_FLAP_LEFT` | Left side folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
-| **1** | `SERVO_FLAP_RIGHT` | Right side folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
-| **2** | `SERVO_FLAP_BOTTOM` | Bottom / waist folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
-| **3** | `SERVO_FLAP_TOP` | Top / collar folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
-| **4–15** | Expansion Channels | Auxiliary folding modules | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
+| Channel | Identifier | Description | Home Angle | Brake Angle | Fold Target | Max Mechanical Range |
+|---|---|---|---|---|---|---|
+| **0** | `SERVO_FLAP_LEFT` | Left side folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $165.0^\circ$ ($2333\,\mu\text{s}$ / 478 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
+| **1** | `SERVO_FLAP_RIGHT` | Right side folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $165.0^\circ$ ($2333\,\mu\text{s}$ / 478 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
+| **2** | `SERVO_FLAP_BOTTOM` | Bottom / waist folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $165.0^\circ$ ($2333\,\mu\text{s}$ / 478 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
+| **3** | `SERVO_FLAP_TOP` | Top / collar folding flap | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $165.0^\circ$ ($2333\,\mu\text{s}$ / 478 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
+| **4–15** | Expansion Channels | Auxiliary folding modules | $0.0^\circ$ ($500\,\mu\text{s}$ / 102 counts) | $30.0^\circ$ ($833\,\mu\text{s}$ / 171 counts) | $165.0^\circ$ ($2333\,\mu\text{s}$ / 478 counts) | $180.0^\circ$ ($2500\,\mu\text{s}$ / 512 counts) |
 
 ---
 
@@ -93,10 +93,10 @@ The firmware uses FreeRTOS symmetric multiprocessing to cleanly separate real-ti
            ----------------------           ------------------------------------------------
            * app_main (Command & Motion)    * app_ble_task (Priority 4, NimBLE GATT Server)
            * Real-time 50Hz PWM Trajectory  * app_telem_task (Priority 3, Adaptive Telemetry)
-           * 800ms Fwd / 450ms+800ms Return * app_ui_task (Priority 5, 50ms Debounce)
+           * 900ms Fwd / 600ms+500ms Return * app_ui_task (Priority 5, 50ms Debounce)
            * 10ms Inter-Step Delays         * Short Tap vs 3s Hold (BLE Pairing)
            * PCA9685 I2C Bus Management     * System State Machine Coordinator
-           * <50ms E-Stop Preemption Abort  * app_led_task (Priority 2, Status LED Engine)
+           * <50ms E-Stop Preemption Abort  * app_led_task (Priority 3, Status LED Engine)
                                             * NVS Flash Storage Manager
                                 \              /
                                  \            /
@@ -112,10 +112,10 @@ The firmware uses FreeRTOS symmetric multiprocessing to cleanly separate real-ti
 The firmware is pre-seeded on initial boot with 4 factory folding routines verified against standard garment geometries, exercising all 4 servo flap motors:
 
 * **Preset 1 (Adult T-Shirt, 4 Steps)**:
-  - Step 1: Left Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 0)
-  - Step 2: Right Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 1)
-  - Step 3: Bottom Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 2)
-  - Step 4: Top / Collar Flap fold ($0^\circ \to 180^\circ \to 0^\circ$, Ch 3)
+  - Step 1: Left Flap fold ($0^\circ \to 165^\circ \to 0^\circ$, Ch 0)
+  - Step 2: Right Flap fold ($0^\circ \to 165^\circ \to 0^\circ$, Ch 1)
+  - Step 3: Bottom Flap fold ($0^\circ \to 165^\circ \to 0^\circ$, Ch 2)
+  - Step 4: Top / Collar Flap fold ($0^\circ \to 165^\circ \to 0^\circ$, Ch 3)
   > *Tapping Button 1 immediately tests all 4 flap motors in sequence!*
 * **Preset 2 (Long-Sleeve Shirt, 5 Steps)**:
   - Step 1: Synchronized parallel dual-sleeve fold (Left & Right Flaps together, Ch 0 + 1)
@@ -260,7 +260,7 @@ Field:        [S][L][B][I][T][P][ELAP] [ANGLES] [ST] [HEAP] [R][E] [SEQ ]
 
 | Offset | Length | Field Name | Type | Value Interpretation |
 |---|---|---|---|---|
-| **0** | 1B | `system_state` | `uint8_t` | `0` = IDLE, `1` = RUNNING_MOTION, `2` = ESTOP, `3` = ERROR, `4` = CALIBRATING |
+| **0** | 1B | `system_state` | `uint8_t` | `0` = IDLE, `1` = RUNNING_MOTION, `2` = ESTOP, `3` = Reserved, `4` = CALIBRATING |
 | **1** | 1B | `led_state` | `uint8_t` | `0` = IDLE, `1` = RUNNING, `2` = SAVE_SUCCESS, `3` = INPUT_ERROR, `4` = ESTOP, `5` = PAIRING, `6` = CONNECTED, `7` = IDENTIFY |
 | **2** | 1B | `active_button_id`| `uint8_t` | Currently executing preset slot (`1–4`), or `0` for raw preview / idle |
 | **3** | 1B | `current_step_idx` | `uint8_t` | Active 0-based step index (`0–15`) |
@@ -294,21 +294,21 @@ Run the complete host test harness validating all firmware layers (Headers, UI, 
 ```bash
 make test
 ```
-All **11 test suites** execute in $<2\text{s}$ with **911 automated checks passing** under `-Wall -Wextra -Werror`:
+All **11 test suites** execute in $<2\text{s}$ with **880 automated checks passing** under `-Wall -Wextra -Werror`:
 ```
-- test/test_headers.c          (62 checks)
-- test/test_ui_subsystem.c     (75 checks)
-- test/test_pca9685.c          (50 checks)
-- test/test_storage.c          (64 checks)
-- test/test_motion.c           (48 checks)
-- test/test_state_machine.c    (149 checks)
-- test/test_e2e_stress.c       (118 checks)
-- test/test_ble_transport.c    (115 checks)
+- test/test_headers.c          (66 checks)
+- test/test_ui_subsystem.c     (65 checks)
+- test/test_pca9685.c          (78 checks)
+- test/test_storage.c          (67 checks)
+- test/test_motion.c           (74 checks)
+- test/test_state_machine.c    (89 checks)
+- test/test_e2e_stress.c       (67 checks)
+- test/test_ble_transport.c    (117 checks)
 - test/test_remote_cmd.c       (82 checks)
-- test/test_telemetry.c        (70 checks)
-- test/test_ble_integration.c  (78 checks - including 200-cycle endurance run)
+- test/test_telemetry.c        (77 checks)
+- test/test_ble_integration.c  (98 checks - including 200-cycle endurance run)
 --------------------------------------------------------------------------------
-Total: 911 / 911 checks passed (100% Success)
+Total: 880 / 880 checks passed (100% Success)
 ```
 
 ### 2. ESP-IDF Target Compilation

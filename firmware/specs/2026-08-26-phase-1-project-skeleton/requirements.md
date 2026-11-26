@@ -40,18 +40,19 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
 | Servo Channels | `TOTAL_SERVO_CHANNELS` | `16` | Total physical PWM channels on PCA9685 |
 | Debounce Filter Time | `BUTTON_DEBOUNCE_MS` | `50` ms | Low-pass button debounce filter window |
 | Short Press Upper Bound | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Maximum duration classified as a tap |
-| Long Press Threshold | `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration to enter Programming Mode |
-| Inactivity Timeout | `PROGRAMMING_TIMEOUT_MS` | `20000` ms | Auto-exit duration for visual staging mode |
-| Fold Sweep Travel Time | `FOLD_DWELL_TIME_MS` | `800` ms | Direct forward travel time ($0^\circ \to 150^\circ$) |
-| Fast Return Approach Time | `LANDING_APPROACH_MS` | `450` ms | Fast return travel time ($150^\circ \to 40^\circ$) |
-| Soft-Landing Frame Interval | `LANDING_STEP_MS` | `20` ms | Uniform $-1^\circ$ per 20ms soft-landing frame (50 Hz native PWM, 800ms total) |
+| Long Press Threshold | `BUTTON_LONG_PRESS_MS` | `3000` ms | Continuous hold duration to open BLE Pairing Mode |
+| BLE Bond Reset Hold | `BUTTON_BOND_RESET_MS` | `5000` ms | Simultaneous `B1+B4` hold to clear all stored BLE bonds |
+| Full Factory Reset Hold | `BUTTON_FACTORY_RESET_MS` | `10000` ms | Simultaneous `B1+B3+B4` hold to wipe presets & BLE bonds |
+| BLE Pairing Timeout | `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second multi-device pairing timeout (indefinite on 0 bonds) |
+| Forward Fold Sweep Time | `FOLD_FORWARD_SWEEP_MS` | `900` ms | Direct forward fold travel time ($0^\circ \to 165^\circ$) |
+| Return & Brake Time | `LANDING_APPROACH_MS` | `600` ms | Return travel & mid-air brake settle ($165^\circ \to 30^\circ$) |
+| Soft-Landing Ramp Time | `LANDING_RAMP_MS` | `500` ms | Linear soft-landing duration ($30^\circ \to 0^\circ$, 25 frames, $60^\circ\text{/s}$) |
+| Soft-Landing Frame Interval | `LANDING_STEP_MS` | `20` ms | Linear $-1.2^\circ$ per 20ms soft-landing frame (50 Hz native PWM) |
 | Inter-Step Settling Delay | `INTER_STEP_DELAY_MS` | `10` ms | Pause between consecutive folding steps |
 | Flap Rest Angle | `HOME_ANGLE_DEG` | `0.0f` | Flat tabletop resting position ($0^\circ$) |
-| Flap Identification Angle | `NUDGE_ANGLE_DEG` | `15.0f` | Tactile/visual flap identification angle |
-| Flap Visual Staging Angle | `STAGE_ANGLE_DEG` | `30.0f` | Flap staging hold angle |
-| Soft-Landing Start Angle | `LANDING_START_ANGLE_DEG` | `40.0f` | Soft-landing ramp start angle on return ($40^\circ \to 0^\circ$) |
+| Soft-Landing Start Angle | `LANDING_START_ANGLE_DEG` | `30.0f` | Mid-air brake hold & soft-landing start angle ($30^\circ \to 0^\circ$) |
 | Flap Full Mechanical Range | `FOLD_ANGLE_DEG` | `180.0f` | Full servo mechanical range ($0^\circ$–$180^\circ$) |
-| Flap Fold Target Angle | `FOLD_TARGET_ANGLE_DEG` | `150.0f` | Max folding sweep target angle |
+| Flap Fold Target Angle | `FOLD_TARGET_ANGLE_DEG` | `165.0f` | Max folding sweep target angle |
 | PCA9685 I2C Address | `PCA9685_I2C_ADDR` | `0x40` | Default hardware I2C address |
 | PCA9685 PWM Frequency | `PCA9685_PWM_FREQ_HZ` | `50` Hz | 20 ms frame period for servo motors |
 | PCA9685 Resolution | `PCA9685_PWM_RES_BITS` | `12` | 4096-step PWM count resolution |
@@ -67,22 +68,26 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
   - `CMD_RUN_PRESET`: Trigger saved preset routine (Preset 1–4).
   - `CMD_RUN_RAW_SEQUENCE`: Trigger unsaved custom routine directly.
   - `CMD_EMERGENCY_STOP`: Immediate motion halt and panel homing.
-  - `CMD_ENTER_PROGRAM_MODE`: Transition to visual staging mode for target preset.
-  - `CMD_CYCLE_NUDGE_MOTOR`: Increment target motor channel and trigger $15^\circ$ nudge.
-  - `CMD_STAGE_TOGGLE_MOTOR`: Toggle target motor between $30^\circ$ staged and $0^\circ$ flat.
-  - `CMD_LOCK_STEP`: Commit staged motor(s) to routine buffer.
-  - `CMD_SAVE_EXIT_PROGRAM`: Write routine buffer to NVS flash and exit to Run Mode.
+  - `CMD_ENTER_BLE_PAIRING`: Open BLE discovery/pairing window (120s when bonded, indefinite on 0 bonds).
+  - `CMD_SET_BUTTON_SEQUENCE`: Save custom routine to Button 1–4 over BLE.
+  - `CMD_RESTORE_FACTORY_PRESETS`: Restore Buttons 1–4 to factory default routines.
   - `CMD_JOG_MOTOR_ANGLE`: Manual live angle calibration ($0^\circ \dots 180^\circ$).
-  - `CMD_GET_TELEMETRY`: Request live status packet.
-  - `CMD_SYNC_PRESETS`: Synchronize routine presets with mobile app.
+  - `CMD_GET_TELEMETRY`: Request live 31-byte status packet.
+  - `CMD_SYNC_PRESETS`: Synchronize routine presets with mobile app (`FAB3`).
+  - `CMD_STOP_SEQUENCE`: Cleanly stop active motion / exit calibration / clear E-Stop.
+  - `CMD_IDENTIFY_ROBOT`: Trigger 3.0s visual locator LED pulse train.
+  - `CMD_SET_TELEMETRY_STREAM`: Enable or disable periodic BLE telemetry streaming.
+  - `CMD_CLEAR_BLE_BONDS`: Erase all stored BLE bonds in NVS (`B1+B4` 5s hold).
+  - `CMD_CALIBRATION_THERMAL_SLEEP`: Internal 10s thermal sleep cutoff in `STATE_CALIBRATING`.
+  - `CMD_FACTORY_RESET_ALL`: Full factory wipe (presets + BLE bonds + home servos + indefinite pairing).
 - **Sequence Schema**:
   ```c
-  typedef struct {
+  typedef struct __attribute__((packed)) {
       uint8_t motor_count;
       uint8_t motor_ids[MAX_MOTORS_PER_STEP];
   } fold_step_t;
 
-  typedef struct {
+  typedef struct __attribute__((packed)) {
       uint8_t step_count;
       fold_step_t steps[MAX_STEPS_PER_ROUTINE];
       uint32_t checksum;
@@ -91,10 +96,9 @@ Phase 1 delivers the base firmware skeleton and build infrastructure for the **F
   typedef union {
       uint8_t preset_id;
       fold_routine_t raw_routine;
-      struct {
-          uint8_t channel;
-          float angle_deg;
-      } jog_param;
+      button_sync_param_t button_sync;
+      jog_param_t jog_param;
+      bool stream_enable;
   } cmd_payload_t;
 
   typedef struct {

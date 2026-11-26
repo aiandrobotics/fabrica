@@ -36,7 +36,7 @@ graph LR
         UI_TASK["app_ui_task (Priority 5)<br/>4-Button Debouncer (50ms)"]
         SM_CORE["State Machine Engine"]
         NVS_CORE["NVS Sequence Manager (Buttons 1-4)"]
-        LED_TASK["app_led_task (Priority 2)<br/>Status LED Engine"]
+        LED_TASK["app_led_task (Priority 3)<br/>Status LED Engine"]
 
         BLE_TASK -->|Dispatched command_t| CMD_Q
         UI_TASK -->|Dispatched command_t| CMD_Q
@@ -61,8 +61,8 @@ graph LR
 ### Core 0 — Real-Time Motion & Actuation Engine
 - **`app_main` Command Consumer & Motion Engine (Core ID: 0)**:
   - Consumes motion execution commands from the inter-core queue.
-  - Implements single-servo and synchronized parallel dual-servo fold sweeps with soft-landing ($0^\circ \rightarrow 150^\circ \rightarrow 40^\circ \rightarrow 0^\circ$).
-  - Controls deterministic 50 Hz native PWM sweep/return timings (800ms direct forward sweep to $150^\circ$, 450ms fast return to $40^\circ$, 800ms uniform $-1^\circ\text{/20ms}$ soft-landing to $0^\circ$, and 10ms inter-step delay) using low-latency 10ms sliced delays.
+  - Implements single-servo and synchronized parallel dual-servo fold sweeps with mid-air brake and soft-landing ($0^\circ \rightarrow 165^\circ \rightarrow 30^\circ \rightarrow 0^\circ$).
+  - Controls deterministic 50 Hz native PWM sweep/return timings (900ms direct forward fold to $165^\circ$, 600ms return & mid-air brake to $30^\circ$, 500ms linear $-1.2^\circ\text{/20ms}$ soft-landing to $0^\circ$ [$60^\circ\text{/s}$, 2000ms total], and 10ms inter-step delay) using low-latency 10ms sliced delays.
   - Continuously samples the E-Stop / Stop abort event flag before and during step transitions ($<50\text{ms}$ preemption latency).
 - **PCA9685 I2C Driver**: Direct register reads/writes over ESP32-S3 hardware I2C peripheral (`I2C_NUM_0`).
 
@@ -112,9 +112,9 @@ graph LR
 | **Prescale Value** | `121` (`0x79`) | $\text{Prescale} = \text{round}\left(\frac{25\text{ MHz}}{4096 \times 50\text{ Hz}}\right) - 1 = 121$ |
 | **PWM Resolution** | 12-bit (4096 counts) | Range $0$ to $4095$ counts per 20ms frame |
 | **Servo Min Pulse ($0^\circ$)** | $500\ \mu\text{s}$ ($\approx 102$ counts) | Flap resting flat on table ($0^\circ$ home) |
-| **Servo Nudge Pulse ($15^\circ$)** | $667\ \mu\text{s}$ ($\approx 137$ counts) | Identification nudge angle |
-| **Servo Staged Pulse ($30^\circ$)** | $833\ \mu\text{s}$ ($\approx 171$ counts) | Visual staging angle held on table |
-| **Servo Fold Pulse ($180^\circ$)** | $2500\ \mu\text{s}$ ($\approx 512$ counts) | Full fold flip articulation |
+| **Servo Brake Pulse ($30^\circ$)** | $833\ \mu\text{s}$ ($\approx 171$ counts) | Mid-air brake hold & soft-landing start (`LANDING_START_ANGLE_DEG`) |
+| **Servo Fold Target ($165^\circ$)** | $2333\ \mu\text{s}$ ($\approx 478$ counts) | Production fold sweep target (`FOLD_TARGET_ANGLE_DEG`) |
+| **Servo Max Pulse ($180^\circ$)** | $2500\ \mu\text{s}$ ($\approx 512$ counts) | Full servo mechanical range (`FOLD_ANGLE_DEG`) |
 
 ---
 
@@ -152,24 +152,24 @@ graph LR
 | `BUTTON_FACTORY_RESET_MS` | `10000` ms | Simultaneous B1+B3+B4 hold threshold for Full Factory Reset (wiping presets & bonds) |
 | `BUTTON_SHORT_PRESS_MAX_MS` | `500` ms | Upper bound for tap gesture detection in Daily Run Mode |
 | `BLE_PAIRING_TIMEOUT_MS` | `120000` ms | 120-second (2-minute) timeout for multi-device pairing (indefinite on 0 bonds) |
-| `FOLD_DWELL_TIME_MS` | `800` ms | Direct forward sweep travel time ($0^\circ \to 150^\circ$) |
-| `LANDING_APPROACH_MS` | `450` ms | Fast return travel time ($150^\circ \to 40^\circ$) |
-| `LANDING_STEP_MS` | `20` ms | Uniform soft-landing frame interval (50 Hz native PWM, $-1^\circ$/frame, 800ms total) |
-| `LANDING_START_ANGLE_DEG` | `40.0f` | Soft-landing ramp start angle on return ($40^\circ \to 0^\circ$) |
-| `FOLD_TARGET_ANGLE_DEG` | `150.0f` | Max folding sweep target angle |
+| `FOLD_FORWARD_SWEEP_MS` | `900` ms | Forward travel time to reach `FOLD_TARGET_ANGLE_DEG` ($0^\circ \to 165^\circ$) |
+| `LANDING_APPROACH_MS` | `600` ms | Return to `30°` + mid-air brake settle ($165^\circ \to 30^\circ$) |
+| `LANDING_RAMP_MS` | `500` ms | Linear soft-landing duration from $30^\circ \to 0^\circ$ (25 frames, $60^\circ\text{/s}$) |
+| `LANDING_STEP_MS` | `20` ms | Soft-landing frame interval (50 Hz native PWM, $-1.2^\circ$/frame) |
+| `LANDING_START_ANGLE_DEG` | `30.0f` | Mid-air brake hold & soft-landing ramp start angle ($30^\circ \to 0^\circ$) |
+| `FOLD_TARGET_ANGLE_DEG` | `165.0f` | Max folding sweep target angle |
 | `INTER_STEP_DELAY_MS` | `10` ms | Settling delay between consecutive folding steps |
 | `CALIBRATION_THERMAL_TIMEOUT_MS` | `10000` ms | Stationary servo thermal de-energize cutoff in calibration mode |
 | `CALIBRATION_INACTIVITY_TIMEOUT_MS` | `15000` ms | Calibration inactivity watchdog auto-homing servos and exiting to Idle |
 | `TELEMETRY_STREAM_ACTIVE_HZ` | `10` Hz | Active sequence execution & calibration streaming rate |
 | `TELEMETRY_STREAM_IDLE_HZ` | `1` Hz | Idle low-power battery-saving streaming rate |
-| `BLE_CONN_INTERVAL_MIN_MS` | `15.0f` ms | Minimum BLE connection interval (Apple Accessory compliant: 12 units) |
-| `BLE_CONN_INTERVAL_MAX_MS` | `30.0f` ms | Maximum BLE connection interval (Apple Accessory compliant: 24 units) |
+| `BLE_ADV_INTERVAL_UNITS` | `160` | Fast advertising interval ($160 \times 0.625\text{ms} = 100\text{ms}$) |
+| `BLE_CONN_INTERVAL_MIN_UNITS` | `12` | Minimum BLE connection interval ($12 \times 1.25\text{ms} = 15.0\text{ms}$, Apple Accessory compliant) |
+| `BLE_CONN_INTERVAL_MAX_UNITS` | `24` | Maximum BLE connection interval ($24 \times 1.25\text{ms} = 30.0\text{ms}$, Apple Accessory compliant) |
 | `BLE_CONN_SLAVE_LATENCY` | `0` | Slave latency (no skipped connection events) |
-| `BLE_SUPERVISION_TIMEOUT_MS` | `4000` ms | Supervision timeout (Apple compliant $\le 6000\text{ms}$) |
-| `NUDGE_ANGLE_DEG` | `15.0f` | Motor identification sweep angle |
-| `STAGE_ANGLE_DEG` | `30.0f` | Visual staging hold angle |
+| `BLE_SUPERVISION_TIMEOUT_UNITS` | `400` | Supervision timeout ($400 \times 10\text{ms} = 4000\text{ms}$, Apple compliant $\le 6000\text{ms}$) |
 | `HOME_ANGLE_DEG` | `0.0f` | Flat panel rest position |
-| `FOLD_ANGLE_DEG` | `180.0f` | Complete flap fold angle |
+| `FOLD_ANGLE_DEG` | `180.0f` | Full servo mechanical range (degrees) |
 
 ---
 
@@ -199,7 +199,7 @@ Packed 31-byte binary frame broadcast over BLE Notify (`FAB2`) with adaptive str
 
 ```c
 typedef struct __attribute__((packed)) {
-    uint8_t system_state;            // system_state_t (0: Idle, 1: Running, 2: E-Stop, 3: Error, 4: Calibrating)
+    uint8_t system_state;            // system_state_t (0: Idle, 1: Running, 2: E-Stop, 3: Reserved, 4: Calibrating)
     uint8_t led_state;               // led_state_t (0: Idle, 1: Running, 2: Save Success, 3: Input Error, 4: E-Stop, 5: BLE Pairing, 6: BLE Connected, 7: Identify)
     uint8_t active_button_id;        // Active button (1-4 if executing button routine, 0 if preview/idle)
     uint8_t current_step_idx;        // Active step index (0-indexed, 0 to 15)
@@ -210,7 +210,7 @@ typedef struct __attribute__((packed)) {
     uint8_t last_cmd_status;         // cmd_status_t (0: OK, 1: ERR_BUSY, 2: ERR_INVALID_STEP, 3: ERR_MOTOR_BOUNDS, 4: ERR_ROUTINE_FULL, 5: ERR_CRC_MISMATCH, 6: ERR_INVALID_ARG)
     uint16_t free_heap_kb;           // ESP32-S3 internal free DRAM in KB (Little-Endian)
     int8_t ble_rssi_dbm;             // BLE RSSI in dBm (-128 if disconnected, signed int8)
-    uint8_t error_code;              // Error bitmask (BIT0=I2C_Fail, BIT1=NVS_Fail, BIT2=EStop_Active)
+    uint8_t error_code;              // Error bitmask (BIT0=I2C_Fail via pca9685_has_fault, BIT1=NVS_Fail via storage_has_fault, BIT2=EStop_Active)
     uint16_t sequence_counter;       // Monotonically increasing packet counter (Little-Endian)
 } telemetry_packet_t;
 ```
@@ -220,10 +220,9 @@ typedef struct __attribute__((packed)) {
 ```c
 typedef enum {
     STATE_IDLE_RUN = 0,     /* Ready for daily execution */
-    STATE_RUNNING_MOTION,   /* Actively executing fold sequence */
-    STATE_ESTOP,            /* E-stop triggered, servos homed */
-    STATE_ERROR,            /* Hardware fault or I2C bus error */
-    STATE_CALIBRATING       /* Servo jog / calibration mode */
+    STATE_RUNNING_MOTION = 1, /* Actively executing fold sequence */
+    STATE_ESTOP = 2,        /* E-stop triggered, servos homed (wire byte 3 reserved) */
+    STATE_CALIBRATING = 4   /* Servo jog / calibration mode (explicit wire value 4) */
 } system_state_t;
 
 typedef enum {
@@ -304,6 +303,7 @@ typedef enum {
     CMD_IDENTIFY_ROBOT,         /* Trigger 3.0s visual locator LED pulse train */
     CMD_SET_TELEMETRY_STREAM,   /* Enable or disable periodic BLE telemetry streaming */
     CMD_CLEAR_BLE_BONDS,        /* Erase all stored BLE bonds in NVS (B1+B4 5s hold) */
+    CMD_CALIBRATION_THERMAL_SLEEP, /* Internal 10s thermal sleep cutoff in STATE_CALIBRATING */
     CMD_FACTORY_RESET_ALL       /* Full factory wipe: restore presets, clear bonds, home servos, enter indefinite pairing (B1+B3+B4 10s hold or BLE 0x1F) */
 } cmd_type_t;
 
@@ -399,7 +399,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
   - **Self-Describing Characteristics**: `FAB1`, `FAB2`, and `FAB3` expose standard read-only `0x2901` (Characteristic User Description) descriptors so off-the-shelf test apps (nRF Connect / LightBlue on iOS and Android) display human-readable names automatically.
   - **Adaptive Streaming Rate**:
     - Active Streaming ($10\text{ Hz}$): Active during `STATE_RUNNING_MOTION` and `STATE_CALIBRATING`.
-    - Idle Streaming ($1\text{ Hz}$ + Event-Driven Push): Active during `STATE_IDLE_RUN`, `STATE_ESTOP`, and `STATE_ERROR` to conserve battery and prevent background notification throttling on iOS.
+    - Idle Streaming ($1\text{ Hz}$ + Event-Driven Push): Active during `STATE_IDLE_RUN` and `STATE_ESTOP` to conserve battery and prevent background notification throttling on iOS.
   - **Packet Structure**: Emits packed 31-byte `telemetry_packet_t` containing `system_state`, `led_state`, `active_button_id` (`0` for raw preview), `current_step_idx`, `total_steps`, `step_progress_pct`, `elapsed_step_time_ms`, 16 `channel_angles`, `last_cmd_status`, `free_heap_kb`, `ble_rssi_dbm`, `error_code`, and `sequence_counter` (all multi-byte fields Little-Endian).
 
 #### 4. Firmware LED State & Telemetry Encoding (`led_state_t`)
@@ -422,7 +422,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 * **Generic Attribute Service (`0x1801`)**: Exposes Service Changed (`0x2A05`) indication so iOS and Android OS BLE stacks automatically refresh cached GATT handles across firmware updates.
 * **Model Number String (`0x2A24`)**: `"Fabrica-DevKit-v1"`
 * **Firmware Revision String (`0x2A26`)**: `"v1.13.0"`
-* **Manufacturer Name String (`0x2A29`)**: `"Fabrica Robotics"`
+* **Manufacturer Name String (`0x2A29`)**: `"AIR Robotics"`
 
 ### 3. Hold-to-Pair BLE Security, Native SMP Bonding & RPA Privacy Architecture
 
@@ -475,7 +475,7 @@ All commands sent over `FAB1` use a packed binary wire format (`[1B Opcode][Payl
 | `app_main` | Core 0 | 1 | System Default | Command queue consumer, motion trajectories, I2C commands, $<50\text{ms}$ E-Stop |
 | `app_ui_task` | Core 1 | 5 | 3072 Bytes | 4-button scanning, debouncing, gesture recognition (Tap, 3s Hold, 5s B1+B4 Reset), state timer |
 | `app_ble_task` | Core 1 | 4 | 4096 Bytes | Apache NimBLE host stack, GATT server, SMP security, MTU & connection param negotiation |
-| `app_telem_task` | Core 1 | 3 | 2048 Bytes | Progress tracking, live motor position packing, and adaptive 10 Hz / 1 Hz notify |
+| `app_telem_task` | Core 1 | 3 | 3072 Bytes | Progress tracking, live motor position packing, and adaptive 10 Hz / 1 Hz notify |
 | `app_led_task` | Core 1 | 3 | 2048 Bytes | Status LED non-blocking pattern pulse train generator |
 
 ### 2. Internal SRAM & Heap Budget Analysis

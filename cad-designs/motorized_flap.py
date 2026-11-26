@@ -205,20 +205,17 @@ def construct_motorized_flap():
     if cutters:
         flap = flap.cut(Part.makeCompound(cutters)).removeSplitter()
 
-    # 7. 0.6mm Anti-Slip Diamond Micro-Grip Surface Texture extending across entire flap face to borders
+    # 7. 0.6mm Anti-Slip Diagonal Micro-Grip Surface Texture extending across entire flap face to borders
     tex_cutters = []
     tex_spacing = 14.0
     tex_w = 0.8
     tex_d = TEXTURE_HEIGHT                   # 0.6mm
-    
+
     for i in range(-int(w), int(w + h * 2), int(tex_spacing)):
         g1 = Part.makeBox(tex_w, h * 2.0, tex_d + 0.1)
         g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
         g1.translate(App.Vector(i, 0, top_z - tex_d))
-        g2 = Part.makeBox(tex_w, h * 2.0, tex_d + 0.1)
-        g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
-        g2.translate(App.Vector(i, h, top_z - tex_d))
-        tex_cutters.extend([g1, g2])
+        tex_cutters.append(g1)
 
     # Bound for the outer slab inset by border_w (keep hinge spine neck X in [0.0, 11.9mm] 100% solid 2.4mm)
     tb_slab_base = Part.makeBox(full_wing_w - 2 * border_w, total_blade_len - 2 * border_w, t + 2.0)

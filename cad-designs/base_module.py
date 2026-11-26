@@ -131,9 +131,8 @@ def construct_base_module():
         cutters.extend([cyl, c_top, c_bot])
     main_shell = main_shell.cut(Part.makeCompound(cutters)).removeSplitter()
 
-    # 4. 0.6mm Diamond Micro-Grip Surface Texture (true ±45° cross-hatch, cut in two non-self-intersecting passes)
-    g1_cutters = []
-    g2_cutters = []
+    # 4. 0.6mm Diagonal Micro-Grip Surface Texture (uniform +45° stripes matching flaps)
+    tex_cutters = []
     tex_spacing = 14.0
     tex_w = 0.8
     tex_d = TEXTURE_HEIGHT
@@ -142,17 +141,11 @@ def construct_base_module():
         g1 = Part.makeBox(tex_w, (w + h) * 1.2, tex_d + 0.1)
         g1.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), 45)
         g1.translate(App.Vector(i, 0, top_z - tex_d))
-        g1_cutters.append(g1)
-
-        g2 = Part.makeBox(tex_w, (w + h) * 1.2, tex_d + 0.1)
-        g2.rotate(App.Vector(0, 0, 0), App.Vector(0, 0, 1), -45)
-        g2.translate(App.Vector(i, 0, top_z - tex_d))
-        g2_cutters.append(g2)
+        tex_cutters.append(g1)
 
     tex_bound = Part.makeBox(w - 2 * 3.0, h - 2 * 3.0, top_t + 2.0)
     tex_bound.translate(App.Vector(3.0, 3.0, panel_z_min - 1.0))
-    main_shell = main_shell.cut(Part.makeCompound(g1_cutters).common(tex_bound)).removeSplitter()
-    main_shell = main_shell.cut(Part.makeCompound(g2_cutters).common(tex_bound)).removeSplitter()
+    main_shell = main_shell.cut(Part.makeCompound(tex_cutters).common(tex_bound)).removeSplitter()
 
     # Cut the 4x countersunk corner nail/screw holes cleanly after texture
     nail_cutters = []

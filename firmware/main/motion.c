@@ -243,8 +243,8 @@ esp_err_t motion_execute_step(const fold_step_t *step)
 
     /* 1. Direct Forward Sweep (0° -> 165°, 900ms) */
 #ifdef ESP_PLATFORM
-    ESP_LOGI(TAG, "[Phase 1] Forward 0 -> %.0f deg (%dms) [Build %s %s]",
-             FOLD_TARGET_ANGLE_DEG, FOLD_FORWARD_SWEEP_MS, __DATE__, __TIME__);
+    ESP_LOGD(TAG, "[Phase 1] Forward 0 -> %.0f deg (%dms)",
+             FOLD_TARGET_ANGLE_DEG, FOLD_FORWARD_SWEEP_MS);
 #endif
     set_step_servo_angle(step, FOLD_TARGET_ANGLE_DEG);
     if (motion_delay_ms(FOLD_FORWARD_SWEEP_MS, true)) {
@@ -253,7 +253,7 @@ esp_err_t motion_execute_step(const fold_step_t *step)
 
     /* 2. Return & Mid-Air Brake Hold at 30° (165° -> 30°, 600ms to kill momentum) */
 #ifdef ESP_PLATFORM
-    ESP_LOGI(TAG, "[Phase 2] Return & brake -> %.0f deg (%dms)",
+    ESP_LOGD(TAG, "[Phase 2] Return & brake -> %.0f deg (%dms)",
              LANDING_START_ANGLE_DEG, LANDING_APPROACH_MS);
 #endif
     set_step_servo_angle(step, LANDING_START_ANGLE_DEG);
@@ -263,7 +263,7 @@ esp_err_t motion_execute_step(const fold_step_t *step)
 
     /* 3. Linear Soft-Landing (30° -> 0°, 25 frames x 20ms = 500ms, 60°/s) */
 #ifdef ESP_PLATFORM
-    ESP_LOGI(TAG, "[Phase 3] Soft-landing %.0f -> 0 deg (%dms, %lu frames)",
+    ESP_LOGD(TAG, "[Phase 3] Soft-landing %.0f -> 0 deg (%dms, %lu frames)",
              LANDING_START_ANGLE_DEG, LANDING_RAMP_MS, (unsigned long)LANDING_RAMP_FRAMES);
 #endif
     for (uint32_t frame = 1; frame <= LANDING_RAMP_FRAMES; frame++) {
@@ -274,7 +274,6 @@ esp_err_t motion_execute_step(const fold_step_t *step)
         }
     }
 
-    set_step_servo_angle(step, HOME_ANGLE_DEG);
     return ESP_OK;
 
 abort_step:

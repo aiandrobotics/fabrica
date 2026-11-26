@@ -1,6 +1,6 @@
 # Fabrica — Smart Open-Source Cloth Folding Robot
 
-[![Firmware Tests](https://img.shields.io/badge/firmware%20tests-886%2F886%20passing-brightgreen.svg)](firmware/)
+[![Firmware Tests](https://img.shields.io/badge/firmware%20tests-880%2F880%20passing-brightgreen.svg)](firmware/)
 [![FreeCAD API](https://img.shields.io/badge/CAD-FreeCAD%20Python%20Parametric-blue.svg)](cad-designs/)
 [![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.0.2%20FreeRTOS-red.svg)](firmware/)
 [![Mobile App](https://img.shields.io/badge/mobile%20app-air--robotics--app-orange.svg)](https://github.com/aiandrobotics/air-robotics-app)
@@ -80,11 +80,11 @@ graph TD
 The mechanical system is built programmatically using parametric FreeCAD Python scripts located in [`cad-designs/`](cad-designs/). All parts are optimized for standard 256 × 256 × 256 mm FDM 3D printers (with built-in scaling down to 180mm beds).
 
 - **Modular Panels**:
-  - **Base Chassis (`base_module.py`)**: Rigid stationary platform with internal hexagonal weight-reduction web, non-slip TPU foot recesses, and captive cable channels.
-  - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, continuous $\varnothing 12.8\text{ mm}$ hinge axle, $\varnothing 20.0 \times 7.5\text{ mm}$ horn adapter ($6.35 \to 5.90\text{ mm}$ 45° diamond tapered square peg), dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ diamond square sockets, solid un-grooved $2.4\text{ mm}$ hinge neck, and vented snap-cover.
-  - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual $\varnothing 13.7\text{ mm}$ bearing knuckles, dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ 45° diamond female square drive sockets, and solid un-grooved $2.4\text{ mm}$ hinge neck.
+  - **Base Chassis (`base_module.py`)**: Rigid stationary platform (`220 × 220 × 15 mm`) with slimmed `8.0 mm` rails, `15.0 × 44.0 mm` reinforced dovetail bosses, 13 circular weight-reduction cutouts, 4 flush countersunk corner nail/screw holes (`Ø3.5 mm`), diagonal micro-grip grooves, and captive cable conduits.
+  - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, uniform $\varnothing 13.7\text{ mm}$ axle cradle, continuous $\varnothing 12.8\text{ mm}$ hinge axle, $\varnothing 20.0 \times 7.5\text{ mm}$ horn adapter ($6.35 \to 5.90\text{ mm}$ 45° diamond tapered square peg), dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ diamond square sockets, solid un-grooved $2.4\text{ mm}$ hinge neck, and vented snap-cover.
+  - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual $\varnothing 13.7\text{ mm}$ bearing knuckles, uniform $\varnothing 13.7\text{ mm}$ axle cradle, dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ 45° diamond female square drive sockets, and solid un-grooved $2.4\text{ mm}$ hinge neck.
   - **Interface Enclosure (`interface_case.py`, `interface_panel.py`)**: Compact enclosure housing the 4 tactile push buttons, status LED diffuser, ESP32-S3-DevKitC-1, PCA9685, and power distribution boards.
-  - **Hardware Interlocks (`frame_joiner.py`, `drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ 45° diamond tapered square coupler pins (smooth $\varnothing 12.6\text{ mm}$ body), and outside-headed click-lock end pivot pins.
+  - **Hardware Interlocks (`frame_joiner.py`, `drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ 45° diamond tapered square coupler pins (smooth $\varnothing 12.6\text{ mm}$ body), and outside-headed click-lock end pivot pins (`R = 9.1 mm` blade-side snap barb on a `1.5 mm` spring beam).
 - **Pre-Exported Assets**: Clean STEP and STL files available in [`cad-designs/exports/`](cad-designs/exports/).
 - **Slicer Profile**: Bambu Studio / OrcaSlicer project file ready for printing in [`cad-designs/3d-print/fabrica-bambu-lab-256.3mf`](cad-designs/3d-print/fabrica-bambu-lab-256.3mf).
 
@@ -94,21 +94,21 @@ The embedded firmware runs natively on the **ESP32-S3-DevKitC-1** using **ESP-ID
 
 - **Core 0 (Motion Engine & Actuation)**:
   - High-precision 50 Hz PWM servo trajectory generator driving the PCA9685 controller over I2C (`GPIO 2 SDA`, `GPIO 1 SCL`).
-  - Single-motor and parallel dual-servo sequential fold sweeps with 50 Hz uniform soft-landing ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$).
-  - `800ms` direct forward sweep (`0° -> 150°`), `450ms` fast return (`150° -> 40°`), `800ms` uniform `-1°/20ms` soft-landing (`40° -> 0°`), and `10ms` inter-step settling delay.
+  - Single-motor and parallel dual-servo sequential fold sweeps with mid-air brake and 50 Hz linear soft-landing ($0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$).
+  - `900ms` direct forward fold (`0° -> 165°`), `600ms` return & mid-air brake (`165° -> 30°`), `500ms` linear `-1.2°/20ms` soft-landing (`30° -> 0°`, `60°/s`), and `10ms` inter-step settling delay (`2000ms` total per step).
   - Sub-50ms latched Emergency Stop (E-Stop) preemption handler.
 - **Core 1 (UI, BLE Wireless & Storage)**:
-  - 4-Button debouncer with 50ms low-pass filter and multi-gesture detection (short press vs. 3-second hold).
+  - 4-Button debouncer with 50ms low-pass filter and multi-gesture detection (short press, 3-second hold-to-pair, 5-second `B1+B4` bond reset, 10-second `B1+B3+B4` full factory reset).
   - Non-blocking multi-pattern status LED engine (`GPIO 15`).
   - NVS Flash Sequence Manager with IEEE 802.3 CRC32 integrity validation.
   - Apache NimBLE GATT Server supporting native iOS (`CoreBluetooth`) and Android (`BluetoothGatt`) central connections.
   - Adaptive real-time telemetry streaming (10 Hz high-rate in motion / 1 Hz low-rate when idle).
 - **Factory Default Presets**:
-  - **Button 1**: Adult T-Shirt (Left flap $\to$ Right flap $\to$ Bottom waist $\to$ Top collar).
-  - **Button 2**: Long-Sleeve Shirt (Collar staging $\to$ Dual side tucks $\to$ Waist fold).
-  - **Button 3**: Trousers / Jeans (Parallel leg align $\to$ Bottom fold).
-  - **Button 4**: Towel / Linen (Symmetric half-fold $\to$ Quarter-fold).
-- **Automated Test Coverage**: 11 unit and integration test suites passing **886/886 host checks** with zero warnings (`-Wall -Wextra -Werror`).
+  - **Button 1**: Adult T-Shirt (4 steps: Left flap $\to$ Right flap $\to$ Bottom waist $\to$ Top collar).
+  - **Button 2**: Long-Sleeve Shirt (5 steps: Parallel Left+Right sleeves $\to$ Top collar $\to$ Left body $\to$ Right body $\to$ Bottom waist).
+  - **Button 3**: Trousers / Jeans (3 steps: Left vertical fold $\to$ Bottom fold $\to$ Top waistband).
+  - **Button 4**: Towel / Linen (4 steps: Left half-fold $\to$ Right quarter-fold $\to$ Bottom fold $\to$ Top final fold).
+- **Automated Test Coverage**: 11 unit and integration test suites passing **880/880 host checks** with zero warnings (`-Wall -Wextra -Werror`).
 
 ### 3. Mobile Application (`mobile-app/` & External Repo)
 
@@ -233,7 +233,7 @@ fabrica/
 │   │   ├── ble_transport.c/h  # Apache NimBLE GATT server (FAB0)
 │   │   ├── remote_cmd.c/h     # BLE command parser & dispatcher
 │   │   └── telemetry.c/h      # Adaptive 10 Hz / 1 Hz telemetry engine
-│   ├── test/                  # Host unit test suites (886 passing checks)
+│   ├── test/                  # Host unit test suites (880 passing checks)
 │   └── Makefile               # Unit test runner
 ├── mobile-app/                # Mobile app integration guide & wire specs
 │   └── README.md              # BLE GATT specs & external repository link
@@ -270,7 +270,7 @@ Ensure you have [ESP-IDF v6.0.2](https://docs.espressif.com/projects/esp-idf/en/
 
 ```bash
 cd firmware
-idf.py set-target esp32
+idf.py set-target esp32s3
 idf.py build
 idf.py -p /dev/ttyUSB0 flash monitor
 ```
@@ -284,7 +284,7 @@ cd firmware
 make test
 ```
 
-To view verbose assertions across all 886 test checks:
+To view verbose assertions across all 880 test checks:
 
 ```bash
 make test-verbose
@@ -306,6 +306,7 @@ make test-verbose
 - **Emergency Stop**: Tap **any button** during movement to immediately abort motion (<50ms) and return all panels to rest.
 - **Enter BLE Pairing**: Hold **any button for 3 seconds** in idle state.
 - **Clear All BLE Bonds**: Hold **Button 1 + Button 4 simultaneously for 5 seconds**.
+- **Full Factory Reset**: Hold **Button 1 + Button 3 + Button 4 simultaneously for 10 seconds** (resets all presets and BLE bonds and re-enters indefinite pairing mode).
 
 ---
 

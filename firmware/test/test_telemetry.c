@@ -293,6 +293,26 @@ static void test_telemetry_error_and_fab3_sync(void)
     ble_transport_build_telemetry(&pkt);
     TEST_ASSERT(pkt.error_code == 0, "error_code cleared back to 0");
 
+    /* 2b. I2C probe fault sets BIT0 (0x01) and clears on recovery */
+    pca9685_mock_set_probe_success(false);
+    TEST_ASSERT(pca9685_probe() == ESP_ERR_NOT_FOUND, "PCA9685 probe fails when device missing");
+    ble_transport_build_telemetry(&pkt);
+    TEST_ASSERT((pkt.error_code & (1U << 0)) != 0, "error_code has BIT0 set on I2C fault (0x01)");
+    pca9685_mock_set_probe_success(true);
+    TEST_ASSERT(pca9685_probe() == ESP_OK, "PCA9685 probe recovers when device responds");
+    ble_transport_build_telemetry(&pkt);
+    TEST_ASSERT((pkt.error_code & (1U << 0)) == 0, "error_code BIT0 cleared after I2C recovery");
+
+    /* 2c. NVS CRC fault sets BIT1 (0x02) and clears on recovery */
+    storage_mock_corrupt_key("preset_1", 0);
+    fold_routine_t recovered;
+    TEST_ASSERT(storage_load_routine(1, &recovered) == ESP_ERR_INVALID_CRC, "NVS CRC mismatch detected");
+    ble_transport_build_telemetry(&pkt);
+    TEST_ASSERT((pkt.error_code & (1U << 1)) != 0, "error_code has BIT1 set on NVS fault (0x02)");
+    TEST_ASSERT(storage_init() == ESP_OK, "storage_init() clears NVS fault state");
+    ble_transport_build_telemetry(&pkt);
+    TEST_ASSERT((pkt.error_code & (1U << 1)) == 0, "error_code BIT1 cleared after storage recovery");
+
     /* 3. FAB3 Sequence Table Synchronization */
     ble_transport_mock_set_cccd(0xFAB3, 0x0001);
     uint32_t fab3_count_before = ble_transport_mock_get_fab3_notify_count();

@@ -13,7 +13,7 @@ This documentation portal covers everything required to source components, 3D pr
 | **[CAD & 3D Printing](../cad-designs/README.md)** | Mechanical Assembly | Parametric FreeCAD designs, 3D print slicer configurations (Bambu Lab 256 / Ender-3), STL/STEP exports, and chassis assembly. |
 | **[Embedded Firmware](../firmware/README.md)** | Real-Time Control | ESP32 FreeRTOS C firmware, PCA9685 I2C driver, 4-button debounced UI, status LED engine, NVS storage with CRC32, and NimBLE GATT server. |
 | **[Mobile Application](../mobile-app/README.md)** | Wireless BLE Control | Mobile companion app overview, BLE services (`FAB0`–`FAB3`), opcodes, pairing workflows, and link to the **[air-robotics-app repository](https://github.com/aiandrobotics/air-robotics-app)**. |
-| **[Hardware Wiring](#hardware-wiring--electrical-schematics)** | Electrical Schematics | Power supply isolation, ESP32 DevKit v1 pinouts, PCA9685 connection diagrams, buttons, and status LED. |
+| **[Hardware Wiring](#hardware-wiring--electrical-schematics)** | Electrical Schematics | Power supply isolation, ESP32-S3-DevKitC-1 pinouts, PCA9685 connection diagrams, buttons, and status LED. |
 | **[Bill of Materials (BOM)](#bill-of-materials-bom)** | Sourcing & Costing | Sourcing guide and component list for building a complete 4-flap folding robot for $80–$150. |
 | **[Operation & Usage](#daily-operation--usage-guide)** | Daily Operation | Standalone button operation, factory presets, E-Stop safety, BLE pairing, and calibration. |
 
@@ -89,7 +89,7 @@ The Fabrica electronics system consists of the **ESP32-S3-DevKitC-1**, the **PCA
 | **DC Power Supply** | 1 | Regulated 5V or 6V DC @ 10A–20A (50W–100W) | \$15.00 – \$25.00 |
 | **DC Barrel Jack** | 1 | 5.5mm × 2.1mm panel-mount female connector | \$1.00 |
 | **Tactile Push Buttons** | 4 | 16mm momentary waterproof/metal round buttons | \$6.00 – \$10.00 |
-| **Status Diffuser LED** | 1 | 5mm diffused LED + 220Ω resistor (or built-in GPIO 2) | \$0.50 |
+| **Status Diffuser LED** | 1 | 5mm diffused LED + 220Ω resistor (`GPIO 15`) | \$0.50 |
 | **3D Printing Filament** | 2 kg | PETG or PLA+ filament (Black, Gray, or Orange) | \$30.00 – \$40.00 |
 | **Fasteners & Hardware** | 1 pack | M3 button head screws (8mm, 12mm, 16mm) & M3 nuts | \$5.00 – \$8.00 |
 | **Total Estimated BOM** | — | — | **\$88.50 – \$127.00** |
@@ -102,10 +102,10 @@ The Fabrica electronics system consists of the **ESP32-S3-DevKitC-1**, the **PCA
 
 1. **Power On**: Turn on the external 5V/6V power supply. The ESP32 boots and automatically initializes the PCA9685 driver, homing all flaps to $0^\circ$ (flat resting position). The status LED pulses briefly and remains steady idle (`LED_STATE_IDLE`).
 2. **Execute a Folding Preset**:
-   - Tap **Button 1**: Folds an **Adult T-Shirt** (Left flap $\to$ Right flap $\to$ Bottom flap $\to$ Top collar flap).
-   - Tap **Button 2**: Folds a **Long-Sleeve Shirt** (Collar staged $\to$ Left/Right sweeps $\to$ Waist fold).
-   - Tap **Button 3**: Folds **Trousers / Jeans** (Parallel side tuck $\to$ Full bottom fold).
-   - Tap **Button 4**: Folds a **Towel / Linen** (Half-fold parallel sweep $\to$ Quarter-fold finish).
+   - Tap **Button 1**: Folds an **Adult T-Shirt** (4 steps: Left flap $\to$ Right flap $\to$ Bottom flap $\to$ Top collar flap).
+   - Tap **Button 2**: Folds a **Long-Sleeve Shirt** (5 steps: Parallel Left+Right sleeve tuck $\to$ Top collar $\to$ Left body $\to$ Right body $\to$ Bottom waist).
+   - Tap **Button 3**: Folds **Trousers / Jeans** (3 steps: Left vertical fold $\to$ Bottom fold $\to$ Top waistband).
+   - Tap **Button 4**: Folds a **Towel / Linen** (4 steps: Left half-fold $\to$ Right quarter-fold $\to$ Bottom fold $\to$ Top final fold).
 3. **Emergency Stop (E-Stop)**:
    - Tap **any button** while motion is executing to immediately abort movement (<50ms) and return all panels to their flat home position. The LED flashes error red. Tap any button again once clear to reset back to idle.
 
@@ -115,3 +115,4 @@ The Fabrica electronics system consists of the **ESP32-S3-DevKitC-1**, the **PCA
 2. **Connect**: Launch the [AIR Robotics App](https://github.com/aiandrobotics/air-robotics-app) or open **nRF Connect for Mobile**. Select `Fabrica-XXXX` and complete pairing.
 3. **Customize Routines**: Design custom multi-flap timing sequences, preview them interactively, and tap "Assign to Button" to burn the sequence into the robot's NVS flash memory.
 4. **Hardware Bond Reset**: Hold **Button 1 + Button 4 together for 5 seconds** to clear all stored mobile pairings and reset BLE bonds.
+5. **Full Factory Reset**: Hold **Button 1 + Button 3 + Button 4 together for 10 seconds** to wipe all custom presets and BLE bonds and restart into indefinite pairing mode.
