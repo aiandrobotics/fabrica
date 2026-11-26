@@ -7,7 +7,7 @@ Phase 10 implements the continuous, adaptive real-time telemetry streaming subsy
 
 ### 1. Adaptive Streaming Rates & Power Management
 - **High-Rate (10 Hz / 100ms)**: Active when the robot is in `STATE_RUNNING_MOTION` or `STATE_CALIBRATING`. Emits 31-byte telemetry notifications every 100ms to allow mobile apps to render smooth 10 Hz progress bars and 3D/2D flap animations.
-- **Low-Rate (1 Hz / 1000ms)**: Active when the robot is in `STATE_IDLE_RUN`, `STATE_ESTOP`, or `STATE_ERROR`. Throttles telemetry to 1 notification per second to conserve connected phone battery and avoid iOS `CoreBluetooth` background notification rate-limiting.
+- **Low-Rate (1 Hz / 1000ms)**: Active when the robot is in `STATE_IDLE_RUN` or `STATE_ESTOP`. Throttles telemetry to 1 notification per second to conserve connected phone battery and avoid iOS `CoreBluetooth` background notification rate-limiting.
 - **Event-Driven Immediate Push**: State transitions (`STATE_IDLE_RUN` $\leftrightarrow$ `STATE_RUNNING_MOTION`, `STATE_ESTOP`), command status results, 100% routine completion, and button sequence updates bypass the periodic timer and immediately push an updated packet.
 
 ### 2. Streaming Control & CCCD Binding Policy
@@ -34,7 +34,7 @@ Phase 10 implements the continuous, adaptive real-time telemetry streaming subsy
   - `last_cmd_status` (`uint8_t`, offset 24)
   - `free_heap_kb` (`uint16_t`, Little-Endian, offsets 25-26)
   - `ble_rssi_dbm` (`int8_t`, offset 27)
-  - `error_code` (`uint8_t`, offset 28)
+  - `error_code` (`uint8_t`, offset 28: `BIT0 = I2C_FAULT` via `pca9685_has_fault()`, `BIT1 = NVS_FAULT` via `storage_has_fault()`, `BIT2 = ESTOP_ACTIVE`)
   - `sequence_counter` (`uint16_t`, Little-Endian, offsets 29-30)
 
 ## Constraints

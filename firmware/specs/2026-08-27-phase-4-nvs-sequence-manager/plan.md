@@ -27,11 +27,11 @@ Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Fold
 
 ## Task Group 2: Binary Routine Serialization & CRUD API Implementation (`main/storage.h`, `main/storage.c`)
 1. Extend `firmware/main/storage.h`:
-   - Declare CRUD functions:
+   - Declare persistence & fault status functions:
      - `esp_err_t storage_save_routine(uint8_t preset_id, const fold_routine_t *routine)`
      - `esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine)`
-     - `esp_err_t storage_erase_routine(uint8_t preset_id)`
-2. Implement CRUD routines in `firmware/main/storage.c`:
+     - `bool storage_has_fault(void)`
+2. Implement persistence & fault tracking routines in `firmware/main/storage.c`:
    - Enforce preset ID validation ($1 \le \text{preset\_id} \le 4$), returning `ESP_ERR_INVALID_ARG` for invalid IDs.
    - Enforce input pointer validation (`routine != NULL`), returning `ESP_ERR_INVALID_ARG` for NULL pointers.
    - Implement `storage_save_routine()`:
@@ -44,12 +44,11 @@ Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Fold
      - Open NVS handle (`nvs_open(STORAGE_NVS_NAMESPACE, NVS_READONLY, &handle)`).
      - Read blob (`nvs_get_blob(handle, key, routine, &size)`).
      - If blob does not exist (`ESP_ERR_NVS_NOT_FOUND`), fall back to `storage_get_default_routine(preset_id, routine)`.
-     - Calculate CRC32 of loaded payload; if mismatch detected, log error, load factory default routine, and return `ESP_ERR_INVALID_CRC`.
+     - Calculate CRC32 of loaded payload; if mismatch detected, log error, latch storage fault flag, load factory default routine, and return `ESP_ERR_INVALID_CRC`.
      - Close NVS handle.
-   - Implement `storage_erase_routine()`:
-     - Open NVS handle with `NVS_READWRITE`.
-     - Call `nvs_erase_key(handle, key)` and `nvs_commit(handle)`.
-     - Close NVS handle.
+   - Implement `storage_has_fault()`:
+     - Return latched fault status on NVS init/commit/CRC errors (wired to `FAB2` `error_code` `BIT1`), cleared on successful init/save/recovery.
+     - Provide host-only `storage_mock_erase_key()` helper for missing-key fallback unit tests.
 
 ---
 
@@ -59,22 +58,27 @@ Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Fold
      - `esp_err_t storage_init_factory_defaults(void)`
      - `esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine)`
 2. Implement factory default routines in `firmware/main/storage.c`:
-   - Define static hardcoded structures:
-     - **Preset 1 (Adult T-Shirt, 3 steps)**:
+   - Define static hardcoded structures exercising all 4 flap servos:
+     - **Preset 1 (Adult T-Shirt, 4 steps)**:
        - Step 1: 1 motor $\to$ channel 0 (Left fold)
        - Step 2: 1 motor $\to$ channel 1 (Right fold)
        - Step 3: 1 motor $\to$ channel 2 (Bottom fold)
-     - **Preset 2 (Long-Sleeve Shirt, 3 steps)**:
+       - Step 4: 1 motor $\to$ channel 3 (Top / collar fold)
+     - **Preset 2 (Long-Sleeve Shirt, 5 steps)**:
        - Step 1: 2 motors $\to$ channels 0 & 1 (Parallel sleeves)
-       - Step 2: 1 motor $\to$ channel 2 (Left body)
-       - Step 3: 1 motor $\to$ channel 3 (Right body)
-     - **Preset 3 (Trousers / Jeans, 2 steps)**:
+       - Step 2: 1 motor $\to$ channel 3 (Top collar fold)
+       - Step 3: 1 motor $\to$ channel 0 (Left body)
+       - Step 4: 1 motor $\to$ channel 1 (Right body)
+       - Step 5: 1 motor $\to$ channel 2 (Bottom fold)
+     - **Preset 3 (Trousers / Jeans, 3 steps)**:
        - Step 1: 1 motor $\to$ channel 0 (Vertical fold)
-       - Step 2: 1 motor $\to$ channel 1 (Horizontal bottom fold)
-     - **Preset 4 (Towel / Linen, 3 steps)**:
-       - Step 1: 1 motor $\to$ channel 0 (Half fold)
-       - Step 2: 1 motor $\to$ channel 1 (Quarter fold)
-       - Step 3: 1 motor $\to$ channel 2 (Final press fold)
+       - Step 2: 1 motor $\to$ channel 2 (Bottom fold)
+       - Step 3: 1 motor $\to$ channel 3 (Top waistband fold)
+     - **Preset 4 (Towel / Linen, 4 steps)**:
+       - Step 1: 1 motor $\to$ channel 0 (Left half fold)
+       - Step 2: 1 motor $\to$ channel 1 (Right quarter fold)
+       - Step 3: 1 motor $\to$ channel 2 (Bottom fold)
+       - Step 4: 1 motor $\to$ channel 3 (Top final fold)
    - Implement `storage_init_factory_defaults()`:
      - Save all 4 default routines via `storage_save_routine()`.
      - Set `"preset_init"` flag to `1` in NVS to prevent overwriting user modifications on subsequent boots.
@@ -89,7 +93,7 @@ Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Fold
      - Validate full round-trip `storage_save_routine()` and `storage_load_routine()` for Presets 1–4.
      - Validate CRC mismatch detection and fallback to factory defaults when simulated storage blob is corrupted.
      - Validate boundary checks (preset IDs $<1$ or $>4$, NULL pointers).
-     - Validate `storage_erase_routine()` removing keys and subsequent load falling back to defaults.
+     - Validate missing-key fallback via host-only `storage_mock_erase_key()` and fault status reporting via `storage_has_fault()`.
      - Validate `storage_init_factory_defaults()` and first-boot `"preset_init"` detection.
 2. Update `firmware/Makefile`:
    - Add `test_storage` target to `make test` recipe.

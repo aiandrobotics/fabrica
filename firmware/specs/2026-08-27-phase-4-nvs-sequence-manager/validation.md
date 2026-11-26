@@ -14,17 +14,17 @@
 - [ ] **Preset CRUD Operations**:
   - Test `storage_save_routine()` successfully serializes and computes CRC for Presets 1, 2, 3, and 4.
   - Test `storage_load_routine()` retrieves exact matching step configurations and valid checksums.
-  - Test `storage_erase_routine()` deletes the target key and subsequent load safely falls back to factory defaults.
+  - Test missing-key recovery (`storage_mock_erase_key()` in host harness) safely falls back to factory defaults, and verify `storage_has_fault()` tracks CRC/NVS faults and recovery.
 - [ ] **Corrupt Data & Error Fallbacks**:
   - Test CRC mismatch detection: injecting simulated bit errors into stored NVS blobs triggers `ESP_ERR_INVALID_CRC` and falls back to default factory routine.
   - Test invalid parameter rejection: preset ID $0$ or $>4$ returns `ESP_ERR_INVALID_ARG`.
   - Test NULL pointer rejection: `storage_save_routine(1, NULL)` and `storage_load_routine(1, NULL)` return `ESP_ERR_INVALID_ARG`.
 - [ ] **Factory Preset Seeding & Defaults**:
   - Test `storage_get_default_routine()` returns valid configurations for all 4 presets:
-    - Preset 1: Adult T-Shirt (3 steps: ch 0, ch 1, ch 2).
-    - Preset 2: Long-Sleeve Shirt (3 steps: ch 0+1, ch 2, ch 3).
-    - Preset 3: Trousers / Jeans (2 steps: ch 0, ch 1).
-    - Preset 4: Towel / Linen (3 steps: ch 0, ch 1, ch 2).
+    - Preset 1: Adult T-Shirt (4 steps: ch 0, ch 1, ch 2, ch 3).
+    - Preset 2: Long-Sleeve Shirt (5 steps: ch 0+1, ch 3, ch 0, ch 1, ch 2).
+    - Preset 3: Trousers / Jeans (3 steps: ch 0, ch 2, ch 3).
+    - Preset 4: Towel / Linen (4 steps: ch 0, ch 1, ch 2, ch 3).
   - Test initial boot seeding sets `"preset_init"` flag to prevent re-seeding over modified user sequences.
 
 ### 2. ESP-IDF Build & Compilation Verification
@@ -56,10 +56,10 @@
   ```text
   [STORAGE] NVS flash initialized successfully
   [STORAGE] Factory presets seeded on first boot
-  [STORAGE] Preset 1 loaded: Adult T-Shirt (3 steps, CRC: 0x...)
-  [STORAGE] Preset 2 loaded: Long-Sleeve Shirt (3 steps, CRC: 0x...)
-  [STORAGE] Preset 3 loaded: Trousers / Jeans (2 steps, CRC: 0x...)
-  [STORAGE] Preset 4 loaded: Towel / Linen (3 steps, CRC: 0x...)
+  [STORAGE] Preset 1 loaded: Adult T-Shirt (4 steps, CRC: 0x...)
+  [STORAGE] Preset 2 loaded: Long-Sleeve Shirt (5 steps, CRC: 0x...)
+  [STORAGE] Preset 3 loaded: Trousers / Jeans (3 steps, CRC: 0x...)
+  [STORAGE] Preset 4 loaded: Towel / Linen (4 steps, CRC: 0x...)
   ```
 
 ### 2. Persistence & Power-Cut Recovery Verification

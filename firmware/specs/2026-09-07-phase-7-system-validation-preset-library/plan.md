@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 7 executes the final validation, stress testing, and factory preset standardization for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This milestone integrates all previously implemented firmware subsystems—**UI & Button Debouncer** (`buttons.c`), **LED Pattern Engine** (`led.c`), **PCA9685 16-Channel PWM Driver** (`pca9685.c`), **NVS Sequence Manager** (`storage.c`), **Core 0 Real-Time Motion Engine** (`motion.c`), and **Visual Staging State Machine** (`state_machine.c`). 
+Phase 7 executes the final validation, stress testing, and factory preset standardization for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This milestone integrates all previously implemented firmware subsystems—**UI & Button Debouncer** (`buttons.c`), **LED Pattern Engine** (`led.c`), **PCA9685 16-Channel PWM Driver** (`pca9685.c`), **NVS Sequence Manager** (`storage.c`), **Core 0 Real-Time Motion Engine** (`motion.c`), and **State Machine Coordinator** (`state_machine.c`). 
 
 Key goals include:
 1. Standardizing the 4 factory preset routines in `storage.c` to map to physical garment folding kinematics (T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, and Towel/Linen).
@@ -52,18 +52,18 @@ Key goals include:
    - **Mid-Sweep Emergency Stop Preemption Test**:
      - Trigger active motion for multi-step routines.
      - Inject Emergency Stop (`CMD_EMERGENCY_STOP` via button press or simulated interrupt) at variable timing offsets:
-       - During outward forward sweep ($0^\circ \to 150^\circ$, 800ms)
-       - During fast return ($150^\circ \to 40^\circ$, 450ms) and soft-landing ramp ($40^\circ \to 0^\circ$, 800ms)
+       - During outward forward fold ($0^\circ \to 165^\circ$, 900ms)
+       - During return & mid-air brake ($165^\circ \to 30^\circ$, 600ms) and linear soft-landing ramp ($30^\circ \to 0^\circ$, 500ms)
        - During inter-step settling delay (10ms pause)
      - Verify all 16 PCA9685 channels drop flat to $0^\circ$ within $<50\text{ms}$ of abort injection.
-     - Verify state machine returns immediately to `STATE_IDLE_RUN` with `LED_STATE_ESTOP` (5 rapid flashes).
+     - Verify state machine latches `STATE_ESTOP` with `LED_STATE_ESTOP` (5 rapid flashes) and recovers cleanly to `STATE_IDLE_RUN` on clear.
    - **NVS Power-Loss & Flash Corruption Resilience**:
      - Simulate partial/interrupted NVS blob writes.
      - Inject single-bit and multi-bit mutations into stored routine blobs.
      - Verify `storage_load_routine()` detects CRC32 mismatch (`ESP_ERR_INVALID_CRC`), prevents mechanical corruption, and automatically reloads clean factory defaults.
    - **Rapid Mode Transition & Inactivity Stress**:
-     - Rapidly transition between Daily Run Mode, Programming Mode, and Emergency Stop.
-     - Verify watchdog timer resets properly and 20-second timeout consistently homes all servos to $0^\circ$ and discards incomplete buffers.
+     - Rapidly transition between Daily Run Mode, BLE Pairing / Calibration Mode, and Emergency Stop.
+     - Verify state machine invariants remain deterministic and all servos remain homed to $0^\circ$ when idle.
 2. Update `firmware/Makefile`:
    - Add `test_e2e_stress` compilation target with `-Wall -Wextra -Werror`.
    - Integrate `test_e2e_stress` into `make test` pipeline.
@@ -80,7 +80,7 @@ Key goals include:
      - Clear diagram and description of Core 0 (real-time motion, I2C bus, E-Stop) vs Core 1 (UI, buttons, LED, NVS storage).
    - **Operator Manual**:
      - Daily Run Mode (1-touch preset recall on B1–B4).
-     - Visual Staging Programming Mode (long-press entry, B1 cycle/nudge $15^\circ$, B2 stage/toggle $30^\circ$, B3 lock step, B4 save to NVS).
+     - BLE Pairing, Wireless Sequence Configuration, and Bond/Factory Reset gestures.
      - Emergency Stop operation and visual LED feedback guide.
    - **Build, Test & Flashing Instructions**:
      - Host unit testing (`make test`).

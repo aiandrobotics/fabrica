@@ -25,8 +25,8 @@ Key goals include:
 3. Update `firmware/main/config.h` with BLE transport, connection parameter, and bond-reset constants:
    - `BUTTON_BOND_RESET_MS` (`5000` ms for simultaneous `B1 + B4` hold).
    - `BUTTON_FACTORY_RESET_MS` (`10000` ms for simultaneous `B1 + B3 + B4` hold).
-   - `BLE_ADV_INTERVAL_MS` (`100` ms fast advertising).
-   - `BLE_CONN_INTERVAL_MIN_MS` (`15.0f` ms / `12` units), `BLE_CONN_INTERVAL_MAX_MS` (`30.0f` ms / `24` units), `BLE_CONN_SLAVE_LATENCY` (`0`), `BLE_SUPERVISION_TIMEOUT_MS` (`4000` ms / `400` units).
+   - `BLE_ADV_INTERVAL_UNITS` (`160` units = `100` ms fast advertising).
+   - `BLE_CONN_INTERVAL_MIN_UNITS` (`12` units = `15.0` ms), `BLE_CONN_INTERVAL_MAX_UNITS` (`24` units = `30.0` ms), `BLE_CONN_SLAVE_LATENCY` (`0`), `BLE_SUPERVISION_TIMEOUT_UNITS` (`400` units = `4000` ms).
    - `BLE_PREFERRED_MTU` (`512` bytes) and `BLE_MAX_BONDS` (`4` devices).
 4. Update `firmware/main/command.h`:
    - Apply `__attribute__((packed))` to `fold_step_t` (exact 3 bytes: `1B motor_count` + `2B motor_ids`) and `fold_routine_t` (exact 53 bytes: `1B step_count` + `48B steps` + `4B checksum`).
@@ -71,9 +71,9 @@ Key goals include:
        - If unbonded and `state_machine_is_ble_pairing() == false`: immediately reject and terminate the connection (`ble_gap_terminate(conn_handle, BLE_ERR_REM_USER_CONN_TERM)`).
    - **GATT Services, Characteristics & `0x2901` User Descriptors**:
      - Initialize Generic Attribute Service (`0x1801` with Service Changed `0x2A05` via `ble_svc_gatt_init()`) and Generic Access Service (`0x1800` via `ble_svc_gap_init()`).
-     - Register Device Information Service (`0x180A`): Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"Fabrica Robotics"`).
+     - Register Device Information Service (`0x180A`): Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"AIR Robotics"`).
      - Register Fabrica Primary Service (`0000FAB0-0000-1000-8000-00805F9B34FB`):
-       1. `FAB1` (`0000FAB1-...`): `BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP` + `0x2901` User Description (`"Fabrica Control Point (FAB1)"`). Parses wire opcodes (`0x00–0x03`, `0x0A–0x11`), supports both full and compact sequence payloads, invokes `motion_emergency_stop()` on Core 1 fast-path for `0x02`/`0x03`, and dispatches `command_t` (`SOURCE_BLE`) to `xCommandQueue`.
+       1. `FAB1` (`0000FAB1-...`): `BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP` + `0x2901` User Description (`"Fabrica Control Point (FAB1)"`). Parses wire opcodes (`0x00–0x03`, `0x0A–0x11`, `0x1F`), supports both full and compact sequence payloads, invokes `motion_emergency_stop()` on Core 1 fast-path for `0x02`/`0x03`, and dispatches `command_t` (`SOURCE_BLE`) to `xCommandQueue`.
        2. `FAB2` (`0000FAB2-...`): `BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY` + CCCD (`0x2902`) + `0x2901` User Description (`"Fabrica Status & Telemetry (FAB2)"`). Serves 31-byte `telemetry_packet_t` reads (with offset slicing) and notifications.
        3. `FAB3` (`0000FAB3-...`): `BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_NOTIFY` + CCCD (`0x2902`) + `0x2901` User Description (`"Fabrica Button Sequences 1-4 (FAB3)"`).
           - GATT Read returns the 212-byte ($4 \times 53\text{B}$) table of Presets 1–4 from NVS (supporting offset-sliced Long Reads).

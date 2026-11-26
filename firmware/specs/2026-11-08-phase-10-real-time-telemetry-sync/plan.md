@@ -9,14 +9,14 @@
 
 ## Task Group 2: FreeRTOS Adaptive Streaming Task & Stream Control
 1. **Define Telemetry Subsystem Header (`main/telemetry.h`)**:
-   - Define subsystem lifecycle functions: `esp_err_t telemetry_init(void)`, `void telemetry_start(void)`, `void telemetry_stop(void)`.
+   - Define subsystem lifecycle & wake functions: `esp_err_t telemetry_init(void)`, `void telemetry_tick(void)`, `void telemetry_notify_state_change(void)`.
    - Define streaming control APIs: `void telemetry_set_stream_enabled(bool enabled)`, `bool telemetry_is_stream_enabled(void)`.
-   - Define rate query and tick helpers: `uint32_t telemetry_get_current_interval_ms(void)`.
+   - Define rate query helpers: `uint32_t telemetry_get_interval_ms(system_state_t state)`, `uint32_t telemetry_get_current_interval_ms(void)`.
 2. **Implement Adaptive Streaming Engine (`main/telemetry.c`)**:
    - Spawn `app_telem_task` pinned to **Core 1** (Priority 3, 3072 bytes stack) in `telemetry_init()`.
-   - Implement adaptive sleep loop:
+   - Implement adaptive sleep loop (woken early by `telemetry_notify_state_change()`):
      - Sleep interval = 100ms (10 Hz) when `state_machine_get_state()` is `STATE_RUNNING_MOTION` or `STATE_CALIBRATING`.
-     - Sleep interval = 1000ms (1 Hz) when `state_machine_get_state()` is `STATE_IDLE_RUN`, `STATE_ESTOP`, or `STATE_ERROR`.
+     - Sleep interval = 1000ms (1 Hz) when `state_machine_get_state()` is `STATE_IDLE_RUN` or `STATE_ESTOP`.
    - Enforce streaming gate policy:
      - Only emit `ble_transport_notify_telemetry()` if connected, `FAB2` CCCD is subscribed (`ble_transport_is_telemetry_subscribed()`), and periodic streaming is enabled (`telemetry_is_stream_enabled()`).
      - Default streaming enabled when CCCD is subscribed; mute immediately upon central disconnect.
@@ -31,7 +31,8 @@
 1. **Create Host Unit Test Suite (`test/test_telemetry.c`)**:
    - Implement mock FreeRTOS timer / clock stepping harness for unit tests without hardware delays.
    - Verify packed 31-byte struct memory alignment, offsets, and Little-Endian encoding of multi-byte fields (`elapsed_step_time_ms`, `free_heap_kb`, `sequence_counter`).
-   - Verify adaptive interval calculation: 100ms in `STATE_RUNNING_MOTION` and `STATE_CALIBRATING` vs 1000ms in `STATE_IDLE_RUN`, `STATE_ESTOP`, and `STATE_ERROR`.
+   - Verify adaptive interval calculation: 100ms in `STATE_RUNNING_MOTION` and `STATE_CALIBRATING` vs 1000ms in `STATE_IDLE_RUN` and `STATE_ESTOP`.
+   - Verify live `error_code` fault bits: `BIT0` (`pca9685_has_fault()`), `BIT1` (`storage_has_fault()`), and `BIT2` (`STATE_ESTOP`), including fault recovery clearing.
    - Verify sequence counter monotonically increments across successive telemetry packets.
    - Verify live 16-channel servo angle tracking mirrors `pca9685_get_channel_angle()`.
    - Verify streaming enable/disable gating with CCCD status and disconnect mute behavior.

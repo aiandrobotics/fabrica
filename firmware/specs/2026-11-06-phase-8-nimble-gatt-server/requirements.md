@@ -34,9 +34,9 @@ All BLE functionality is implemented strictly in firmware to support both **iOS 
 
 5. **Standard & Custom GATT Services with Self-Describing `0x2901` Descriptors**:
    - **Generic Attribute Service (`0x1801`)**: Exposes Service Changed (`0x2A05`) to prevent stale iOS/Android GATT attribute caching across firmware updates.
-   - **Device Information Service (`0x180A`)**: Exposes Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"Fabrica Robotics"`).
+   - **Device Information Service (`0x180A`)**: Exposes Model Number (`0x2A24`: `"Fabrica-DevKit-v1"`), Firmware Revision (`0x2A26`: `"v1.13.0"`), and Manufacturer Name (`0x2A29`: `"AIR Robotics"`).
    - **Fabrica Primary Service (`0000FAB0-0000-1000-8000-00805F9B34FB`)**:
-     - `FAB1` (`0000FAB1-...`, `Write | Write Without Response`, `0x2901`: `"Fabrica Control Point (FAB1)"`): Ingests binary command opcodes (`0x00–0x03`, `0x0A–0x11`) into `xCommandQueue` with `SOURCE_BLE` and fast-path `<50ms` E-Stop signaling.
+     - `FAB1` (`0000FAB1-...`, `Write | Write Without Response`, `0x2901`: `"Fabrica Control Point (FAB1)"`): Ingests binary command opcodes (`0x00–0x03`, `0x0A–0x11`, `0x1F`) into `xCommandQueue` with `SOURCE_BLE` and fast-path `<50ms` E-Stop signaling.
      - `FAB2` (`0000FAB2-...`, `Read | Notify`, `0x2902` CCCD, `0x2901`: `"Fabrica Status & Telemetry (FAB2)"`): Exposes the packed 31-byte `telemetry_packet_t` (Little-Endian).
      - `FAB3` (`0000FAB3-...`, `Read | Write | Notify`, `0x2902` CCCD, `0x2901`: `"Fabrica Button Sequences 1-4 (FAB3)"`): Reads/notifies the 212-byte ($4 \times 53\text{B}$) button sequence table; accepts full 212B table writes, 54B single-button writes (`[1B preset_id][53B fold_routine_t]`), and compact variable-length single-button writes (`[1B preset_id][1B step_count][3B * N steps]`, 5–50B) with active-motion write lock (`CMD_STATUS_ERR_BUSY`) and auto-CRC32 calculation.
 

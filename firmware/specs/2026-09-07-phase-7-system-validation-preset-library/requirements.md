@@ -21,14 +21,14 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 
 2. **Dedicated End-to-End Stress & Endurance Test Suite (`test/test_e2e_stress.c`)**:
    - **100-Cycle Endurance Execution**: Continuous, automated playback cycling through presets to verify zero memory leaks and heap stability.
-   - **Mid-Sweep Emergency Stop Preemption**: Injection of `CMD_EMERGENCY_STOP` during active outward sweep ($0^\circ \to 150^\circ$), fast return / soft-landing ($150^\circ \to 40^\circ \to 0^\circ$), and inter-step delays; verify all 16 channels drop to $0^\circ$ within $<50\text{ms}$.
+   - **Mid-Sweep Emergency Stop Preemption**: Injection of `CMD_EMERGENCY_STOP` during active outward fold ($0^\circ \to 165^\circ$), return & mid-air brake / soft-landing ($165^\circ \to 30^\circ \to 0^\circ$), and inter-step delays; verify all 16 channels drop to $0^\circ$ within $<50\text{ms}$.
    - **NVS Power-Loss & Flash Corruption Resilience**: Automated verification that single-bit and multi-bit data corruption in stored routine blobs triggers safe fallback to default routines (`ESP_ERR_INVALID_CRC`).
-   - **Watchdog & Mode Invariant Stress**: Stress testing rapid mode toggling between Daily Run Mode, Visual Staging Mode, and E-Stop.
+   - **Watchdog & Mode Invariant Stress**: Stress testing rapid mode toggling between Daily Run Mode, BLE Pairing / Calibration Mode, and E-Stop.
 
 3. **System Documentation & Hardware Guides (`firmware/README.md`)**:
    - Complete pinout mapping and wiring diagram (ESP32-S3-DevKitC-1, PCA9685, 4 push buttons, status LED, external servo power).
-   - Dual-Core FreeRTOS architecture breakdown (Core 0 motion engine vs Core 1 UI/event loop).
-   - Operator guide for Daily Run Mode and Visual Staging Programming Mode.
+   - Dual-Core FreeRTOS architecture breakdown (Core 0 motion engine vs Core 1 UI/BLE/event loop).
+   - Operator guide for Daily Run Mode, BLE Pairing/Control, and Emergency Stop.
    - ESP-IDF build, flash, and serial monitor instructions.
 
 ---
@@ -58,7 +58,7 @@ Phase 7 delivers comprehensive end-to-end system validation, stress testing, fac
 | **Max Steps Per Routine** | 16 steps (`MAX_STEPS_PER_ROUTINE`) | Storage schema & RAM budget |
 | **Max Motors Per Step** | 2 motors (`MAX_MOTORS_PER_STEP`) | Servo current draw & kinematics |
 | **Emergency Stop Latency** | $< 50\text{ ms}$ from trigger to PWM abort | Safety requirement |
-| **Servo Timing** | 800ms direct forward sweep ($0^\circ \to 150^\circ$), 450ms fast return ($150^\circ \to 40^\circ$), 800ms uniform $-1^\circ\text{/20ms}$ soft-landing ($40^\circ \to 0^\circ$), 10ms inter-step delay | Direct fold with 50 Hz uniform soft-landing |
+| **Servo Timing** | 900ms direct forward fold ($0^\circ \to 165^\circ$), 600ms return & mid-air brake ($165^\circ \to 30^\circ$), 500ms linear $-1.2^\circ\text{/20ms}$ soft-landing ($30^\circ \to 0^\circ$, $60^\circ\text{/s}$, 2000ms total), 10ms inter-step delay | Direct fold with mid-air brake & 50 Hz linear soft-landing |
 | **SRAM Headroom** | $\ge 120\text{ KB}$ DRAM free | Reserved for Phase 8 BLE Mobile Integration |
 | **NVS Integrity** | IEEE 802.3 CRC32 polynomial (`0xEDB88320`) | Bit-rot and power loss protection |
 
@@ -102,10 +102,10 @@ sequenceDiagram
     SM->>NVS: storage_load_routine(1)
     NVS-->>SM: fold_routine_t (CRC OK)
     SM->>Core0: motion_trigger_routine()
-    Core0->>PCA: Step 1: Left Flap (Ch 0) 0° -> 150° -> 40° -> 0°
-    Core0->>PCA: Step 2: Right Flap (Ch 1) 0° -> 150° -> 40° -> 0°
-    Core0->>PCA: Step 3: Bottom Flap (Ch 2) 0° -> 150° -> 40° -> 0°
-    Core0->>PCA: Step 4: Top Flap (Ch 3) 0° -> 150° -> 40° -> 0°
+    Core0->>PCA: Step 1: Left Flap (Ch 0) 0° -> 165° -> 30° -> 0°
+    Core0->>PCA: Step 2: Right Flap (Ch 1) 0° -> 165° -> 30° -> 0°
+    Core0->>PCA: Step 3: Bottom Flap (Ch 2) 0° -> 165° -> 30° -> 0°
+    Core0->>PCA: Step 4: Top Flap (Ch 3) 0° -> 165° -> 30° -> 0°
     Core0->>PCA: pca9685_home_all()
 
     Note over User,NVS: 3. Mid-Sweep Emergency Stop Preemption

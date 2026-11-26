@@ -7,7 +7,7 @@ Phase 4 implements the persistent storage subsystem for the **Fabrica Cloth Fold
 Key deliverables include:
 1. **NVS Partition Initialization & Management**: Initialization of the ESP-IDF Non-Volatile Storage (NVS) flash subsystem (`nvs_flash_init()`) with automatic recovery and partition erasure when encountering corrupted partitions or version upgrades (`ESP_ERR_NVS_NO_FREE_PAGES` / `ESP_ERR_NVS_NEW_VERSION_FOUND`).
 2. **CRC32 Integrity Validation Engine**: Standard IEEE 802.3 CRC32 checksum calculation over sequence payloads to detect flash corruption, incomplete writes, or bit-rot before dispatching sequences to the motion engine.
-3. **Sequence CRUD APIs**: Robust routines for saving (`storage_save_routine`), loading (`storage_load_routine`), and erasing (`storage_erase_routine`) serialized `fold_routine_t` structures with CRC verification and graceful fallbacks.
+3. **Sequence Persistence & Fault APIs**: Robust routines for saving (`storage_save_routine`), loading (`storage_load_routine`), factory seeding (`storage_init_factory_defaults`), and NVS/CRC fault reporting (`storage_has_fault`) for serialized `fold_routine_t` structures with CRC verification and graceful fallbacks.
 4. **Factory Preset Seeding**: Seeding standard factory folding routines (Adult T-Shirt, Long-Sleeve Shirt, Trousers/Jeans, Towel/Linen) on initial first boot or explicit factory reset.
 5. **Host-Based Unit Test Suite & Mock Flash Harness (`test/test_storage.c`)**: Mocked NVS storage verifying CRC32 calculations, serialization round-trips, bit-corruption detection, and boundary conditions under host GCC/Clang builds.
 
@@ -31,22 +31,22 @@ Key deliverables include:
 The storage module serializes and deserializes the fixed-size `fold_routine_t` binary structure defined in `main/command.h`:
 
 ```c
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint8_t motor_count;                     /* Number of active motors (1 or 2) */
     uint8_t motor_ids[MAX_MOTORS_PER_STEP];  /* Zero-indexed servo IDs (0 to 15) */
 } fold_step_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint8_t step_count;                       /* Number of steps (1 to 16) */
     fold_step_t steps[MAX_STEPS_PER_ROUTINE]; /* Array of sequence steps */
-    uint32_t checksum;                        /* CRC32 integrity checksum */
+    uint32_t checksum;                        /* CRC32 integrity checksum (Little-Endian) */
 } fold_routine_t;
 ```
 
 #### Memory Layout & Size:
-- `fold_step_t`: $1 \text{ byte (motor\_count)} + 2 \times 1 \text{ byte (motor\_ids)} = 3 \text{ bytes}$.
-- `fold_routine_t`: $1 \text{ byte (step\_count)} + 16 \times 3 \text{ bytes (steps)} + 4 \text{ bytes (checksum)} = 53 \text{ bytes}$ (or struct-padded to 56 bytes depending on 32-bit alignment).
-- Storage blob size: `sizeof(fold_routine_t)`.
+- `fold_step_t`: $1 \text{ byte (motor\_count)} + 2 \times 1 \text{ byte (motor\_ids)} = 3 \text{ bytes}$ (strictly packed, 0 padding).
+- `fold_routine_t`: $1 \text{ byte (step\_count)} + 16 \times 3 \text{ bytes (steps)} + 4 \text{ bytes (checksum)} = 53 \text{ bytes}$ (strictly packed, 0 padding).
+- Storage blob size: `sizeof(fold_routine_t)` (`53` bytes).
 
 ### 3. CRC32 Checksum Calculation (IEEE 802.3)
 
@@ -63,10 +63,10 @@ On first boot (when `"preset_init"` is not present or set to 0), the system seed
 
 | Preset Slot | Garment Profile | Step Count | Step Details |
 |---|---|---|---|
-| **Preset 1** | Adult T-Shirt | 3 Steps | **Step 1**: Left fold (Servo 0)<br/>**Step 2**: Right fold (Servo 1)<br/>**Step 3**: Bottom fold (Servo 2) |
-| **Preset 2** | Long-Sleeve Shirt | 3 Steps | **Step 1**: Parallel sleeves (Servo 0 & Servo 1 synchronously)<br/>**Step 2**: Left body fold (Servo 2)<br/>**Step 3**: Right body fold (Servo 3) |
-| **Preset 3** | Trousers / Jeans | 2 Steps | **Step 1**: Vertical fold (Servo 0)<br/>**Step 2**: Horizontal bottom fold (Servo 1) |
-| **Preset 4** | Towel / Linen | 3 Steps | **Step 1**: Half fold (Servo 0)<br/>**Step 2**: Quarter fold (Servo 1)<br/>**Step 3**: Final press fold (Servo 2) |
+| **Preset 1** | Adult T-Shirt | 4 Steps | **Step 1**: Left fold (Servo 0)<br/>**Step 2**: Right fold (Servo 1)<br/>**Step 3**: Bottom fold (Servo 2)<br/>**Step 4**: Top / collar fold (Servo 3) |
+| **Preset 2** | Long-Sleeve Shirt | 5 Steps | **Step 1**: Parallel sleeves (Servo 0 & Servo 1 synchronously)<br/>**Step 2**: Top collar fold (Servo 3)<br/>**Step 3**: Left body fold (Servo 0)<br/>**Step 4**: Right body fold (Servo 1)<br/>**Step 5**: Bottom fold (Servo 2) |
+| **Preset 3** | Trousers / Jeans | 3 Steps | **Step 1**: Vertical fold (Servo 0)<br/>**Step 2**: Bottom fold (Servo 2)<br/>**Step 3**: Top waistband fold (Servo 3) |
+| **Preset 4** | Towel / Linen | 4 Steps | **Step 1**: Left half fold (Servo 0)<br/>**Step 2**: Right quarter fold (Servo 1)<br/>**Step 3**: Bottom fold (Servo 2)<br/>**Step 4**: Top final fold (Servo 3) |
 
 ### 5. API Function Signatures (`main/storage.h`)
 
@@ -117,13 +117,6 @@ esp_err_t storage_save_routine(uint8_t preset_id, const fold_routine_t *routine)
 esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine);
 
 /**
- * @brief Erase a specific preset routine from NVS flash.
- * @param preset_id Preset slot index (1 to 4).
- * @return ESP_OK on success, ESP_ERR_INVALID_ARG on bad index.
- */
-esp_err_t storage_erase_routine(uint8_t preset_id);
-
-/**
  * @brief Initialize or re-seed all 4 presets with default factory sequences.
  * @return ESP_OK on success.
  */
@@ -143,6 +136,12 @@ esp_err_t storage_get_default_routine(uint8_t preset_id, fold_routine_t *routine
  * @return 32-bit CRC checksum.
  */
 uint32_t storage_compute_crc32(const fold_routine_t *routine);
+
+/**
+ * @brief Query whether the NVS storage subsystem has encountered a flash or CRC fault.
+ * @return true if an NVS failure or CRC recovery fault occurred, false otherwise.
+ */
+bool storage_has_fault(void);
 
 #ifdef __cplusplus
 }
@@ -174,4 +173,4 @@ uint32_t storage_compute_crc32(const fold_routine_t *routine);
 
 ## Context
 
-Phase 4 establishes the persistent data layer connecting the visual staging workflow of Phase 6 (which creates and saves custom folding sequences) with the daily run execution of Phase 5 (which reads and plays back saved presets on 1-touch button taps).
+Phase 4 establishes the persistent data layer connecting wireless BLE sequence configuration and state coordination (Phases 6–9) with the daily run execution of Phase 5 (which reads and plays back saved presets on 1-touch button taps).

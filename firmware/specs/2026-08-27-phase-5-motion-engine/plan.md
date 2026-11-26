@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem runs a dedicated high-priority FreeRTOS task pinned to Core 0 (`main/motion.h`, `main/motion.c`) that consumes folding routines from NVS storage or direct command payloads, orchestrates deterministic single and parallel dual-servo sweep trajectories ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$), manages fold dwell, soft-landing, and inter-step settling delays, coordinates status LED feedback, and enforces instantaneous Emergency Stop (E-Stop) preemption (<50ms response, all 16 channels homed flat to $0^\circ$).
+Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subsystem for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**. This subsystem runs a dedicated high-priority FreeRTOS motion execution engine on Core 0 (`main/motion.h`, `main/motion.c`) that consumes folding routines from NVS storage or direct command payloads, orchestrates deterministic single and parallel dual-servo sweep trajectories ($0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$), manages forward fold, mid-air brake, linear soft-landing, and inter-step settling delays, coordinates status LED feedback, and enforces instantaneous Emergency Stop (E-Stop) preemption (<50ms response, all 16 channels homed flat to $0^\circ$).
 
 ---
 
@@ -12,10 +12,10 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
      - `MOTION_TASK_STACK_SIZE` (4096 bytes)
      - `MOTION_TASK_PRIORITY` (Priority 10, Core ID 0)
    - Declare motion state and event flags:
-     - `motion_status_t` (`MOTION_STATUS_IDLE`, `MOTION_STATUS_RUNNING`, `MOTION_STATUS_STOPPING`, `MOTION_STATUS_ABORTED`)
-     - Event group bits: `MOTION_EVENT_START_BIT`, `MOTION_EVENT_ESTOP_BIT`, `MOTION_EVENT_COMPLETE_BIT`
+     - `motion_status_t` (`MOTION_STATUS_IDLE`, `MOTION_STATUS_RUNNING`, `MOTION_STATUS_ABORTED`)
+     - Event group bit: `MOTION_EVENT_ESTOP_BIT`
    - Declare motion subsystem lifecycle API:
-     - `esp_err_t motion_init(QueueHandle_t cmd_queue, EventGroupHandle_t evt_group)`
+     - `esp_err_t motion_init(EventGroupHandle_t evt_group)`
      - `motion_status_t motion_get_status(void)`
      - `bool motion_is_busy(void)`
 2. Implement Core 0 motion task bootstrap in `firmware/main/motion.c`:
@@ -31,13 +31,13 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
      - `esp_err_t motion_execute_routine(const fold_routine_t *routine)`
      - `esp_err_t motion_execute_step(const fold_step_t *step)`
 2. Implement trajectory execution in `firmware/main/motion.c`:
-   - Implement single-motor fold sweep with soft-landing ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$, 2050ms total):
-     - Phase 1 (Direct Forward Sweep): Command `FOLD_TARGET_ANGLE_DEG` ($150^\circ$) and wait `FOLD_DWELL_TIME_MS` (800ms).
-     - Phase 2 (Fast Return Approach): Command `LANDING_START_ANGLE_DEG` ($40^\circ$) and wait `LANDING_APPROACH_MS` (450ms).
-     - Phase 3 (Uniform Soft-Landing): Step $39^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`) by $-1^\circ$ per `LANDING_STEP_MS` (20ms, 50 Hz native PWM = 800ms, $50^\circ\text{/s}$).
+   - Implement single-motor fold sweep with mid-air brake and linear soft-landing ($0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$, 2000ms total):
+     - Phase 1 (Direct Forward Fold): Command `FOLD_TARGET_ANGLE_DEG` ($165^\circ$) and wait `FOLD_FORWARD_SWEEP_MS` (900ms).
+     - Phase 2 (Return & Mid-Air Brake): Command `LANDING_START_ANGLE_DEG` ($30^\circ$) and wait `LANDING_APPROACH_MS` (600ms) for bounce settle.
+     - Phase 3 (Linear Soft-Landing): Step $30^\circ \to 0^\circ$ (`HOME_ANGLE_DEG`) linearly across `LANDING_RAMP_MS` (500ms = 25 frames $\times$ 20ms `LANDING_STEP_MS`, $-1.2^\circ$/frame, 50 Hz native PWM, $60^\circ\text{/s}$).
    - Implement parallel dual-motor fold sweep:
      - Generate multi-channel bitmask from `step->motor_ids[0]` and `step->motor_ids[1]`.
-     - Command both channels synchronously through the identical trajectory ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$) via `pca9685_set_multi_servo_angles()`.
+     - Command both channels synchronously through the identical trajectory ($0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$) via `pca9685_set_multi_servo_angles()`.
    - Implement inter-step settling delay:
      - Wait for `INTER_STEP_DELAY_MS` (10ms) between consecutive steps.
    - Bind visual LED status:
@@ -69,7 +69,7 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
 ## Task Group 4: Host Verification Harness, Mock Motion Suite & ESP-IDF Integration (`test/test_motion.c`, `Makefile`, `main/main.c`, `main/CMakeLists.txt`)
 1. Create `firmware/test/test_motion.c`:
    - Implement host test harness with simulated PCA9685, LED, and NVS subsystems:
-     - Test single-motor sweep trajectory ($0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$) and timing parameters.
+     - Test single-motor sweep trajectory ($0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$) and timing parameters.
      - Test synchronized parallel dual-motor sweep execution.
      - Test multi-step routine sequencing (Step 1 to $N$) and 10ms inter-step delay.
      - Test empty preset safeguard (0 steps triggers `LED_STATE_INPUT_ERROR`).
@@ -81,7 +81,7 @@ Phase 5 implements the real-time Motion Engine and Daily Run Mode execution subs
 3. Update `firmware/main/CMakeLists.txt`:
    - Register `motion.c` in component sources (`SRCS`).
 4. Update `firmware/main/main.c`:
-   - Call `motion_init(xCommandQueue, xSystemEventGroup)` during bootstrap.
+   - Call `motion_init(xSystemEventGroup)` during bootstrap.
    - Update command loop to route `CMD_RUN_PRESET`, `CMD_RUN_RAW_SEQUENCE`, and `CMD_EMERGENCY_STOP` to the motion engine.
 5. Verify ESP-IDF compilation:
    - Run `idf.py build` to ensure clean build with 0 compiler warnings.

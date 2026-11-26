@@ -9,7 +9,7 @@
   - Assert Little-Endian representation of multi-byte integers (`elapsed_step_time_ms`, `free_heap_kb`, `sequence_counter`).
 - **Adaptive Rate Adaptation**:
   - Verify streaming interval returns 100ms when system state is `STATE_RUNNING_MOTION` or `STATE_CALIBRATING`.
-  - Verify streaming interval returns 1000ms when system state is `STATE_IDLE_RUN`, `STATE_ESTOP`, or `STATE_ERROR`.
+  - Verify streaming interval returns 1000ms when system state is `STATE_IDLE_RUN` or `STATE_ESTOP`.
 - **Streaming Enable & Disconnect Gating**:
   - Verify periodic notifications are suppressed when `stream_enabled == false`.
   - Verify periodic notifications are suppressed when central is not connected or CCCD is not subscribed.
@@ -20,8 +20,10 @@
 - **Mid-Sweep Progress & Angle Tracking**:
   - Verify `elapsed_step_time_ms` and `step_progress_pct` accurately calculate elapsed time and percentage through mock motion steps.
   - Verify live 16-channel `channel_angles` array correctly reflects `pca9685_get_channel_angle()` values.
+- **Hardware Fault Bitmask Reporting (`error_code`)**:
+  - Verify `BIT0` tracks `pca9685_has_fault()` (I2C probe/transaction fault & recovery), `BIT1` tracks `storage_has_fault()` (NVS CRC/flash fault & recovery), and `BIT2` tracks `STATE_ESTOP`.
 - **Button Sync (`FAB3`) Notification**:
-  - Verify `ble_transport_notify_fab3()` triggers a 212-byte table notification whenever sequence modifications occur.
+  - Verify `ble_transport_notify_button_config()` triggers a 212-byte table notification whenever sequence modifications occur.
 
 ### 2. Host Build & Regression Suite
 - Run `make test` from `firmware/` and verify all checks pass across all unit test suites (all 10 suites including `test_telemetry.c`) with `-Wall -Wextra -Werror`.

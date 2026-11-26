@@ -17,7 +17,7 @@ Phase 1 establishes the foundational embedded C / ESP-IDF build architecture, ha
      - Compiler optimization levels and console UART baud rate (115200 bps).
 2. Create `firmware/main/CMakeLists.txt`:
    - Register component sources (`main.c`) and header include directories.
-   - Declare requirements on core ESP-IDF drivers (`driver`, `esp_system`, `esp_timer`, `esp_common`, `freertos`, `nvs_flash`, `esp_hw_support`, `spi_flash`).
+   - Declare requirements on core ESP-IDF drivers (`esp_driver_gpio`, `esp_driver_i2c`, `esp_system`, `esp_timer`, `esp_common`, `freertos`, `nvs_flash`, `esp_hw_support`, `spi_flash`, `bt`).
 
 ---
 
@@ -37,23 +37,24 @@ Phase 1 establishes the foundational embedded C / ESP-IDF build architecture, ha
      - `TOTAL_SERVO_CHANNELS = 16`
      - `BUTTON_DEBOUNCE_MS = 50`
      - `BUTTON_LONG_PRESS_MS = 3000`
+     - `BUTTON_BOND_RESET_MS = 5000`
+     - `BUTTON_FACTORY_RESET_MS = 10000`
      - `BUTTON_SHORT_PRESS_MAX_MS = 500`
-     - `PROGRAMMING_TIMEOUT_MS = 20000`
-     - `FOLD_DWELL_TIME_MS = 800`
-     - `LANDING_APPROACH_MS = 450`
+     - `BLE_PAIRING_TIMEOUT_MS = 120000`
+     - `FOLD_FORWARD_SWEEP_MS = 900`
+     - `LANDING_APPROACH_MS = 600`
+     - `LANDING_RAMP_MS = 500`
      - `LANDING_STEP_MS = 20`
      - `INTER_STEP_DELAY_MS = 10`
-     - `NUDGE_ANGLE_DEG = 15.0f`
-     - `STAGE_ANGLE_DEG = 30.0f`
-     - `LANDING_START_ANGLE_DEG = 40.0f`
      - `HOME_ANGLE_DEG = 0.0f`
+     - `LANDING_START_ANGLE_DEG = 30.0f`
+     - `FOLD_TARGET_ANGLE_DEG = 165.0f`
      - `FOLD_ANGLE_DEG = 180.0f`
-     - `FOLD_TARGET_ANGLE_DEG = 150.0f`
    - Define PCA9685 constants (I2C address `0x40`, 50 Hz PWM frequency, 12-bit resolution ticks).
 2. Create `firmware/main/command.h`:
-   - Define transport sources enum `cmd_source_t` (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_WIFI`, `SOURCE_INTERNAL_TIMER`).
-   - Define command types enum `cmd_type_t` (`CMD_RUN_PRESET`, `CMD_RUN_RAW_SEQUENCE`, `CMD_EMERGENCY_STOP`, `CMD_ENTER_PROGRAM_MODE`, `CMD_CYCLE_NUDGE_MOTOR`, `CMD_STAGE_TOGGLE_MOTOR`, `CMD_LOCK_STEP`, `CMD_SAVE_EXIT_PROGRAM`, `CMD_JOG_MOTOR_ANGLE`, `CMD_GET_TELEMETRY`, `CMD_SYNC_PRESETS`).
-   - Define sequence structures `fold_step_t` and `fold_routine_t` with CRC32 checksum field.
+   - Define transport sources enum `cmd_source_t` (`SOURCE_PHYSICAL_BUTTON`, `SOURCE_BLE`, `SOURCE_INTERNAL_TIMER`).
+   - Define command types enum `cmd_type_t` (`CMD_RUN_PRESET`, `CMD_RUN_RAW_SEQUENCE`, `CMD_EMERGENCY_STOP`, `CMD_ENTER_BLE_PAIRING`, `CMD_SET_BUTTON_SEQUENCE`, `CMD_RESTORE_FACTORY_PRESETS`, `CMD_JOG_MOTOR_ANGLE`, `CMD_GET_TELEMETRY`, `CMD_SYNC_PRESETS`, `CMD_STOP_SEQUENCE`, `CMD_IDENTIFY_ROBOT`, `CMD_SET_TELEMETRY_STREAM`, `CMD_CLEAR_BLE_BONDS`, `CMD_CALIBRATION_THERMAL_SLEEP`, `CMD_FACTORY_RESET_ALL`).
+   - Define packed sequence structures `fold_step_t` (3B) and `fold_routine_t` (53B) with CRC32 checksum field.
    - Define command payload union `cmd_payload_t` and unified `command_t` message container.
    - Define queue depth constant `COMMAND_QUEUE_LENGTH = 16`.
 

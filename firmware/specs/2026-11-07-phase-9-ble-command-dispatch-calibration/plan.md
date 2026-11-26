@@ -4,7 +4,7 @@
 
 Phase 9 completes the stateful remote command execution, fast-path preemption, latched Emergency Stop recovery, immediate `FAB2` command status reporting, and thermal-safe interactive servo calibration subsystem (`remote_cmd.h`, `remote_cmd.c`, `command.h`, `state_machine.h`, `state_machine.c`, `buttons.c`, `ble_transport.c`) for the **Fabrica Cloth Folding Robot** on the **ESP32-S3-DevKitC-1**.
 
-Building on the Phase 8 Apache NimBLE GATT server (`ble_transport.c`), Phase 9 extracts the `FAB1` / `FAB3` wire protocol parser, compact routine unpacker, Core 1 fast-path preemption guards, and `cmd_status_t` tracking into a dedicated `main/remote_cmd.c` module (matching `specs/tech-stack.md` and `specs/roadmap.md`), extends `system_state_t` with `STATE_ESTOP`, `STATE_ERROR`, and `STATE_CALIBRATING`, and enforces the 10-second PCA9685 thermal sleep cutoff and 15-second inactivity auto-home safety timers during live servo jogging.
+Building on the Phase 8 Apache NimBLE GATT server (`ble_transport.c`), Phase 9 extracts the `FAB1` / `FAB3` wire protocol parser, compact routine unpacker, Core 1 fast-path preemption guards, and `cmd_status_t` tracking into a dedicated `main/remote_cmd.c` module (matching `specs/tech-stack.md` and `specs/roadmap.md`), extends `system_state_t` with `STATE_ESTOP` and `STATE_CALIBRATING = 4` (wire byte `3` reserved; I2C/NVS faults reported via `error_code` `BIT0`/`BIT1`), and enforces the 10-second PCA9685 thermal sleep cutoff and 15-second inactivity auto-home safety timers during live servo jogging.
 
 ---
 
@@ -15,8 +15,7 @@ Building on the Phase 8 Apache NimBLE GATT server (`ble_transport.c`), Phase 9 e
 2. Extend `system_state_t` in `firmware/main/state_machine.h` to match the 31-byte `telemetry_packet_t` specification in `specs/tech-stack.md`:
    - `STATE_IDLE_RUN = 0` (Daily Run Mode, awaiting preset trigger or BLE command).
    - `STATE_RUNNING_MOTION = 1` (Active folding trajectory on Core 0).
-   - `STATE_ESTOP = 2` (Latched Emergency Stop, all 16 servos homed to $0^\circ$, `error_code` `BIT2` active).
-   - `STATE_ERROR = 3` (Hardware / I2C / storage fault state).
+   - `STATE_ESTOP = 2` (Latched Emergency Stop, all 16 servos homed to $0^\circ$, `error_code` `BIT2` active; wire value `3` reserved).
    - `STATE_CALIBRATING = 4` (Interactive live servo position jog mode via `0x0D`).
 3. Declare Phase 9 state machine inspection & lifecycle hooks in `firmware/main/state_machine.h`:
    - `bool state_machine_is_calibrating_thermal_sleep(void)` (queries whether the 10s thermal sleep cutoff is currently active).
@@ -38,7 +37,7 @@ Building on the Phase 8 Apache NimBLE GATT server (`ble_transport.c`), Phase 9 e
      - **Servo Jog Bounds Check (`0x0D`)**: Validate exact 3-byte length (`[0x0D][channel][angle_deg]`); reject `channel > 15` or `angle_deg > 180` with `CMD_STATUS_ERR_MOTOR_BOUNDS` (flashing `LED_STATE_INPUT_ERROR`).
    - Implement `remote_cmd_handle_fab3_write(const uint8_t *data, size_t len)` supporting 212-byte full table writes, 54-byte single-button writes, and 5–50-byte compact single-button writes, rejecting writes with `CMD_STATUS_ERR_BUSY` during active motion or `STATE_ESTOP`.
    - Implement `remote_cmd_set_status(cmd_status_t status, bool notify_fab2)` and `remote_cmd_get_last_status(void)` so every command acceptance, ingress rejection, or Core 0 completion updates `last_cmd_status` and immediately pushes an event-driven 31-byte `FAB2` GATT notification when subscribed.
-2. Refactor `firmware/main/ble_transport.c` to delegate `ble_transport_write_fab1()`, `ble_transport_write_fab3()`, and `ble_transport_get_last_cmd_status()` to `remote_cmd.c` while preserving 100% API compatibility with existing callers and `test_ble_transport.c`:
+2. Refactor `firmware/main/ble_transport.c` to delegate `ble_transport_write_fab1()` and `ble_transport_write_fab3()` to `remote_cmd.c` (with callers querying `remote_cmd_get_last_status()` directly) while preserving 100% API compatibility with existing callers and `test_ble_transport.c`:
    - Update `ble_transport_build_telemetry()` to set `error_code` `BIT2` (`ESTOP_ACTIVE`) whenever `state_machine_get_state() == STATE_ESTOP || motion_get_status() == MOTION_STATUS_ABORTED`, and populate final completion progress (`step_progress_pct = 100` on routine finish notification).
    - Invoke `state_machine_on_ble_disconnect()` from the NimBLE disconnect handler (and `ble_transport_mock_disconnect()` in host builds) so losing the BLE link during `STATE_CALIBRATING` immediately wakes/homes all servos and returns to `STATE_IDLE_RUN`.
 

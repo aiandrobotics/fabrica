@@ -46,10 +46,10 @@ Phase 3 implements the hardware actuation subsystem for the **Fabrica Cloth Fold
      - `esp_err_t pca9685_set_servo_angle(uint8_t channel, float angle_deg)`: Convert degrees ($0.0^\circ \text{ to } 180.0^\circ$) to 12-bit pulse count and update single channel.
      - `esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)`: Update multiple channels synchronously based on a 16-bit bitmask (`bit 0` = channel 0, `bit 15` = channel 15).
      - `uint16_t pca9685_angle_to_counts(float angle_deg)`: Pure conversion helper mapping degrees to 12-bit off-counts.
-   - Declare motion and staging helper functions:
+   - Declare motion, telemetry, and diagnostics helper functions:
      - `esp_err_t pca9685_home_all(void)`: Set all 16 channels to $0.0^\circ$ (flat home position).
-     - `esp_err_t pca9685_nudge_channel(uint8_t channel)`: Pulse target channel to $15.0^\circ$ for physical motor identification.
-     - `esp_err_t pca9685_stage_channel(uint8_t channel)`: Set target channel to $30.0^\circ$ for visual staging hold.
+     - `uint8_t pca9685_get_channel_angle(uint8_t channel)`: Query last commanded integer angle (0–180°) for live BLE telemetry.
+     - `bool pca9685_has_fault(void)`: Query whether an I2C init/probe/transaction fault is active (wired to `FAB2` `error_code` `BIT0`).
 2. Implement conversion math and command routines in `firmware/main/pca9685.c`:
    - Enforce angle clamping ($0.0^\circ \le \text{angle} \le 180.0^\circ$) and channel range checks ($0 \le \text{channel} < 16$).
    - Implement precise 12-bit count conversion formula:
@@ -84,7 +84,7 @@ Phase 3 implements the hardware actuation subsystem for the **Fabrica Cloth Fold
      - Validate input clamping on out-of-range angles (e.g. $-20.0^\circ \to 102$ counts, $250.0^\circ \to 512$ counts).
      - Validate channel validation rejecting channel index $\ge 16$.
      - Validate multi-channel bitmask command updating only the flagged channels.
-     - Validate `pca9685_home_all()`, `pca9685_nudge_channel()`, and `pca9685_stage_channel()`.
+     - Validate `pca9685_home_all()`, `pca9685_get_channel_angle()`, and `pca9685_has_fault()`.
 2. Update `firmware/Makefile`:
    - Add `test_pca9685` executable build and execution to the `make test` recipe.
 3. Validate ESP-IDF build:

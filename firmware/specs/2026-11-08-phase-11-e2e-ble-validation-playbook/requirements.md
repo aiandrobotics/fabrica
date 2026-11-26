@@ -15,7 +15,7 @@ Phase 11 delivers the complete system-level integration test suite (`test/test_b
   - Verify peripheral-initiated MTU exchange (`ble_gattc_exchange_mtu(512)`).
   - Verify fallback to offset-sliced GATT Long Reads (`ATT_READ_BLOB_REQ`) for full 212-byte `FAB3` table access if MTU negotiation were constrained.
 
-### 2. Protocol Integration Coverage (17 Test Vectors)
+### 2. Protocol Integration Coverage (18 Test Vectors)
 1. Split GAP advertisement compliance ($\le 31\text{B}$ primary with `0000FAB0-...` Service UUID + `Fabrica-XXXX` scan response).
 2. DIS (`0x180A`) and Service Changed (`0x1801` / `0x2A05`) attribute presence.
 3. Apple-compliant peripheral connection parameter negotiation (15ms–30ms interval, 0 latency, 4000ms supervision timeout).
@@ -41,14 +41,14 @@ Phase 11 delivers the complete system-level integration test suite (`test/test_b
 - State invariants preserved throughout all transitions.
 
 ### 4. Hardware Verification Playbook Format (`firmware/README.md`)
-- Ready-to-paste hexadecimal strings for all opcodes (`0x00–0x11`) in both full and compact formats.
+- Ready-to-paste hexadecimal strings for all opcodes (`0x00–0x11`, `0x1F`) in both full and compact formats.
 - Complete characteristic reference (`FAB1`, `FAB2`, `FAB3`) with UUIDs, descriptors, and write modes (`Write Without Response` vs `Write With Response`).
 - Step-by-step pairing walkthrough for **nRF Connect for Mobile** and **LightBlue** on iOS and Android.
 - 31-byte telemetry packet byte-by-byte decoder cheat sheet.
 
 ## Constraints
 1. **Zero External Dependencies**: Host integration test suite must compile cleanly with native `gcc` using standard C libraries (`-Wall -Wextra -Werror`).
-2. **Deterministic Execution**: All 17 integration vectors and the 200-cycle endurance test must complete in $<5$ seconds on the host test runner.
+2. **Deterministic Execution**: All 18 integration vectors and the 200-cycle endurance test must complete in $<5$ seconds on the host test runner.
 3. **Firmware Scope**: All code changes remain within `firmware/` and root documentation (`CHANGELOG.md`, `README.md`).
 
 ## Non-goals

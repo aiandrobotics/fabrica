@@ -27,8 +27,8 @@
 - [ ] **Multi-Channel & Batch Command Validation**:
   - Verify `pca9685_set_multi_servo_angles()` updates exactly the channels enabled in bitmask.
   - Verify `pca9685_home_all()` broadcasts $102$ counts to all 16 channels.
-  - Verify `pca9685_nudge_channel()` targets the specified channel with $137$ counts.
-  - Verify `pca9685_stage_channel()` targets the specified channel with $171$ counts.
+  - Verify `pca9685_get_channel_angle()` tracks single, multi-channel, and home updates across channels 0–15.
+  - Verify `pca9685_has_fault()` latches true on probe/I2C failure and clears upon successful recovery.
 
 ### 2. ESP-IDF Build & Compilation Verification
 - [ ] Confirm `main/CMakeLists.txt` registers `pca9685.c`.
@@ -66,7 +66,7 @@
 ### 2. Physical Servo Motor & PWM Verification
 - [ ] Connect MG996R servo to Channel 0 and external 5V/6V servo power supply.
 - [ ] Verify Channel 0 servo rests quietly at flat home position ($0^\circ$).
-- [ ] Trigger test nudge / staging commands and observe physical flap displacement ($15^\circ$ nudge, $30^\circ$ staging hold) with zero jitter or stalling.
+- [ ] Trigger test jog / fold commands (`30°` brake angle, `165°` fold target) and observe physical flap displacement with zero jitter or stalling.
 - [ ] (Optional) Measure Channel 0 PWM signal with logic analyzer or oscilloscope to verify $50\text{ Hz}$ frequency ($20\text{ms}$ period) and pulse widths ($500\,\mu\text{s}$ at $0^\circ$, $2500\,\mu\text{s}$ at $180^\circ$).
 
 ---

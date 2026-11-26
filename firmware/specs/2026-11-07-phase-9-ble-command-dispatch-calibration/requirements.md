@@ -65,7 +65,7 @@ All wireless control and calibration features remain strictly firmware-native an
 | Constraint | Specification | Source / Rationale |
 |---|---|---|
 | **E-Stop Preemption Latency** | `< 50ms` from `0x02`/`0x03` GATT write or button press to PWM halt | Core 1 fast-path `xEventGroupSetBits` bypassing queue delay |
-| **System State Encoding** | `0=IDLE_RUN, 1=RUNNING_MOTION, 2=ESTOP, 3=ERROR, 4=CALIBRATING` | Exact match with `telemetry_packet_t.system_state` (`tech-stack.md`) |
+| **System State Encoding** | `0=IDLE_RUN, 1=RUNNING_MOTION, 2=ESTOP, 3=Reserved, 4=CALIBRATING` | Exact match with `telemetry_packet_t.system_state` (`tech-stack.md`; hardware faults reported via `error_code` `BIT0`/`BIT1`) |
 | **Calibration Thermal Cutoff** | `10000ms` (`pca9685_sleep(true)`) | Prevents stalled hobby/MG996R servo coil overheating |
 | **Calibration Auto-Home Exit** | `15000ms` (`pca9685_sleep(false)` + `pca9685_home_all()`) | Guarantees flaps never remain raised if operator walks away |
 | **Jog Parameter Bounds** | `channel` $\in [0, 15]$, `angle_deg` $\in [0, 180]$ (`uint8_t`) | Out-of-bounds rejected with `CMD_STATUS_ERR_MOTOR_BOUNDS` |

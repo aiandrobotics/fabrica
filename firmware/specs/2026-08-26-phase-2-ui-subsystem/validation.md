@@ -13,17 +13,20 @@
 - [ ] **Short Tap Gesture Validation**:
   - Simulate press duration of 150ms on B1 $\rightarrow$ verify exact generation of `CMD_RUN_PRESET` with `preset_id = 1` and `source = SOURCE_PHYSICAL_BUTTON`.
   - Simulate press duration of 250ms on B2, B3, B4 $\rightarrow$ verify exact generation of `CMD_RUN_PRESET` with `preset_id = 2, 3, 4`.
-- [ ] **Long Press Gesture Validation**:
-  - Simulate continuous press for 3000ms on B1 $\rightarrow$ verify generation of `CMD_ENTER_PROGRAM_MODE` with `preset_id = 1` at exactly the 3000ms mark.
+- [ ] **Long Press & Chord Reset Gesture Validation**:
+  - Simulate continuous press for 3000ms on B1 $\rightarrow$ verify generation of `CMD_ENTER_BLE_PAIRING` at exactly the 3000ms mark.
+  - Simulate simultaneous `B1+B4` press for 5000ms $\rightarrow$ verify `GESTURE_BOND_RESET` (`CMD_CLEAR_BLE_BONDS`) fires while suppressing 3s long press.
+  - Simulate simultaneous `B1+B3+B4` press for 10000ms $\rightarrow$ verify `GESTURE_FACTORY_RESET` (`CMD_FACTORY_RESET_ALL`) fires while suppressing 3s/5s gestures.
   - Verify that subsequent button release (e.g. at 3500ms) produces zero extra commands.
 - [ ] **LED Pattern Sequencer Validation**:
   - Test `LED_STATE_IDLE`: verifies 100ms ON / 1900ms OFF repeating timing.
   - Test `LED_STATE_RUNNING`: verifies continuous 100% duty cycle ON.
-  - Test `LED_STATE_PROGRAMMING`: verifies 1000ms ON / 1000ms OFF repeating timing.
-  - Test `LED_STATE_STEP_LOCKED`: verifies exactly 2 pulses of 80ms ON / 80ms OFF, then returns to previous base state.
   - Test `LED_STATE_SAVE_SUCCESS`: verifies solid ON for 2000ms, then returns to `LED_STATE_IDLE`.
   - Test `LED_STATE_INPUT_ERROR`: verifies exactly 3 pulses of 60ms ON / 60ms OFF, then returns to previous base state.
   - Test `LED_STATE_ESTOP`: verifies exactly 5 pulses of 50ms ON / 50ms OFF, then returns to `LED_STATE_IDLE`.
+  - Test `LED_STATE_BLE_PAIRING`: verifies fast double-blink (100ms ON / 100ms OFF / 100ms ON / 500ms OFF).
+  - Test `LED_STATE_BLE_CONNECTED`: verifies solid ON for 1000ms, then restores previous base state.
+  - Test `LED_STATE_IDENTIFY`: verifies 3 fast double-blinks (3000ms total), then restores previous base state.
 
 ### 2. ESP-IDF Build & Compilation Verification
 - [ ] Confirm `CMakeLists.txt` registers `led.c` and `buttons.c`.
@@ -48,12 +51,12 @@
   - Briefly tap B1 $\rightarrow$ verify log: `[BUTTONS] Button B1 Short Tap (<500ms) -> Dispatched CMD_RUN_PRESET (Preset 1)`.
   - Briefly tap B2, B3, B4 $\rightarrow$ verify logs for Presets 2, 3, and 4.
 - [ ] **Long Press Test**:
-  - Hold B1 for 3 seconds $\rightarrow$ verify log at 3s mark: `[BUTTONS] Button B1 Long Press (>=3000ms) -> Dispatched CMD_ENTER_PROGRAM_MODE (Preset 1)`.
+  - Hold B1 for 3 seconds $\rightarrow$ verify log at 3s mark: `[BUTTONS] Button B1 Long Press (>=3000ms) -> Dispatched CMD_ENTER_BLE_PAIRING`.
   - Release B1 after 4s $\rightarrow$ verify no trailing tap message logged.
 
 ### 2. Physical Status LED Inspection
 - [ ] Observe on-board LED (`GPIO 15`) during idle: soft heartbeat (100ms pulse every 2 seconds).
-- [ ] Trigger test states and confirm visual output matches specified blink timings (slow blink in program mode, rapid 5-flash on E-stop, solid ON for save confirmation).
+- [ ] Trigger test states and confirm visual output matches specified blink timings (fast double-blink in BLE pairing mode, rapid 5-flash on E-stop, solid ON for save confirmation).
 
 ---
 

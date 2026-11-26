@@ -5,7 +5,7 @@
    - Construct simulated mobile OS BLE client models:
      - **iOS (`CoreBluetooth`)**: Initiates ATT MTU exchange up to 185B, relies on peripheral security request (`ble_gap_security_initiate`) for SMP pairing, and resolves RPAs.
      - **Android (`BluetoothGatt`)**: Starts at 23B MTU, accepts peripheral-initiated MTU exchange up to 512B, and exercises offset-sliced GATT Long Reads (`ATT_READ_BLOB_REQ`).
-2. **Implement 17 End-to-End Protocol Test Cases**:
+2. **Implement 18 End-to-End Protocol Test Cases**:
    - Verify GAP primary advertisement payload ($\le 31\text{B}$ legacy limit with 128-bit `0000FAB0-...` Service UUID) and scan response (`Fabrica-XXXX` name).
    - Verify Device Information Service (`0x180A`) and Generic Attribute Service Changed (`0x1801` / `0x2A05`) discovery.
    - Verify peripheral-initiated connection parameter update compliance (`15ms–30ms` interval, `0` latency, `4000ms` supervision).
@@ -37,7 +37,7 @@
 1. **Off-the-Shelf App Store Test App Playbook (`firmware/README.md`)**:
    - Document complete hardware testing cheat sheet for **nRF Connect for Mobile** and **LightBlue** on iOS and Android.
    - Provide visual GATT hierarchy and UUID reference table.
-   - Provide copy-paste hexadecimal command strings for all opcodes (`0x00–0x11`) in both full and compact formats.
+   - Provide copy-paste hexadecimal command strings for all opcodes (`0x00–0x11`, `0x1F`) in both full and compact formats.
    - Document step-by-step pairing procedure, custom sequence programming recipe, calibration jog walkthrough, and 31-byte telemetry decoding table.
 2. **Build and Test Automation**:
    - Update `firmware/Makefile` with the new `test_ble_integration` target.

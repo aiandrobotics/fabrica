@@ -8,8 +8,8 @@ The implementation of Phase 5 must be validated against automated host test suit
 
 | Test Case | Description | Pass Criteria |
 |---|---|---|
-| **Single Motor Step Execution** | Execute a single-motor step (`ch 2`). | Verify direct forward sweep reaches `150.0f` (`FOLD_TARGET_ANGLE_DEG`) in `800ms`, fast-returns to `40.0f` (`LANDING_START_ANGLE_DEG`) in `450ms`, soft-lands to `0.0f` (`-1 deg / 20ms`, `800ms`), and LED state set to `LED_STATE_RUNNING`. |
-| **Parallel Dual-Motor Step Execution** | Execute a 2-motor step (`ch 0` and `ch 1`). | Verify `pca9685_set_multi_servo_angles(0x0003, ...)` sweeps synchronously through `0 -> 150 -> 40 -> 0 deg` (`800ms` forward, `450ms` fast return, `800ms` soft-landing). |
+| **Single Motor Step Execution** | Execute a single-motor step (`ch 2`). | Verify direct forward fold reaches `165.0f` (`FOLD_TARGET_ANGLE_DEG`) in `900ms`, returns & brakes at `30.0f` (`LANDING_START_ANGLE_DEG`) in `600ms`, linearly soft-lands to `0.0f` (`-1.2 deg / 20ms`, `500ms`, 25 frames, `2000ms` total), and LED state set to `LED_STATE_RUNNING`. |
+| **Parallel Dual-Motor Step Execution** | Execute a 2-motor step (`ch 0` and `ch 1`). | Verify `pca9685_set_multi_servo_angles(0x0003, ...)` sweeps synchronously through `0 -> 165 -> 30 -> 0 deg` (`900ms` forward, `600ms` return & brake, `500ms` linear soft-landing). |
 | **Multi-Step Routine Sequencing** | Execute 3-step routine (e.g. Preset 1). | Verify steps execute sequentially with 10ms `INTER_STEP_DELAY_MS` between steps and `pca9685_home_all()` on completion. |
 | **Empty Preset Protection** | Trigger preset with 0 steps. | Verify `motion_trigger_preset()` returns `ESP_ERR_INVALID_STATE`, zero servo commands issued, and `led_set_state(LED_STATE_INPUT_ERROR)` triggered. |
 | **Invalid Preset Bounds** | Trigger preset 0 or preset 5. | Verify rejection with `ESP_ERR_INVALID_ARG`. |
@@ -32,8 +32,8 @@ idf.py build
 When flashing firmware to live hardware (`idf.py -p <PORT> flash monitor`):
 
 1. **Preset Execution Visual Verification**:
-   - Tap **B1**: Status LED turns solid ON, Servo 0 sweeps $0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$, Servo 1 sweeps $0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$, Servo 2 sweeps $0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$, Servo 3 sweeps $0^\circ \to 150^\circ \to 40^\circ \to 0^\circ$, then LED returns to soft heartbeat (IDLE).
-   - Tap **B2**: Servo 0 and Servo 1 execute a synchronized fold sweep to $150^\circ$ (800ms forward), fast return to $40^\circ$ (450ms), and uniform soft-landing to $0^\circ$ (800ms), followed by Servo 3, 0, 1, and 2.
+   - Tap **B1**: Status LED turns solid ON, Servo 0 sweeps $0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$, Servo 1 sweeps $0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$, Servo 2 sweeps $0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$, Servo 3 sweeps $0^\circ \to 165^\circ \to 30^\circ \to 0^\circ$, then LED returns to soft heartbeat (IDLE).
+   - Tap **B2**: Servo 0 and Servo 1 execute a synchronized fold sweep to $165^\circ$ (900ms forward), return & mid-air brake to $30^\circ$ (600ms), and linear soft-landing to $0^\circ$ (500ms), followed by Servo 3, 0, 1, and 2.
 2. **Emergency Stop (E-Stop) Latency Verification**:
    - While a multi-step routine is running, tap any button (B1–B4).
    - Servos must immediately stop forward stroke, return flat to $0^\circ$, and the Status LED must emit 5 rapid flashes (50ms ON / 50ms OFF).

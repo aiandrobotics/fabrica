@@ -6,8 +6,8 @@
 - **Dual-OS Simulation**:
   - Simulate iOS `CoreBluetooth` client connecting with 185B MTU, handling peripheral security request, and reconnecting across 15-minute RPA rotations.
   - Simulate Android `BluetoothGatt` client connecting with 23B MTU, performing peripheral-initiated MTU exchange (512B), and reading the 212-byte `FAB3` table via offset-sliced GATT Long Reads (`ATT_READ_BLOB_REQ`).
-- **All 17 Integration Protocol Vectors**:
-  - Vectors 1–17 defined in `requirements.md` must all execute and pass.
+- **All 18 Integration Protocol Vectors**:
+  - Vectors 1–18 defined in `requirements.md` must all execute and pass.
 - **200-Cycle Endurance Stress Test**:
   - Continuous execution of 200 fold cycles with active 10 Hz telemetry streaming, periodic `FAB3` sequence updates, and simulated RPA reconnections.
   - Assert zero memory leaks and state invariants preserved.
