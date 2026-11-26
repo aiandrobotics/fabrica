@@ -85,7 +85,7 @@ def build_universal_folding_robot_assembly():
     # ==========================================
     # 1. LEFT FOLDING WING (Column 0: X = 0.0mm)
     # ==========================================
-    # Top-Left: Motorized Module at Y = 250.0mm
+    # Top-Left: Motorized Module at Y = 230.0mm
     tl_frame = construct_motorized_frame()
     tl_frame.translate(App.Vector(0, pitch_y, 0))
     obj_tl_frame = doc.addObject("Part::Feature", "Left_Motorized_Frame")
@@ -159,9 +159,9 @@ def build_universal_folding_robot_assembly():
     export_shapes.append(l_coupler)
 
     # ===============================================
-    # 2. CENTER STATIONARY PLATFORM (Column 1: X = 250)
+    # 2. CENTER STATIONARY PLATFORM (Column 1: X = 230)
     # ==========================================
-    # Top-Center: Base Module at (X = 250, Y = 250)
+    # Top-Center: Base Module at (X = 230, Y = 230)
     tc_base = construct_base_module()
     tc_base.translate(App.Vector(pitch_x, pitch_y, 0))
     obj_tc_base = doc.addObject("Part::Feature", "Center_Top_Base")
@@ -170,7 +170,7 @@ def build_universal_folding_robot_assembly():
         obj_tc_base.ViewObject.ShapeColor = (0.30, 0.45, 0.60) # Slate Blue
     export_shapes.append(tc_base)
 
-    # Bottom-Center: Base Module at (X = 250, Y = 0)
+    # Bottom-Center: Base Module at (X = 230, Y = 0)
     bc_base = construct_base_module()
     bc_base.translate(App.Vector(pitch_x, 0, 0))
     obj_bc_base = doc.addObject("Part::Feature", "Center_Bottom_Base")
@@ -180,13 +180,13 @@ def build_universal_folding_robot_assembly():
     export_shapes.append(bc_base)
 
     # ===========================================
-    # 3. RIGHT FOLDING WING (Column 2: X = 500)
-    # Mirrored so hinge axis is at X = 740mm (inward fold)
+    # 3. RIGHT FOLDING WING (Column 2: X = 460)
+    # Mirrored so hinge axis is at X = 680mm (inward fold)
     # ===========================================
-    total_w = (3 * w) + (2 * gap) # 740.0mm
+    total_w = (3 * w) + (2 * gap) # 680.0mm
 
     def mirror_x(shape):
-        """Mirrors shape across X=0 and places it at total_w=740.0mm."""
+        """Mirrors shape across X=0 and places it at total_w=680.0mm."""
         s = shape.copy()
         mat = App.Matrix()
         mat.scale(-1, 1, 1)
@@ -194,7 +194,7 @@ def build_universal_folding_robot_assembly():
         s.translate(App.Vector(total_w, 0, 0))
         return s
 
-    # Top-Right: Motorized Module (Mirrored) at Y = 250.0mm
+    # Top-Right: Motorized Module (Mirrored) at Y = 230.0mm
     tr_frame = mirror_x(construct_motorized_frame())
     tr_frame.translate(App.Vector(0, pitch_y, 0))
     obj_tr_frame = doc.addObject("Part::Feature", "Right_Motorized_Frame")
@@ -250,7 +250,7 @@ def build_universal_folding_robot_assembly():
         obj_br_flap.ViewObject.ShapeColor = (0.85, 0.50, 0.20)
     export_shapes.append(br_flap)
 
-    # Bottom-Right Pivot Pin at (X = 740.0mm, Y = 0.0mm)
+    # Bottom-Right Pivot Pin at (X = 680.0mm, Y = 0.0mm)
     br_pin = mirror_x(construct_end_pivot_pin())
     obj_br_pin = doc.addObject("Part::Feature", "Right_End_Pivot_Pin")
     obj_br_pin.Shape = br_pin
@@ -258,7 +258,7 @@ def build_universal_folding_robot_assembly():
         obj_br_pin.ViewObject.ShapeColor = (0.10, 0.74, 0.61)
     export_shapes.append(br_pin)
 
-    # Right Column Drive Coupler at X = 740mm, Y = 225mm
+    # Right Column Drive Coupler at X = 680mm, Y = 225mm
     r_coupler = mirror_x(construct_drive_coupler())
     r_coupler.translate(App.Vector(0, h + (gap / 2.0), 0))
     obj_r_coupler = doc.addObject("Part::Feature", "Right_Drive_Coupler")
@@ -284,15 +284,15 @@ def build_universal_folding_robot_assembly():
         export_shapes.append(j)
         return obj
 
-    # 4.1 Vertical Column Seams (Col 0 <-> Col 1 at X = 245.0mm)
+    # 4.1 Vertical Column Seams (Col 0 <-> Col 1 at X = 225.0mm)
     make_joiner_instance("Joiner_Left_Bottom", w + (gap / 2.0), h / 2.0, 90)
     make_joiner_instance("Joiner_Left_Top", w + (gap / 2.0), pitch_y + (h / 2.0), 90)
 
-    # 4.2 Vertical Column Seams (Col 1 <-> Col 2 at X = 495.0mm)
+    # 4.2 Vertical Column Seams (Col 1 <-> Col 2 at X = 455.0mm)
     make_joiner_instance("Joiner_Right_Bottom", (2 * w) + gap + (gap / 2.0), h / 2.0, 90)
     make_joiner_instance("Joiner_Right_Top", (2 * w) + gap + (gap / 2.0), pitch_y + (h / 2.0), 90)
 
-    # 4.3 Horizontal Row Seams (Row 0 <-> Row 1 at Y = 245.0mm)
+    # 4.3 Horizontal Row Seams (Row 0 <-> Row 1 at Y = 225.0mm)
     make_joiner_instance("Joiner_Row_Left", w / 2.0, h + (gap / 2.0), 0)
     make_joiner_instance("Joiner_Row_Center", pitch_x + (w / 2.0), h + (gap / 2.0), 0)
     make_joiner_instance("Joiner_Row_Right", (2 * pitch_x) + (w / 2.0), h + (gap / 2.0), 0)

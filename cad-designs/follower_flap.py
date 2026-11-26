@@ -121,7 +121,7 @@ def construct_follower_flap():
     b_top.translate(App.Vector(x_wing_start, y_max_blade - border_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
 
-    # Bottom knuckle notch step bevel (at Y = 16.0mm, X in [shaft_r, 9.9mm])
+    # Bottom knuckle notch step bevel (at Y = 18.0mm, X in [shaft_r, 9.9mm])
     b_kbot = Part.makeBox(x_wing_start - shaft_r + 0.1, border_w + 0.1, bevel_d + 0.1)
     b_kbot.translate(App.Vector(shaft_r, y_knuckle_bot - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_kbot)

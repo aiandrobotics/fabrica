@@ -28,7 +28,7 @@ def build_follower_assembly():
     1. Follower Chassis Frame (Green #2ecc71).
     2. Modular Drop-In Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
     3. Outside-Headed Click-Lock End Pivot Pin (Cyan #1abc9c) at bottom hinge port (Y=0).
-    4. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
+    4. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=220) dovetails.
     5. Modular Double-Male Drive Coupler Pin (Purple #9b59b6) at top hinge port (Y=220).
     """
     for doc_name in list(App.listDocuments().keys()):

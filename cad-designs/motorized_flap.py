@@ -81,7 +81,7 @@ def construct_motorized_flap():
     slab_base = Part.makeBox(full_wing_w, total_blade_len, t)
     slab_base.translate(App.Vector(x_wing_start, y_min_blade, panel_z_min))
 
-    # Cut away the motor module notch from slab_base: X in [x_wing_start - 1.0, x_mot_notch], Y in [149.5, 220.5]
+    # Cut away the motor module notch from slab_base: X in [x_wing_start - 1.0, x_mot_notch], Y in [142.5, 220.5]
     cut_motor_bay = Part.makeBox(x_mot_notch - x_wing_start + 1.0, (h - 70.0 - gap_axial) + 72.0, t + 2.0)
     cut_motor_bay.translate(App.Vector(x_wing_start - 0.5, y_knuckle_mot_top, panel_z_min - 1.0))
     slab_outer = slab_base.cut(cut_motor_bay)
@@ -120,7 +120,7 @@ def construct_motorized_flap():
     b_bot.translate(App.Vector(x_wing_start, y_min_blade - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_bot)
 
-    # Bottom knuckle notch step bevel (at Y = 16.0mm, X in [shaft_r, 9.9mm])
+    # Bottom knuckle notch step bevel (at Y = 18.0mm, X in [shaft_r, 9.9mm])
     b_kbot = Part.makeBox(x_wing_start - shaft_r + 0.1, border_w + 0.1, bevel_d + 0.1)
     b_kbot.translate(App.Vector(shaft_r, y_knuckle_bot - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_kbot)
@@ -135,12 +135,12 @@ def construct_motorized_flap():
     b_top.translate(App.Vector(x_mot_notch, y_max_blade - border_w, top_z - bevel_d))
     bevel_cuts.append(b_top)
 
-    # Motor notch left inner edge bevel (at X = x_mot_notch, Y in [149.5, 219.5mm])
+    # Motor notch left inner edge bevel (at X = x_mot_notch, Y in [142.5, 219.5mm])
     b_mot_left = Part.makeBox(border_w + 0.1, y_max_blade - y_knuckle_mot_top + 0.2, bevel_d + 0.1)
     b_mot_left.translate(App.Vector(x_mot_notch - 0.1, y_knuckle_mot_top - 0.1, top_z - bevel_d))
     bevel_cuts.append(b_mot_left)
 
-    # Motor notch bottom step bevel (at Y = 149.5mm, X in [shaft_r, x_mot_notch])
+    # Motor notch bottom step bevel (at Y = 142.5mm, X in [shaft_r, x_mot_notch])
     b_mot_bot = Part.makeBox(x_mot_notch - shaft_r + 0.1, border_w + 0.1, bevel_d + 0.1)
     b_mot_bot.translate(App.Vector(shaft_r, y_knuckle_mot_top - border_w, top_z - bevel_d))
     bevel_cuts.append(b_mot_bot)

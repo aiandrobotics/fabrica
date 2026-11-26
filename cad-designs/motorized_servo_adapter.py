@@ -18,7 +18,6 @@ if SCRIPT_DIR not in sys.path:
 
 from params import (
     PIVOT_Z,
-    DRIVE_SHAFT_DIAMETER,
     SQUARE_DRIVE_BASE_SIZE,
     SQUARE_DRIVE_TIP_SIZE,
     SQUARE_DRIVE_PEG_DEPTH,
