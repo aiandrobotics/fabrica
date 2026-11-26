@@ -193,7 +193,7 @@ void app_main(void)
         ESP_LOGI(TAG, "Adaptive Telemetry Subsystem ready on Core 1 (10 Hz in motion, 1 Hz idle).");
     }
 
-    /* 11. Auto-start 120s BLE pairing window on fresh boot if zero devices are bonded */
+    /* 11. Auto-start indefinite BLE pairing mode on fresh boot if zero devices are bonded */
     state_machine_check_initial_pairing();
 
     ESP_LOGI(TAG, "System initialization complete. Awaiting button, BLE & motion commands...");

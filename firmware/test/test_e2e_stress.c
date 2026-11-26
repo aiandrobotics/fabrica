@@ -282,7 +282,8 @@ void test_nvs_power_loss_and_corruption_resilience(void)
     TEST_ASSERT(loaded.step_count == 4, "Restored default factory Preset 1 (4 steps)");
 
     /* 5. Erased / Uninitialized Key Fallback */
-    TEST_ASSERT(storage_erase_routine(1) == ESP_OK, "Erase Preset 1 succeeds");
+    storage_mock_erase_key("preset_1");
+    TEST_ASSERT(!storage_mock_key_exists("preset_1"), "Erase Preset 1 succeeds");
     memset(&loaded, 0, sizeof(loaded));
     err = storage_load_routine(1, &loaded);
     TEST_ASSERT(err == ESP_OK, "Loading erased preset falls back to factory default with ESP_OK");

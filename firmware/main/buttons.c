@@ -293,6 +293,12 @@ static void dispatch_button_command(uint8_t btn_idx, button_gesture_t gesture)
         } else {
             return;
         }
+    } else if (gesture == GESTURE_FACTORY_RESET) {
+        if (cur_state == STATE_IDLE_RUN || cur_state == STATE_ESTOP || cur_state == STATE_CALIBRATING) {
+            ESP_LOGW(TAG, "[BUTTON B1+B3+B4] Simultaneous 10s Hold detected -> Dispatched CMD_FACTORY_RESET_ALL");
+        } else {
+            return;
+        }
     } else {
         return;
     }

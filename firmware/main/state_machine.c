@@ -43,6 +43,14 @@ static bool s_calib_autohome_dispatched = false;
 /* Internal Calibration & Recovery Helpers                                   */
 /* ========================================================================= */
 
+static void set_system_state(system_state_t new_state)
+{
+    if (s_system_state != new_state) {
+        s_system_state = new_state;
+        telemetry_notify_state_change();
+    }
+}
+
 static void reset_calibration_tracking(void)
 {
     s_calib_inactivity_ms = 0;
@@ -160,7 +168,7 @@ void state_machine_on_ble_disconnect(void)
 #endif
 
     exit_calibration_and_home();
-    s_system_state = STATE_IDLE_RUN;
+    set_system_state(STATE_IDLE_RUN);
     led_set_state(s_ble_pairing_active ? LED_STATE_BLE_PAIRING : LED_STATE_IDLE);
     remote_cmd_set_last_status(CMD_STATUS_OK, true);
 }
@@ -264,7 +272,7 @@ void state_machine_tick(uint32_t elapsed_ms)
                 }
 #endif
                 exit_calibration_and_home();
-                s_system_state = STATE_IDLE_RUN;
+                set_system_state(STATE_IDLE_RUN);
                 led_set_state(s_ble_pairing_active ? LED_STATE_BLE_PAIRING : LED_STATE_IDLE);
                 remote_cmd_set_last_status(CMD_STATUS_OK, true);
             }
@@ -319,8 +327,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
         }
         reset_calibration_tracking();
         motion_emergency_stop();
-        pca9685_home_all();
-        s_system_state = STATE_ESTOP;
+        set_system_state(STATE_ESTOP);
         remote_cmd_set_last_status(CMD_STATUS_OK, true);
         return ESP_OK;
     }
@@ -335,7 +342,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
         }
         motion_reset_state();
         exit_calibration_and_home();
-        s_system_state = STATE_IDLE_RUN;
+        set_system_state(STATE_IDLE_RUN);
         led_set_state(s_ble_pairing_active ? LED_STATE_BLE_PAIRING : LED_STATE_IDLE);
         remote_cmd_set_last_status(CMD_STATUS_OK, true);
         return ESP_OK;
@@ -385,11 +392,11 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #endif
             if (s_system_state == STATE_CALIBRATING) {
                 exit_calibration_and_home();
-                s_system_state = STATE_IDLE_RUN;
+                set_system_state(STATE_IDLE_RUN);
             } else if (s_system_state == STATE_ESTOP) {
                 motion_reset_state();
                 pca9685_home_all();
-                s_system_state = STATE_IDLE_RUN;
+                set_system_state(STATE_IDLE_RUN);
             }
             s_ble_pairing_active = true;
             s_ble_pairing_timer_ms = 0;
@@ -404,11 +411,11 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #endif
             if (s_system_state == STATE_CALIBRATING) {
                 exit_calibration_and_home();
-                s_system_state = STATE_IDLE_RUN;
+                set_system_state(STATE_IDLE_RUN);
             }
             state_machine_close_ble_pairing();
             esp_err_t err = ble_transport_clear_bonds();
-            /* Zero bonds remain: auto-start the 120s BLE pairing window immediately */
+            /* Zero bonds remain: auto-start indefinite BLE pairing mode immediately */
             s_ble_pairing_active = true;
             s_ble_pairing_timer_ms = 0;
             (void)ble_transport_enter_pairing_mode();
@@ -438,7 +445,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
             esp_err_t err_bonds = ble_transport_clear_bonds();
 
             /* 4. Reset state machine tracking and enter indefinite BLE pairing mode */
-            s_system_state = STATE_IDLE_RUN;
+            set_system_state(STATE_IDLE_RUN);
             s_active_preset_id = 0;
             s_ble_pairing_active = true;
             s_ble_pairing_timer_ms = 0;
@@ -500,21 +507,21 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                     s_ble_pairing_active = false;
                     s_ble_pairing_timer_ms = 0;
                     s_active_preset_id = preset_id;
-                    s_system_state = STATE_RUNNING_MOTION;
+                    set_system_state(STATE_RUNNING_MOTION);
                     remote_cmd_set_last_status(CMD_STATUS_OK, true);
 
-                    esp_err_t err = motion_trigger_preset(preset_id);
+                    esp_err_t err = motion_execute_routine(&routine);
                     if (err == ESP_OK) {
                         remote_cmd_notify_completion(routine.step_count);
                         s_active_preset_id = 0;
-                        s_system_state = STATE_IDLE_RUN;
+                        set_system_state(STATE_IDLE_RUN);
                     } else if (err == ESP_ERR_TIMEOUT || motion_get_status() == MOTION_STATUS_ABORTED) {
                         s_active_preset_id = 0;
-                        s_system_state = STATE_ESTOP;
+                        set_system_state(STATE_ESTOP);
                         remote_cmd_set_last_status(CMD_STATUS_OK, true);
                     } else {
                         s_active_preset_id = 0;
-                        s_system_state = STATE_IDLE_RUN;
+                        set_system_state(STATE_IDLE_RUN);
                         remote_cmd_set_last_status(CMD_STATUS_ERR_INVALID_STEP, true);
                     }
                     return err;
@@ -543,18 +550,18 @@ esp_err_t state_machine_process_command(const command_t *cmd)
                     s_ble_pairing_active = false;
                     s_ble_pairing_timer_ms = 0;
                     s_active_preset_id = 0;
-                    s_system_state = STATE_RUNNING_MOTION;
+                    set_system_state(STATE_RUNNING_MOTION);
                     remote_cmd_set_last_status(CMD_STATUS_OK, true);
 
                     esp_err_t err = motion_execute_routine(&cmd->payload.raw_routine);
                     if (err == ESP_OK) {
                         remote_cmd_notify_completion(step_cnt);
-                        s_system_state = STATE_IDLE_RUN;
+                        set_system_state(STATE_IDLE_RUN);
                     } else if (err == ESP_ERR_TIMEOUT || motion_get_status() == MOTION_STATUS_ABORTED) {
-                        s_system_state = STATE_ESTOP;
+                        set_system_state(STATE_ESTOP);
                         remote_cmd_set_last_status(CMD_STATUS_OK, true);
                     } else {
-                        s_system_state = STATE_IDLE_RUN;
+                        set_system_state(STATE_IDLE_RUN);
                         remote_cmd_set_last_status(CMD_STATUS_ERR_MOTOR_BOUNDS, true);
                     }
                     return err;
@@ -596,7 +603,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 #endif
                     if (s_system_state == STATE_CALIBRATING) {
                         exit_calibration_and_home();
-                        s_system_state = STATE_IDLE_RUN;
+                        set_system_state(STATE_IDLE_RUN);
                     }
                     esp_err_t err = storage_init_factory_defaults();
                     pca9685_home_all();
@@ -634,7 +641,7 @@ esp_err_t state_machine_process_command(const command_t *cmd)
 
                     esp_err_t err = pca9685_set_servo_angle(channel, angle_deg);
                     if (err == ESP_OK) {
-                        s_system_state = STATE_CALIBRATING;
+                        set_system_state(STATE_CALIBRATING);
                         remote_cmd_set_last_status(CMD_STATUS_OK, true);
                     } else {
                         remote_cmd_set_last_status(CMD_STATUS_ERR_MOTOR_BOUNDS, true);

@@ -34,7 +34,7 @@ static volatile uint8_t s_active_progress_pct = 0;
 /* Total active step duration for telemetry progress calculation (800 + 450 + 800 = 2050 ms) */
 #define LANDING_RAMP_FRAMES          ((uint32_t)LANDING_START_ANGLE_DEG)
 #define LANDING_RAMP_MS              (LANDING_RAMP_FRAMES * LANDING_STEP_MS)
-#define STEP_TARGET_DURATION_MS      (FOLD_DWELL_TIME_MS + LANDING_APPROACH_MS + LANDING_RAMP_MS)
+#define STEP_TARGET_DURATION_MS      (FOLD_FORWARD_SWEEP_MS + LANDING_APPROACH_MS + LANDING_RAMP_MS)
 
 static EventGroupHandle_t s_evt_group_handle = NULL;
 
@@ -113,8 +113,7 @@ void motion_reset_state(void)
     s_active_progress_pct = 0;
 #ifdef ESP_PLATFORM
     if (s_evt_group_handle != NULL) {
-        xEventGroupClearBits(s_evt_group_handle,
-                             MOTION_EVENT_START_BIT | MOTION_EVENT_ESTOP_BIT | MOTION_EVENT_COMPLETE_BIT);
+        xEventGroupClearBits(s_evt_group_handle, MOTION_EVENT_ESTOP_BIT);
     }
 #endif
 }
@@ -173,8 +172,7 @@ motion_status_t motion_get_status(void)
  */
 bool motion_is_busy(void)
 {
-    return (s_motion_status == MOTION_STATUS_RUNNING ||
-            s_motion_status == MOTION_STATUS_STOPPING);
+    return (s_motion_status == MOTION_STATUS_RUNNING);
 }
 
 /* ========================================================================= */
@@ -246,7 +244,7 @@ esp_err_t motion_execute_step(const fold_step_t *step)
 
     /* 1. Direct Forward Sweep (0° -> 150°, 800ms) */
     set_step_servo_angle(step, FOLD_TARGET_ANGLE_DEG);
-    if (motion_delay_ms(FOLD_DWELL_TIME_MS, true)) {
+    if (motion_delay_ms(FOLD_FORWARD_SWEEP_MS, true)) {
         goto abort_step;
     }
 
@@ -318,8 +316,7 @@ esp_err_t motion_execute_routine(const fold_routine_t *routine)
     s_abort_requested = false;
 #ifdef ESP_PLATFORM
     if (s_evt_group_handle != NULL) {
-        xEventGroupClearBits(s_evt_group_handle,
-                             MOTION_EVENT_START_BIT | MOTION_EVENT_ESTOP_BIT | MOTION_EVENT_COMPLETE_BIT);
+        xEventGroupClearBits(s_evt_group_handle, MOTION_EVENT_ESTOP_BIT);
     }
 #endif
     s_motion_status = MOTION_STATUS_RUNNING;

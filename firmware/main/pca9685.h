@@ -164,22 +164,6 @@ esp_err_t pca9685_set_multi_servo_angles(uint16_t channel_mask, float angle_deg)
 esp_err_t pca9685_home_all(void);
 
 /**
- * @brief Pulse the target channel to 15.0 deg (NUDGE_ANGLE_DEG) for physical flap identification.
- *
- * @param channel Channel index (0 to 15).
- * @return ESP_OK on success, ESP_ERR_INVALID_ARG if channel >= 16.
- */
-esp_err_t pca9685_nudge_channel(uint8_t channel);
-
-/**
- * @brief Set the target channel to 30.0 deg (STAGE_ANGLE_DEG) for visual staging hold.
- *
- * @param channel Channel index (0 to 15).
- * @return ESP_OK on success, ESP_ERR_INVALID_ARG if channel >= 16.
- */
-esp_err_t pca9685_stage_channel(uint8_t channel);
-
-/**
  * @brief Put PCA9685 internal oscillator to sleep (low power) or wake it.
  *
  * @param enable True to sleep, False to wake.

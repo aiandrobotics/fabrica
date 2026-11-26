@@ -19,7 +19,7 @@ static const char *TAG = "FABRICA_TELEM";
 static TaskHandle_t s_telem_task_handle = NULL;
 #endif
 
-/* Default streaming enabled upon CCCD subscription per user decision A2 */
+/* Periodic telemetry streaming defaults to enabled upon CCCD subscription */
 static bool s_streaming_enabled = true;
 
 uint32_t telemetry_get_interval_ms(system_state_t state)
@@ -42,22 +42,11 @@ uint32_t telemetry_get_current_interval_ms(void)
 void telemetry_set_stream_enabled(bool enabled)
 {
     s_streaming_enabled = enabled;
-    ble_transport_set_telemetry_stream(enabled);
 }
 
 bool telemetry_is_stream_enabled(void)
 {
     return s_streaming_enabled;
-}
-
-void telemetry_start(void)
-{
-    telemetry_set_stream_enabled(true);
-}
-
-void telemetry_stop(void)
-{
-    telemetry_set_stream_enabled(false);
 }
 
 void telemetry_tick(void)
@@ -84,7 +73,6 @@ void telemetry_notify_state_change(void)
 void telemetry_reset_state(void)
 {
     s_streaming_enabled = true;
-    ble_transport_set_telemetry_stream(true);
 }
 
 #ifdef ESP_PLATFORM

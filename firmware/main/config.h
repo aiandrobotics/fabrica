@@ -54,7 +54,7 @@ extern "C" {
 #define BUTTON_BOND_RESET_MS         5000   /* Simultaneous B1+B4 hold time (5s) to clear BLE bonds */
 #define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
-#define FOLD_DWELL_TIME_MS           800    /* Forward travel time to reach 150 deg */
+#define FOLD_FORWARD_SWEEP_MS        800    /* Forward travel time to reach 150 deg */
 #define LANDING_APPROACH_MS          450    /* Fast return travel time from 150 deg to 40 deg */
 #define LANDING_STEP_MS              20     /* Soft-landing frame interval (50 Hz native PWM) */
 #define INTER_STEP_DELAY_MS          10     /* Delay between routine steps */
@@ -70,15 +70,11 @@ extern "C" {
 /* ========================================================================= */
 
 #define BLE_DEVICE_NAME_PREFIX           "Fabrica" /* Prefix for "Fabrica-XXXX" local name */
-#define BLE_ADV_INTERVAL_MS              100    /* Fast advertising interval (100ms) */
-#define BLE_ADV_INTERVAL_UNITS           160    /* 160 * 0.625ms = 100ms (0x00A0) */
-#define BLE_CONN_INTERVAL_MIN_MS         15.0f  /* Apple Accessory compliant min interval (12 units) */
-#define BLE_CONN_INTERVAL_MAX_MS         30.0f  /* Apple Accessory compliant max interval (24 units) */
-#define BLE_CONN_INTERVAL_MIN_UNITS      12     /* 12 * 1.25ms = 15.0ms */
-#define BLE_CONN_INTERVAL_MAX_UNITS      24     /* 24 * 1.25ms = 30.0ms */
+#define BLE_ADV_INTERVAL_UNITS           160    /* 160 * 0.625ms = 100ms fast advertising (0x00A0) */
+#define BLE_CONN_INTERVAL_MIN_UNITS      12     /* 12 * 1.25ms = 15.0ms (Apple Accessory compliant) */
+#define BLE_CONN_INTERVAL_MAX_UNITS      24     /* 24 * 1.25ms = 30.0ms (Apple Accessory compliant) */
 #define BLE_CONN_SLAVE_LATENCY           0      /* Zero skipped connection events */
-#define BLE_SUPERVISION_TIMEOUT_MS       4000   /* Supervision timeout (4000ms <= 6000ms Apple max) */
-#define BLE_SUPERVISION_TIMEOUT_UNITS    400    /* 400 * 10ms = 4000ms */
+#define BLE_SUPERVISION_TIMEOUT_UNITS    400    /* 400 * 10ms = 4000ms (<= 6000ms Apple max) */
 #define BLE_CONN_PARAM_UPDATE_DELAY_MS   1500   /* Delay before peripheral requests conn param update */
 #define BLE_PREFERRED_MTU                512    /* Target ATT MTU (>= 247B for 212B table transfer) */
 #define BLE_MAX_BONDS                    4      /* Max trusted peer identities persisted in NVS */
@@ -88,8 +84,6 @@ extern "C" {
 /* ========================================================================= */
 
 #define HOME_ANGLE_DEG               0.0f   /* Flat resting angle */
-#define NUDGE_ANGLE_DEG              15.0f  /* Identification nudge angle */
-#define STAGE_ANGLE_DEG              30.0f  /* Visual staging hold angle */
 #define LANDING_START_ANGLE_DEG      40.0f  /* Soft-landing ramp start angle on return */
 #define FOLD_ANGLE_DEG               180.0f /* Full servo mechanical range (degrees) */
 #define FOLD_TARGET_ANGLE_DEG        150.0f /* Max folding sweep target angle */

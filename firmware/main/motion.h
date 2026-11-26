@@ -57,9 +57,7 @@ extern "C" {
 
 #define MOTION_ABORT_CHECK_MS           10
 
-#define MOTION_EVENT_START_BIT          (1U << 0)
 #define MOTION_EVENT_ESTOP_BIT          (1U << 1)
-#define MOTION_EVENT_COMPLETE_BIT       (1U << 2)
 
 /* ========================================================================= */
 /* Motion Engine Status States                                               */
@@ -68,8 +66,7 @@ extern "C" {
 typedef enum {
     MOTION_STATUS_IDLE = 0,     /**< Motion engine is idle awaiting trigger */
     MOTION_STATUS_RUNNING = 1,  /**< Routine / step motion is actively executing */
-    MOTION_STATUS_STOPPING = 2, /**< Motion engine is terminating active motion */
-    MOTION_STATUS_ABORTED = 3   /**< Routine was preempted by E-Stop */
+    MOTION_STATUS_ABORTED = 2   /**< Routine was preempted by E-Stop */
 } motion_status_t;
 
 /* ========================================================================= */
@@ -91,7 +88,7 @@ motion_status_t motion_get_status(void);
 
 /**
  * @brief Check if motion is actively running or executing steps.
- * @return true if status is MOTION_STATUS_RUNNING or MOTION_STATUS_STOPPING, false otherwise.
+ * @return true if status is MOTION_STATUS_RUNNING, false otherwise.
  */
 bool motion_is_busy(void);
 

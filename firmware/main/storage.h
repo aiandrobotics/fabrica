@@ -87,14 +87,6 @@ esp_err_t storage_save_routine(uint8_t preset_id, const fold_routine_t *routine)
 esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine);
 
 /**
- * @brief Erase a specific preset routine from NVS flash.
- *
- * @param preset_id Preset slot index (1 to 4).
- * @return ESP_OK on success, ESP_ERR_INVALID_ARG on bad index.
- */
-esp_err_t storage_erase_routine(uint8_t preset_id);
-
-/**
  * @brief Initialize or re-seed all 4 presets with default factory sequences.
  *
  * @return ESP_OK on success.
@@ -124,6 +116,7 @@ uint32_t storage_compute_crc32(const fold_routine_t *routine);
 #ifndef ESP_PLATFORM
 void storage_mock_reset(void);
 void storage_mock_corrupt_key(const char *key, size_t byte_offset);
+void storage_mock_erase_key(const char *key);
 bool storage_mock_key_exists(const char *key);
 #endif
 

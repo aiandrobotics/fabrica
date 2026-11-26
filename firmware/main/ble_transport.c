@@ -63,7 +63,6 @@ static const uint8_t s_fab0_uuid128_le[16] = {
 static char s_device_name[16] = "Fabrica-0000";
 static bool s_is_connected = false;
 static uint16_t s_negotiated_mtu = 23;
-static bool s_telemetry_stream_enabled = false;
 static uint16_t s_telemetry_seq_counter = 0;
 
 /* ========================================================================= */
@@ -149,21 +148,6 @@ bool ble_transport_is_connected(void)
 uint16_t ble_transport_get_mtu(void)
 {
     return s_negotiated_mtu;
-}
-
-cmd_status_t ble_transport_get_last_cmd_status(void)
-{
-    return remote_cmd_get_last_status();
-}
-
-void ble_transport_set_telemetry_stream(bool enable)
-{
-    s_telemetry_stream_enabled = enable;
-}
-
-bool ble_transport_is_telemetry_stream_enabled(void)
-{
-    return s_telemetry_stream_enabled;
 }
 
 static esp_err_t build_fab3_table_bytes(uint8_t out_table[BLE_FAB3_TABLE_SIZE])
@@ -981,7 +965,6 @@ void ble_transport_mock_reset(void)
     s_is_connected = false;
     s_negotiated_mtu = 23;
     remote_cmd_reset();
-    s_telemetry_stream_enabled = false;
     s_telemetry_seq_counter = 0;
 
     memset(s_mock_bonds, 0, sizeof(s_mock_bonds));

@@ -173,9 +173,8 @@ void test_storage_crud_operations(void)
     TEST_ASSERT(loaded.steps[1].motor_ids[0] == 8 && loaded.steps[1].motor_ids[1] == 9, "Loaded custom Step 2 has motors 8 and 9");
     TEST_ASSERT(loaded.checksum == storage_compute_crc32(&loaded), "Loaded custom routine has valid calculated checksum");
 
-    /* 5. Erase Preset 2 */
-    err = storage_erase_routine(2);
-    TEST_ASSERT(err == ESP_OK, "storage_erase_routine(2) returns ESP_OK");
+    /* 5. Erase Preset 2 from mock NVS */
+    storage_mock_erase_key("preset_2");
     TEST_ASSERT(!storage_mock_key_exists("preset_2"), "preset_2 key deleted from NVS");
 
     /* 6. Load Erased Preset 2 -> Falls back gracefully to factory default */
@@ -221,9 +220,6 @@ void test_corruption_and_boundary_handling(void)
     TEST_ASSERT(storage_load_routine(0, &dummy) == ESP_ERR_INVALID_ARG, "storage_load_routine(0) returns ESP_ERR_INVALID_ARG");
     TEST_ASSERT(storage_load_routine(5, &dummy) == ESP_ERR_INVALID_ARG, "storage_load_routine(5) returns ESP_ERR_INVALID_ARG");
     TEST_ASSERT(storage_load_routine(1, NULL) == ESP_ERR_INVALID_ARG, "storage_load_routine(NULL) returns ESP_ERR_INVALID_ARG");
-
-    TEST_ASSERT(storage_erase_routine(0) == ESP_ERR_INVALID_ARG, "storage_erase_routine(0) returns ESP_ERR_INVALID_ARG");
-    TEST_ASSERT(storage_erase_routine(5) == ESP_ERR_INVALID_ARG, "storage_erase_routine(5) returns ESP_ERR_INVALID_ARG");
 }
 
 /* ========================================================================= */

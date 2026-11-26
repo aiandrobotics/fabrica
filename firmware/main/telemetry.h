@@ -37,16 +37,6 @@ extern "C" {
 esp_err_t telemetry_init(void);
 
 /**
- * @brief Start/enable periodic telemetry streaming.
- */
-void telemetry_start(void);
-
-/**
- * @brief Stop/disable periodic telemetry streaming.
- */
-void telemetry_stop(void);
-
-/**
  * @brief Enable or disable periodic BLE telemetry streaming.
  *
  * @param enabled true to enable periodic streaming, false to pause.
@@ -65,7 +55,7 @@ bool telemetry_is_stream_enabled(void);
  *
  * @param state Active system_state_t.
  * @return TELEMETRY_INTERVAL_ACTIVE_MS (100ms) for motion/calibrating,
- *         or TELEMETRY_INTERVAL_IDLE_MS (1000ms) for idle/estop/error.
+ *         or TELEMETRY_INTERVAL_IDLE_MS (1000ms) for idle/estop.
  */
 uint32_t telemetry_get_interval_ms(system_state_t state);
 

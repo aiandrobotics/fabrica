@@ -410,28 +410,6 @@ esp_err_t pca9685_home_all(void)
 }
 
 /**
- * @brief Move a channel to the 15° nudge angle for visual cursor identification.
- *
- * @param channel Target channel index (0 to 15).
- * @return ESP_OK on success.
- */
-esp_err_t pca9685_nudge_channel(uint8_t channel)
-{
-    return pca9685_set_servo_angle(channel, NUDGE_ANGLE_DEG);
-}
-
-/**
- * @brief Move a channel to the 30° staged angle to indicate inclusion in the active step.
- *
- * @param channel Target channel index (0 to 15).
- * @return ESP_OK on success.
- */
-esp_err_t pca9685_stage_channel(uint8_t channel)
-{
-    return pca9685_set_servo_angle(channel, STAGE_ANGLE_DEG);
-}
-
-/**
  * @brief Put PCA9685 into low-power sleep mode or wake it back up.
  *
  * @param enable true to enter sleep (oscillator off), false to wake up with restart.

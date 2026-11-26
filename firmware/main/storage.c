@@ -349,49 +349,6 @@ esp_err_t storage_load_routine(uint8_t preset_id, fold_routine_t *routine)
     return ESP_OK;
 }
 
-/**
- * @brief Erase a custom preset sequence from NVS storage.
- *
- * @param preset_id Target preset slot (1 to 4).
- * @return ESP_OK on success.
- */
-esp_err_t storage_erase_routine(uint8_t preset_id)
-{
-    if (preset_id < 1 || preset_id > TOTAL_PRESET_COUNT) {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    char key[16];
-    esp_err_t err = get_preset_key(preset_id, key, sizeof(key));
-    if (err != ESP_OK) {
-        return err;
-    }
-
-#ifdef ESP_PLATFORM
-    nvs_handle_t handle;
-    err = nvs_open(STORAGE_NVS_NAMESPACE, NVS_READWRITE, &handle);
-    if (err != ESP_OK) {
-        return err;
-    }
-
-    err = nvs_erase_key(handle, key);
-    if (err == ESP_OK) {
-        err = nvs_commit(handle);
-    }
-    nvs_close(handle);
-    return err;
-#else
-    for (int i = 0; i < MOCK_NVS_MAX_ENTRIES; i++) {
-        if (s_mock_nvs[i].exists && strcmp(s_mock_nvs[i].key, key) == 0) {
-            s_mock_nvs[i].exists = false;
-            memset(s_mock_nvs[i].data, 0, sizeof(s_mock_nvs[i].data));
-            return ESP_OK;
-        }
-    }
-    return ESP_OK;
-#endif
-}
-
 /* ========================================================================= */
 /* Factory Defaults Seeding & Initialization                                 */
 /* ========================================================================= */
@@ -545,6 +502,22 @@ void storage_mock_corrupt_key(const char *key, size_t byte_offset)
             if (byte_offset < s_mock_nvs[i].size) {
                 s_mock_nvs[i].data[byte_offset] ^= 0xFF; /* Invert byte to corrupt */
             }
+            return;
+        }
+    }
+}
+
+/**
+ * @brief Remove a key from mock NVS storage to test missing-key fallback.
+ *
+ * @param key Key name to erase.
+ */
+void storage_mock_erase_key(const char *key)
+{
+    for (int i = 0; i < MOCK_NVS_MAX_ENTRIES; i++) {
+        if (s_mock_nvs[i].exists && strcmp(s_mock_nvs[i].key, key) == 0) {
+            s_mock_nvs[i].exists = false;
+            memset(s_mock_nvs[i].data, 0, sizeof(s_mock_nvs[i].data));
             return;
         }
     }

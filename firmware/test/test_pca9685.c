@@ -118,17 +118,7 @@ void test_channel_articulation(void)
     err = pca9685_set_pwm(16, 0, 300);
     TEST_ASSERT(err == ESP_ERR_INVALID_ARG, "pca9685_set_pwm(ch 16) rejected with ESP_ERR_INVALID_ARG");
 
-    /* 3. Test Identification Nudge (15.0 deg / 137 counts) */
-    err = pca9685_nudge_channel(0);
-    TEST_ASSERT(err == ESP_OK, "pca9685_nudge_channel(0) returns ESP_OK");
-    TEST_ASSERT(pca9685_mock_get_channel_off_count(0) == 137, "Channel 0 nudge angle is 137 counts (15 deg)");
-
-    /* 4. Test Visual Staging Hold (30.0 deg / 171 counts) */
-    err = pca9685_stage_channel(5);
-    TEST_ASSERT(err == ESP_OK, "pca9685_stage_channel(5) returns ESP_OK");
-    TEST_ASSERT(pca9685_mock_get_channel_off_count(5) == 171, "Channel 5 staged angle is 171 counts (30 deg)");
-
-    /* 5. Test Multi-Servo Parallel Articulation (e.g. Channels 1 and 4 to 180 deg) */
+    /* 3. Test Multi-Servo Parallel Articulation (e.g. Channels 1 and 4 to 180 deg) */
     uint16_t mask = (1 << 1) | (1 << 4); /* 0x0012 */
     err = pca9685_set_multi_servo_angles(mask, 180.0f);
     TEST_ASSERT(err == ESP_OK, "pca9685_set_multi_servo_angles(mask 0x0012, 180 deg) returns ESP_OK");

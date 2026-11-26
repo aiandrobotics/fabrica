@@ -104,7 +104,6 @@ static void test_telemetry_adaptive_rate(void)
     TEST_ASSERT(telemetry_get_interval_ms(STATE_IDLE_RUN) == 1000, "STATE_IDLE_RUN interval is 1000ms (1 Hz)");
     TEST_ASSERT(telemetry_get_interval_ms(STATE_RUNNING_MOTION) == 100, "STATE_RUNNING_MOTION interval is 100ms (10 Hz)");
     TEST_ASSERT(telemetry_get_interval_ms(STATE_ESTOP) == 1000, "STATE_ESTOP interval is 1000ms (1 Hz)");
-    TEST_ASSERT(telemetry_get_interval_ms(STATE_ERROR) == 1000, "STATE_ERROR interval is 1000ms (1 Hz)");
     TEST_ASSERT(telemetry_get_interval_ms(STATE_CALIBRATING) == 100, "STATE_CALIBRATING interval is 100ms (10 Hz)");
 
     /* Dynamic rate reflection from active state */

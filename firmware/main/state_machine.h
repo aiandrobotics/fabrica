@@ -57,8 +57,7 @@ typedef enum {
     STATE_IDLE_RUN = 0,         /**< Daily Run Mode (Awaiting preset trigger or mobile command) */
     STATE_RUNNING_MOTION = 1,   /**< Motion execution active (Core 0 busy) */
     STATE_ESTOP = 2,            /**< Latched Emergency Stop (Servos homed, requires 0x02 or button tap) */
-    STATE_ERROR = 3,            /**< Hardware / I2C / storage fault state */
-    STATE_CALIBRATING = 4       /**< Live servo jog / calibration mode (10s thermal / 15s auto-home) */
+    STATE_CALIBRATING = 4       /**< Live servo jog / calibration mode (10s thermal / 15s auto-home; wire value 4) */
 } system_state_t;
 
 /* ========================================================================= */

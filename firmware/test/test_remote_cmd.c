@@ -14,6 +14,7 @@
 #include "remote_cmd.h"
 #include "state_machine.h"
 #include "storage.h"
+#include "telemetry.h"
 
 /* ========================================================================= */
 /* Test Harness Macros & Helpers                                             */
@@ -114,7 +115,7 @@ static void test_fab1_opcode_parsing_and_malformed_rejection(void)
     TEST_ASSERT(ble_transport_write_fab1(stream_on, sizeof(stream_on)) == CMD_STATUS_OK &&
                 ble_transport_mock_pop_command(&cmd) &&
                 state_machine_process_command(&cmd) == ESP_OK &&
-                ble_transport_is_telemetry_stream_enabled() == true,
+                telemetry_is_stream_enabled() == true,
                 "0x11 01 enables periodic telemetry stream flag and notifies FAB2");
 
     uint32_t f3_before = ble_transport_mock_get_fab3_notify_count();

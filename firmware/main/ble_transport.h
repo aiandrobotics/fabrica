@@ -160,14 +160,6 @@ bool ble_transport_is_connected(void);
 uint16_t ble_transport_get_mtu(void);
 
 /**
- * @brief Query the status of the most recently processed BLE command or GATT
- * write.
- *
- * @return Latest cmd_status_t value.
- */
-cmd_status_t ble_transport_get_last_cmd_status(void);
-
-/**
  * @brief Enter BLE pairing mode with priority: disconnect any active central so
  *        GAP advertising restarts immediately for a new mobile device to pair.
  *
@@ -189,20 +181,6 @@ esp_err_t ble_transport_clear_bonds(void);
  * @return Count of bonded peers (0 to BLE_MAX_BONDS).
  */
 int ble_transport_get_bond_count(void);
-
-/**
- * @brief Enable or disable periodic BLE telemetry streaming state flag.
- *
- * @param enable true to enable telemetry notifications, false to disable.
- */
-void ble_transport_set_telemetry_stream(bool enable);
-
-/**
- * @brief Query whether periodic BLE telemetry streaming is enabled.
- *
- * @return true if enabled, false otherwise.
- */
-bool ble_transport_is_telemetry_stream_enabled(void);
 
 /**
  * @brief Query whether a connected central has subscribed to FAB2 telemetry CCCD.
