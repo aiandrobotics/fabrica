@@ -31,7 +31,7 @@ static volatile uint8_t s_active_step_idx = 0;
 static volatile uint8_t s_active_total_steps = 0;
 static volatile uint16_t s_active_elapsed_ms = 0;
 static volatile uint8_t s_active_progress_pct = 0;
-/* Total active step duration for telemetry progress calculation (700 + 600 + 800 = 2100 ms) */
+/* Total active step duration for telemetry progress calculation (900 + 600 + 500 = 2000 ms) */
 #define LANDING_RAMP_FRAMES          (LANDING_RAMP_MS / LANDING_STEP_MS)
 #define STEP_TARGET_DURATION_MS      (FOLD_FORWARD_SWEEP_MS + LANDING_APPROACH_MS + LANDING_RAMP_MS)
 
@@ -210,10 +210,10 @@ static bool is_step_valid(const fold_step_t *step)
 /**
  * @brief Execute a single folding step (single servo or parallel dual servos).
  *
- * Articulation Profile (Direct Fold + Short Brake @ 40° + Slow Linear Landing, 0° -> 160° -> 40° -> 0°, 2100ms):
- *   1. Direct Forward Sweep: 0° -> 160° (700ms)
- *   2. Return & Short Brake: 160° -> 40° (600ms = ~350ms return + ~250ms settle)
- *   3. Slow Linear Landing: 40° -> 0° (40 frames x 20ms = 800ms, -1.0°/frame, 50°/s)
+ * Articulation Profile (Direct Fold + Mid-Air Brake @ 30° + Linear Landing, 0° -> 165° -> 30° -> 0°, 2000ms):
+ *   1. Direct Forward Sweep: 0° -> 165° (900ms)
+ *   2. Return & Brake Hold: 165° -> 30° (600ms)
+ *   3. Linear Soft-Landing: 30° -> 0° (25 frames x 20ms = 500ms, -1.2°/frame, 60°/s)
  *
  * @param step Pointer to fold_step_t containing motor count and channel IDs.
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
@@ -241,7 +241,7 @@ esp_err_t motion_execute_step(const fold_step_t *step)
     }
 #endif
 
-    /* 1. Direct Forward Sweep (0° -> 160°, 700ms) */
+    /* 1. Direct Forward Sweep (0° -> 165°, 900ms) */
 #ifdef ESP_PLATFORM
     ESP_LOGI(TAG, "[Phase 1] Forward 0 -> %.0f deg (%dms) [Build %s %s]",
              FOLD_TARGET_ANGLE_DEG, FOLD_FORWARD_SWEEP_MS, __DATE__, __TIME__);
@@ -251,7 +251,7 @@ esp_err_t motion_execute_step(const fold_step_t *step)
         goto abort_step;
     }
 
-    /* 2. Return & Mid-Air Brake Hold at 40° (160° -> 40°, 600ms to kill momentum) */
+    /* 2. Return & Mid-Air Brake Hold at 30° (165° -> 30°, 600ms to kill momentum) */
 #ifdef ESP_PLATFORM
     ESP_LOGI(TAG, "[Phase 2] Return & brake -> %.0f deg (%dms)",
              LANDING_START_ANGLE_DEG, LANDING_APPROACH_MS);
@@ -261,7 +261,7 @@ esp_err_t motion_execute_step(const fold_step_t *step)
         goto abort_step;
     }
 
-    /* 3. Slow Linear Soft-Landing from dead-stop (40° -> 0°, 40 frames x 20ms = 800ms, 50°/s) */
+    /* 3. Linear Soft-Landing (30° -> 0°, 25 frames x 20ms = 500ms, 60°/s) */
 #ifdef ESP_PLATFORM
     ESP_LOGI(TAG, "[Phase 3] Soft-landing %.0f -> 0 deg (%dms, %lu frames)",
              LANDING_START_ANGLE_DEG, LANDING_RAMP_MS, (unsigned long)LANDING_RAMP_FRAMES);

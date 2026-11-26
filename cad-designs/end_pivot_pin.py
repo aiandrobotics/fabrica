@@ -6,10 +6,10 @@ Features:
 1. Outer End-Cap Head (Ø16.0mm x 2.5mm, Y in [-2.5, 0.0mm]) stopping flush against outer knuckle face,
    with a small +X orientation notch indicating the blade-side snap barb.
 2. Smooth Cylindrical Bearing Journal (Ø12.8mm, Y in [0.0, 18.0mm]) sliding straight in from outside (Y=0).
-3. Blade-Side (+X) Cantilever Click-Lock Snap Barb (R=8.5mm at Y in [15.2, 17.9mm]) with a long 15.0mm
-   flex arm (Y in [3.0, 18.0mm]) that flexes 1.20mm inward through the Ø13.7mm frame knuckle bore and
-   hooks 1.65mm behind the Y=15.0mm knuckle inner face (1.20mm positive lock even under full radial bore play).
-   Inner flex slot starts at X=4.15mm (outside the 4.14mm square peg) so the square peg base is 100% solid.
+3. Blade-Side (+X) Cantilever Click-Lock Snap Barb (R=9.1mm at Y in [15.2, 17.7mm]) on a stiffer 1.5mm thick,
+   15.0mm long spring arm (Y in [3.0, 17.7mm]) that flexes 1.80mm inward through the Ø13.7mm frame knuckle bore
+   and hooks 2.25mm behind the Y=15.0mm knuckle inner face (1.80mm positive lock even under full radial bore play).
+   Uses a 45° support-free inner slot roof so the square peg base (r_clip=4.14mm) remains 100% solid at Y=18.0mm.
    Stays strictly in the upper hemisphere (0° -> 180°, Z >= 13.0mm) so it clears the uniform Ø13.7mm cradle trough.
 4. Male 45° Diamond Tapered Square Peg (6.35 -> 5.90mm x 12.0mm, Y in [18.0, 30.0mm]) with corner relief & 45° nose chamfer.
 """
@@ -97,19 +97,19 @@ def construct_end_pivot_pin():
     # 2. Smooth Cylindrical Bearing Journal (Y in [0.0, 18.0mm])
     journal = Part.makeCylinder(journal_r, journal_len, App.Vector(0, 0, pivot_z), App.Vector(0, 1, 0))
 
-    # 3. Blade-Side (+X) Cantilever Click-Lock Snap Barb (Y in [15.2, 17.9mm], R = 8.5mm)
-    #    Hooks 1.65mm past the Ø13.7mm (R=6.85mm) knuckle bore wall (still 1.20mm catch even under
-    #    full 0.45mm radial play; needs 1.20mm inward flex inside 1.25mm slot). Positioned on +X
-    #    (flap blade side) so across 0° -> 180° fold it sweeps strictly through Z >= 13.0mm.
+    # 3. Blade-Side (+X) Cantilever Click-Lock Snap Barb (Y in [15.2, 17.7mm], R = 9.1mm)
+    #    Hooks 2.25mm past the Ø13.7mm (R=6.85mm) knuckle bore wall (still 1.80mm catch even under
+    #    full 0.45mm radial play) on a stiffer 1.5mm thick spring beam (3.4x higher springback force).
+    #    Positioned on +X (flap blade side) so across 0° -> 180° fold it sweeps strictly through Z >= 13.0mm.
     barb_h = 4.0                       # Z height of snap arm (pivot_z ± 2.0mm -> Z in [13.0, 17.0mm])
     barb_z0 = pivot_z - (barb_h / 2.0)
     pts = [
-        App.Vector(journal_r - 1.0, 15.2, barb_z0),
-        App.Vector(8.5,             15.2, barb_z0),  # 90° deep locking shoulder facing -Y (1.65mm hook)
-        App.Vector(8.5,             15.6, barb_z0),  # 0.4mm crest
-        App.Vector(journal_r - 0.1, 17.9, barb_z0),  # ~44° support-free insertion ramp
-        App.Vector(journal_r - 1.0, 17.9, barb_z0),
-        App.Vector(journal_r - 1.0, 15.2, barb_z0),
+        App.Vector(journal_r - 1.5, 15.2, barb_z0),
+        App.Vector(9.1,             15.2, barb_z0),  # 90° deep locking shoulder facing -Y (2.25mm hook)
+        App.Vector(9.1,             15.6, barb_z0),  # 0.4mm crest
+        App.Vector(journal_r - 0.1, 17.7, barb_z0),  # support-free insertion ramp
+        App.Vector(journal_r - 1.5, 17.7, barb_z0),
+        App.Vector(journal_r - 1.5, 15.2, barb_z0),
     ]
     barb_face = Part.Face(Part.makePolygon(pts))
     barb = barb_face.extrude(App.Vector(0, 0, barb_h))
@@ -120,17 +120,30 @@ def construct_end_pivot_pin():
     # Fuse body before cutting cantilever flex slot
     pin = cap.fuse([journal, sq_peg, barb]).removeSplitter()
 
-    # 5. Long Cantilever Flex Relief Slot on +X (Y in [3.0, 18.0mm], 15mm beam, 1.0mm thick, 1.25mm flex gap)
-    #    Starts at X = 4.15mm (strictly outside square peg r_clip = 4.14mm) so square peg base is 100% solid!
+    # 5. Stiff Cantilever Flex Relief Slot on +X (15mm beam, 1.5mm thick, 1.95mm flex gap behind barb)
+    #    Slopes out at 45° from (X=2.95, Y=16.4) to (X=4.15, Y=17.6) so the square peg base (r_clip=4.14mm)
+    #    at Y=18.0mm sits on 100% solid plastic while giving full 1.80mm flex clearance behind the barb.
     slot_y0 = 3.0
-    slot_len = journal_len - slot_y0 + 0.1  # extends cleanly past Y=18.0mm to free the arm tip
-    inner_slot = Part.makeBox(1.25, slot_len, barb_h + 1.4)
-    inner_slot.translate(App.Vector(4.15, slot_y0, pivot_z - (barb_h / 2.0) - 0.7))
+    slot_z0 = pivot_z - (barb_h / 2.0) - 0.7
+    slot_h = barb_h + 1.4
+    inner_slot_pts = [
+        App.Vector(2.95, slot_y0, slot_z0),
+        App.Vector(4.90, slot_y0, slot_z0),
+        App.Vector(4.90, 16.4,    slot_z0),
+        App.Vector(6.10, 17.6,    slot_z0),  # trims inner ramp tip so it clears 45° roof at full flex
+        App.Vector(6.10, 18.1,    slot_z0),
+        App.Vector(4.15, 18.1,    slot_z0),  # strictly outside square peg (r_clip = 4.14mm)
+        App.Vector(4.15, 17.6,    slot_z0),
+        App.Vector(2.95, 16.4,    slot_z0),  # 45° support-free roof under square peg
+        App.Vector(2.95, slot_y0, slot_z0),
+    ]
+    inner_slot = Part.Face(Part.makePolygon(inner_slot_pts)).extrude(App.Vector(0, 0, slot_h))
 
     # Top & bottom horizontal release slits freeing the cantilever arm all the way past Y=18.0mm
-    slit_top = Part.makeBox(5.0, slot_len, 0.7)
+    slot_len = journal_len - slot_y0 + 0.1
+    slit_top = Part.makeBox(5.5, slot_len, 0.7)
     slit_top.translate(App.Vector(4.15, slot_y0, pivot_z + (barb_h / 2.0)))
-    slit_bot = Part.makeBox(5.0, slot_len, 0.7)
+    slit_bot = Part.makeBox(5.5, slot_len, 0.7)
     slit_bot.translate(App.Vector(4.15, slot_y0, pivot_z - (barb_h / 2.0) - 0.7))
 
     # Subtle +X alignment tick on outer cap face (Y = -2.5mm) showing blade-side orientation
