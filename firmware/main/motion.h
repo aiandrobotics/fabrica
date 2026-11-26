@@ -94,10 +94,9 @@ bool motion_is_busy(void);
 
 /**
  * @brief Execute a single folding step (single or parallel dual-motor sweep).
- *        Sweeps target motor(s) directly 0° -> 160° (700ms), lifts back to
- *        vertical 160° -> 90° (200ms), then meters down through the gravity
- *        zone in 2 stages: 90° -> 30° (240ms, 250°/s) and 30° -> 0° (360ms, 83°/s).
- *        Checks for E-Stop every 10ms.
+ *        Sweeps target motor(s) directly 0° -> 160° (700ms), returns and brakes
+ *        at 40° (600ms = ~350ms return + ~250ms settle), then slowly lowers
+ *        40° -> 0° (800ms, 40 x 20ms frames at 50°/s). Checks for E-Stop every 10ms.
  * @param step Pointer to fold_step_t structure.
  * @return ESP_OK on clean completion, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
  */

@@ -45,7 +45,10 @@ static void print_system_diagnostics(void)
 
     ESP_LOGI(TAG, "============================================================");
     ESP_LOGI(TAG, " Fabrica Cloth Folding Robot - ESP32-S3 Firmware");
-    ESP_LOGI(TAG, " System State Machine & Preset Engine Ready");
+    ESP_LOGI(TAG, " Build: %s %s | Profile: 0->%.0f(%dms) -> %.0f(%dms) -> 0(%dms)",
+             __DATE__, __TIME__,
+             FOLD_TARGET_ANGLE_DEG, FOLD_FORWARD_SWEEP_MS,
+             LANDING_START_ANGLE_DEG, LANDING_APPROACH_MS, LANDING_RAMP_MS);
     ESP_LOGI(TAG, "============================================================");
 
     ESP_LOGI(TAG, "Chip Model       : %s", (chip_info.model == CHIP_ESP32S3) ? "ESP32-S3" : "Unknown");

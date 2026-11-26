@@ -55,10 +55,8 @@ extern "C" {
 #define BUTTON_FACTORY_RESET_MS      10000  /* Simultaneous B1+B3+B4 hold time (10s) to wipe presets and bonds */
 #define BLE_PAIRING_TIMEOUT_MS       120000 /* 120-second (2-minute) BLE discovery/pairing window */
 #define FOLD_FORWARD_SWEEP_MS        700    /* Forward travel time to reach 160 deg */
-#define LANDING_APPROACH_MS          200    /* Direct lift back to vertical (160 deg -> 90 deg) */
-#define LANDING_STAGE1_MS            240    /* Controlled descent against gravity (90 deg -> 30 deg, 250 deg/s) */
-#define LANDING_STAGE2_MS            360    /* Soft touchdown ramp (30 deg -> 0 deg, 83 deg/s) */
-#define LANDING_RAMP_MS              (LANDING_STAGE1_MS + LANDING_STAGE2_MS) /* 600 ms total */
+#define LANDING_APPROACH_MS          600    /* Return to 40 deg (~350ms) + ~250ms brake settle */
+#define LANDING_RAMP_MS              800    /* Slow linear soft-landing from 40 deg -> 0 deg (50 deg/s) */
 #define LANDING_STEP_MS              20     /* Soft-landing frame interval (50 Hz native PWM) */
 #define INTER_STEP_DELAY_MS          10     /* Delay between routine steps */
 #define CALIBRATION_THERMAL_TIMEOUT_MS    10000 /* Stationary servo PCA9685 sleep cutoff (10s) */
@@ -87,8 +85,7 @@ extern "C" {
 /* ========================================================================= */
 
 #define HOME_ANGLE_DEG               0.0f   /* Flat resting angle */
-#define LANDING_MID_ANGLE_DEG        30.0f  /* Soft-landing stage 2 touchdown angle */
-#define LANDING_START_ANGLE_DEG      90.0f  /* Vertical top-dead-center: start of gravity-controlled descent */
+#define LANDING_START_ANGLE_DEG      40.0f  /* Mid-air brake hold & soft-landing start angle */
 #define FOLD_ANGLE_DEG               180.0f /* Full servo mechanical range (degrees) */
 #define FOLD_TARGET_ANGLE_DEG        160.0f /* Max folding sweep target angle */
 

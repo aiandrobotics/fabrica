@@ -31,9 +31,8 @@ static volatile uint8_t s_active_step_idx = 0;
 static volatile uint8_t s_active_total_steps = 0;
 static volatile uint16_t s_active_elapsed_ms = 0;
 static volatile uint8_t s_active_progress_pct = 0;
-/* Total active step duration for telemetry progress calculation (700 + 200 + 600 = 1500 ms) */
-#define LANDING_STAGE1_FRAMES        (LANDING_STAGE1_MS / LANDING_STEP_MS)
-#define LANDING_STAGE2_FRAMES        (LANDING_STAGE2_MS / LANDING_STEP_MS)
+/* Total active step duration for telemetry progress calculation (700 + 600 + 800 = 2100 ms) */
+#define LANDING_RAMP_FRAMES          (LANDING_RAMP_MS / LANDING_STEP_MS)
 #define STEP_TARGET_DURATION_MS      (FOLD_FORWARD_SWEEP_MS + LANDING_APPROACH_MS + LANDING_RAMP_MS)
 
 static EventGroupHandle_t s_evt_group_handle = NULL;
@@ -211,11 +210,10 @@ static bool is_step_valid(const fold_step_t *step)
 /**
  * @brief Execute a single folding step (single servo or parallel dual servos).
  *
- * Articulation Profile (Direct Fold + Gravity-Controlled 2-Stage Return, 0° -> 160° -> 90° -> 30° -> 0°, 1500ms):
+ * Articulation Profile (Direct Fold + Short Brake @ 40° + Slow Linear Landing, 0° -> 160° -> 40° -> 0°, 2100ms):
  *   1. Direct Forward Sweep: 0° -> 160° (700ms)
- *   2. Direct Lift to Vertical: 160° -> 90° (200ms; gravity opposes lift)
- *   3a. Controlled Descent: 90° -> 30° (12 frames x 20ms = 240ms, 250°/s)
- *   3b. Soft Touchdown: 30° -> 0° (18 frames x 20ms = 360ms, 83°/s)
+ *   2. Return & Short Brake: 160° -> 40° (600ms = ~350ms return + ~250ms settle)
+ *   3. Slow Linear Landing: 40° -> 0° (40 frames x 20ms = 800ms, -1.0°/frame, 50°/s)
  *
  * @param step Pointer to fold_step_t containing motor count and channel IDs.
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
@@ -244,31 +242,32 @@ esp_err_t motion_execute_step(const fold_step_t *step)
 #endif
 
     /* 1. Direct Forward Sweep (0° -> 160°, 700ms) */
+#ifdef ESP_PLATFORM
+    ESP_LOGI(TAG, "[Phase 1] Forward 0 -> %.0f deg (%dms) [Build %s %s]",
+             FOLD_TARGET_ANGLE_DEG, FOLD_FORWARD_SWEEP_MS, __DATE__, __TIME__);
+#endif
     set_step_servo_angle(step, FOLD_TARGET_ANGLE_DEG);
     if (motion_delay_ms(FOLD_FORWARD_SWEEP_MS, true)) {
         goto abort_step;
     }
 
-    /* 2. Direct Lift to Vertical (160° -> 90°, 200ms; gravity opposes lift) */
+    /* 2. Return & Mid-Air Brake Hold at 40° (160° -> 40°, 600ms to kill momentum) */
+#ifdef ESP_PLATFORM
+    ESP_LOGI(TAG, "[Phase 2] Return & brake -> %.0f deg (%dms)",
+             LANDING_START_ANGLE_DEG, LANDING_APPROACH_MS);
+#endif
     set_step_servo_angle(step, LANDING_START_ANGLE_DEG);
     if (motion_delay_ms(LANDING_APPROACH_MS, true)) {
         goto abort_step;
     }
 
-    /* 3a. Controlled Descent (90° -> 30°, 12 frames x 20ms = 240ms, 250°/s) */
-    for (uint32_t frame = 1; frame <= LANDING_STAGE1_FRAMES; frame++) {
-        float t = (float)frame / (float)LANDING_STAGE1_FRAMES;
-        float angle = LANDING_START_ANGLE_DEG - ((LANDING_START_ANGLE_DEG - LANDING_MID_ANGLE_DEG) * t);
-        set_step_servo_angle(step, angle);
-        if (motion_delay_ms(LANDING_STEP_MS, true)) {
-            goto abort_step;
-        }
-    }
-
-    /* 3b. Soft Touchdown (30° -> 0°, 18 frames x 20ms = 360ms, 83°/s) */
-    for (uint32_t frame = 1; frame <= LANDING_STAGE2_FRAMES; frame++) {
-        float t = (float)frame / (float)LANDING_STAGE2_FRAMES;
-        float angle = LANDING_MID_ANGLE_DEG * (1.0f - t);
+    /* 3. Slow Linear Soft-Landing from dead-stop (40° -> 0°, 40 frames x 20ms = 800ms, 50°/s) */
+#ifdef ESP_PLATFORM
+    ESP_LOGI(TAG, "[Phase 3] Soft-landing %.0f -> 0 deg (%dms, %lu frames)",
+             LANDING_START_ANGLE_DEG, LANDING_RAMP_MS, (unsigned long)LANDING_RAMP_FRAMES);
+#endif
+    for (uint32_t frame = 1; frame <= LANDING_RAMP_FRAMES; frame++) {
+        float angle = LANDING_START_ANGLE_DEG * (1.0f - ((float)frame / (float)LANDING_RAMP_FRAMES));
         set_step_servo_angle(step, angle);
         if (motion_delay_ms(LANDING_STEP_MS, true)) {
             goto abort_step;
