@@ -31,9 +31,8 @@ static volatile uint8_t s_active_step_idx = 0;
 static volatile uint8_t s_active_total_steps = 0;
 static volatile uint16_t s_active_elapsed_ms = 0;
 static volatile uint8_t s_active_progress_pct = 0;
-/* Total active step duration for telemetry progress calculation (800 + 450 + 800 = 2050 ms) */
-#define LANDING_RAMP_FRAMES          ((uint32_t)LANDING_START_ANGLE_DEG)
-#define LANDING_RAMP_MS              (LANDING_RAMP_FRAMES * LANDING_STEP_MS)
+/* Total active step duration for telemetry progress calculation (700 + 300 + 400 = 1400 ms) */
+#define LANDING_RAMP_FRAMES          (LANDING_RAMP_MS / LANDING_STEP_MS)
 #define STEP_TARGET_DURATION_MS      (FOLD_FORWARD_SWEEP_MS + LANDING_APPROACH_MS + LANDING_RAMP_MS)
 
 static EventGroupHandle_t s_evt_group_handle = NULL;
@@ -211,10 +210,10 @@ static bool is_step_valid(const fold_step_t *step)
 /**
  * @brief Execute a single folding step (single servo or parallel dual servos).
  *
- * Articulation Profile (Direct Fold + Uniform -1° Soft-Landing, 0° -> 150° -> 40° -> 0°, 2050ms):
- *   1. Direct Forward Sweep: 0° -> 150° (800ms)
- *   2. Fast Return to Soft-Landing Point: 150° -> 40° (450ms)
- *   3. Uniform Soft-Landing: 40° -> 0° (-1° per 20ms frame = 800ms, 50°/s)
+ * Articulation Profile (Direct Fold + Uniform Soft-Landing, 0° -> 165° -> 50° -> 0°, 1400ms):
+ *   1. Direct Forward Sweep: 0° -> 165° (700ms)
+ *   2. Fast Return to Soft-Landing Point: 165° -> 50° (300ms)
+ *   3. Uniform Soft-Landing: 50° -> 0° (-2.5° per 20ms frame = 400ms, 125°/s)
  *
  * @param step Pointer to fold_step_t containing motor count and channel IDs.
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
@@ -242,21 +241,22 @@ esp_err_t motion_execute_step(const fold_step_t *step)
     }
 #endif
 
-    /* 1. Direct Forward Sweep (0° -> 150°, 800ms) */
+    /* 1. Direct Forward Sweep (0° -> 165°, 700ms) */
     set_step_servo_angle(step, FOLD_TARGET_ANGLE_DEG);
     if (motion_delay_ms(FOLD_FORWARD_SWEEP_MS, true)) {
         goto abort_step;
     }
 
-    /* 2. Fast Return to Soft-Landing Point (150° -> 40°, 450ms) */
+    /* 2. Fast Return to Soft-Landing Point (165° -> 50°, 300ms) */
     set_step_servo_angle(step, LANDING_START_ANGLE_DEG);
     if (motion_delay_ms(LANDING_APPROACH_MS, true)) {
         goto abort_step;
     }
 
-    /* 3. Uniform Soft-Landing (39° -> 0°, -1° per 20ms frame = 800ms) */
-    for (int32_t angle = (int32_t)LANDING_START_ANGLE_DEG - 1; angle >= 0; angle--) {
-        set_step_servo_angle(step, (float)angle);
+    /* 3. Uniform Soft-Landing (50° -> 0°, 20 frames x 20ms = 400ms) */
+    for (uint32_t frame = 1; frame <= LANDING_RAMP_FRAMES; frame++) {
+        float angle = LANDING_START_ANGLE_DEG * (1.0f - ((float)frame / (float)LANDING_RAMP_FRAMES));
+        set_step_servo_angle(step, angle);
         if (motion_delay_ms(LANDING_STEP_MS, true)) {
             goto abort_step;
         }

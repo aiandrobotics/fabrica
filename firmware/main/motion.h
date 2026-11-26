@@ -94,9 +94,9 @@ bool motion_is_busy(void);
 
 /**
  * @brief Execute a single folding step (single or parallel dual-motor sweep).
- *        Sweeps target motor(s) directly 0° -> 150° (800ms), fast-returns
- *        150° -> 40° (450ms), and performs a uniform -1°/20ms soft-landing
- *        40° -> 0° (800ms). Checks for E-Stop every 10ms.
+ *        Sweeps target motor(s) directly 0° -> 165° (700ms), fast-returns
+ *        165° -> 50° (300ms), and performs a uniform soft-landing
+ *        50° -> 0° (400ms, -2.5°/20ms). Checks for E-Stop every 10ms.
  * @param step Pointer to fold_step_t structure.
  * @return ESP_OK on clean completion, ESP_ERR_TIMEOUT if aborted by E-Stop, or ESP_ERR_INVALID_ARG.
  */
