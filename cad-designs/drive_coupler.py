@@ -1,5 +1,5 @@
 """
-hex_drive_coupler.py — Compact 10mm Bridge Modular Hex Drive Coupler Pin
+drive_coupler.py — Compact 10mm Bridge Modular Drive Coupler Pin
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -60,7 +60,7 @@ def make_tapered_diamond_peg(y_start, direction, taper_len, pivot_z):
     )
     return peg.common(clip_cyl).removeSplitter()
 
-def construct_hex_drive_coupler():
+def construct_drive_coupler():
     """
     Constructs the Symmetric Inter-Module 45° Diamond Tapered Square Drive Coupler (Part 11).
     Spans the 10mm gap between adjacent modules and bridges their 360° knuckles:
@@ -94,8 +94,8 @@ def construct_hex_drive_coupler():
     coupler = main_shaft.fuse([pos_cone, sq_pos_peg, neg_cone, sq_neg_peg]).removeSplitter()
 
     # Export STEP and STL
-    step_path = os.path.join(EXPORT_DIR, "hex_drive_coupler.step")
-    stl_path  = os.path.join(EXPORT_DIR, "hex_drive_coupler.stl")
+    step_path = os.path.join(EXPORT_DIR, "drive_coupler.step")
+    stl_path  = os.path.join(EXPORT_DIR, "drive_coupler.stl")
     os.makedirs(EXPORT_DIR, exist_ok=True)
     for path in (step_path, stl_path):
         if os.path.exists(path):
@@ -107,9 +107,9 @@ def construct_hex_drive_coupler():
     return coupler
 
 def export_part():
-    doc = App.ActiveDocument or App.newDocument("HexDriveCoupler")
-    shape = construct_hex_drive_coupler()
-    feature = doc.addObject("Part::Feature", "HexDriveCoupler")
+    doc = App.ActiveDocument or App.newDocument("DriveCoupler")
+    shape = construct_drive_coupler()
+    feature = doc.addObject("Part::Feature", "DriveCoupler")
     feature.Shape = shape
 
 export_part()

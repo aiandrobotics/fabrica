@@ -42,7 +42,7 @@ def construct_follower_flap():
     Features:
     1. Compact Drop-In Footprint (188x226mm) fitting directly between 360° closed frame knuckles.
     2. Continuous Solid Internal Drive Axle (Ø12.8mm) for maximum column torsional rigidity.
-    3. Dual Integrated 8.0mm Female Hex Drive Coupler Sockets on top (Y=204) and bottom (Y=16) axle ends.
+    3. Dual Integrated 6.50mm 45° Diamond Female Square Drive Coupler Sockets (14.0mm deep) on top (Y=204) and bottom (Y=18) axle ends.
     4. Flush Top Surface (rests directly on 15.0mm frame rails).
     5. Multi-tiered Organic Gradient Circular Cutouts (~45% mass reduction).
     6. 1.2mm Recessed Perimeter Shadow Bevel for premium aesthetics.
@@ -67,9 +67,9 @@ def construct_follower_flap():
     y_max_blade = h - gap_axial                   # 219.5mm
     total_blade_len = y_max_blade - y_min_blade   # 219.0mm
 
-    # Modular Drop-In Spine Span: Sits between 3.0mm bottom pin inner disk (Y=18.0mm) and top knuckle (Y=204.0mm)
-    y_knuckle_bot = 18.0                          # 18.0mm (seats flush against bottom pin inner thrust disk)
-    y_knuckle_top = h - rail_w - 1.0              # 204.0mm (1.0mm thrust clearance to top knuckle)
+    # Modular Drop-In Spine Span: Sits between click-lock snap barb zone (Y=18.0mm) and top knuckle (Y=204.0mm)
+    y_knuckle_bot = 18.0                          # 18.0mm (3.0mm clearance behind bottom knuckle for end pivot pin barb)
+    y_knuckle_top = h - rail_w - 1.0              # 204.0mm (1.0mm axial clearance to top knuckle)
     mid_len = y_knuckle_top - y_knuckle_bot       # 186.0mm
 
     x_min = -shaft_r                              # -6.4mm
@@ -142,7 +142,7 @@ def construct_follower_flap():
 
     flap = blade.cut(Part.makeCompound(bevel_cuts)).removeSplitter()
 
-    # 4. Continuous Full Cylindrical Hinge Spine (Ø12.8mm full cylinder providing 100% 360° hex socket enclosure)
+    # 4. Continuous Full Cylindrical Hinge Spine (Ø12.8mm full cylinder providing 100% 360° square socket enclosure)
     axle_full = Part.makeCylinder(shaft_r, mid_len, App.Vector(0, y_knuckle_bot, pivot_z), App.Vector(0, 1, 0))
     flap = flap.fuse(axle_full).removeSplitter()
 

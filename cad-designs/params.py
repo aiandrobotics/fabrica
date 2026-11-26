@@ -6,50 +6,31 @@ import os
 BUILD_PLATE_X = 256.0 * SCALE
 BUILD_PLATE_Y = 256.0 * SCALE
 BUILD_PLATE_Z = 256.0 * SCALE
-SCALE_180     = 180.0 / 256.0
 
 # ==============================================================================
 # SIZING PROFILES:
 # Profile 1 (Default): 256mm Build Plate -> 220mm True Squares (Max part: 244mm <= 245mm)
 # Profile 2 (Compact): 180mm Build Plate -> 145mm True Squares (Max part: 169mm <= 170mm)
 # ==============================================================================
-PANEL_WIDTH              = 220.0  # 220mm True Square
-PANEL_HEIGHT             = 220.0  # 220mm True Square
-PANEL_THICKNESS          = 12.0
-FOLLOWER_PANEL_THICKNESS = 10.0
-BASE_PANEL_THICKNESS     = 15.0
-FLAP_THICKNESS           = 2.4
-PADDLE_THICKNESS         = 2.4
+PANEL_WIDTH          = 220.0  # 220mm True Square
+PANEL_HEIGHT         = 220.0  # 220mm True Square
+BASE_PANEL_THICKNESS = 15.0
+PADDLE_THICKNESS     = 2.4
 
-INTERFACE_PANEL_WIDTH     = 140.0
-INTERFACE_PANEL_HEIGHT    = 120.0
-INTERFACE_PANEL_THICKNESS = 25.0
+INTERFACE_PANEL_WIDTH  = 140.0
+INTERFACE_PANEL_HEIGHT = 120.0
 
-# FDM Clearances, Tolerances & Walls (Fixed mm for 0.4mm nozzle FDM printing)
-FIT_CLEARANCE           = 0.40
-PRESS_FIT_CLEARANCE     = 0.20
-THREAD_CLEARANCE        = 0.60
-WALL_THICKNESS          = 3.00
-COSMETIC_WALL_THICKNESS = 2.00
-
-# Aesthetics & Printability Parameters
+# FDM Walls, Aesthetics & Printability Parameters
+WALL_THICKNESS         = 3.00
 TEXTURE_HEIGHT         = 0.60
 HOLE_CHAMFER           = 0.80
 ELEPHANTS_FOOT_CHAMFER = 0.40
-CONTROL_DECK_ANGLE     = 15.0
 ACCENT_BEVEL_DEPTH     = 1.20
 
-# TPU Dampers, Alignment Reticles & Power Port
-TPU_BUMPER_DEPTH     = 1.50
-RETICLE_DEBOSS_DEPTH = 0.40
-DC_JACK_DIAMETER     = 11.50
-BUTTON_HOLE_DIA      = 16.00
-
-# Base Module & Joiner Optimizations (True Sliding Dovetail System)
-FOOT_PAD_DIA      = 20.10
-FOOT_PAD_DEPTH    = 2.00
-JOINER_DETENT     = 0.30
-WIRE_PORT_FILLET  = 1.50
+# TPU Dampers & Interface Panel Cutouts
+TPU_BUMPER_DEPTH = 1.50
+DC_JACK_DIAMETER = 11.50
+BUTTON_HOLE_DIA  = 16.00
 
 # True Sliding Dovetail Geometry (Top-Slide Drop-In Lock - Fixed Universal Hardware)
 DOVETAIL_FLOOR_THICKNESS = 3.00  # 3.0mm bottom floor drop stop
@@ -60,34 +41,15 @@ DOVETAIL_CLEARANCE       = 0.20  # 0.20mm sliding tolerance per side (0.40mm tot
 DOVETAIL_HEIGHT          = BASE_PANEL_THICKNESS - DOVETAIL_FLOOR_THICKNESS  # Exactly 12.0mm for 100% flush deck
 
 # Heavy-Duty Drive Axle & 45° Diamond Tapered Square Coupler (Column Synchronous Folding - Fixed Universal Hardware)
-PIVOT_Z                   = BASE_PANEL_THICKNESS  # 15.00mm (Hinge line at top deck surface for full-coverage panels resting on top of frame)
-DRIVE_SHAFT_DIAMETER      = 12.80 # Ø12.8mm outer axle diameter (R=6.4mm axle in R=6.85mm cradle bore)
-DRIVE_SHAFT_BORE          = 8.00  # Ø8mm inner weight-relief bore
-SQUARE_DRIVE_SIZE         = 6.50  # 6.50mm flat-to-flat 45° diamond female socket (self-supporting roof, zero overhang droop)
-SQUARE_DRIVE_BASE_SIZE    = 6.35  # 6.35mm male peg base width (0.15mm total clearance -> zero-backlash snug seat)
-SQUARE_DRIVE_TIP_SIZE     = 5.90  # 5.90mm male peg tip width (0.60mm total clearance -> effortless hand insertion)
-SQUARE_DRIVE_SOCKET_DEPTH = 14.00 # 14.0mm deep female diamond socket in flaps (2.0mm bottom air gap)
-SQUARE_DRIVE_PEG_DEPTH    = 12.00 # 12.0mm male tapered square peg engagement depth
-SQUARE_DRIVE_CORNER_CLIP  = 0.35  # 0.35mm corner relief clip on male peg (prevents FDM seam blob binding)
+PIVOT_Z                    = BASE_PANEL_THICKNESS  # 15.00mm (Hinge line at top deck surface for full-coverage panels resting on top of frame)
+DRIVE_SHAFT_DIAMETER       = 12.80 # Ø12.8mm outer axle diameter (R=6.4mm axle in R=6.85mm cradle bore)
+SQUARE_DRIVE_SIZE          = 6.50  # 6.50mm flat-to-flat 45° diamond female socket (self-supporting roof, zero overhang droop)
+SQUARE_DRIVE_BASE_SIZE     = 6.35  # 6.35mm male peg base width (0.15mm total clearance -> zero-backlash snug seat)
+SQUARE_DRIVE_TIP_SIZE      = 5.90  # 5.90mm male peg tip width (0.60mm total clearance -> effortless hand insertion)
+SQUARE_DRIVE_SOCKET_DEPTH  = 14.00 # 14.0mm deep female diamond socket in flaps (2.0mm bottom air gap)
+SQUARE_DRIVE_PEG_DEPTH     = 12.00 # 12.0mm male tapered square peg engagement depth
+SQUARE_DRIVE_CORNER_CLIP   = 0.35  # 0.35mm corner relief clip on male peg (prevents FDM seam blob binding)
 BEARING_ROTATING_CLEARANCE = 0.45  # 0.45mm radial clearance (Ø13.7mm frame knuckle bore for friction-free FDM 3D printing rotation)
-
-
-# ==============================================================================
-# MG996R SERVO HARDWARE CONSTANTS (Fixed Physical Dimensions - Never Scaled)
-# ==============================================================================
-SERVO_MODULE_LENGTH    = 70.0  # Total motor module zone length along Y
-SERVO_MODULE_WIDTH     = 72.0  # Enclosure outer width (X = -24.0 to +48.0mm)
-SERVO_SPLINE_Y_OFFSET  = 55.0  # Servo spline output axis offset from frame top edge (Y = H - 55.0mm)
-SERVO_HORN_ADAPTER_DIA = 19.0  # Ø19mm flange disk for standard MG996R round horn
-SERVO_HORN_ADAPTER_LEN = 16.5  # Total adapter length (7mm flange + 9.5mm hex)
-SERVO_COVER_WIDTH      = 63.7  # Top snap lid width
-SERVO_COVER_LENGTH     = 38.8  # Top snap lid length
-SERVO_MOUNT_WIDTH      = 40.5  # MG996R body length
-SERVO_MOUNT_DEPTH      = 20.0  # MG996R body width
-SERVO_MOUNT_HEIGHT     = 38.0  # MG996R body height
-SERVO_HOLE_SPACING_X   = 48.0  # Flange mounting screw pitch
-SERVO_HOLE_SPACING_Y   = 10.0
-SERVO_SCREW_RADIUS     = 1.7   # M3 screw clearance (Ø3.4mm)
 
 # Standard 4x3 Folding Grid Assembly Layout & Inter-Module Gap
 MODULE_GAP        = 10.0 * SCALE  # 10mm fabric relief and cable raceway bridge gap
@@ -104,11 +66,8 @@ if __name__ == "__main__":
     print("=== Fabrica CAD Parameters loaded successfully ===")
     print(f"SCALE: {SCALE}")
     print(f"Build Plate: {BUILD_PLATE_X:.1f} x {BUILD_PLATE_Y:.1f} x {BUILD_PLATE_Z:.1f} mm")
-    print(f"Modular Panel: {PANEL_WIDTH:.1f} x {PANEL_HEIGHT:.1f} x {PANEL_THICKNESS:.1f} mm")
-    print(f"Interface Panel: {INTERFACE_PANEL_WIDTH:.1f} x {INTERFACE_PANEL_HEIGHT:.1f} x {INTERFACE_PANEL_THICKNESS:.1f} mm")
+    print(f"Modular Panel: {PANEL_WIDTH:.1f} x {PANEL_HEIGHT:.1f} x {BASE_PANEL_THICKNESS:.1f} mm")
+    print(f"Interface Panel: {INTERFACE_PANEL_WIDTH:.1f} x {INTERFACE_PANEL_HEIGHT:.1f} mm")
     print(f"Standard 4x3 Grid Size: {TOTAL_GRID_WIDTH:.1f} x {TOTAL_GRID_HEIGHT:.1f} mm")
-    print(f"TPU Bumper Slot: {TPU_BUMPER_DEPTH:.1f} mm | Anti-Slip Feet Sockets: Ø{FOOT_PAD_DIA:.1f} x {FOOT_PAD_DEPTH:.1f} mm")
-    print(f"Joiner Click Detent: {JOINER_DETENT:.1f} mm | Dual-Tone Accent Bevel: {ACCENT_BEVEL_DEPTH:.1f} mm")
-    print(f"DC Power Jack Port: Ø{DC_JACK_DIAMETER:.1f} mm | Garment Reticle Deboss: {RETICLE_DEBOSS_DEPTH:.1f} mm")
-    print(f"Fit Clearance: {FIT_CLEARANCE:.2f} mm | Press Fit Clearance: {PRESS_FIT_CLEARANCE:.2f} mm")
+    print(f"Drive Axle: Ø{DRIVE_SHAFT_DIAMETER:.1f} mm | Square Drive: {SQUARE_DRIVE_SIZE:.2f} mm ({SQUARE_DRIVE_BASE_SIZE:.2f}->{SQUARE_DRIVE_TIP_SIZE:.2f} mm)")
     print(f"Export Path: {EXPORT_DIR}")

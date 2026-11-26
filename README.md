@@ -84,7 +84,7 @@ The mechanical system is built programmatically using parametric FreeCAD Python 
   - **Motorized Module (`motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py`)**: Active folding module with integrated MG996R servo well, continuous $\varnothing 12.8\text{ mm}$ hinge axle, $\varnothing 20.0 \times 7.5\text{ mm}$ horn adapter ($6.35 \to 5.90\text{ mm}$ 45° diamond tapered square peg), dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ diamond square sockets, solid un-grooved $2.4\text{ mm}$ hinge neck, and vented snap-cover.
   - **Follower Module (`follower_frame.py`, `follower_flap.py`)**: Passive folding extension with dual $\varnothing 13.7\text{ mm}$ bearing knuckles, dual $14.0\text{ mm}$ deep $6.50\text{ mm}$ 45° diamond female square drive sockets, and solid un-grooved $2.4\text{ mm}$ hinge neck.
   - **Interface Enclosure (`interface_case.py`, `interface_panel.py`)**: Compact enclosure housing the 4 tactile push buttons, status LED diffuser, ESP32-S3-DevKitC-1, PCA9685, and power distribution boards.
-  - **Hardware Interlocks (`frame_joiner.py`, `hex_drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ 45° diamond tapered square coupler pins (smooth $\varnothing 12.6\text{ mm}$ body), and captive shoulder end pivot pins.
+  - **Hardware Interlocks (`frame_joiner.py`, `drive_coupler.py`, `end_pivot_pin.py`)**: Click-lock hollow sliding dovetail bridges with wire routing tunnels, double-male $6.35 \to 5.90\text{ mm} \times 12.0\text{ mm}$ 45° diamond tapered square coupler pins (smooth $\varnothing 12.6\text{ mm}$ body), and outside-headed click-lock end pivot pins.
 - **Pre-Exported Assets**: Clean STEP and STL files available in [`cad-designs/exports/`](cad-designs/exports/).
 - **Slicer Profile**: Bambu Studio / OrcaSlicer project file ready for printing in [`cad-designs/3d-print/fabrica-bambu-lab-256.3mf`](cad-designs/3d-print/fabrica-bambu-lab-256.3mf).
 
@@ -213,8 +213,8 @@ fabrica/
 │   ├── interface_case.py      # Triple-board electronics enclosure
 │   ├── interface_panel.py     # Compact snap-lock button & LED faceplate
 │   ├── frame_joiner.py        # Interlocking dovetail joiners with wire raceway
-│   ├── hex_drive_coupler.py   # Double-male 6.35→5.90mm × 12.0mm 45° diamond square coupler pin
-│   ├── end_pivot_pin.py       # Captive shoulder pivot pin (6.35→5.90mm × 12.0mm square peg)
+│   ├── drive_coupler.py       # Double-male 6.35→5.90mm × 12.0mm 45° diamond square coupler pin
+│   ├── end_pivot_pin.py       # Outside-headed click-lock pivot pin (6.35→5.90mm × 12.0mm square peg)
 │   ├── assembly.py            # Full 6-module universal folding robot assembly
 │   ├── export_all.py          # Batch export script (STEP & STL)
 │   ├── 3d-print/              # Bambu Studio 3MF slicer projects

@@ -11,27 +11,27 @@ In the Fabrica $4 \times 3$ modular folding grid:
 - It contains a full-size rotating folding flap ($239.0 \times 238.0 \times 2.4\text{ mm}$) integrated with a heavy-duty continuous $\varnothing 13.0\text{ mm}$ drive axle.
 - **Synchronous Column Torque Transmission**: The drive axle has standardized torque couplers on both ends:
   - **Top End**: $6.50\text{ mm}$ 45° Diamond Square Socket to receive rotational torque from the module above (Motorized Module or Follower Module).
-  - **Bottom End**: $6.50\text{ mm}$ 45° Diamond Square Socket connected via the double-male **Part 11 Drive Coupler Pin** (`hex_drive_coupler.py`) to transmit torque downward to the next Follower Module in the column.
+  - **Bottom End**: $6.50\text{ mm}$ 45° Diamond Square Socket connected via the double-male **Part 11 Drive Coupler Pin** (`drive_coupler.py`) to transmit torque downward to the next Follower Module in the column.
   - When the single servo motor in Row 1 rotates, **all flaps in that column rotate together in unison**.
 
 ```
                     [Motorized / Follower Module Above]
                                      │
-                          ▼ (Top 8.0mm Hex Socket)
+                          ▼ (Top 6.50mm Square Socket)
         +=================[ 240mm Top Rail ]=================+
-        | [Ø13.5mm Top Bearing Knuckle 360°]                 | [Dovetail Socket]
+        | [Ø13.7mm Top Bearing Knuckle 360°]                 | [Dovetail Socket]
         |                                                    |
         |  ===============================================   |
         |  |                                             |   |
 240mm   |  |           Full-Size Follower Flap           |   | 240mm Outer Rail
 Hinge   |  |           (239 x 238 x 2.4 mm)              |   | [Open-Top Dovetail]
 Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
-(Z=8mm) |  |                                             |   |
+(Z=15mm)|  |                                             |   |
         |  ===============================================   |
         |                                                    |
-        | [Ø13.5mm Bottom Bearing Knuckle 360°]              | [Dovetail Socket]
+        | [Ø13.7mm Bottom Bearing Knuckle 360°]              | [Dovetail Socket]
         +================[ 240mm Bottom Rail ]===============+
-                          ▲ (Bottom 8.0mm Hex Socket + Part 11 Pin)
+                          ▲ (Bottom 6.50mm Square Socket + Part 11 Pin)
                                      │
                       [Next Follower Module Below]
 ```
@@ -91,7 +91,7 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 
 ---
 
-## 2.3 Modular Double-Male 45° Diamond Tapered Square Coupler Pin (`hex_drive_coupler.py`)
+## 2.3 Modular Double-Male 45° Diamond Tapered Square Drive Coupler Pin (`drive_coupler.py`)
 - **Overall Dimensions**: $6.50\text{ mm}$ nominal 45° diamond square drive $\times 66.0\text{ mm}$ total length.
 - **Double-Ended Tapered Square Keys**: $6.35\text{ mm}$ base tapering to $5.90\text{ mm}$ tip over $12.0\text{ mm}$ engagement length (`SQUARE_DRIVE_PEG_DEPTH = 12.00`), with $0.35\text{ mm}$ corner-relief clips (`SQUARE_DRIVE_CORNER_CLIP`) and $1.2\text{ mm} \times 45^\circ$ self-aligning nose chamfers on both ends.
 - **Continuous Smooth Journal Body**: Single uninterrupted $\varnothing 12.6\text{ mm}$ bearing journal cylinder spanning the $10.0\text{ mm}$ inter-module gap and both frame knuckles (no center stop collar), transitioning into the pegs via $45^\circ$ conical shoulders.
@@ -104,7 +104,7 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
   1. Follower Frame (Green `#2ecc71`).
   2. Follower Flap with $\varnothing 13\text{ mm}$ Axle (Orange `#e67e22`).
   3. 2× Frame Joiners (Blue `#3498db`) mounted in outer frame sockets.
-  4. 1× Hex Drive Coupler (Purple `#9b59b6`) mated in axle hex socket.
+  4. 1× Drive Coupler (Purple `#9b59b6`) mated in axle square socket.
 - **Kinematic Travel Verification**:
   - Unobstructed $0^\circ \text{ (flat rest)} \to 90^\circ \text{ (vertical)} \to 180^\circ \text{ (folded onto center base module)}$ sweep.
   - Zero collision (`overlap_volume_mm3 == 0.00000 mm³`) between all mating pairs throughout the rotation arc.
@@ -114,6 +114,6 @@ Axis    |  |     [Organic Gradient Circular Cutouts]     |   |
 ## 3. Acceptance Criteria
 - [x] `./run.sh export_all` passes with exit code `0` and generates valid STEP/STL files for all 6 models.
 - [x] $\varnothing 13.0\text{ mm}$ drive axle rotates smoothly in $\varnothing 13.5\text{ mm}$ frame knuckles ($0.25\text{ mm}$ clearance).
-- [x] Hex couplers ($8.0\text{ mm}$ Hex) engage with adjacent active and follower module drive shafts with zero angular backlash.
+- [x] Drive couplers ($6.50\text{ mm}$ 45° diamond tapered square) engage with adjacent active and follower module drive shafts with minimal angular backlash.
 - [x] 4th wall dovetail joint has $3.0\text{ mm}$ solid continuous outer walls, zero floating slivers, and zero supports.
 - [x] `check_interference` confirms `0.00000 mm³` overlap across all assembly pairs.

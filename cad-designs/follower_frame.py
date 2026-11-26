@@ -1,11 +1,10 @@
 """
-follower_frame.py — Passive Follower Frame with Clean Solid Through-Dovetail Joint
+follower_frame.py — Passive Follower Frame with Dual 360° Bearing Knuckles & Uniform Cradle
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
 import os
 import sys
-import math
 import FreeCAD as App
 import Part
 
@@ -28,24 +27,15 @@ from params import (
 
 def construct_follower_frame():
     """
-    Constructs the Passive Follower Frame with Clean Solid Through-Dovetail Joint.
-    
+    Constructs the Passive Follower Frame (220x220x15mm).
     Features:
-    1. 4-Sided Rigid Chassis (240x240x15mm):
-       - 15mm rigid outer rails on Front (Y=0), Back (Y=240), and Right (X=240).
-       - 4th Left Wall (X=11 to 25mm, Z=0 to 3mm, width 14mm) with Clean Solid Through-Dovetail Joint:
-         * Neck Width = 4.0mm, Flare Width = 8.0mm, Depth = 8.0mm, Clearance = 0.25mm.
-         * 3.0mm of 100% solid, thick continuous outer wall on BOTH sides (Left X=11 to 14mm, Right X=22 to 25mm).
-         * Eliminates all thin knife-edge wedges, floating slivers, and horizontal slits.
-         * 100% flat bed 3D printing with zero overhangs, zero supports, and zero post-processing.
-       - 100% flush at Z=3.0mm, requiring zero loose joiner parts and providing 100% kinematic rotation clearance.
-    2. Dual 100% Solid 360° Closed Bearing Knuckles (Top Y=240, Bottom Y=0) housing full-length Ø13mm flap axle.
-    3. C1-Continuous Tangent Concave Blend Ramps (Rf = 12mm) for seamless knuckle-to-deck flow.
-    4. True Open-Top Sliding Dovetail Joiner Sockets on outer walls (Front Y=0, Back Y=240, Right X=240)
-       with 3.0mm bottom floor drop stops and Ø6.0mm true through-floor push-out access holes.
-    5. 4x Bottom Anti-Slip Grip Foot Sockets (Ø12mm x 2.0mm) for high-traction silicone/TPU rubber pads.
-    6. 3x Silent-Flip TPU Bumper Slots (1.5mm depth) recessed into the top landing rail.
-    7. 0.4mm bottom Elephant's Foot relief chamfers.
+    1. 15mm rigid outer rails on Front (Y=0), Back (Y=220), and Right (X=220) with open center cavity.
+    2. Dual 360° closed bearing knuckles (Ø13.7mm bore) and uniform Ø13.7mm semi-circular axle cradle.
+    3. 180° flap folding kinematic relief along hinge pedestal (Z = 12.1mm).
+    4. True open-top sliding dovetail joiner sockets on outer walls (Front, Back, Right)
+       with 3.0mm bottom floor drop stops, Ø6.0mm push-out access holes, and wire conduits.
+    5. Silent-flip TPU bumper slots (1.5mm depth) recessed into the right landing rail.
+    6. 0.4mm bottom Elephant's Foot relief chamfers.
     """
     import params
     w = params.PANEL_WIDTH
@@ -53,10 +43,6 @@ def construct_follower_frame():
     t = params.BASE_PANEL_THICKNESS
     rail_w = 15.0
     bottom_thick = 3.0
-    tie_w = 14.0
-    tie_x = 11.0
-    center_x = tie_x + (tie_w / 2.0) # 18.0mm
-    y_seam = h / 2.0                 # h/2
 
     # 1. Main outer shell block
     outer_box = Part.makeBox(w, h, t)
@@ -93,12 +79,7 @@ def construct_follower_frame():
     top_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, h - knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
 
-    # A2. Inner Thrust Flange Counterbore Recesses (Ø16.8mm x 1.2mm for captive pin inner thrust disk)
-    disk_recess_r = 8.4  # 8.4mm radius for Ø16.0mm disk (+0.4mm radial clearance)
-    bot_thrust_recess = Part.makeCylinder(disk_recess_r, 3.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
-    top_thrust_recess = Part.makeCylinder(disk_recess_r, 1.3, App.Vector(0, h - knuckle_len - 1.2, pivot_z), App.Vector(0, 1, 0))
-
-    # B. Semi-Circular Cradle Trough (supports half-cylinder axle from below)
+    # B. Semi-Circular Cradle Trough (uniform Ø13.7mm from knuckle to knuckle)
     cradle_trough = Part.makeCylinder(bore_r, h - 2 * knuckle_len + 0.2, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
 
     # B2. 180° Flap Folding Kinematic Relief: In the active flap span Y in [15.0, 205.0mm],
@@ -123,7 +104,7 @@ def construct_follower_frame():
     trim_bot = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, bot_thrust_recess, top_thrust_recess, hinge_180_relief, trim_bot])).removeSplitter()
+    frame = frame.cut(Part.makeCompound([cav_main, cradle_trough, top_bore, bot_bore, hinge_180_relief, trim_bot])).removeSplitter()
 
     # 4. Female Open-Top True Sliding Dovetail Joiner Sockets on Outer Walls (Front Y=0, Back Y=H, Right X=W)
     dt_neck_w = DOVETAIL_NECK_WIDTH

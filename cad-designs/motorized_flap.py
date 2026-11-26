@@ -1,5 +1,5 @@
 """
-motorized_flap.py — Monolithic Active Folding Flap with Symmetrical Dual-Ended Hex Torque Sockets
+motorized_flap.py — Monolithic Active Folding Flap with Symmetrical Dual-Ended Square Torque Sockets
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
@@ -40,10 +40,10 @@ def construct_motorized_flap():
     """
     Constructs the Active Folding Flap (Part 7) with smooth under-flap axle gusset transition.
     Features:
-      1. Solid cylindrical drive axle (Ø12.9mm) centered at Z_pivot=10.0mm spanning Y=0.5 to 179.0mm.
+      1. Solid cylindrical drive axle (Ø12.8mm) centered at Z_pivot=15.0mm spanning Y=18.0 to 150.0mm.
       2. Smooth under-flap structural reinforcing gusset blending axle into blade.
-      3. Driven Top End (Y=179.0mm): Standard 8.0mm female hex socket receiving the motorized_servo_adapter peg.
-      4. Output Bottom End (Y=0.5mm): Standard 8.0mm female hex socket transmitting column torque via hex_drive_coupler.
+      3. Driven Top End (Y=150.0mm): 6.50mm 45° diamond female square socket (14.0mm deep) receiving the motorized_servo_adapter peg.
+      4. Output Bottom End (Y=18.0mm): 6.50mm 45° diamond female square socket (14.0mm deep) transmitting column torque via drive_coupler.
       5. Full-size blade with organic circular cutouts (~45% mass reduction) and diamond micro-grip knurling matching follower_flap.
     """
     import params
@@ -53,7 +53,6 @@ def construct_motorized_flap():
     pivot_z = PIVOT_Z                            # 15.00mm (exact top deck hinge line)
     panel_z_min = pivot_z                        # 15.00mm (rests directly on top of frame rails)
     top_z = pivot_z + t                          # 17.40mm
-    rail_w = 15.0
     gap_axial = 0.5
     gap_radial = 0.5
 
@@ -65,15 +64,13 @@ def construct_motorized_flap():
     y_max_blade = h - gap_axial                   # 219.5mm
     total_blade_len = y_max_blade - y_min_blade   # 219.0mm
 
-    # Modular Drop-In Spine Span: Starts at Y=18.0mm (seats against 3.0mm bottom pin inner thrust disk)
+    # Modular Drop-In Spine Span: Starts at Y=18.0mm (clears click-lock snap barb zone Y=15..18mm)
     y_knuckle_bot = 18.0                          # 18.0mm
     y_knuckle_mot_top = h - 77.0 - gap_axial     # 142.5mm
     mid_len = y_knuckle_mot_top - y_knuckle_bot  # 124.5mm
 
-    x_min = -shaft_r                             # -6.4mm
     x_wing_start = knuckle_r + gap_radial        # 9.9mm
     x_max = w - gap_axial                        # 219.5mm
-    total_w = x_max - x_min                      # 225.9mm
     full_wing_w = x_max - x_wing_start           # 209.6mm
 
     # Motor module notch boundary (motor housing spans X in [-24.0, 48.0mm], Y in [150.0, 220.0mm])

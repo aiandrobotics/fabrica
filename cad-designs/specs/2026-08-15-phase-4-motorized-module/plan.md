@@ -29,7 +29,7 @@ Implementation plan for the Active Motorized Module of the Fabrica Cloth Folding
 2. Model the top-left servo clearance corner relief notch ($45.0 \times 55.0\text{ mm}$) providing collision-free rotation around the motor bay across full $0^\circ \to 180^\circ$ swing.
 3. Model integrated continuous solid-core drive axle ($\varnothing 12.8\text{ mm}$) along $X = 0$ spanning $Y = 18.0$ to $142.5\text{ mm}$, centered at $Z_{pivot} = 15.0\text{ mm}$.
 4. Model **Driven Top End** with standardized $6.50\text{ mm}$ 45° diamond female square torque socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) receiving the `motorized_servo_adapter` tapered square peg.
-5. Model **Output Bottom End** with standardized $6.50\text{ mm}$ 45° diamond female square torque socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) transmitting torque down the column via `hex_drive_coupler`.
+5. Model **Output Bottom End** with standardized $6.50\text{ mm}$ 45° diamond female square torque socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) transmitting torque down the column via `drive_coupler`.
 6. Model multi-tiered organic circular cutouts (~45% mass reduction), $0.6\text{ mm}$ diamond micro-grip knurling texture keeping the hinge neck strip ($X \in [0.0, 11.9\text{ mm}]$) $100\%$ solid $2.4\text{ mm}$ un-grooved, and $1.2\text{ mm}$ perimeter shadow bevel.
 7. Implement headless STEP and STL export in `construct_motorized_flap()`.
 
@@ -45,6 +45,6 @@ Implementation plan for the Active Motorized Module of the Fabrica Cloth Folding
 ---
 
 ## Task Group 5: Motorized Sub-Assembly & Interference Verification (`motorized_assembly.py`)
-1. Assemble Motorized Frame (Gold), Motorized Flap (Red), Servo Cover (Purple), 2x Frame Joiners (Blue), Hex Coupler Pin (Yellow), Servo Drive Adapter (Orange), and MG996R Servo CAD reference model (Cyan).
+1. Assemble Motorized Frame (Gold), Motorized Flap (Red), Servo Cover (Purple), 2x Frame Joiners (Blue), Drive Coupler Pin (Yellow), Servo Drive Adapter (Orange), and MG996R Servo CAD reference model (Cyan).
 2. Validate kinematic $0^\circ \to 90^\circ \to 180^\circ$ swing with zero collision (`0.00000 mm³` overlap).
 3. Export `motorized_assembly.step` and `motorized_assembly.stl`.

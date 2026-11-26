@@ -1,11 +1,10 @@
 """
-motorized_frame.py — Motorized Outer Frame Chassis with Solid Mounting Towers, Hex Screw Housings, Inner Enclosure Wall, and Rear Slide-in Servo Bay
+motorized_frame.py — Motorized Outer Frame Chassis with Solid Mounting Towers, Inner Enclosure Wall, and Rear Slide-in Servo Bay
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 """
 
 import os
 import sys
-import math
 import FreeCAD as App
 import Part
 
@@ -25,30 +24,15 @@ from params import (
     EXPORT_DIR,
 )
 
-def make_hex_prism(r_af, depth, center, axis):
-    """Creates a regular hexagonal prism aligned with given axis for M3 nut/screw housing."""
-    r_corner = r_af / math.cos(math.radians(30))
-    pts = []
-    for i in range(6):
-        ang = math.radians(60 * i + 30)
-        pts.append(App.Vector(center.x + r_corner * math.cos(ang), center.y, center.z + r_corner * math.sin(ang)))
-    pts.append(pts[0])
-    wire = Part.makePolygon(pts)
-    face = Part.Face(wire)
-    solid = face.extrude(axis * depth)
-    return solid
-
 def construct_motorized_frame():
     """
     Constructs the 4-sided outer perimeter chassis for the Active Motorized Module.
     Features:
-      1. Complete continuous inner enclosure wall (X in [38.0, 48.0mm], Y in [185.0, 240.0mm])
-         sealing the motor compartment from the frame's central cavity.
-      2. Solid front mounting towers (Y in [185.0, 195.5mm]) with 4x M3 through-holes (2 top, 2 bottom)
-         spaced accurately per MG996R motor specs with captive hex nut housings.
-      3. Open rear slide-in slot (Y=240mm) allowing the horizontal MG996R servo to slide directly into place.
+      1. Complete continuous inner enclosure wall sealing the motor compartment from the central cavity.
+      2. Solid front mounting towers with 4x M3 through-holes spaced per MG996R motor specs.
+      3. Open rear slide-in slot allowing the horizontal MG996R servo to slide directly into place.
       4. 100% Flat Base Plane at Z=0.0mm matching the follower frame base.
-      5. Hinge pivot axis at PIVOT_Z = 10.0mm identically matching all follower modules.
+      5. Hinge pivot axis at PIVOT_Z = 15.0mm identically matching all follower modules.
     """
     import params
     w = params.PANEL_WIDTH
@@ -56,17 +40,14 @@ def construct_motorized_frame():
     t = params.BASE_PANEL_THICKNESS
     rail_w = 15.0
     bottom_thick = 3.0
-    pivot_z = PIVOT_Z        # 10.0mm
+    pivot_z = PIVOT_Z        # 15.0mm
 
-    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0 # 9.5mm radius
+    knuckle_r = (DRIVE_SHAFT_DIAMETER / 2.0) + 3.0  # 9.4mm radius
     knuckle_len = 15.0
     # MG996R Motor Module Fixed Hardware Zone (anchored at top edge Y = h):
     # Total motor module length = 77.0mm (knuckle shifted -7mm for >=5mm adapter clearance with +2mm thicker flange)
     k_top_start_y = h - 77.0
-    k_top_len = 15.0 # Knuckle barrel spans Y in [h - 70.0, h - 55.0]
-    towers_start_y = h - 55.0 # Towers span Y in [h - 55.0, h - 44.5]
-    bay_start_y = h - 44.5 # Motor bay spans Y in [h - 44.5, h]
-    bay_len = 44.5
+    k_top_len = 15.0  # Knuckle barrel spans Y in [h - 77.0, h - 62.0]
     # 1. Base 4-Wall Perimeter Frame
     outer_box = Part.makeBox(w, h, t)
     t_blade = params.PADDLE_THICKNESS # 2.4mm
@@ -155,8 +136,6 @@ def construct_motorized_frame():
 
     # 3. Hinge Bearing Bores & Knuckle Bore
     bot_bore = Part.makeCylinder(bore_r, knuckle_len + 0.2, App.Vector(0, -0.1, pivot_z), App.Vector(0, 1, 0))
-    # Bottom inner thrust flange recess (Ø16.8mm x 3.2mm for 3.0mm captive pin inner thrust disk):
-    bot_thrust_recess = Part.makeCylinder(8.4, 3.3, App.Vector(0, knuckle_len - 0.1, pivot_z), App.Vector(0, 1, 0))
     # Top knuckle bore spanning Y in [149.9, 158.1mm] (SOLID 360 degree closed cylinder barrel):
     top_bore = Part.makeCylinder(bore_r, 8.2, App.Vector(0, k_top_start_y - 0.1, pivot_z), App.Vector(0, 1, 0))
     
@@ -168,7 +147,7 @@ def construct_motorized_frame():
     trim_bot_flat = Part.makeBox(w + 100.0, h + 100.0, 20.0)
     trim_bot_flat.translate(App.Vector(-50.0, -50.0, -20.0))
 
-    for b in [bot_bore, bot_thrust_recess, top_bore, adapter_pocket, trim_bot_flat]:
+    for b in [bot_bore, top_bore, adapter_pocket, trim_bot_flat]:
         frame = frame.cut(b).removeSplitter()
 
     # 4. Top Drop-In Servo Bay Cavity with Solid Resting Base Floor at Z = 5.25mm (where motor body directly sits), Solid Closed Rear Wall (5.5mm thick at Y = 214.5 to 220.0mm), and Solid Front Towers:

@@ -3,7 +3,7 @@ motorized_servo_adapter.py — Modular Circular Servo Horn Drive Adapter
 Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 
 Bolts directly onto the standard circular servo horn disk (Ø20mm) included with MG996R,
-and extends a male 8.0mm hex drive peg to anchor into the motorized folding flap shaft.
+and extends a male 45° diamond tapered square drive peg to anchor into the motorized folding flap shaft.
 """
 
 import os
@@ -78,17 +78,15 @@ def make_tapered_diamond_peg(y_start, direction, straight_len, taper_len, pivot_
 
 def construct_motorized_servo_adapter():
     """
-    Constructs the 3D-printed Servo Horn to Hex Drive Adapter (Part 12).
+    Constructs the 3D-printed Servo Horn to Square Drive Adapter (Part 12).
     Features:
-      1. Ø20.0mm Circular Flange Disk (4.3mm thickness spanning Y=159.5 to 163.8mm, centered at Z_pivot=15.0mm).
+      1. Ø20.0mm Circular Flange Disk (7.5mm thickness spanning Y=156.3 to 163.8mm, centered at Z_pivot=15.0mm).
       2. 4x M2/M2.5 screw clearance through-holes (Ø2.5mm) on Ø14.0mm PCD for bolting to the standard round metal/plastic horn.
       3. 100% Solid Continuous Central Core for maximum torsional fatigue resistance under servo torque.
-      4. Male 8.0mm Hex Drive Peg (7.7mm flat-to-flat, 18.0mm length extending along -Y from Y=159.5 to 141.5mm)
-         passing through frame top knuckle (Y in [150.0, 158.5mm]) and engaging 8.0mm into flap shaft hex socket (Y in [141.5, 149.5mm])
-         with generous 2.55–3.15mm radial clearance to screw heads and a 2.0mm x 45° self-aligning lead-in entry chamfer.
+      4. Male 45° Diamond Tapered Square Drive Peg (6.35 -> 5.90mm flat-to-flat, 6.3mm straight span + 12.0mm tapered engagement)
+         passing through frame top knuckle and engaging 12.0mm into flap shaft square socket (Y in [138.0, 150.0mm])
+         with corner relief and a 1.2mm x 45° self-aligning lead-in nose chamfer.
     """
-    import params
-    h = params.PANEL_HEIGHT
     pivot_z = PIVOT_Z                          # 15.0mm
     disk_r = 10.0                              # 10.0mm radius (Ø20.0mm circular flange matching round horn)
     y_front = 156.3                            # Front face at Y = 156.3mm (6.3mm span to flap top face at Y = 150.0mm)

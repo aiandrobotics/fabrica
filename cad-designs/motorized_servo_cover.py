@@ -24,8 +24,6 @@ def construct_motorized_servo_cover():
       2. Dual Heavy-Duty Side Cantilever Snap Legs with 30° insertion ramps and 90° locking shoulders.
       3. Rear-left corner finger/tool pry notch for easy toolless maintenance.
     """
-    import params
-    h = params.PANEL_HEIGHT
     # 1. Main Flush Top Plate (sitting in frame top rebate at Z = 25.8 to 27.2mm, spanning Y in [173.4, 219.8mm], recessed inside left wall at X=-20.6mm)
     w_top = 60.8 # X in [-20.6, 40.2mm]
     l_top = 46.4 # Y in [173.4, 219.8mm]
@@ -47,7 +45,6 @@ def construct_motorized_servo_cover():
     rear_pegs = []
     for px in peg_xs:
         p_cyl = Part.makeCylinder(peg_r, peg_h + 0.5, App.Vector(px, peg_y, 5.5 - peg_h))
-        p_chamf = Part.makeCone(peg_r + 0.5, peg_r - 0.5, 0.6, App.Vector(px, peg_y, 5.5 - peg_h - 0.1))
         # Trim bottom tip cleanly with a 45° lead-in chamfer
         c_outer = Part.makeCylinder(peg_r + 1.0, 0.6, App.Vector(px, peg_y, 5.5 - peg_h - 0.05))
         c_keep = Part.makeCone(peg_r - 0.5, peg_r, 0.55, App.Vector(px, peg_y, 5.5 - peg_h))

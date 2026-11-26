@@ -18,35 +18,35 @@ In the Fabrica $4 \times 3$ modular folding grid:
 - **Symmetrical Dual-Ended Female 45° Diamond Square Flap**:
   - The `motorized_flap` features identical $6.50\text{ mm}$ 45° diamond female square sockets ($14.0\text{ mm}$ deep with $0.8\text{ mm} \times 45^\circ$ entry bevel) at both ends ($Y = 18.0\text{ mm}$ and $Y = 150.0\text{ mm}$), identical to `follower_flap`.
 - **Synchronous Column Torque Transmission**:
-  - Rotational torque is transmitted from the servo through the metal horn, into the 3D-printed drive adapter, down the active flap axle, and through the `hex_drive_coupler` into the follower flap below.
+  - Rotational torque is transmitted from the servo through the metal horn, into the 3D-printed drive adapter, down the active flap axle, and through the `drive_coupler` into the follower flap below.
 
 ```
                     [Row 1 Top Frame Boundary]
                                  │
            ┌───────────────────────────────────────────┐
            │ Horizontal MG996R Servo (Flat on 20mm side)│
-           │ Output Spline centered at (X=0, Z=10.0mm) │
+           │ Output Spline centered at (X=0, Z=15.0mm) │
            └─────────────────────┬─────────────────────┘
                                  ▼ (Standard Ø20mm Round Metal Horn)
            ┌───────────────────────────────────────────┐
-           │ Modular Servo Drive Adapter (7mm disk)    │
-           │ Male 8.0mm Hex Peg at (X=0, Z=10.0mm)     │
+           │ Modular Servo Drive Adapter (7.5mm disk)  │
+           │ Male 6.35→5.90mm Square Peg (X=0, Z=15mm) │
            └─────────────────────┬─────────────────────┘
-                                 ▼ (Top 8.0mm Female Hex Socket)
+                                 ▼ (Top 6.50mm Female Square Socket)
          +=================[ 240mm Top Rail ]=================+
-         | [Full Hood Cover]           [Ø13.5mm Top Knuckle]  | [Dovetail Socket]
+         | [Full Hood Cover]           [Ø13.7mm Top Knuckle]  | [Dovetail Socket]
          | [Inner Enclosure Wall]                             |
          |  ===============================================   |
          |  |                                             |   |
 240mm    |  |            Active Motorized Flap            |   | 240mm Outer Rail
-Hinge    |  |            (239 x 238 x 2.4 mm)             |   | [Open-Top Dovetail]
+Hinge    |  |            (219 x 219.5 x 2.4 mm)           |   | [Open-Top Dovetail]
 Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
-(Z=10mm) |  |                                             |   |
+(Z=15mm) |  |                                             |   |
          |  ===============================================   |
          |                                                    |
-         | [Ø13.5mm Bottom Bearing Knuckle 360°]              | [Dovetail Socket]
+         | [Ø13.7mm Bottom Bearing Knuckle 360°]              | [Dovetail Socket]
          +================[ 240mm Bottom Rail ]===============+
-                           ▲ (Bottom 8.0mm Hex Socket + Part 11 Pin)
+                           ▲ (Bottom 6.50mm Square Socket + Part 11 Pin)
                                       │
                  [Row 2: Passive Follower Module Below]
 ```
@@ -99,7 +99,7 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
   - Fused with bottom reinforcing fillet gusset between knuckles.
 - **Dual Symmetrical 6.50mm 45° Diamond Female Square Sockets**:
   - **Driven Top End**: $6.50\text{ mm}$ 45° diamond female square socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) receiving the `motorized_servo_adapter` tapered square peg.
-  - **Output Bottom End**: $6.50\text{ mm}$ 45° diamond female square socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) receiving the `hex_drive_coupler` pin.
+  - **Output Bottom End**: $6.50\text{ mm}$ 45° diamond female square socket ($14.0\text{ mm}$ deep, `SQUARE_DRIVE_SOCKET_DEPTH = 14.00`, with $0.8\text{ mm} \times 45^\circ$ entry bevel) receiving the `drive_coupler` pin.
 - **Weight Reduction & Aesthetics**:
   - Multi-tiered organic circular cutouts (~45% mass reduction, target blade weight $\le 75\text{g}$).
   - $0.6\text{ mm}$ diamond micro-grip knurling texture on top garment face, excluding the hinge neck strip ($X \in [0.0, 11.9\text{ mm}]$) to preserve a `100%` solid $2.4\text{ mm}$ hinge spine transition.
@@ -121,7 +121,7 @@ Axis     |  |     [Organic Gradient Circular Cutouts]     |   |
   2. `MotorizedFlap` (Crimson Red)
   3. `MotorizedServoCover` (Slate Purple)
   4. 2x `FrameJoiner` (Blue)
-  5. `HexDriveCoupler` (Gold/Yellow, bottom port)
+  5. `DriveCoupler` (Gold/Yellow, bottom port)
   6. `ServoDriveAdapter` (Orange/Silver, top drive port)
   7. MG996R Servo CAD reference model (Cyan)
 - **Kinematics & Interference**:

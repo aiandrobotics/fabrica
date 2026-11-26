@@ -5,15 +5,15 @@ Parametric FreeCAD Python script for Fabrica Cloth Folding Robot.
 Kinematic Architecture:
   1. Left Active Folding Wing (450mm long):
      - Top-Left: Motorized Module with MG996R Direct-Drive Servo
-     - Bottom-Left: Follower Module synchronously driven via Modular Hex Drive Coupler
-     - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=0.0mm, Z=10.0mm)
+     - Bottom-Left: Follower Module synchronously driven via Modular Drive Coupler
+     - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=0.0mm, Z=15.0mm)
   2. Center Stationary Base Platform (450mm x 220mm):
      - 2x Monolithic Base Modules with Garment Alignment Reticles and Silent-Flip TPU Dampers
      - Provides rigid static torso/body support
   3. Right Active Folding Wing (450mm long):
      - Top-Right: Motorized Module with MG996R Direct-Drive Servo (Mirrored Inward Fold)
-     - Bottom-Right: Follower Module synchronously driven via Modular Hex Drive Coupler (Mirrored)
-     - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=680.0mm, Z=10.0mm)
+     - Bottom-Right: Follower Module synchronously driven via Modular Drive Coupler (Mirrored)
+     - Revolute Joint: 0° to 180° inward folding around Hinge Axis (X=680.0mm, Z=15.0mm)
   4. 7x Heavy-Duty Sliding Dovetail Bridge Joiners:
      - Rigidly locks the 6 modules into a monolithic 680mm x 450mm chassis.
 """
@@ -41,7 +41,7 @@ from follower_frame import construct_follower_frame
 from follower_flap import construct_follower_flap
 from base_module import construct_base_module
 from frame_joiner import construct_frame_joiner
-from hex_drive_coupler import construct_hex_drive_coupler
+from drive_coupler import construct_drive_coupler
 from end_pivot_pin import construct_end_pivot_pin
 
 def construct_servo_cad_reference(h=220.0):
@@ -149,10 +149,10 @@ def build_universal_folding_robot_assembly():
         obj_bl_pin.ViewObject.ShapeColor = (0.10, 0.74, 0.61) # Cyan
     export_shapes.append(bl_pin)
 
-    # Left Column Hex Drive Coupler at Y = 225.0mm (bridges Top-Left Flap to Bottom-Left Flap)
-    l_coupler = construct_hex_drive_coupler()
+    # Left Column Drive Coupler at Y = 225.0mm (bridges Top-Left Flap to Bottom-Left Flap)
+    l_coupler = construct_drive_coupler()
     l_coupler.translate(App.Vector(0, h + (gap / 2.0), 0))
-    obj_l_coupler = doc.addObject("Part::Feature", "Left_Hex_Coupler")
+    obj_l_coupler = doc.addObject("Part::Feature", "Left_Drive_Coupler")
     obj_l_coupler.Shape = l_coupler
     if hasattr(obj_l_coupler, "ViewObject") and obj_l_coupler.ViewObject:
         obj_l_coupler.ViewObject.ShapeColor = (0.90, 0.85, 0.20)
@@ -258,10 +258,10 @@ def build_universal_folding_robot_assembly():
         obj_br_pin.ViewObject.ShapeColor = (0.10, 0.74, 0.61)
     export_shapes.append(br_pin)
 
-    # Right Column Hex Coupler at X = 740mm, Y = 225mm
-    r_coupler = mirror_x(construct_hex_drive_coupler())
+    # Right Column Drive Coupler at X = 740mm, Y = 225mm
+    r_coupler = mirror_x(construct_drive_coupler())
     r_coupler.translate(App.Vector(0, h + (gap / 2.0), 0))
-    obj_r_coupler = doc.addObject("Part::Feature", "Right_Hex_Coupler")
+    obj_r_coupler = doc.addObject("Part::Feature", "Right_Drive_Coupler")
     obj_r_coupler.Shape = r_coupler
     if hasattr(obj_r_coupler, "ViewObject") and obj_r_coupler.ViewObject:
         obj_r_coupler.ViewObject.ShapeColor = (0.90, 0.85, 0.20)

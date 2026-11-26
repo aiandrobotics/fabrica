@@ -19,7 +19,7 @@ from params import (
 from follower_frame import construct_follower_frame
 from follower_flap import construct_follower_flap
 from frame_joiner import construct_frame_joiner
-from hex_drive_coupler import construct_hex_drive_coupler
+from drive_coupler import construct_drive_coupler
 from end_pivot_pin import construct_end_pivot_pin
 
 def build_follower_assembly():
@@ -27,9 +27,9 @@ def build_follower_assembly():
     Assembles the Passive Follower Module:
     1. Follower Chassis Frame (Green #2ecc71).
     2. Modular Drop-In Follower Flap (Orange #e67e22) seated along hinge axis (X=0).
-    3. Captive Inner-Flanged Shoulder Pivot Pin (Cyan #1abc9c) at bottom hinge port (Y=0).
+    3. Outside-Headed Click-Lock End Pivot Pin (Cyan #1abc9c) at bottom hinge port (Y=0).
     4. 2x Frame Joiners (Blue #3498db) attached to outer Front (Y=0) and Right (X=240) dovetails.
-    5. Modular Double-Male Hex Drive Coupler Pin (Purple #9b59b6) at top hinge port (Y=220).
+    5. Modular Double-Male Drive Coupler Pin (Purple #9b59b6) at top hinge port (Y=220).
     """
     for doc_name in list(App.listDocuments().keys()):
         App.closeDocument(doc_name)
@@ -58,7 +58,7 @@ def build_follower_assembly():
     if hasattr(flap_obj, "ViewObject") and flap_obj.ViewObject:
         flap_obj.ViewObject.ShapeColor = (0.9, 0.49, 0.13)
 
-    # 3. Captive Inner-Flanged Shoulder Pivot Pin (Color: Cyan #1abc9c at bottom Y=0)
+    # 3. Outside-Headed Click-Lock End Pivot Pin (Color: Cyan #1abc9c at bottom Y=0)
     pin_shape = construct_end_pivot_pin()
     pin_obj = doc.addObject("Part::Feature", "EndPivotPin")
     pin_obj.Shape = pin_shape
@@ -83,10 +83,10 @@ def build_follower_assembly():
     if hasattr(joiner_right, "ViewObject") and joiner_right.ViewObject:
         joiner_right.ViewObject.ShapeColor = (0.2, 0.6, 0.86)
 
-    # 6. Modular Double-Male Hex Drive Coupler Pin (Color: Purple #9b59b6 at top seam Y=225)
-    coupler_shape = construct_hex_drive_coupler()
+    # 6. Modular Double-Male Drive Coupler Pin (Color: Purple #9b59b6 at top seam Y=225)
+    coupler_shape = construct_drive_coupler()
     coupler_shape.translate(App.Vector(0, h + (MODULE_GAP / 2.0), 0)) # Centered on inter-module seam gap at Y=225.0mm
-    coupler_obj = doc.addObject("Part::Feature", "HexDriveCoupler")
+    coupler_obj = doc.addObject("Part::Feature", "DriveCoupler")
     coupler_obj.Shape = coupler_shape
     if hasattr(coupler_obj, "ViewObject") and coupler_obj.ViewObject:
         coupler_obj.ViewObject.ShapeColor = (0.6, 0.35, 0.71)

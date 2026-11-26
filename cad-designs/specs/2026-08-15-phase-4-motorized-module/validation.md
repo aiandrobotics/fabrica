@@ -36,7 +36,7 @@ Validation specification and acceptance criteria for the Active Motorized Module
 | `MotorizedServoCover` ↔ `ServoMotor` | `0.00000 mm³` | REQUIRED PASS |
 | `MotorizedFrame` ↔ `FrameJoiner_Front` | `0.00000 mm³` | REQUIRED PASS |
 | `MotorizedFrame` ↔ `FrameJoiner_Right` | `0.00000 mm³` | REQUIRED PASS |
-| `MotorizedFlap` ↔ `HexDriveCoupler` | `0.00000 mm³` | REQUIRED PASS |
+| `MotorizedFlap` ↔ `DriveCoupler` | `0.00000 mm³` | REQUIRED PASS |
 | `MotorizedFlap` ↔ `ServoDriveAdapter` | `0.00000 mm³` | REQUIRED PASS |
 | `ServoDriveAdapter` ↔ `ServoMotor` | `0.00000 mm³` | REQUIRED PASS |
 | `MotorizedFrame` ↔ `ServoDriveAdapter` | `0.00000 mm³` | REQUIRED PASS |
