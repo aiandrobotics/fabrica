@@ -1,0 +1,25 @@
+---
+title: Fabrica Overview
+description: Smart open-source cloth folding robot built with 3D-printed parts, ESP32-S3 firmware, and BLE mobile control.
+sidebar:
+  order: 1
+---
+
+**Fabrica** is Air Robotics' open-source, automated garment folding robot designed to be built for **$80–$150** using standard desktop 3D-printed parts, off-the-shelf electronics, and dual-core ESP32-S3 firmware.
+
+Using a modular grid of hinged 3D-printed panels and parallel MG996R servo actuation, Fabrica folds t-shirts, long-sleeve shirts, trousers, and towels in **8 to 12 seconds** per item via physical console buttons or Bluetooth Low Energy (BLE) mobile control.
+
+## Key Capabilities
+
+- **Accessible BOM ($80–$150)**: Standard 3D-printable parts, ESP32-S3-DevKitC-1, PCA9685 16-channel PWM driver, and MG996R metal-gear servos.
+- **Fast 8–12 Second Cycle**: Parallel opposite-panel sweeps with 50 Hz soft-landing trajectories reduce cycle time by ~40% compared to sequential folders.
+- **Standalone & Wireless Modes**: One-touch physical buttons (Presets 1–4) for daily laundry, plus BLE control via the Air Robotics companion app for custom routines, live jog calibration, and 10 Hz telemetry.
+- **Hardware E-Stop (under 50 ms)**: Tapping any physical button or sending a BLE stop halts motion within 50 ms and safely homes all panels.
+- **Fail-Safe Persistence**: NVS flash storage with IEEE 802.3 CRC32 verification protects saved folding sequences.
+
+## Documentation Guides
+
+- [Getting Started & Daily Operation](./getting-started/) — Presets, button gestures, and quick start workflow.
+- [Hardware, Wiring & BOM](./hardware-bom/) — Bill of materials, ESP32-S3/PCA9685 wiring diagram, power isolation rules, and GPIO pinout.
+- [3D Printing & Assembly](./assembly/) — Parametric FreeCAD modules, slicer profiles, and mechanical interlocks.
+- [Firmware & Mobile App](./software/) — ESP-IDF v6.0.2 FreeRTOS architecture, flashing, 880/880 host tests, and BLE pairing.

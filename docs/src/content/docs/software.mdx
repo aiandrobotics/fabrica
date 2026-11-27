@@ -1,0 +1,53 @@
+---
+title: Firmware & Mobile App
+description: ESP-IDF v6.0.2 dual-core FreeRTOS firmware architecture, building, flashing, host tests, and BLE mobile control.
+sidebar:
+  order: 5
+---
+
+Fabrica's firmware runs natively on the **ESP32-S3-DevKitC-1** using **ESP-IDF v6.0.2** and a dual-core FreeRTOS architecture.
+
+## Dual-Core Architecture
+
+- **Core 0 — Motion Engine & Actuation**:
+  - 50 Hz PWM servo trajectory generator over I2C (`GPIO 2 SDA`, `GPIO 1 SCL`) driving the PCA9685.
+  - Single-motor and parallel dual-servo fold sweeps (`0° → 165°` in 900 ms, return & brake `165° → 30°` in 600 ms, linear soft-landing `30° → 0°` in 500 ms, 10 ms settle).
+  - Sub-50 ms latched Emergency Stop preemption handler.
+- **Core 1 — UI, BLE Wireless & Storage**:
+  - 50 ms debounced 4-button gesture detector and non-blocking status LED driver (`GPIO 15`).
+  - NVS flash sequence persistence with IEEE 802.3 CRC32 verification.
+  - Apache NimBLE GATT server (`FAB0`) with adaptive telemetry streaming (10 Hz in motion, 1 Hz idle).
+
+## Building & Flashing Firmware
+
+Ensure [ESP-IDF v6.0.2](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/) is installed and sourced:
+
+```bash
+cd firmware
+idf.py set-target esp32s3
+idf.py build
+idf.py -p /dev/ttyUSB0 flash monitor
+```
+
+## Running Host Unit Tests
+
+Fabrica includes 11 host unit and integration test suites (**880/880 passing checks** compiled with `-Wall -Wextra -Werror`):
+
+```bash
+cd firmware
+make test
+```
+
+For verbose output across all assertions:
+
+```bash
+make test-verbose
+```
+
+## Connecting the Mobile App
+
+The companion mobile app lives in [github.com/aiandrobotics/air-robotics-app](https://github.com/aiandrobotics/air-robotics-app):
+
+1. Hold any physical button (`B1`–`B4`) on Fabrica for **3 seconds** to enter BLE pairing mode.
+2. Scan for `Fabrica-XXXX` in the Air Robotics app (or generic BLE tools like **nRF Connect** / **LightBlue**) and connect.
+3. Preview custom sequences (`0x01`), assign routines to Buttons 1–4 (`0x0A`), jog servos for horn calibration (`0x0D`), or monitor live 10 Hz telemetry (`FAB2`).

@@ -1,0 +1,37 @@
+---
+title: 3D Printing & Assembly
+description: Parametric FreeCAD modules, printer bed requirements, exporting STEP/STL assets, and mechanical assembly.
+sidebar:
+  order: 4
+---
+
+Fabrica's mechanical structure is generated programmatically with parametric FreeCAD Python scripts in `cad-designs/`. All parts are sized for standard **256 × 256 × 256 mm** FDM build plates (with parametric scaling support down to 180 mm beds).
+
+## Mechanical Modules
+
+| Module | Source Scripts | Highlights |
+| --- | --- | --- |
+| **Base Chassis** | `base_module.py` | Rigid `220 × 220 × 15 mm` platform, reinforced dovetail bosses, weight-reduction cutouts, micro-grip grooves, captive cable conduits |
+| **Motorized Module** | `motorized_frame.py`, `motorized_flap.py`, `motorized_servo_adapter.py`, `motorized_servo_cover.py` | Integrated MG996R servo well, Ø 12.8 mm hinge axle, 45° diamond tapered square drive coupler, solid 2.4 mm hinge neck, vented snap-cover |
+| **Follower Module** | `follower_frame.py`, `follower_flap.py` | Passive folding extension with dual Ø 13.7 mm bearing knuckles and 14.0 mm deep 6.50 mm diamond square drive sockets |
+| **Interface Enclosure** | `interface_case.py`, `interface_panel.py` | Compact triple-board enclosure for ESP32-S3-DevKitC-1, PCA9685, power distribution, 4 tactile buttons, and status LED |
+| **Hardware Interlocks** | `frame_joiner.py`, `drive_coupler.py`, `end_pivot_pin.py` | Click-lock sliding dovetail bridges with wire raceways, double-male diamond square coupler pins, and click-lock end pivot pins |
+
+## Exporting CAD & Slicing
+
+Pre-exported STEP and STL assets are located in `cad-designs/exports/`, and a ready-to-slice Bambu Studio / OrcaSlicer project is available at `cad-designs/3d-print/fabrica-bambu-lab-256.3mf`.
+
+To regenerate all STEP and STL files from the FreeCAD Python scripts:
+
+```bash
+cd cad-designs
+python3 export_all.py
+```
+
+To build a single module headlessly:
+
+```bash
+./run.sh motorized_frame.py
+```
+
+Continue to [Firmware & Mobile App](./software/) once mechanical assembly and wiring are complete.

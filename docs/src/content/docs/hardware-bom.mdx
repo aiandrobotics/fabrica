@@ -1,0 +1,66 @@
+---
+title: Hardware, Wiring & BOM
+description: Complete bill of materials, ESP32-S3 to PCA9685 electrical schematic, power isolation rule, and GPIO pinout.
+sidebar:
+  order: 3
+---
+
+## Bill of Materials (BOM)
+
+| # | Component | Qty | Purpose | Est. Cost (USD) |
+| --- | --- | --- | --- | --- |
+| 1 | **ESP32-S3-DevKitC-1** | 1 | Main dual-core microcontroller board | $5.00 – $8.00 |
+| 2 | **PCA9685 16-Channel PWM Board** | 1 | Dedicated I2C servo controller | $3.00 – $5.00 |
+| 3 | **MG996R Metal-Gear Servos** | 4 | High-torque 180° flap actuators | $24.00 – $32.00 |
+| 4 | **DC Power Supply (5V–6V, 10A–20A)** | 1 | High-current isolated servo power | $15.00 – $25.00 |
+| 5 | **Panel-Mount DC Barrel Jack (5.5×2.1 mm)** | 1 | Enclosure power inlet | $1.00 |
+| 6 | **16 mm Momentary Push Buttons** | 4 | Physical control pad (B1–B4) | $6.00 – $10.00 |
+| 7 | **Diffused Status LED + 220 Ω Resistor** | 1 | Enclosure status feedback | $0.50 |
+| 8 | **PETG or PLA+ Filament (1 kg spools)** | 2 | 3D-printed chassis and flaps | $30.00 – $40.00 |
+| 9 | **M3 Fasteners (Screws & Nuts)** | 1 pack | Frame assembly and servo mounting | $5.00 – $8.00 |
+| **Total** | | | | **$88.50 – $127.00** |
+
+## Power Isolation Rule
+
+:::caution[Never power servos from the ESP32-S3]
+High-torque MG996R servos can draw peak stall currents above **2.5 A each**. Never power the PCA9685 servo terminal (`V+`) from the ESP32-S3 3.3 V or 5 V pin. Always use an external regulated 5 V–6 V DC power supply rated for 10 A–20 A surge capacity, sharing a common ground rail with the ESP32-S3.
+:::
+
+## Wiring Schematic
+
+```text
+                  +--------------------------+
+                  |    ESP32-S3-DevKitC-1    |
+                  |                          |
+                  |         3V3 Logic   (1)  |------------> PCA9685 VCC
+                  |         GND         (2)  |----+-------> PCA9685 GND
+                  |         GPIO 2  SDA (3)  |---|--------> PCA9685 SDA
+                  |         GPIO 1  SCL (4)  |---|--------> PCA9685 SCL
+                  |                          |   |
+                  |         GPIO 15 LED      |   |
+                  |         GPIO 4  (Btn 1)  |   |
+                  |         GPIO 5  (Btn 2)  |   |
+                  |         GPIO 6  (Btn 3)  |   |
+                  |         GPIO 7  (Btn 4)  |   |
+                  +--------------------------+   |
+                                                 |
+  +-------------------------------+              |
+  | External Power Supply         |              |
+  | Regulated 5V - 6V DC (10A-20A)|              |
+  |                               |              |
+  |                     (+) V+    |--------------|-------> PCA9685 V+ (Servo Power Rail)
+  |                     (-) GND   |--------------+-------> Common Ground Rail
+  +-------------------------------+
+```
+
+## ESP32-S3 GPIO Pinout
+
+| ESP32-S3 Pin | Direction | Active Level | Function |
+| --- | --- | --- | --- |
+| `GPIO 15` | Output | High (`1`) | Status LED (front-panel diffuser) |
+| `GPIO 4` | Input (Pull-Up) | Low (`0`) | Button 1 (`B1`): Adult T-Shirt / E-Stop / Hold-to-Pair |
+| `GPIO 5` | Input (Pull-Up) | Low (`0`) | Button 2 (`B2`): Long-Sleeve / E-Stop / Hold-to-Pair |
+| `GPIO 6` | Input (Pull-Up) | Low (`0`) | Button 3 (`B3`): Trousers / E-Stop / Hold-to-Pair |
+| `GPIO 7` | Input (Pull-Up) | Low (`0`) | Button 4 (`B4`): Towel / E-Stop / Hold-to-Pair |
+| `GPIO 2` | In/Out (Open-Drain) | — | PCA9685 I2C Data (`SDA`) |
+| `GPIO 1` | Output (Open-Drain) | — | PCA9685 I2C Clock (`SCL`) |

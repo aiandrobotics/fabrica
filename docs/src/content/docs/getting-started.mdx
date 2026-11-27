@@ -1,0 +1,30 @@
+---
+title: Getting Started & Daily Operation
+description: Quick start workflow, factory folding presets, physical button gestures, and emergency stop handling.
+sidebar:
+  order: 2
+---
+
+## Build Workflow
+
+1. Review the [Hardware, Wiring & BOM](./hardware-bom/) guide and source all components.
+2. Print and assemble the modular panels following [3D Printing & Assembly](./assembly/).
+3. Wire the ESP32-S3, PCA9685, buttons, status LED, and isolated 5V–6V servo power supply.
+4. Build and flash the ESP-IDF firmware using [Firmware & Mobile App](./software/).
+
+## Factory Default Presets
+
+| Button | Garment | Steps | Sequence |
+| --- | --- | --- | --- |
+| **Button 1** | Adult T-Shirt | 4 | Left flap → Right flap → Bottom waist → Top collar |
+| **Button 2** | Long-Sleeve Shirt | 5 | Parallel Left+Right sleeves → Top collar → Left body → Right body → Bottom waist |
+| **Button 3** | Trousers / Jeans | 3 | Left vertical fold → Bottom fold → Top waistband |
+| **Button 4** | Towel / Linen | 4 | Left half-fold → Right quarter-fold → Bottom fold → Top final fold |
+
+## Physical Button Gestures
+
+- **Tap Button 1–4 (Idle)**: Run the assigned folding preset.
+- **Tap Any Button (In Motion)**: Trigger Emergency Stop (under 50 ms abort) and return panels to home.
+- **Hold Any Button (3 seconds)**: Enter 120-second BLE pairing mode (`LED_STATE_BLE_PAIRING`).
+- **Hold Button 1 + Button 4 (5 seconds)**: Clear all stored BLE bonds.
+- **Hold Button 1 + Button 3 + Button 4 (10 seconds)**: Full factory reset (restores default presets, wipes BLE bonds, and enters indefinite pairing mode).
