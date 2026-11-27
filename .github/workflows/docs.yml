@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - 'docs/**'
+      - '.github/workflows/docs.yml'
 
 permissions:
   contents: read
@@ -31,6 +32,16 @@ jobs:
           cache: pnpm
           cache-dependency-path: docs/pnpm-lock.yaml
 
+      - name: Configure git auth for private theme repo (if token set)
+        env:
+          THEME_TOKEN: ${{ secrets.AIR_WEBSITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -n "${THEME_TOKEN}" ]; then
+            git config --global url."https://x-access-token:${THEME_TOKEN}@github.com/aiandrobotics/air-robotics-website".insteadOf "https://github.com/aiandrobotics/air-robotics-website"
+            git config --global url."https://x-access-token:${THEME_TOKEN}@github.com/aiandrobotics/air-robotics-website".insteadOf "ssh://git@github.com/aiandrobotics/air-robotics-website"
+            git config --global url."https://x-access-token:${THEME_TOKEN}@github.com/aiandrobotics/air-robotics-website".insteadOf "git@github.com:aiandrobotics/air-robotics-website"
+          fi
+
       - name: Install dependencies
         working-directory: docs
         run: pnpm install
@@ -46,10 +57,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch robot-docs-updated event
-        if: secrets.AIR_WEBSITE_DISPATCH_TOKEN != ''
         env:
           DISPATCH_TOKEN: ${{ secrets.AIR_WEBSITE_DISPATCH_TOKEN }}
         run: |
+          if [ -z "${DISPATCH_TOKEN}" ]; then
+            echo "::notice::Skipping dispatch because AIR_WEBSITE_DISPATCH_TOKEN is not configured."
+            exit 0
+          fi
           curl -fsSL -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${DISPATCH_TOKEN}" \
